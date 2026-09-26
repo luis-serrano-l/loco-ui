@@ -138,13 +138,19 @@ impl Render for EmptyState<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
+/* The shadcn empty state: centred in a dashed frame, an icon in a soft brand tile, a title,
+   one line of body and the actions as buttons. */
 .lui-empty {
   display: grid; justify-items: center; gap: var(--lui-space); text-align: center;
   padding: calc(var(--lui-space) * 6) calc(var(--lui-space) * 3);
   border: 1px dashed var(--lui-line); border-radius: var(--lui-radius-lg);
 }
-.lui-empty-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; font-size: 1.25rem; line-height: 1; border-radius: var(--lui-radius-sm); background: var(--lui-secondary); }
-.lui-empty-title { margin: 0; font-size: 1.125rem; font-weight: 500; letter-spacing: -0.0125em; }
+.lui-empty-icon {
+  display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: var(--lui-space-2); font-size: 1.5rem; line-height: 1;
+  border-radius: var(--lui-radius-lg); background: var(--lui-brand-3); color: var(--lui-brand-11);
+}
+.lui-empty-icon > .lui-icon { width: 1.5rem; height: 1.5rem; }
+.lui-empty-title { margin: 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.0125em; }
 .lui-empty-text { margin: 0; color: var(--lui-muted); max-width: 24rem; font-size: 0.875rem; }
 .lui-empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--lui-space) * 2); margin-top: var(--lui-space); }
 .lui-empty-actions form { margin: 0; }

@@ -41,6 +41,7 @@ fn buttons(ui: &Ui) -> Markup {
             Cluster {
                 Badge("New"); Badge("Draft") secondary; Badge("Failed") danger;
                 Badge("rust") outline; Badge("Paid") ok; Badge("Pending") warn;
+                Badge("Live") solid; Badge("Beta") surface; Badge("Failed") danger solid;
             }
             Cluster {
                 Button("Upgrade") primary shimmer; Button("What's new") shimmer;
@@ -98,12 +99,13 @@ fn cards(ui: &Ui) -> Markup {
             Card title="Team" description="3 people can edit this project."
                 header={ Badge("Pro") secondary; }
                 footer={ Button("Invite") primary; Button("Manage") ghost; } {
+                Avatars("Editors") max=2 { avatar "Ada Lovelace"; avatar "Grace Hopper"; avatar "Alan Turing"; }
                 Stack gap=3 { @for (name, role) in team {
                     Cluster { Avatar(name); span { (name) } Badge(role) outline; }
                 } }
             }
-            Card title="Storage" description="Resets on the 1st." footer={ LinkButton("Upgrade", "/card"); } {
-                p { "3.2 GB of 5 GB used." }
+            Card title="Storage" description="Resets on the 1st." classic footer={ LinkButton("Upgrade", "/card"); } {
+                Cluster { Avatar("Acme Inc") square; p { "3.2 GB of 5 GB used." } }
             }
             Card title="Pro" description="A beam runs round the border." beam glow
                 footer={ Button("Start trial") primary shimmer; } {

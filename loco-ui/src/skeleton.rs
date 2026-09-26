@@ -98,14 +98,17 @@ impl Render for Skeleton<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* shadcn Skeleton: accent-coloured blocks, rounded-md, a slow pulse. */
+/* After Radix Themes Skeleton: --lui-gray-4 blocks in the shape of the text they stand for
+   (a heading, lines, the last one short), with a light sweeping across them; still under
+   reduced motion. */
 .lui-skeleton { display: grid; gap: calc(var(--lui-space) * 1.25); padding-block: var(--lui-space); }
 .lui-skeleton-line, .lui-skeleton-heading {
-  display: block; height: 1rem; border-radius: var(--lui-radius-sm); background: var(--lui-accent);
-  animation: lui-skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  display: block; height: 1rem; border-radius: var(--lui-radius-sm);
+  background: linear-gradient(90deg, var(--lui-gray-4) 0 35%, var(--lui-gray-3) 50%, var(--lui-gray-4) 65% 100%) 0 0 / 300% 100% var(--lui-gray-4);
+  animation: lui-skeleton-shimmer 1.6s ease-in-out infinite;
 }
 .lui-skeleton-heading { height: 1.5rem; width: 45%; margin-bottom: calc(var(--lui-space) * 0.5); }
 .lui-skeleton-last { width: 60%; }
-@keyframes lui-skeleton-pulse { 50% { opacity: 0.5; } }
+@keyframes lui-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .lui-skeleton-line, .lui-skeleton-heading { animation: none; } }
 "#;

@@ -1642,6 +1642,12 @@ mod tests {
             ),
             ("range", "one row: the slider and its value"),
             (
+                "card",
+                "a column; the header's action wraps under the title",
+            ),
+            ("skeleton", "a column of blocks"),
+            ("empty_state", "one centred column"),
+            (
                 "description_list",
                 "each pair a wrapping row: the value drops under its label",
             ),
@@ -1694,13 +1700,7 @@ mod tests {
         ];
         // Not responsive yet, each until its M34 box lands. The test fails once one passes,
         // so the entry leaves with the fix. Empty by the M34 wrap-up.
-        const PENDING: &[(&str, &str)] = &[
-            ("card", "Card box"),
-            ("kanban", "Kanban box"),
-            ("skeleton", "Card box"),
-            ("empty_state", "Card box"),
-            ("marquee", "Marquee box"),
-        ];
+        const PENDING: &[(&str, &str)] = &[("kanban", "Kanban box"), ("marquee", "Marquee box")];
         let listed = |list: &[(&str, &str)], name: &str| list.iter().any(|(n, _)| *n == name);
         let mut wrong = Vec::new();
         for (name, css) in named {

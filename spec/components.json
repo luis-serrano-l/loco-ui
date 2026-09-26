@@ -180,11 +180,13 @@
           "status": "stable",
           "calls": ["ui.badge(text: &str)"],
           "props": [
-            { "name": "secondary", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The quieter `--lui-secondary` fill." },
-            { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Filled with `--lui-danger`." },
-            { "name": "outline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A border and no fill." },
-            { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A tint of `--lui-ok`." },
-            { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A tint of `--lui-warn`." },
+            { "name": "secondary", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A gray tone instead of the brand." },
+            { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The `--lui-danger` tone." },
+            { "name": "outline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A border and no fill (gray unless toned)." },
+            { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The `--lui-ok` tone." },
+            { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The `--lui-warn` tone." },
+            { "name": "solid", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Filled with the tone, light text on it." },
+            { "name": "surface", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A pale tint inside a border of the tone." },
             { "name": "href", "kind": "value", "args": "href: &'a str", "default": "", "attr": "href", "doc": "Make the badge a link." },
             { "name": "shimmer", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A light sweeps across the badge, over its own fill." }
           ]
@@ -221,7 +223,9 @@
             { "name": "beam", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A light runs round the border, drawn with a conic gradient." },
             { "name": "glow", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A spotlight at the top centre that brightens and grows on hover." },
             { "name": "gradient_border", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The border drawn with `--lui-gradient-ring`." },
-            { "name": "reveal", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fades and rises as it scrolls into view." }
+            { "name": "reveal", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fades and rises as it scrolls into view." },
+            { "name": "classic", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Radix's classic card: a deeper shadow and no border line." },
+            { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No frame, fill or shadow: only the card's spacing." }
           ]
         }
       ]
@@ -265,8 +269,22 @@
           "calls": ["ui.avatar(name: &str)"],
           "props": [
             { "name": "src", "kind": "value", "args": "src: &'a str", "default": "", "attr": "src", "doc": "The picture's URL." },
-            { "name": "small", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "1.5rem across instead of 2rem, for lists and table rows." },
-            { "name": "large", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "3rem across, for a profile header." }
+            { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–5: 1.5, 2, 2.5, 3 or 4rem across." },
+            { "name": "small", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`.size(1)`: 1.5rem across, for lists and table rows." },
+            { "name": "large", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`.size(4)`: 3rem across, for a profile header." },
+            { "name": "square", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Rounded corners instead of a circle (a team, a project)." }
+          ]
+        },
+        {
+          "builder": "Avatars",
+          "lui": "Avatars",
+          "status": "stable",
+          "calls": ["ui.avatars(label: &str)"],
+          "props": [
+            { "name": "avatar", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A person in the row." },
+            { "name": "src", "kind": "modifier", "args": "src: &'a str", "default": "", "attr": "", "doc": "The picture of the person added last." },
+            { "name": "max", "kind": "number", "args": "max: usize", "default": "", "attr": "", "doc": "Show this many, then a `+n` count of the rest." },
+            { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–5 for every avatar in the row." }
           ]
         }
       ]

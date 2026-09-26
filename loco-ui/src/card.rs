@@ -61,7 +61,8 @@ use crate::props::{Prop, PropKind};
 /// A card, made by [`Ui::card`].
 ///
 /// **Setters.** Values and items: `.title(..)`, `.description(..)`, `.header(..)`, `.body(..)`,
-/// `.footer(..)`, `.id(..)`; switches: `.beam()`, `.glow()`, `.gradient_border()`, `.reveal()`.
+/// `.footer(..)`, `.id(..)`; switches: `.classic()`, `.ghost()`, `.beam()`, `.glow()`,
+/// `.gradient_border()`, `.reveal()`.
 #[derive(Clone, Debug, Default)]
 pub struct Card<'a> {
     title: Option<&'a str>,
@@ -70,6 +71,7 @@ pub struct Card<'a> {
     body: Option<Markup>,
     footer: Option<Markup>,
     id: Option<&'a str>,
+    variant: Option<&'static str>,
     beam: bool,
     glow: bool,
     gradient_border: bool,
@@ -98,6 +100,10 @@ impl Card<'_> {
         Prop::new("gradient_border", PropKind::Switch, "")
             .doc("The border drawn with `--lui-gradient-ring`."),
         Prop::new("reveal", PropKind::Switch, "").doc("Fades and rises as it scrolls into view."),
+        Prop::new("classic", PropKind::Switch, "")
+            .doc("Radix's classic card: a deeper shadow and no border line."),
+        Prop::new("ghost", PropKind::Switch, "")
+            .doc("No frame, fill or shadow: only the card's spacing."),
     ];
 }
 
@@ -147,6 +153,20 @@ impl<'a> Card<'a> {
         self
     }
 
+    /// Radix's classic card: a deeper shadow and no border line, for a card that should
+    /// stand out from a surface of cards.
+    pub fn classic(mut self) -> Self {
+        self.variant = Some(" lui-card-classic");
+        self
+    }
+
+    /// No frame, fill or shadow: the card's spacing and header only, to group content that
+    /// already sits in a frame.
+    pub fn ghost(mut self) -> Self {
+        self.variant = Some(" lui-card-ghost");
+        self
+    }
+
     /// A light runs round the border, drawn with a conic gradient whose angle is an
     /// `@property`: the one card a page wants noticed. At rest without `mask-composite` or
     /// under `prefers-reduced-motion: reduce`.
@@ -182,6 +202,9 @@ impl Render for Card<'_> {
         let has_header =
             self.title.is_some() || self.description.is_some() || self.header.is_some();
         let mut class = String::from("lui-card");
+        if let Some(v) = self.variant {
+            class.push_str(v);
+        }
         for (on, name) in [
             (self.beam, " lui-card-beam"),
             (self.glow, " lui-card-glow"),
@@ -196,8 +219,12 @@ impl Render for Card<'_> {
             div class=(class) id=[self.id] {
                 @if has_header {
                     div class="lui-card-header" {
-                        @if let Some(t) = self.title { h3 class="lui-card-title" { (t) } }
-                        @if let Some(d) = self.description { p class="lui-card-description" { (d) } }
+                        @if self.title.is_some() || self.description.is_some() {
+                            div class="lui-card-heading" {
+                                @if let Some(t) = self.title { h3 class="lui-card-title" { (t) } }
+                                @if let Some(d) = self.description { p class="lui-card-description" { (d) } }
+                            }
+                        }
                         @if let Some(h) = &self.header { div class="lui-card-action" { (h) } }
                     }
                 }
@@ -210,16 +237,25 @@ impl Render for Card<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn: py-6, gap-6, px-6.
 pub const CSS: &str = r#"
+/* After Radix Themes Card: surface by default (the card fill, a hairline, a small shadow),
+   .classic() a deeper shadow and no line, .ghost() no frame at all; 24px padding, the
+   header a title over its description with the action beside it (under it once the title
+   needs the room). A card inside a card drops its frame, fill and shadow, so boxes never
+   nest three deep. */
 .lui-card {
   display: flex; flex-direction: column; gap: 1.5rem; padding-block: 1.5rem;
   background: var(--lui-card); color: var(--lui-fg);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); box-shadow: var(--lui-shadow-sm), var(--lui-highlight);
 }
-.lui-card-header { display: grid; grid-template-columns: 1fr auto; row-gap: 0.375rem; column-gap: 1rem; padding-inline: 1.5rem; }
-.lui-card-header > :not(.lui-card-action) { grid-column: 1; }
+.lui-card-header { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--lui-space-2) var(--lui-space-4); padding-inline: 1.5rem; }
+.lui-card-heading { display: grid; gap: 0.375rem; flex: 1 1 12rem; min-width: 0; }
 .lui-card-title { margin: 0; font-size: 1rem; line-height: 1.25; font-weight: 600; }
 .lui-card-description { margin: 0; color: var(--lui-muted); font-size: 0.875rem; }
-.lui-card-action { grid-column: 2; grid-row: 1 / span 2; align-self: start; justify-self: end; }
+.lui-card-action { flex: none; margin-left: auto; }
+.lui-card.lui-card-classic { border-color: transparent; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
+.lui-card.lui-card-ghost, .lui-card .lui-card { background: transparent; border-color: transparent; box-shadow: none; }
+.lui-card .lui-card { padding-block: 0; }
+.lui-card .lui-card > * { padding-inline: 0; }
 .lui-card-body { padding-inline: 1.5rem; }
 .lui-card-body > :first-child { margin-top: 0; }
 .lui-card-body > :last-child { margin-bottom: 0; }

@@ -188,6 +188,13 @@ pub(crate) const COMPONENTS: &[Component] = &[
         status: Status::Stable,
     },
     Component {
+        module: "avatar",
+        builder: "Avatars",
+        calls: &["ui.avatars(label: &str)"],
+        props: crate::avatar::Avatars::PROPS,
+        status: Status::Stable,
+    },
+    Component {
         module: "badge",
         builder: "Badge",
         calls: &["ui.badge(text: &str)"],

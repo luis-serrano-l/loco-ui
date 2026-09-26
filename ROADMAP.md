@@ -1623,6 +1623,13 @@ owner has seen them.
   they shrink to fit; the digit size follows. Each background layer is a custom property, so
   ring and dividers combine without a rule per case. The redundant `2 / 6` counter is
   visually hidden (still the field's description). Demo groups 3 + 3.
+- [ ] One-time code overflow (`input_otp.rs`; asked by the owner on 2026-09-26): with all six
+  digits typed, the field shows a strange overflow (the text shifts or the cells misalign).
+  Likely the letter spacing after the last digit plus the caret need room the field's width
+  does not give, so it scrolls inside itself. Reproduce in Firefox and Chrome at 1280 and
+  420, fix it (for example room for the trailing spacing with the extra clipped, or no
+  spacing after the last cell) so a full code sits exactly in its cells, and add a browser
+  check that typing six digits leaves `scrollLeft` at 0.
 - [x] Upload (`upload.rs`; reference: the Origin UI file upload):
   - A dashed dropzone with an icon tile, a title ("Drop files or browse"), a hint with types
     and size, and a hover or `:focus-within` tint.
@@ -1935,7 +1942,7 @@ owner has seen them.
   label it moves under it, so the list stacks in a narrow box without a breakpoint (a `<dl>`
   cannot query its own width); `.stacked()` stacks always. The record page's fields take the
   same rows inside their card. Both joined NO_BREAKPOINT.
-- [ ] Card, avatar, badge, empty state, skeleton (`card.rs`, `avatar.rs`, `badge.rs`,
+- [x] Card, avatar, badge, empty state, skeleton (`card.rs`, `avatar.rs`, `badge.rs`,
   `empty_state.rs`, `skeleton.rs`; reference: Radix Themes Card, Avatar, Badge and Skeleton;
   shadcn for the empty state):
   - Card:
@@ -1952,6 +1959,24 @@ owner has seen them.
     centred in its container.
   - Skeleton: gray-4 with the shimmer, matching the shape of what it stands for, and
     disabled under reduced motion.
+  Done:
+  - Card: surface by default; new `.classic()` (deeper shadow, no line) and `.ghost()` (no
+    frame); a card inside a card drops frame, fill, shadow and padding. The header is a
+    heading block (title over description) and the action, which wraps under it when the
+    card is narrow (flex-wrap; NO_BREAKPOINT).
+  - Avatar: new `.size(1..=5)` (1.5 to 4rem; `.small()`/`.large()` are 1 and 4) and
+    `.square()`; initials on a brand-3 tint in brand-11. New `ui.avatars(label)`: a
+    labelled group of overlapping avatars ringed in the page colour, `.avatar(..)`,
+    `.src(..)`, `.max(n)` with a `+n` count, `.size(..)` (in PROPS and props::COMPONENTS).
+  - Badge: tone and look are separate: tone brand (default), `.secondary()` gray,
+    `.danger()`, `.ok()`, `.warn()`; look soft (default, now also for the brand and danger,
+    which were solid), new `.solid()` and `.surface()`, and `.outline()` (gray unless
+    toned). Size 1, no wrapping, as before.
+  - Empty state: the icon in a 3rem brand-3 tile, a semibold title.
+  - Skeleton: gray-4 blocks with a light sweep (was an accent pulse), still under reduced
+    motion.
+  - Demo: badges add solid and surface, the Team card shows an avatar group, Storage is a
+    classic card with a square avatar.
 - [ ] Kanban (`kanban.rs`; reference: Dice UI Kanban):
   - Each column is a gray-2 surface with its title, a count badge and the limit shown as
     "3/5".
