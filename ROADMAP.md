@@ -1441,11 +1441,15 @@ owner has seen them.
   Done: written in `layout.rs`'s header. Blitz ignores `@container` (Stylo parses it only in
   Gecko builds; servo#43346), recorded in FINDINGS; no current Blitz assertion needs a wide
   layout.
-- [ ] Touch sizing in `layout.rs`:
+- [x] Touch sizing in `layout.rs`:
   - Add `--lui-control-h` (2.25 rem) and `--lui-hit` (2.25 rem). Under
     `@media (pointer: coarse)` both become 2.75 rem (44 px).
   - Controls use `min-block-size: var(--lui-control-h)`. Small inline targets (a menu's
     `…`, a close ×, a pager number) get at least `--lui-hit` of hit area through padding.
+  Done: plus `--lui-control-h-sm` (2 rem, 2.75 rem coarse) for small buttons. Used by buttons
+  (incl. icon-only and the dialog/drawer close), fields, toggle-group faces, nav-menu links,
+  colour inputs and swatches; menu items reach `--lui-hit` on coarse pointers; the toast × keeps
+  its 1.25 rem look with an `::after` hit area. Listed in `docs/theming.md`.
 - [ ] Spacing: if the reworks keep needing values outside the current scale, add
   `--lui-space-1…9` (Radix's 4, 8, 12, 16, 24, 32, 40, 48, 64 px). Decide this on the first
   form component and use it from then on.

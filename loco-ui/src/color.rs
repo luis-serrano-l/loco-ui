@@ -162,9 +162,9 @@ impl Render for Color<'_> {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 .lui-color { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); }
-.lui-color-input { width: 3rem; height: 2.25rem; padding: 2px; }
+.lui-color-input { width: 3rem; height: var(--lui-control-h); padding: 2px; }
 .lui-color-swatch {
-  width: 2.25rem; height: 2.25rem; border-radius: var(--lui-radius-sm); border: 1px solid var(--lui-input); box-shadow: var(--lui-shadow-xs);
+  width: var(--lui-control-h); height: var(--lui-control-h); border-radius: var(--lui-radius-sm); border: 1px solid var(--lui-input); box-shadow: var(--lui-shadow-xs);
   background: linear-gradient(color-mix(in srgb, var(--lui-color-value) var(--lui-color-alpha, 100%), transparent) 0 0),
     repeating-conic-gradient(var(--lui-line) 0 25%, var(--lui-surface) 0 50%) 0 0 / 0.75rem 0.75rem;
 }

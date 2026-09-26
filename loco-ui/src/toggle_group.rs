@@ -160,7 +160,7 @@ pub const CSS: &str = r#"
 .lui-toggle-group-item { position: relative; display: inline-flex; }
 .lui-toggle-group-item + .lui-toggle-group-item { border-left: 1px solid var(--lui-input); }
 .lui-toggle-group-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
-.lui-toggle-group-face { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; min-width: 2.25rem; height: 2.25rem; padding: 0 0.75rem; font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); background: var(--lui-bg); cursor: pointer; }
+.lui-toggle-group-face { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; min-width: var(--lui-control-h); height: var(--lui-control-h); padding: 0 0.75rem; font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); background: var(--lui-bg); cursor: pointer; }
 .lui-toggle-group-face:hover { background: var(--lui-secondary); }
 .lui-toggle-group-input:checked + .lui-toggle-group-face { background: var(--lui-accent); color: var(--lui-on-accent); }
 .lui-toggle-group-input:focus-visible + .lui-toggle-group-face { outline: 2px solid var(--lui-ring); outline-offset: -2px; }

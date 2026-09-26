@@ -123,7 +123,9 @@ pub const CSS: &str = r#"
 .lui-toast-close {
   display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem;
   color: var(--lui-muted); text-decoration: none; font-size: 1rem; line-height: 1; border-radius: 50%;
+  position: relative;
 }
+.lui-toast-close::after { content: ""; position: absolute; inset: calc((1.25rem - var(--lui-hit)) / 2); }
 .lui-toast-close:hover { color: var(--lui-fg); background: var(--lui-accent); }
 @keyframes lui-toast-out { to { opacity: 0; visibility: hidden; transform: translateY(0.5rem); } }
 @media (prefers-reduced-motion: reduce) { .lui-toast { animation: none; } }

@@ -541,7 +541,7 @@ impl Render for Button<'_> {
 pub const CSS: &str = r#"
 button, .lui-button {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-  min-height: 2.25rem; padding: 0.375rem 1rem; white-space: nowrap; cursor: pointer;
+  min-height: var(--lui-control-h); padding: 0.375rem 1rem; white-space: nowrap; cursor: pointer;
   font-family: inherit; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; color: inherit;
   background: var(--lui-bg); border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
   box-shadow: var(--lui-shadow-xs); transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
@@ -562,9 +562,9 @@ button.lui-danger, .lui-button.lui-button-danger { background: var(--lui-danger)
 button.lui-danger:hover, .lui-button.lui-button-danger:hover { background: color-mix(in srgb, var(--lui-danger) 90%, transparent); color: var(--lui-on-danger); }
 .lui-button.lui-button-ghost { background: transparent; border-color: transparent; box-shadow: none; }
 .lui-button.lui-button-ghost:hover { background: var(--lui-accent); }
-.lui-button.lui-button-small { min-height: 2rem; padding: 0.25rem 0.75rem; gap: 0.375rem; }
-.lui-button.lui-button-icon { width: 2.25rem; min-width: 2.25rem; padding: 0; }
-.lui-button.lui-button-icon.lui-button-small { width: 2rem; min-width: 2rem; }
+.lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; }
+.lui-button.lui-button-icon { width: var(--lui-control-h); min-width: var(--lui-control-h); padding: 0; }
+.lui-button.lui-button-icon.lui-button-small { width: var(--lui-control-h-sm); min-width: var(--lui-control-h-sm); }
 button:focus-visible, .lui-button:focus-visible { border-color: var(--lui-ring); }
 /* Where gradients take oklch, a focused outline button draws its border in the ring gradient
    (a padding-box fill over a border-box gradient: same width, no shift) inside the solid ring.

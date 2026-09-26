@@ -149,6 +149,6 @@ impl Render for NavMenu<'_> {
 pub const CSS: &str = r#"
 .lui-nav-menu > ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
 .lui-nav-menu .lui-popover > .lui-button, .lui-nav-menu .lui-popover > summary.lui-button { background: transparent; border-color: transparent; box-shadow: none; }
-.lui-nav-menu-link { display: inline-flex; align-items: center; height: 2.25rem; padding: 0 1rem; border-radius: var(--lui-radius); font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); text-decoration: none; }
+.lui-nav-menu-link { display: inline-flex; align-items: center; height: var(--lui-control-h); padding: 0 1rem; border-radius: var(--lui-radius); font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); text-decoration: none; }
 .lui-nav-menu-link:hover, .lui-nav-menu-link[aria-current="page"] { background: var(--lui-accent); color: var(--lui-on-accent); }
 "#;

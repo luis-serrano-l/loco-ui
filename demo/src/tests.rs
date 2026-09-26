@@ -141,11 +141,13 @@ async fn pages_ship_only_the_enhancement_script() {
             // and 104 KB) for the colour scales, depth tokens and motion; M30's budget box
             // holds that growth under 15 KB gzipped. The index shows every component live
             // since M31 (the same calls their pages make, the calendar, table and theme builder
-            // among them), so it gets its own budget: about 36 KB gzipped.
+            // among them), so it gets its own budget: about 36 KB gzipped. M34's component
+            // reworks (touch sizing, container layouts) raised it from 224; the stylesheet's
+            // own M34 cap is +10 KB gzipped.
             let budget = if html.contains("shadowrootmode") {
                 180
             } else if path == "/" {
-                224
+                240
             } else {
                 // 120 until M31's sidebar joined every page.
                 128

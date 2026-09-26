@@ -464,6 +464,7 @@ pub const CSS: &str = r#"
   font-size: 0.875rem; line-height: 1.25rem; font-weight: 400;
   background: none; border: 0; border-radius: var(--lui-radius-sm); box-shadow: none; cursor: pointer; justify-content: flex-start;
 }
+@media (pointer: coarse) { .lui-popover-item { min-height: var(--lui-hit); } }
 .lui-popover-item:hover, .lui-popover-item:focus-visible { background: var(--lui-accent); color: var(--lui-on-accent); outline: none; }
 .lui-popover-icon { width: 1rem; text-align: center; color: var(--lui-muted); }
 .lui-popover-text { flex: 1; }

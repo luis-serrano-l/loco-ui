@@ -741,7 +741,7 @@ pub const CSS: &str = r#"
 input, select, textarea { font: inherit; font-size: 0.875rem; line-height: 1.25rem; color: inherit; }
 label { font-weight: 500; }
 input, select, textarea {
-  min-height: 2.25rem; padding: 0.375rem 0.75rem; min-width: 0;
+  min-height: var(--lui-control-h); padding: 0.375rem 0.75rem; min-width: 0;
   background: transparent; border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
   box-shadow: var(--lui-shadow-xs); transition: border-color 0.15s, box-shadow 0.15s;
 }
