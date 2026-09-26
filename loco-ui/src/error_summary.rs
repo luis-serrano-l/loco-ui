@@ -46,9 +46,9 @@
 
 use maud::{Markup, Render, html};
 
-use crate::Ui;
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
+use crate::{Icon, Ui};
 
 /// A list of the fields in error, made by [`Ui::error_summary`] (and by a
 /// [`Form`](crate::form::Form) with messages).
@@ -127,7 +127,8 @@ impl Render for ErrorSummary<'_> {
         }
         let first = self.items.iter().find_map(|(id, _, _)| id.as_deref());
         html! {
-            div class="lui-error-summary" role="alert" aria-labelledby="lui-error-summary-title" {
+            div class="lui-error-summary lui-callout lui-callout-danger" role="alert" aria-labelledby="lui-error-summary-title" {
+                (Icon::TriangleAlert)
                 @if let Some(first) = first {
                     h2 class="lui-error-summary-title" id="lui-error-summary-title" {
                         a href={ "#" (first) } autofocus { (self.title) }
@@ -154,16 +155,11 @@ impl Render for ErrorSummary<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. A danger-toned card, as
 /// shadcn's destructive alert, with the links underlined.
 pub const CSS: &str = r#"
-.lui-error-summary {
-  display: grid; gap: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem;
-  color: var(--lui-danger); background: var(--lui-card);
-  border: 1px solid var(--lui-danger); border-radius: var(--lui-radius);
-}
-.lui-error-summary-title { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.5rem; }
-.lui-error-summary-title a { color: inherit; text-decoration: none; }
+/* The callout look (alert.rs) in danger: icon, title, then the list of links. */
+.lui-error-summary-title { margin: 0; font-size: 0.875rem; font-weight: 600; line-height: 1.25rem; }
+.lui-error-summary-title a { text-decoration: none; }
 .lui-error-summary-title a:focus-visible, .lui-error-summary-title:focus-visible { outline: 2px solid var(--lui-ring); outline-offset: 2px; border-radius: 2px; }
-.lui-error-summary-list { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.25rem; }
-.lui-error-summary-list a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.lui-error-summary-list { margin: 0; padding-left: 1.125rem; display: grid; gap: var(--lui-space-1); }
 "#;
 
 #[cfg(test)]

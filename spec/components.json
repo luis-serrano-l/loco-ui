@@ -1037,7 +1037,9 @@
             { "name": "icon", "kind": "value", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "Another icon than the tone's own." },
             { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something went wrong." },
             { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something to watch." },
-            { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something worked." }
+            { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something worked." },
+            { "name": "surface", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A paler tint inside a border in the level's colour." },
+            { "name": "outline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No tint: a border in the level's colour on the page." }
           ]
         }
       ]

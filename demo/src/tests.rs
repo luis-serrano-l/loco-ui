@@ -663,7 +663,7 @@ async fn refused_forms_lead_with_an_error_summary() {
     assert!(
         !text(Request::get("/form").body(Body::empty()).unwrap())
             .await
-            .contains("lui-error-summary\"")
+            .contains(r#"aria-labelledby="lui-error-summary-title""#)
     );
 }
 

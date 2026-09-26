@@ -1691,13 +1691,22 @@ owner has seen them.
   toggle group does not navigate). Without `:has()`, and in multiple mode, the checked face
   takes the chip look itself. A narrow container scrolls the row inside itself
   (NO_BREAKPOINT).
-- [ ] Callout for error summary, alert and flash (`error_summary.rs`, `alert.rs`, `flash.rs`;
+- [x] Callout for error summary, alert and flash (`error_summary.rs`, `alert.rs`, `flash.rs`;
   reference: Radix Themes Callout):
   - One look for all three: an icon, a title, then a body and links. Soft (tinted with steps
     3 and 11) is the default; `.surface()` and `.outline()` are the variants. Colour comes
     from the level: info brand, ok green, warn amber, danger red.
   - The error summary's links look like links in the callout colour and keep their autofocus.
   - Flash messages take the same card, with the dismiss button top-right.
+  Done: one `.lui-callout` look (in `alert.rs`, taken by the other two by class): the icon in
+  a 1rem column, a semibold title, then body and links underlined in the callout colour.
+  Soft by default; new `.surface()` (paler fill in a border) and `.outline()` (border only)
+  on `Alert`. Info uses the brand's steps 3/7/11; ok, warn and danger have one colour each,
+  so their fill, line and text are `color-mix` of it with the page background and text
+  (no new scales). The error summary is a danger callout with the warning icon; its title
+  link keeps `autofocus`. Flash messages are callouts with a level icon and a × dismiss
+  (44px hit area on touch) top-right; the message is now a `<div role>` holding a `<p>`.
+  All three are an icon column beside text at any width (NO_BREAKPOINT).
 
 ### Overlays and navigation
 - [ ] Dialog (`dialog.rs`; reference: Radix Themes Dialog and AlertDialog):

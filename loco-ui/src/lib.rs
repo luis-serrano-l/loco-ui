@@ -1642,6 +1642,12 @@ mod tests {
             ),
             ("range", "one row: the slider and its value"),
             (
+                "alert",
+                "a callout: the icon column beside the text at any width",
+            ),
+            ("error_summary", "a callout, as alert"),
+            ("flash", "callouts, as alert, the dismiss in a third column"),
+            (
                 "toggle_group",
                 "one row of equal items that scrolls inside itself when narrow",
             ),
@@ -1670,11 +1676,8 @@ mod tests {
         const PENDING: &[(&str, &str)] = &[
             ("card", "Card box"),
             ("kanban", "Kanban box"),
-            ("alert", "Callout box"),
             ("progress", "Progress box"),
             ("tabs", "Tabs box"),
-            ("error_summary", "Callout box"),
-            ("flash", "Callout box"),
             ("table", "Table box"),
             ("paged_table", "Table box"),
             ("breadcrumbs", "Breadcrumbs box"),

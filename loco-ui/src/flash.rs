@@ -49,9 +49,9 @@
 
 use maud::{Markup, Render, html};
 
-use crate::Ui;
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
+use crate::{Icon, Ui};
 
 /// How much a message matters: sets its colour and how it is announced.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -169,11 +169,12 @@ impl Render for Flash<'_> {
                 div class="lui-flash" {
                     @for (level, message) in &messages {
                         @let hide = self.auto_hide && matches!(level, Level::Info | Level::Ok);
-                        p class={ "lui-flash-item lui-flash-" (level.as_str()) @if hide { " lui-flash-auto" } }
+                        div class={ "lui-flash-item lui-callout lui-callout-" (level.as_str()) " lui-flash-" (level.as_str()) @if hide { " lui-flash-auto" } }
                             role=(if *level == Level::Danger { "alert" } else { "status" }) {
-                            span class="lui-flash-text" { (message) }
+                            (match level { Level::Ok => Icon::CircleCheck, Level::Info => Icon::Info, _ => Icon::TriangleAlert })
+                            p class="lui-flash-text" { (message) }
                             @if let Some(href) = dismiss {
-                                " " a class="lui-flash-dismiss" href=(href) aria-label=(self.ui.fill(Text::DismissMessage, &[message])) { (self.ui.text(Text::Dismiss)) }
+                                a class="lui-flash-dismiss" href=(href) aria-label=(self.ui.fill(Text::DismissMessage, &[message])) { (Icon::X) }
                             }
                         }
                     }
@@ -184,23 +185,17 @@ impl Render for Flash<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-flash { display: grid; gap: calc(var(--lui-space) * 1); margin-block: calc(var(--lui-space) * 2); }
-.lui-flash-item {
-  --lui-flash-tone: var(--lui-primary);
-  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-  gap: calc(var(--lui-space) * 1) calc(var(--lui-space) * 2); margin: 0;
-  padding: 0.75rem 1rem; border-radius: var(--lui-radius); font-size: 0.875rem;
-  background: var(--lui-card); border: 1px solid var(--lui-line); color: var(--lui-fg);
+/* Each message is a callout (alert.rs) in its level's colour, the dismiss × top-right. */
+.lui-flash { display: grid; gap: var(--lui-space-2); margin-block: var(--lui-space-4); }
+.lui-flash-item { grid-template-columns: 1rem minmax(0, 1fr) auto; }
+.lui-flash-item > .lui-icon { grid-row: 1; }
+.lui-flash-dismiss {
+  grid-column: 3 !important; grid-row: 1; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; margin: -0.125rem -0.5rem 0 0 !important;
+  border-radius: var(--lui-radius-sm); color: inherit; opacity: 0.7;
 }
-/* shadcn Alert: a neutral card; the level is a dot in its colour, and danger colours the text. */
-.lui-flash-item::before { content: ""; flex: none; align-self: center; width: 0.5rem; height: 0.5rem; margin-right: -0.5rem; border-radius: 50%; background: var(--lui-flash-tone); }
-.lui-flash-item > :first-child { flex: 1; }
-.lui-flash-info { --lui-flash-tone: var(--lui-muted); }
-.lui-flash-ok { --lui-flash-tone: var(--lui-ok); }
-.lui-flash-warn { --lui-flash-tone: var(--lui-warn); }
-.lui-flash-danger { --lui-flash-tone: var(--lui-danger); color: var(--lui-danger); }
-.lui-flash-dismiss { color: var(--lui-muted); font-size: 0.875rem; }
-.lui-flash-dismiss:hover { color: var(--lui-fg); }
+.lui-flash-dismiss::after { content: ""; position: absolute; inset: calc((1.5rem - var(--lui-hit)) / 2); }
+.lui-flash-dismiss { position: relative; }
+.lui-flash-dismiss:hover { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
 .lui-flash-auto { animation: lui-flash-hide 0.4s ease-in 6s forwards; }
 @keyframes lui-flash-hide {
   to { opacity: 0; visibility: hidden; height: 0; padding-block: 0; margin-block: -0.5rem 0; border-width: 0; }

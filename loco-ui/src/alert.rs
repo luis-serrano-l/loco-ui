@@ -21,10 +21,14 @@
 //! let m = ui.alert("Heads up").description("You can add components to your app.").render().into_string();
 //! assert!(m.contains(r#"role="status""#) && m.contains("Heads up"));
 //! let m = ui.alert("Payment failed").danger().description("Your card was declined.").render().into_string();
-//! assert!(m.contains(r#"class="lui-alert lui-alert-danger" role="alert""#));
+//! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-danger" role="alert""#));
 //! // The same in `lui!`:
 //! let same = lui! { Alert("Payment failed") danger description="Your card was declined."; };
 //! assert_eq!(same.into_string(), m);
+//! // Surface and outline variants.
+//! let m = ui.alert("Heads up").surface().render().into_string();
+//! assert!(m.contains("lui-callout-info lui-callout-surface"));
+//! assert_eq!(lui! { Alert("Heads up") surface; }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -36,13 +40,14 @@ use crate::{Icon, Ui};
 /// A callout, made by [`Ui::alert`].
 ///
 /// **Setters.** Values and items: `.description(..)`, `.body(..)`, `.icon(..)`; switches:
-/// `.danger()`, `.warn()`, `.ok()`.
+/// `.danger()`, `.warn()`, `.ok()`, `.surface()`, `.outline()`.
 #[derive(Clone, Debug)]
 pub struct Alert<'a> {
     title: &'a str,
     description: Option<&'a str>,
     body: Option<Markup>,
     tone: Option<&'static str>,
+    variant: Option<&'static str>,
     icon: Option<Glyph<'a>>,
 }
 
@@ -59,6 +64,10 @@ impl Alert<'_> {
         Prop::new("danger", PropKind::Switch, "").doc("Something went wrong."),
         Prop::new("warn", PropKind::Switch, "").doc("Something to watch."),
         Prop::new("ok", PropKind::Switch, "").doc("Something worked."),
+        Prop::new("surface", PropKind::Switch, "")
+            .doc("A paler tint inside a border in the level's colour."),
+        Prop::new("outline", PropKind::Switch, "")
+            .doc("No tint: a border in the level's colour on the page."),
     ];
 }
 
@@ -70,6 +79,7 @@ impl Ui {
             description: None,
             body: None,
             tone: None,
+            variant: None,
             icon: None,
         }
     }
@@ -111,6 +121,18 @@ impl<'a> Alert<'a> {
         self.tone = Some("ok");
         self
     }
+
+    /// A paler tint inside a border in the level's colour (Radix's surface variant).
+    pub fn surface(mut self) -> Self {
+        self.variant = Some("surface");
+        self
+    }
+
+    /// No tint: a border in the level's colour on the page (Radix's outline variant).
+    pub fn outline(mut self) -> Self {
+        self.variant = Some("outline");
+        self
+    }
 }
 
 impl Render for Alert<'_> {
@@ -121,7 +143,7 @@ impl Render for Alert<'_> {
             _ => Icon::Info,
         }));
         html! {
-            div class={ "lui-alert" @if let Some(t) = self.tone { " lui-alert-" (t) } }
+            div class={ "lui-alert lui-callout lui-callout-" (self.tone.unwrap_or("info")) @if let Some(v) = self.variant { " lui-callout-" (v) } }
                 role=(if self.tone == Some("danger") { "alert" } else { "status" }) {
                 (icon.hidden())
                 p class="lui-alert-title" { (self.title) }
@@ -132,21 +154,30 @@ impl Render for Alert<'_> {
     }
 }
 
-/// Styles for this component; included in [`crate::stylesheet`]. shadcn Alert: a bordered
-/// card, the icon in the first column, title and description beside it.
+/// Styles for this component; included in [`crate::stylesheet`]. It carries the callout
+/// look that [`crate::error_summary`] and [`crate::flash`] take too.
 pub const CSS: &str = r#"
-.lui-alert {
-  display: grid; grid-template-columns: 1rem 1fr; column-gap: 0.75rem; row-gap: 0.125rem; align-items: start;
-  padding: 0.75rem 1rem; font-size: 0.875rem; color: var(--lui-fg);
-  background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
+/* Radix Themes Callout, shared by alert, error summary and flash (class lui-callout): the
+   icon in a 1rem column, the title, then the body and links, all in the level's colour.
+   Soft by default (step 3 fill, step 11 text); .surface() adds a border round a paler fill,
+   .outline() keeps only the border. Info is the brand scale; ok, warn and danger have one
+   colour each, so their steps are mixed from it and the page background. */
+.lui-callout {
+  --lui-callout-bg: var(--lui-brand-3); --lui-callout-fg: var(--lui-brand-11); --lui-callout-line: var(--lui-brand-7);
+  display: grid; grid-template-columns: 1rem minmax(0, 1fr); column-gap: var(--lui-space-3); row-gap: var(--lui-space-1);
+  align-items: start; box-sizing: border-box; padding: var(--lui-space-3) var(--lui-space-4);
+  font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-callout-fg);
+  background: var(--lui-callout-bg); border: 1px solid transparent; border-radius: var(--lui-radius);
 }
-.lui-alert > .lui-icon { grid-row: 1 / span 2; margin-top: 0.125rem; }
-.lui-alert > :not(.lui-icon) { grid-column: 2; margin: 0; }
-.lui-alert-title { font-weight: 500; line-height: 1.25rem; }
-.lui-alert-description { color: var(--lui-muted); line-height: 1.25rem; }
+.lui-callout-ok { --lui-callout-bg: color-mix(in srgb, var(--lui-ok) 12%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-ok) 80%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-ok) 45%, var(--lui-bg)); }
+.lui-callout-warn { --lui-callout-bg: color-mix(in srgb, var(--lui-warn) 14%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-warn) 80%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-warn) 45%, var(--lui-bg)); }
+.lui-callout-danger { --lui-callout-bg: color-mix(in srgb, var(--lui-danger) 10%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-danger) 85%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-danger) 40%, var(--lui-bg)); }
+.lui-callout-surface { background: color-mix(in srgb, var(--lui-callout-bg) 60%, var(--lui-bg)); border-color: var(--lui-callout-line); }
+.lui-callout-outline { background: transparent; border-color: var(--lui-callout-line); }
+.lui-callout > .lui-icon { grid-row: 1 / span 2; margin-top: 0.125rem; }
+.lui-callout > :not(.lui-icon) { grid-column: 2; margin: 0; }
+.lui-callout a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.lui-callout a:hover { text-decoration-thickness: 2px; }
+.lui-alert-title { font-weight: 600; }
 .lui-alert-description p { margin: 0; }
-.lui-alert-danger { color: var(--lui-danger); }
-.lui-alert-danger .lui-alert-description { color: color-mix(in srgb, var(--lui-danger) 90%, var(--lui-fg)); }
-.lui-alert-warn > .lui-icon { color: var(--lui-warn); }
-.lui-alert-ok > .lui-icon { color: var(--lui-ok); }
 "#;
