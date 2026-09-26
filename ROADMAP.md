@@ -1623,11 +1623,18 @@ owner has seen them.
   they shrink to fit; the digit size follows. Each background layer is a custom property, so
   ring and dividers combine without a rule per case. The redundant `2 / 6` counter is
   visually hidden (still the field's description). Demo groups 3 + 3.
-- [ ] Upload (`upload.rs`; reference: the Origin UI file upload):
+- [x] Upload (`upload.rs`; reference: the Origin UI file upload):
   - A dashed dropzone with an icon tile, a title ("Drop files or browse"), a hint with types
     and size, and a hover or `:focus-within` tint.
   - Files are listed below as rows: an icon or preview, the name (truncated with an
     ellipsis), the size and a remove button.
+  Done: the drop zone keeps its dashed border and gets the upload icon in a round bordered
+  tile, a gray-2 tint on hover and a brand-2 tint with the ring border while its input has
+  focus (`:focus-within`), and roomier padding from 30rem (`container: lui-upload`). File rows
+  put the name (one line, ellipsis, whole name in `title`) over the size in a column beside a
+  bordered thumbnail, the ghost remove button at the end. Kept: the native file input stays
+  visible inside the zone (it is the drop target without script) and remove keeps the trash
+  icon.
 - [ ] Calendar and date picker (`calendar.rs`, `date_picker.rs`; reference: shadcn Calendar,
   the react-day-picker v9 look):
   - The caption has previous and next as ghost icon buttons and the month centred, with

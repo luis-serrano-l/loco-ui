@@ -1661,7 +1661,6 @@ mod tests {
         // so the entry leaves with the fix. Empty by the M34 wrap-up.
         const PENDING: &[(&str, &str)] = &[
             ("card", "Card box"),
-            ("upload", "Upload box"),
             ("kanban", "Kanban box"),
             ("alert", "Callout box"),
             ("progress", "Progress box"),

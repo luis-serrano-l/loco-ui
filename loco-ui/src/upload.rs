@@ -4,6 +4,11 @@
 //! server already holds, with a thumbnail for images and a Remove button each. The list is what
 //! the server says after the round trip, so it is always true.
 //!
+//! The look follows the Origin UI file upload: a dashed drop zone with its icon in a round
+//! tile, tinted on hover and while it has focus, roomier in a wide container; each kept file
+//! a row of thumbnail, name (cut with an ellipsis, whole in its `title`) over its size, and
+//! a remove button.
+//!
 //! **Platform features:** `<input type="file" accept multiple>` (baseline 2015) in a
 //! `<form method="post" enctype="multipart/form-data">`; a file dropped on the input is picked
 //! like a chosen one, with no script; `<progress>` (baseline 2013) for the upload bar;
@@ -194,7 +199,7 @@ impl Render for Upload<'_> {
             div id=(root) data-lui="swap" class="lui-upload" {
                 form method="post" action=(self.action) enctype="multipart/form-data" class="lui-upload-form" {
                     label class="lui-upload-drop" for=(input_id) {
-                        (Icon::Upload)
+                        span class="lui-upload-tile" aria-hidden="true" { (Icon::Upload) }
                         span class="lui-upload-title" { (self.ui.text(if self.multiple { Text::ChooseFiles } else { Text::ChooseFile })) }
                         @if let Some(h) = self.hint { span class="lui-upload-hint" { (h) } }
                         input id=(input_id) class="lui-upload-input" type="file" name=(self.name)
@@ -212,10 +217,12 @@ impl Render for Upload<'_> {
                                 } @else {
                                     span class="lui-upload-thumb" aria-hidden="true" { (Icon::File) }
                                 }
-                                span class="lui-upload-name" {
-                                    @if let Some(h) = f.href { a href=(h) { (f.name) } } @else { (f.name) }
+                                span class="lui-upload-meta" {
+                                    span class="lui-upload-name" title=(f.name) {
+                                        @if let Some(h) = f.href { a href=(h) { (f.name) } } @else { (f.name) }
+                                    }
+                                    span class="lui-upload-size" { (size(f.size)) }
                                 }
-                                span class="lui-upload-size" { (size(f.size)) }
                                 @if let Some(action) = self.remove {
                                     form method="post" action=(action) {
                                         @let label = self.ui.fill(Text::RemoveValue, &[&f.name]);
@@ -233,29 +240,40 @@ impl Render for Upload<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-upload { display: grid; gap: calc(var(--lui-space) * 2); max-width: 32rem; }
-.lui-upload-form { display: grid; gap: var(--lui-space); justify-items: start; }
+/* After the Origin UI file upload: a dashed dropzone with an icon in a round tile, a title
+   and a hint, tinted on hover and while its input has focus; below it the kept files as
+   rows of a thumbnail or file icon, the name cut with an ellipsis over the size, and a
+   remove button. The dropzone grows its padding in a wide container. */
+.lui-upload { container: lui-upload / inline-size; display: grid; gap: var(--lui-space-3); max-width: 32rem; }
+.lui-upload-form { display: grid; gap: var(--lui-space-2); justify-items: start; }
 .lui-upload-drop {
-  display: grid; justify-items: center; gap: 0.5rem; width: 100%; box-sizing: border-box; padding: 1.5rem;
+  display: grid; justify-items: center; gap: var(--lui-space-1); width: 100%; box-sizing: border-box; padding: var(--lui-space-6) var(--lui-space-4);
   text-align: center; cursor: pointer; font-weight: 400;
-  border: 1px dashed var(--lui-input); border-radius: var(--lui-radius-lg); background: var(--lui-surface);
-  transition: border-color 0.15s, background-color 0.15s;
+  border: 1px dashed var(--lui-input); border-radius: var(--lui-radius-lg); background: var(--lui-bg);
+  transition: border-color var(--lui-duration-fast), background-color var(--lui-duration-fast);
 }
-.lui-upload-drop:hover, .lui-upload-drop:has(.lui-upload-input:focus-visible) { border-color: var(--lui-ring); }
-.lui-upload-drop > .lui-icon { width: 1.5rem; height: 1.5rem; color: var(--lui-muted); }
+.lui-upload-drop:hover { border-color: var(--lui-gray-8); background: var(--lui-gray-2); }
+.lui-upload-drop:focus-within { border-color: var(--lui-ring); background: var(--lui-brand-2); }
+@container lui-upload (width >= 30rem) { .lui-upload-drop { padding: var(--lui-space-10) var(--lui-space-6); } }
+.lui-upload-tile {
+  display: grid; place-items: center; width: 2.75rem; height: 2.75rem; margin-bottom: var(--lui-space-2);
+  border: 1px solid var(--lui-line); border-radius: 50%; background: var(--lui-bg); color: var(--lui-muted);
+}
 .lui-upload-title { font-size: 0.875rem; font-weight: 500; }
 .lui-upload-hint { font-size: 0.75rem; color: var(--lui-muted); }
-.lui-upload-input { max-width: 100%; }
+.lui-upload-input { max-width: 100%; margin-top: var(--lui-space-2); font-size: 0.8125rem; }
 .lui-upload-progress { width: 100%; height: 0.5rem; accent-color: var(--lui-primary); }
-.lui-upload-files { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.lui-upload-files { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--lui-space-2); }
 .lui-upload-file {
-  display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem;
+  display: flex; align-items: center; gap: var(--lui-space-3); padding: var(--lui-space-2) var(--lui-space-2) var(--lui-space-2) var(--lui-space-3);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius); background: var(--lui-card);
 }
 .lui-upload-file form { margin: 0 0 0 auto; }
-.lui-upload-thumb { display: inline-grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--lui-radius-sm); background: var(--lui-secondary); color: var(--lui-muted); }
-.lui-upload-name { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
-.lui-upload-size { color: var(--lui-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lui-upload-thumb { display: inline-grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--lui-radius-sm); border: 1px solid var(--lui-line); background: var(--lui-gray-2); color: var(--lui-muted); }
+.lui-upload-meta { display: grid; min-width: 0; flex: 1; }
+.lui-upload-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.875rem; font-weight: 500; }
+.lui-upload-name a { color: inherit; }
+.lui-upload-size { color: var(--lui-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 "#;
 
 #[cfg(test)]
