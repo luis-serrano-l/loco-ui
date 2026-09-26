@@ -1641,6 +1641,7 @@ mod tests {
                 "one row of chips, search box and button that wraps",
             ),
             ("range", "one row: the slider and its value"),
+            ("progress", "a label row over a full-width bar"),
             (
                 "stat",
                 "auto-fit tiles of min(12rem, 100%): 4, 3, 2 or 1 across by width",
@@ -1688,7 +1689,6 @@ mod tests {
         const PENDING: &[(&str, &str)] = &[
             ("card", "Card box"),
             ("kanban", "Kanban box"),
-            ("progress", "Progress box"),
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),
             ("description_list", "Description list box"),
