@@ -113,12 +113,14 @@ impl Render for Tooltip<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn Tooltip: the primary
 /// colour as the background, text-xs, rounded-md, px-3 py-1.5.
 pub const CSS: &str = r#"
+/* Radix Themes Tooltip: the inverted chip, --lui-gray-12 with --lui-gray-1 text, small type. */
 .lui-tooltip { position: relative; display: inline-flex; }
 .lui-tooltip-text {
   position: absolute; z-index: 30; left: 50%; bottom: calc(100% + 6px); translate: -50% 0;
   width: max-content; max-width: 16rem; padding: 0.375rem 0.75rem; pointer-events: none;
   font-size: 0.75rem; line-height: 1rem; font-weight: 400; text-align: center;
-  color: var(--lui-on-primary); background: var(--lui-primary); border-radius: var(--lui-radius-sm);
+  color: var(--lui-gray-1); background: var(--lui-gray-12); border-radius: var(--lui-radius-sm);
+  box-shadow: var(--lui-shadow-md);
   opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s;
 }
 .lui-tooltip-below .lui-tooltip-text { bottom: auto; top: calc(100% + 6px); }

@@ -1726,7 +1726,7 @@ owner has seen them.
   terms dialog with a long body. To check at the final verify: a Firefox headless shot of
   `/dialog?dialog=confirm` shows the space but not the dialog, on the committed code as
   well (the terms dialog opened the same way shows).
-- [ ] Popover, menu, context menu, tooltip (`popover.rs`, `context_menu.rs`, `tooltip.rs`;
+- [x] Popover, menu, context menu, tooltip (`popover.rs`, `context_menu.rs`, `tooltip.rs`;
   reference: Radix Themes Popover, DropdownMenu, ContextMenu, Tooltip):
   - Menu items are 2 rem tall with an 8 px inline padding and a leading icon slot. The
     shortcut hint sits right-aligned in gray-11 (`.shortcut(..)` on the last item).
@@ -1735,6 +1735,15 @@ owner has seen them.
   - Tooltips are the inverted gray-12 chip with small text, as Radix.
   - Menus never exceed the viewport: `max-block-size` with inner scroll. Under
     `pointer: coarse`, items are 44 px.
+  Done (CSS only; `.shortcut(..)` already existed on menu and context-menu items): items
+  are 2rem tall (44px on coarse pointers, submenu triggers too) with 8px inline padding and
+  a fixed 1rem icon slot; the highlighted item takes the primary colour (Radix's solid
+  highlight, as the Select picker), icon and shortcut following it; the shortcut sits right
+  in gray-11 with 16px before it. Group labels are 12px gray-11, separators inset 8px
+  hairlines, danger items red with a red soft hover. A top-layer menu is at most
+  `min(24rem, 100dvh − 2rem)` tall and scrolls inside (the `<details>` fallback does not, so
+  its submenus are not clipped). Tooltips are the inverted gray-12 chip with gray-1 text and
+  a shadow. The context menu shares the menu CSS.
 - [ ] Drawer and sheet (`drawer.rs`; reference: the shadcn Sheet and Drawer):
   - A side sheet with its header, body and footer as the Sheet.
   - Under a 30 rem viewport, the drawer comes from the bottom as a sheet with a grab handle

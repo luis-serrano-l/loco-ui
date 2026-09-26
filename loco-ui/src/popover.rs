@@ -445,37 +445,43 @@ fn item(menu_id: &str, it: &MenuItem, popover: bool, anchor: bool) -> Markup {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 .lui-popover { display: inline-block; position: relative; }
-/* shadcn DropdownMenu: popover surface, p-1, rounded-md, shadow; items text-sm, rounded-sm,
-   accent on hover and focus. */
+/* After Radix Themes DropdownMenu, ContextMenu and Popover: a popover surface, 4px inset,
+   2rem items (44px on a coarse pointer) with 8px inline padding and a 1rem leading icon slot,
+   the primary colour on the highlighted item (Radix's solid highlight, as the Select picker),
+   the shortcut right-aligned in --lui-gray-11, small --lui-gray-11 group labels, inset hairlines. A
+   top-layer menu never outgrows the viewport: it scrolls inside. */
 .lui-popover nav {
-  padding: 0.25rem; min-width: 14rem;
+  padding: var(--lui-space-1); min-width: 14rem;
   background: var(--lui-popover); color: var(--lui-fg);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
   box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
 .lui-popover-anchored > nav, .lui-popover-details > nav, .lui-popover-subnav { margin: 0; }
 .lui-popover-anchored > nav { margin-top: 4px; }
+.lui-popover nav[popover] { max-block-size: min(24rem, calc(100dvh - 2rem)); overflow-y: auto; }
 /* Popover without anchor positioning: the UA centres it in the viewport; keep that. */
 .lui-popover ul { list-style: none; margin: 0; padding: 0; }
 .lui-popover form { margin: 0; }
 .lui-popover-item {
-  display: flex; align-items: center; gap: var(--lui-space); width: 100%; min-height: 0; box-sizing: border-box;
-  padding: 0.375rem 0.5rem; color: inherit; text-decoration: none; text-align: left; font: inherit;
+  display: flex; align-items: center; gap: var(--lui-space-2); width: 100%; min-height: 2rem; box-sizing: border-box;
+  padding: 0 0.5rem; color: inherit; text-decoration: none; text-align: left; font: inherit;
   font-size: 0.875rem; line-height: 1.25rem; font-weight: 400;
   background: none; border: 0; border-radius: var(--lui-radius-sm); box-shadow: none; cursor: pointer; justify-content: flex-start;
 }
 @media (pointer: coarse) { .lui-popover-item { min-height: var(--lui-hit); } }
-.lui-popover-item:hover, .lui-popover-item:focus-visible { background: var(--lui-accent); color: var(--lui-on-accent); outline: none; }
-.lui-popover-icon { width: 1rem; text-align: center; color: var(--lui-muted); }
+.lui-popover-item:hover, .lui-popover-item:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
+.lui-popover-icon { flex: none; width: 1rem; text-align: center; color: var(--lui-muted); }
+.lui-popover-item:hover .lui-popover-icon, .lui-popover-item:focus-visible .lui-popover-icon,
+.lui-popover-item:hover .lui-popover-kbd, .lui-popover-item:focus-visible .lui-popover-kbd { color: inherit; }
 .lui-popover-text { flex: 1; }
-.lui-popover-kbd { font: inherit; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0; margin-left: auto; }
+.lui-popover-kbd { font: inherit; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0 0 0 var(--lui-space-4); margin-left: auto; }
 .lui-popover-danger { color: var(--lui-danger); }
 .lui-popover-danger:hover, .lui-popover-danger:focus-visible { color: var(--lui-danger); background: color-mix(in srgb, var(--lui-danger) 10%, transparent); }
 .lui-popover-danger .lui-popover-icon { color: inherit; }
 .lui-popover-disabled { opacity: 0.5; cursor: default; }
 .lui-popover-disabled:hover { background: none; color: inherit; }
-.lui-popover-heading { padding: 0.375rem 0.5rem; font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); }
-.lui-popover-sep { margin: 0.25rem -0.25rem; border-top: 1px solid var(--lui-line); }
+.lui-popover-heading { display: flex; align-items: center; min-height: 1.5rem; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
+.lui-popover-sep { margin: var(--lui-space-1) 0.5rem; border-top: 1px solid var(--lui-line); }
 .lui-popover-sub { position: relative; }
 /* <details> fallback: the summary is a .lui-button, the menu absolutely positioned by placement. */
 .lui-popover-details > summary { list-style: none; }
@@ -485,7 +491,7 @@ pub const CSS: &str = r#"
 .lui-popover-end.lui-popover-details > nav { top: 100%; right: 0; margin-top: 4px; }
 .lui-popover-right.lui-popover-details > nav { top: 0; left: 100%; margin-left: 4px; }
 .lui-popover-sub > .lui-popover-details > summary {
-  display: flex; min-height: 0; padding: 0.375rem 0.5rem; font-weight: 400; border: 0; border-radius: var(--lui-radius-sm); background: none; box-shadow: none;
+  display: flex; align-items: center; min-height: 2rem; padding: 0 0.5rem; font-weight: 400; border: 0; border-radius: var(--lui-radius-sm); background: none; box-shadow: none;
 }
 /* Motion: menus (dropdowns, context and nav menus, submenus) fade in and drop 4px, and fade
    out as they close; display and overlay are discrete so a closing popover keeps its top-layer
