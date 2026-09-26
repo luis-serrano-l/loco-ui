@@ -1489,6 +1489,10 @@ owner has seen them.
   reproduced, no code copied". Link it from README.
   Done: also credits Radix Colors (the M30 scales) and Magic UI's effects; README's License
   section links it. Add it to the crate's `include` if packaging ever filters files.
+- [ ] Check Dioxus components (https://dioxuslabs.com/components; asked by the owner on
+  2026-09-26) against each remaining box's reference. Where a Dioxus component looks better,
+  switch that box's reference to it and say why in the box; otherwise note "checked, kept".
+  Only the look is copied (as for every reference), and NOTICE credits it if any is used.
 
 ### Forms and inputs
 - [x] Button (`button.rs`, the primitive everything uses; reference: Radix Themes Button and
@@ -1716,6 +1720,18 @@ owner has seen them.
   - Cards are raised and hold a title, description and meta row (note or badge).
   - Columns are side by side in wide containers. When narrow, the board scrolls sideways
     inside itself with scroll-snap per column, at 85% of the width so the next column peeks.
+- [ ] Sortable list, a new component (`sortable.rs`; asked by the owner on 2026-09-26;
+  reference: Dice UI Sortable):
+  - A vertical list of items, each with a grip handle, whose order the server keeps. One
+    form posts `item=<key>&to=<index>`; the route saves the order and redirects back.
+  - Without script, each item has "Move up" and "Move down" buttons (named, like kanban's
+    arrows), and the first and last items lose the button that does nothing.
+  - With the enhancement script, drag and drop by the grip (HTML drag and drop in
+    `enhance.rs`, no new file) posts the same form and swaps the list in place. Keyboard:
+    the buttons stay the accessible path.
+  - `view-transition-name` per item, so a moved item slides. Hit areas 44 px on touch.
+  - Demo route, PATHS, PROPS, `lui!` doctest, browser check (drag moves the item, the order
+    survives a reload), and a Blitz test that the fallback buttons render.
 - [ ] Marquee and the showpiece setters (`marquee.rs` and the setters on card, button, badge,
   input and stat): keep Magic UI. Re-shoot them on the new surfaces, and fix only what the
   new card and button variants broke.
