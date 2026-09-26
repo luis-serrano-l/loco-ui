@@ -1347,3 +1347,355 @@ consistent.
   its playground table since M32) sort, filter and page together. Prefix them with the table's
   id (`files.q`, `files.sort`, …) as tabs and dialogs already do, keep reading the bare keys
   for one release, and update PATHS, the shots, the browser check and docs/api.md.
+
+## M34 · Components that look top class at every width
+M30 changed the tokens (scales, shadows, gradients, motion) but not the components themselves.
+The owner reviewed the result on 2026-09-25 and found the components neither top class nor
+responsive, and expected changes in all or most of them. Firefox shots from that day showed:
+- Only about 12 of ~50 component stylesheets have a `@media` rule, and none uses a container
+  query.
+- `/table` spills off the right edge at 420 px.
+- `/form` has a boxed `<fieldset>` inside a card.
+- The index nests a card inside a stage inside a card, three frames deep.
+- `/wizard` shows a row of buttons over an empty grey bar.
+- `/calendar` has its caption flush against the grid.
+- `/dashboard` stat tiles are a label and a number, and its content is a bullet list.
+
+Decisions, asked and answered on 2026-09-25:
+- **Copy, don't invent.** Every component copies the look of one named free library, rebuilt
+  in our own CSS with `--lui-*` tokens, never by pasting code.
+- **Base library.** Radix Themes (MIT) is the base, since its 12-step colours are already
+  ours. Where Radix Themes has no counterpart or a weaker one, the component copies Origin UI
+  (MIT, coss.com/origin), shadcn/ui (MIT), Tremor (Apache-2.0) or Dice UI (MIT). The owner
+  confirmed the reference for each component, and each box below names it. Magic UI stays
+  for the showpiece setters.
+- **Container queries.** Responsive means `@container`: a component adapts to the box it sits
+  in, not to the viewport. Chrome 105+ has container queries, so Chrome 109 is covered.
+- **Touch targets.** Under `@media (pointer: coarse)` every clickable part is at least 44 px
+  tall. Desktop keeps the compact h-9 (2.25 rem) sizes.
+- **Phone tables.** A table hides low-priority columns and scrolls inside itself. The page
+  itself never scrolls sideways.
+- **Order.** Work top to bottom: groundwork, then forms and inputs, then overlays and
+  navigation, then data, then close.
+- **Demo shell.** The owner likes its structure and simplicity; it only gets light polish.
+
+### How to do one component box
+Follow these steps for every component box below.
+
+**Steps:**
+1. Before touching the CSS, shoot the current page with
+   `scripts/look.sh --only <page> --tag before`. This gives light and dark at 1280, 768 and
+   420, plus the reference page.
+2. Open the reference page and write down its measurements: heights, paddings, radii, gaps,
+   font sizes and weights, border and shadow use, and colour steps per state. Map each onto
+   our tokens (Radix steps are ours: `--lui-gray-N`, `--lui-brand-N`). If a value has no
+   token, add one in `layout.rs` rather than a literal; `no_colour_literal_outside_tokens`
+   still applies.
+3. Rewrite the component's `CSS` const. Write the narrow layout as the base, then add
+   `@container lui-<component> (width >= …)` rules for wider layouts. Use the breakpoints
+   from the groundwork box, not new numbers. Keep class names (`lui-<component>-<part>`)
+   unless the new parts need new ones.
+4. Change the markup only where the look needs a new part (an icon slot or a connector).
+   Keep every no-script behaviour, id, query key and form field as it is. A new variant is
+   an opt-in setter: add it to `PROPS`, the doc header's `lui!` doctest, the demo snippet and
+   the playground.
+5. Style every state that applies: hover, focus-visible, active or current, disabled,
+   invalid, loading and empty. Style each in light and dark.
+6. Under `pointer: coarse`, raise the component's hit areas to 44 px.
+7. Check the component in a 320 px container and in a 320 px viewport. Nothing may overflow
+   sideways, and text wraps or truncates with an ellipsis.
+8. Shoot again with `--tag after`, then compare before, after and the reference side by
+   side. Fix what differs, or write the reason down in the box's "Done:" note.
+9. Update the demo page if the new look needs a better example (per the "Update the demo"
+   rule). Refresh that page's `tests/shots/` on purpose, then run `cargo test -p loco-ui`,
+   `cargo test -p loco-ui-test` and clippy.
+10. Tick the box and add a "Done:" note, as earlier milestones do: what changed, new setters,
+    and anything kept different from the reference and why.
+
+**Owner review.** The owner chose (2026-09-25) to review once at the end rather than per
+group: work straight through, judge each box against the reference yourself, and keep one
+after shot per component in `target/look/review/` for the final review. Delete them once the
+owner has seen them.
+
+### Groundwork
+- [ ] `scripts/look.sh`:
+  - A 768 width beside 1280 and 420.
+  - `--only <name>` shoots one page.
+  - `--tag <before|after>` writes to `target/look/<tag>/`.
+  - The page list gets a reference URL per component instead of the shadcn docs name. For
+    example `dialog|/dialog?dialog=confirm|https://www.radix-ui.com/themes/docs/components/dialog`.
+    Fill in every component's reference from the boxes below.
+  - The script still runs with `--no-ref` for offline checks.
+- [ ] Container convention in `layout.rs`, written in the file's header comment:
+  - Every component root sets `container: lui-<component> / inline-size`.
+  - Three shared breakpoints, used everywhere and never others: narrow below 30 rem, medium
+    from 30 rem, wide from 48 rem.
+  - Custom properties can't be used in `@container` conditions, so write the numbers
+    literally and name them in the comment.
+  - Also check whether Blitz supports `@container`. If it doesn't, the narrow base layout is
+    what Blitz shots show. Write that in FINDINGS with an issue link, and move any Blitz
+    assertion that needs the wide layout to the browser check.
+- [ ] Touch sizing in `layout.rs`:
+  - Add `--lui-control-h` (2.25 rem) and `--lui-hit` (2.25 rem). Under
+    `@media (pointer: coarse)` both become 2.75 rem (44 px).
+  - Controls use `min-block-size: var(--lui-control-h)`. Small inline targets (a menu's
+    `…`, a close ×, a pager number) get at least `--lui-hit` of hit area through padding.
+- [ ] Spacing: if the reworks keep needing values outside the current scale, add
+  `--lui-space-1…9` (Radix's 4, 8, 12, 16, 24, 32, 40, 48, 64 px). Decide this on the first
+  form component and use it from then on.
+- [ ] Test that no page scrolls sideways. In `loco-ui-test` or the browser check, render
+  every path in `PATHS` at 320 px wide and fail when the document's scroll width exceeds
+  its client width. Inner scrollers (the table body, tabs, kanban) are fine; only the page
+  counts.
+- [ ] Test that layouts respond to their container, in `lib.rs` beside
+  `only_the_primitives_select_bare_buttons_and_inputs`:
+  - Fail when a component whose `CSS` sets a layout (`display: grid`, `display: flex` with
+    wrap, `grid-template-*`) has no `@container` rule.
+  - An allow-list gives a reason for each exception (for example `stack`, which has one
+    layout).
+  - Also fail on any new viewport `@media (width…)` in component CSS. Media queries stay
+    only for `prefers-*` and `pointer`.
+- [ ] `NOTICE`: one paragraph per reference library, with its name, licence, URL and "look
+  reproduced, no code copied". Link it from README.
+
+### Forms and inputs
+- [ ] Button (`button.rs`, the primitive everything uses; reference: Radix Themes Button and
+  IconButton):
+  - Variants: solid (primary, with the gradient), soft, surface, outline and ghost. Map the
+    existing `.secondary()`/outline/ghost onto them, and keep old names as deprecated
+    aliases if any are renamed.
+  - Sizes 1–3 by `.size(..)`, if the reference sizes differ from our small and default.
+  - Styles for the pressed state, `aria-busy` loading (a spinner that replaces the icon;
+    the label stays for width) and disabled.
+  - An icon-only button is square.
+- [ ] Input, textarea, checkbox, switch, radio (`input.rs`; reference: Radix Themes TextField,
+  TextArea, Checkbox, Switch, RadioGroup, RadioCards):
+  - Slots for a leading and trailing icon or text inside the field, drawn inside the field's
+    border: `.leading(..)`, `.trailing(..)` (a unit, `https://` or a search icon).
+  - Help text sits under the field in gray-11, and the error below it in danger with an icon.
+    The invalid ring appears only on `:user-invalid` or a server error.
+  - A switch and checkbox follow the Radix sizes and radii. The thumb slides with the spring
+    token.
+  - A `.cards()` variant for a radio group: each option is a selectable card with a title and
+    description, laid out 1-, 2- or 3-up by container width.
+  - Password and number fields keep their native affordances, styled to match.
+- [ ] Form layout (`form.rs`; reference: the shadcn "Forms" examples and the Radix Themes
+  settings layouts):
+  - A section is a heading, a description and its fields. The `<fieldset>` and `<legend>`
+    stay for semantics but are drawn borderless, which removes the box inside the card.
+  - Label position by container width: above the field when narrow; in a wide container with
+    `.side_labels()` (or the existing option), a two-column grid of label and help beside
+    the field.
+  - Sections are separated by a hairline and space, not frames.
+  - The submit row aligns to the end in wide containers and fills the width in narrow ones,
+    with the primary action first on narrow screens.
+  - The error summary sits above the first section (see Callout below).
+- [ ] Select and combobox (`select.rs`, `combobox.rs`; reference: Radix Themes Select and the
+  shadcn Combobox):
+  - The trigger has the control height, shows the value and ends in a chevron.
+  - Where `appearance: base-select` is supported, the picker is the Radix popover: item
+    height 2 rem, a check on the selected item, a highlighted row on hover and focus. Native
+    `<select>` elsewhere, styled to match.
+  - The combobox list takes the same item look, plus an empty row ("No results").
+- [ ] Range and colour (`range.rs`, `color.rs`; reference: Radix Themes Slider and the
+  Origin UI sliders):
+  - The track fills up to the value, using the existing `--value` custom property or
+    `<output>`. The thumb is round with a ring on focus.
+  - Optional ticks (`.ticks()`) and a value label above the thumb, if CSS alone can place it
+    (otherwise the value sits beside the slider).
+  - A range pair shows two thumbs on one track.
+  - The colour field shows a swatch chip beside the hex value, and presets as a row of
+    round swatches.
+- [ ] One-time code (`input_otp.rs`; reference: the Origin UI OTP input and the shadcn
+  InputOTP):
+  - Joined boxes: shared borders, rounded only at the group's ends, and an optional
+    separator after a set count (`.group(3)`).
+  - The active box has a ring, and the caret shows through `:focus` on the single real
+    input.
+  - Narrow containers shrink the boxes to fit, down to 320 px.
+- [ ] Upload (`upload.rs`; reference: the Origin UI file upload):
+  - A dashed dropzone with an icon tile, a title ("Drop files or browse"), a hint with types
+    and size, and a hover or `:focus-within` tint.
+  - Files are listed below as rows: an icon or preview, the name (truncated with an
+    ellipsis), the size and a remove button.
+- [ ] Calendar and date picker (`calendar.rs`, `date_picker.rs`; reference: shadcn Calendar,
+  the react-day-picker v9 look):
+  - The caption has previous and next as ghost icon buttons and the month centred, with
+    space between the grid and anything under it (today's bug).
+  - Days are square cells. Today gets an accent surface, the selected day a solid brand fill,
+    days outside the month gray-10, and disabled days gray-9 struck through but still
+    legible. Event dots sit under the number in brand.
+  - In a narrow container the grid fills the width with square cells.
+  - The date picker trigger looks like the Select trigger with a calendar icon, and its
+    popover takes the calendar.
+- [ ] Wizard (`wizard.rs`; reference: the Origin UI Stepper):
+  - Each step is a numbered dot (a check when done) with the title and "optional" under it,
+    joined by connector lines. Done connectors are brand, the rest gray-6.
+  - The progress bar merges into the connectors; `.hide_progress()` still hides the bar
+    variant.
+  - Horizontal in a medium-or-wider container, vertical (dots in a column, titles beside
+    them) in a narrow one.
+  - Steps stay links to the ones you may revisit, and the current step keeps
+    `aria-current="step"`.
+- [ ] Toggle group (`toggle_group.rs`; reference: Radix Themes SegmentedControl):
+  - A gray-3 track, and the current item as a raised surface chip with a shadow and
+    highlight.
+  - Where `Cap::ViewTransitions` is present, the chip slides like the tabs mark.
+  - Items share the width evenly. A narrow container wraps or scrolls, never overflows.
+- [ ] Callout for error summary, alert and flash (`error_summary.rs`, `alert.rs`, `flash.rs`;
+  reference: Radix Themes Callout):
+  - One look for all three: an icon, a title, then a body and links. Soft (tinted with steps
+    3 and 11) is the default; `.surface()` and `.outline()` are the variants. Colour comes
+    from the level: info brand, ok green, warn amber, danger red.
+  - The error summary's links look like links in the callout colour and keep their autofocus.
+  - Flash messages take the same card, with the dismiss button top-right.
+
+### Overlays and navigation
+- [ ] Dialog (`dialog.rs`; reference: Radix Themes Dialog and AlertDialog):
+  - Max width by `.size(..)` (Radix 1–4). The title uses the heading size and the
+    description gray-11. The footer holds actions at the end, with danger actions in red
+    solid.
+  - In a narrow viewport the dialog takes the width minus a 16 px gutter, the footer stacks
+    with the confirm action on top, and the body scrolls inside if tall.
+  - The close × is an icon button top-right with a 44 px touch area.
+- [ ] Popover, menu, context menu, tooltip (`popover.rs`, `context_menu.rs`, `tooltip.rs`;
+  reference: Radix Themes Popover, DropdownMenu, ContextMenu, Tooltip):
+  - Menu items are 2 rem tall with an 8 px inline padding and a leading icon slot. The
+    shortcut hint sits right-aligned in gray-11 (`.shortcut(..)` on the last item).
+  - Group labels are small gray-11 text. Separators are gray-6 hairlines, inset.
+  - A danger item is red text with a red soft hover.
+  - Tooltips are the inverted gray-12 chip with small text, as Radix.
+  - Menus never exceed the viewport: `max-block-size` with inner scroll. Under
+    `pointer: coarse`, items are 44 px.
+- [ ] Drawer and sheet (`drawer.rs`; reference: the shadcn Sheet and Drawer):
+  - A side sheet with its header, body and footer as the Sheet.
+  - Under a 30 rem viewport, the drawer comes from the bottom as a sheet with a grab handle
+    and rounded top corners, max 85 vh, with the body scrolling inside. Keep it the same
+    `<dialog>`; only the CSS changes.
+- [ ] Toasts (`toast.rs`; reference: shadcn Sonner):
+  - Toasts stack in depth: only the front one is full, and those behind are scaled and
+    peeking. Hover or `:focus-within` on the stack fans them out, in CSS only.
+  - Each toast has an icon by level, a title, a description, an optional action button and
+    a close.
+  - Bottom-right on desktop, full width at the bottom (16 px gutter) on narrow viewports.
+  - Under reduced motion the stack is shown fanned out with no animation.
+- [ ] Tabs (`tabs.rs`; reference: Radix Themes Tabs and TabNav):
+  - An `.underline()` variant: a hairline under the list, with the current tab marked by a
+    2 px brand bar that slides with view transitions where available. Keep the existing
+    pill as the default.
+  - Badges on tabs keep their place.
+  - In a narrow container the tab list scrolls inside itself (`overflow-x: auto`, hidden
+    scrollbar, scroll-snap) with edge fades from a mask gradient. `.select_below()` stays as
+    the alternative.
+- [ ] Accordion (`accordion.rs`; reference: shadcn Accordion):
+  - Items separated by hairlines, with no box. The summary is medium weight with a chevron
+    on the right that rotates on `[open]`, and the content opens with the height transition
+    where `interpolate-size` exists.
+- [ ] Breadcrumbs and pager (`breadcrumbs.rs`, `pager.rs`; reference: shadcn Breadcrumb and
+  Pagination):
+  - Breadcrumbs: gray-11 links, chevron separators and the current page in gray-12. In a
+    narrow container the middle crumbs collapse into a `…` that opens a small popover menu
+    (the existing popover, no script).
+  - Pager: ghost buttons for pages, an outline chip for the current page, and previous and
+    next with labels. In a narrow container it shows previous, "page X of Y" and next.
+- [ ] Sidebar and nav menu (`sidebar.rs`, `nav_menu.rs`; reference: the shadcn Sidebar block
+  and NavigationMenu):
+  - Sidebar: group labels, items with icons and badges, and the current item on a gray-4
+    surface in medium weight. With `.collapsible()`, a `<details>`-driven icon rail where
+    labels hide and tooltips show them.
+  - Nav menu: trigger buttons that open a panel with a grid of links (title and one-line
+    description), two columns in wide containers and one when narrow.
+- [ ] Command palette (`palette.rs`; reference: shadcn Command and Radix Themes for the
+  surface):
+  - The search field sits at the top with an icon and no border, a hairline below.
+  - Results are grouped with small gray-11 labels. Each row has an icon, a label and a
+    right-aligned shortcut, highlighted on focus.
+  - An empty state row. In a narrow viewport the palette takes the full width at the top.
+
+### Data
+- [ ] Stat (`stat.rs`; reference: the Tremor KPI cards):
+  - The label is gray-11. The value is large, semibold and tabular.
+  - The delta is a soft badge (green up, red down, flipped by `.down_is_good()`) with an
+    arrow, not bare coloured text.
+  - `.trend(..)` draws its sparkline filling the tile's bottom or right side. An optional
+    `.progress(value, max)` draws a Tremor-style bar under the value.
+  - A group of stats reflows from 4 to 2 to 1 by container width.
+  - The `/dashboard` demo replaces its bullet list with a small table or list card.
+- [ ] Chart (`chart.rs`; reference: Tremor AreaChart, BarChart and LineChart):
+  - A y axis with 3–5 rounded ticks and dashed gray-5 gridlines, x labels that thin out
+    when narrow, and a legend with swatches.
+  - Each mark or point is focusable, and on `:hover`/`:focus` shows its value in a small
+    tooltip chip (CSS only).
+  - The SVG uses `viewBox` and width 100%, so it scales with its container. In a narrow
+    container, labels drop to every other one.
+  - Colours use the brand scale and then the Radix categorical order.
+- [ ] Table and paged table (`table.rs`, `paged_table.rs`; reference: the shadcn data-table
+  and the Origin UI tables):
+  - `.priority(n)` on a column: 1 is always shown, 2 hides in a narrow container, 3 hides
+    below medium. Hidden columns still show in the row's `<details>` detail, and the columns
+    menu still toggles them. Add it to `PROPS`.
+  - What remains scrolls inside `.lui-table-scroll`. The first column (or the checkbox plus
+    name) is sticky, and edge fades show there is more.
+  - The toolbar holds search, filters, columns and actions. In a narrow container it wraps
+    to two rows, with search full width. The CSV link becomes an outline button.
+  - Row actions: in narrow containers the inline "Edit" collapses into the `…` row menu.
+  - Header, row hover, selected rows (brand-3), the sticky header shadow when scrolled, and
+    empty and loading rows are all styled.
+  - The pager takes the new pager look.
+- [ ] Progress and meter (`progress.rs`, `meter.rs`; reference: Tremor ProgressBar and
+  CategoryBar):
+  - A label and value on one line above a rounded gray-4 track with a brand fill. The meter
+    colours by its low, high and optimum ranges.
+  - A `.segments(..)` category bar variant for the meter, only if it fits the existing API
+    (otherwise note it and skip).
+- [ ] Description list (`description_list.rs`; reference: Radix Themes DataList):
+  - In medium or wider containers, label (gray-11, fixed column) and value side by side,
+    rows separated by space not borders. Stacked in narrow containers. `.stacked()` forces
+    stacked.
+- [ ] Card, avatar, badge, empty state, skeleton (`card.rs`, `avatar.rs`, `badge.rs`,
+  `empty_state.rs`, `skeleton.rs`; reference: Radix Themes Card, Avatar, Badge and Skeleton;
+  shadcn for the empty state):
+  - Card:
+    - Variants surface (default), classic (more shadow) and ghost.
+    - A card inside a card drops its frame and shadow, which ends the three-deep boxes.
+    - Header, body and footer spacing as Radix.
+  - Avatar: sizes 1–5, the fallback initials on a soft brand tint, round or square, and a
+    group with overlapping avatars (`ui.avatars(..)` if there is none).
+  - Badge:
+    - Soft is the default; solid, surface and outline are the variants.
+    - Radix size and radius, with no wrapping inside the badge.
+    - Status badges use the level colours.
+  - Empty state: an icon in a soft tile, a title, one line of body and actions as buttons,
+    centred in its container.
+  - Skeleton: gray-4 with the shimmer, matching the shape of what it stands for, and
+    disabled under reduced motion.
+- [ ] Kanban (`kanban.rs`; reference: Dice UI Kanban):
+  - Each column is a gray-2 surface with its title, a count badge and the limit shown as
+    "3/5".
+  - Cards are raised and hold a title, description and meta row (note or badge).
+  - Columns are side by side in wide containers. When narrow, the board scrolls sideways
+    inside itself with scroll-snap per column, at 85% of the width so the next column peeks.
+- [ ] Marquee and the showpiece setters (`marquee.rs` and the setters on card, button, badge,
+  input and stat): keep Magic UI. Re-shoot them on the new surfaces, and fix only what the
+  new card and button variants broke.
+
+### Close
+- [ ] Demo shell, light polish only. Keep the structure and simplicity the owner likes:
+  - Group the language links and the Auto/Light/Dark toggle into one toolbar row, aligned
+    with the page title.
+  - Draw the stage (the preview box above the code) as a gray-2 surface with no border, so
+    a component card inside it is the only frame.
+  - The mobile "Browse components" disclosure takes the button look with a chevron.
+  - Nothing else moves.
+- [ ] Wrap-up:
+  - Refresh `tests/shots/` on purpose, reviewing each changed PNG.
+  - Re-measure the stylesheet size (gzipped) and write the growth in README. The budget is
+    +10 KB gzipped over M30's 14.4 KB; above that, cut before shipping.
+  - Update the README feature matrix (each component's reference library, and "responsive
+    by container") and `docs/theming.md` (the container breakpoints, `--lui-control-h`,
+    `--lui-hit` and any spacing tokens).
+  - `docs/comparison.md` gets a Responsive row.
+  - FINDINGS gets the M34 Blitz gaps (`@container`, `interpolate-size`, `mask`), each with
+    an issue link.
+  - clippy, `cargo test`, `scripts/verify.sh` and `node scripts/browser-check.mjs` all green.
+  - Local commit per group.
