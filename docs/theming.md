@@ -68,7 +68,7 @@ every surface in both schemes clears 4.5:1.
 | `--lui-space` | `8px` | The unit every gap, margin and padding is a multiple of (`calc(var(--lui-space) * 3)`). |
 | `--lui-space-1` … `-16` | 4px steps | Not `Tokens` fields, derived from `--lui-space`: steps 1, 2, 3, 4, 6, 8, 10, 12 and 16 are that many halves of it (4, 8, 12, 16, 24, 32, 40, 48, 64px by default, Radix's nine spacing values). The gaps of `ui.stack`, `ui.cluster`, `ui.grid` and `ui.split` (`.gap(n)`). |
 | `--lui-busy` | `0.6` | Not a `Tokens` field: the opacity of a swap root or form while the enhancement script has a request in flight (`[data-lui-busy]`). Set it to `1` on `:root` or on one root to turn the fade off. |
-| `--lui-control-h` / `--lui-control-h-sm` / `--lui-hit` | `2.25rem` / `2rem` / `2.25rem` | Not `Tokens` fields, on `:root` in `layout.rs`: the height of buttons, fields and toggles, of small buttons, and the least hit area of a small inline target (a toast's ×, a menu item). Under `@media (pointer: coarse)` all three become `2.75rem` (44px). |
+| `--lui-control-h` / `--lui-control-h-sm` / `--lui-control-h-lg` / `--lui-hit` | `2.25rem` / `2rem` / `2.5rem` / `2.25rem` | Not `Tokens` fields, on `:root` in `layout.rs`: the height of buttons, fields and toggles, of small and large buttons, and the least hit area of a small inline target (a toast's ×, a menu item). Under `@media (pointer: coarse)` all four become `2.75rem` (44px). |
 | `--lui-duration-fast` / `--lui-duration` / `--lui-duration-slow` | `150ms` / `200ms` / `250ms` | Not `Tokens` fields, on `:root` in `layout.rs`: how long menus, dialogs, toasts and sheets take to come and go. `prefers-reduced-motion: reduce` sets all three to `0s` (and every other transition and animation too). |
 | `--lui-ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Not a `Tokens` field: the curve of fades and of the sheet's slide. |
 | `--lui-ease-spring` | `linear(…)`, else `ease-out` | Not a `Tokens` field: a damped spring (about 5% overshoot) sampled into `linear()`, for the small scale and rise of dialogs, menus and toasts and the slide of the open tab's chip. Browsers without `linear()` (Chrome before 113, Safari before 17.2) get `ease-out`: the token is `ease-out` on `:root` and becomes the spring under `@supports (transition-timing-function: linear(0, 1))`. |
@@ -76,6 +76,26 @@ every surface in both schemes clears 4.5:1.
 The dark palette applies under `prefers-color-scheme: dark` unless `<html data-theme="light">`,
 and always under `data-theme="dark"`. `theme_toggle` sets that attribute through a cookie, so a
 theme is server state like everything else; the components never know which palette is live.
+
+## Container breakpoints
+
+Since M34 a component lays itself out by the width of its own box, not the window's: its root
+declares `container: lui-<name> / inline-size` and its CSS asks `@container lui-<name>
+(min-width: …)`, so the same table or form looks right in a sidebar, a card or a full page.
+There are two breakpoints, both in `rem` so they follow the reader's font size:
+
+| Width of the component's own box | What changes |
+|---|---|
+| under `30rem` (narrow) | the base CSS: one column, labels over fields, a table's priority-2 columns folded under the first cell, the kanban's snapping columns, the compact pager |
+| from `30rem` | side by side where two fit: form labels beside fields, priority-2 columns shown, stat tiles in a row |
+| from `48rem` (wide) | everything: priority-3 columns, the wizard's full step row, the kanban's shared-width columns |
+
+The narrow form is the base, so a browser without container queries (Chrome before 105, Firefox
+before 110, Safari before 16, and Blitz) gets it. Only the page frame and what covers it (the
+layout, dialog, drawer, toasts and palette) ask the viewport; the rest either answer to their
+container or wrap by their own content. The README matrix says which, per component, and a
+test keeps that column in step with each file's CSS. There are no breakpoint tokens: a custom
+property cannot be used inside a container query.
 
 ## Contrast requirements
 

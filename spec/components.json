@@ -3,11 +3,14 @@
     {
       "name": "Enhancement script",
       "module": "enhance",
+      "look": "-",
+      "responsive": "-",
       "features": [
         { "name": "fetch", "baseline": { "chrome": "42", "firefox": "39", "safari": "10.1" } },
         { "name": "history.pushState", "baseline": { "chrome": "5", "firefox": "4", "safari": "5" } },
         { "name": "document.startViewTransition", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } },
-        { "name": "CustomEvent", "baseline": { "chrome": "15", "firefox": "11", "safari": "6" } }
+        { "name": "CustomEvent", "baseline": { "chrome": "15", "firefox": "11", "safari": "6" } },
+        { "name": "HTML drag and drop", "baseline": { "chrome": "4", "firefox": "3.5", "safari": "3.1" } }
       ],
       "fallback": "none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert",
       "needs_js": "no"
@@ -15,6 +18,8 @@
     {
       "name": "Layout",
       "module": "layout",
+      "look": "Radix Themes scales and depth, a Linear / Magic UI finish",
+      "responsive": "viewport",
       "features": [
         { "name": "@view-transition", "baseline": { "chrome": "126", "firefox": "no", "safari": "18.2" } },
         { "name": "prefers-color-scheme", "baseline": { "chrome": "76", "firefox": "67", "safari": "12.1" } },
@@ -26,6 +31,8 @@
     {
       "name": "Capability beacons",
       "module": "caps",
+      "look": "-",
+      "responsive": "-",
       "features": [
         { "name": "@supports", "baseline": { "chrome": "28", "firefox": "22", "safari": "9" } },
         { "name": "selector()", "baseline": { "chrome": "83", "firefox": "69", "safari": "14.1" } },
@@ -38,6 +45,8 @@
     {
       "name": "Button",
       "module": "button",
+      "look": "Radix Themes Button",
+      "responsive": "content",
       "features": [
         { "name": "invoker commands", "baseline": { "chrome": "135", "firefox": "144", "safari": "26.2" } },
         { "name": "popovertarget", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
@@ -95,6 +104,8 @@
     {
       "name": "Input, checkbox, switch, radio group",
       "module": "input",
+      "look": "Radix Themes TextField, Checkbox, Switch, RadioGroup and RadioCards",
+      "responsive": "container",
       "features": [
         { "name": "constraint validation", "baseline": { "chrome": "10", "firefox": "4", "safari": "10.1" } },
         { "name": "type=date", "baseline": { "chrome": "20", "firefox": "57", "safari": "14.1" } },
@@ -167,6 +178,8 @@
     {
       "name": "Badge",
       "module": "badge",
+      "look": "Radix Themes Badge",
+      "responsive": "content",
       "features": [
         { "name": "<span>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "translate", "baseline": { "chrome": "104", "firefox": "72", "safari": "14.1" } }
@@ -196,6 +209,8 @@
     {
       "name": "Card",
       "module": "card",
+      "look": "Radix Themes Card",
+      "responsive": "content",
       "features": [
         { "name": "grid", "baseline": { "chrome": "57", "firefox": "52", "safari": "10.1" } },
         { "name": "conic-gradient", "baseline": { "chrome": "69", "firefox": "83", "safari": "12.1" } },
@@ -233,6 +248,8 @@
     {
       "name": "Icon",
       "module": "icon",
+      "look": "Lucide",
+      "responsive": "content",
       "features": [
         { "name": "<svg>", "baseline": { "chrome": "4", "firefox": "3", "safari": "3.2" } },
         { "name": "role=\"img\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
@@ -254,6 +271,8 @@
     {
       "name": "Avatar",
       "module": "avatar",
+      "look": "Radix Themes Avatar",
+      "responsive": "content",
       "features": [
         { "name": "alt=\"\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "loading=\"lazy\"", "baseline": { "chrome": "77", "firefox": "75", "safari": "15.4" } },
@@ -292,6 +311,8 @@
     {
       "name": "Stack",
       "module": "stack",
+      "look": "-",
+      "responsive": "content",
       "features": [
         { "name": "gap", "baseline": { "chrome": "84", "firefox": "63", "safari": "14.1" } }
       ],
@@ -313,6 +334,8 @@
     {
       "name": "Cluster",
       "module": "cluster",
+      "look": "-",
+      "responsive": "content",
       "features": [
         { "name": "flex-wrap", "baseline": { "chrome": "29", "firefox": "28", "safari": "9" } },
         { "name": "gap", "baseline": { "chrome": "84", "firefox": "63", "safari": "14.1" } }
@@ -337,6 +360,8 @@
     {
       "name": "Grid",
       "module": "grid",
+      "look": "-",
+      "responsive": "content",
       "features": [
         { "name": "repeat(auto-fill", "baseline": { "chrome": "57", "firefox": "52", "safari": "10.1" } },
         { "name": "@media", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
@@ -359,6 +384,8 @@
     {
       "name": "Split",
       "module": "split",
+      "look": "-",
+      "responsive": "content",
       "features": [
         { "name": "flex-wrap", "baseline": { "chrome": "29", "firefox": "28", "safari": "9" } },
         { "name": "min-inline-size", "baseline": { "chrome": "57", "firefox": "41", "safari": "12.1" } }
@@ -382,6 +409,8 @@
     {
       "name": "Calendar",
       "module": "calendar",
+      "look": "shadcn Calendar",
+      "responsive": "content",
       "features": [
         { "name": "<table>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "aria-current=\"date\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -414,6 +443,8 @@
     {
       "name": "Date picker",
       "module": "date_picker",
+      "look": "shadcn Date Picker",
+      "responsive": "content",
       "features": [
         { "name": "popover", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
         { "name": "anchor-name", "baseline": { "chrome": "125", "firefox": "147", "safari": "26" } },
@@ -442,6 +473,8 @@
     {
       "name": "Dialog",
       "module": "dialog",
+      "look": "Radix Themes Dialog and AlertDialog",
+      "responsive": "viewport",
       "features": [
         { "name": "<dialog>", "baseline": { "chrome": "37", "firefox": "98", "safari": "15.4" } },
         { "name": "command=\"show-modal\"", "baseline": { "chrome": "135", "firefox": "144", "safari": "26.2" } },
@@ -479,6 +512,8 @@
     {
       "name": "Popover menu",
       "module": "popover",
+      "look": "Radix Themes Popover and DropdownMenu",
+      "responsive": "content",
       "features": [
         { "name": "popover", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
         { "name": "anchor-name", "baseline": { "chrome": "125", "firefox": "147", "safari": "26" } },
@@ -513,6 +548,8 @@
     {
       "name": "Tabs",
       "module": "tabs",
+      "look": "Radix Themes Tabs and TabNav",
+      "responsive": "container",
       "features": [
         { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
         { "name": "display: contents", "baseline": { "chrome": "65", "firefox": "37", "safari": "11.1" } },
@@ -541,6 +578,8 @@
     {
       "name": "Accordion",
       "module": "accordion",
+      "look": "shadcn Accordion",
+      "responsive": "content",
       "features": [
         { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
         { "name": "::details-content", "baseline": { "chrome": "131", "firefox": "143", "safari": "18.4" } },
@@ -567,6 +606,8 @@
     {
       "name": "Combobox",
       "module": "combobox",
+      "look": "shadcn Combobox",
+      "responsive": "content",
       "features": [
         { "name": "<datalist>", "baseline": { "chrome": "20", "firefox": "4", "safari": "12.1" } },
         { "name": "<optgroup>", "baseline": { "chrome": "20", "firefox": "4", "safari": "12.1" } },
@@ -597,6 +638,8 @@
     {
       "name": "Load-more list",
       "module": "pager",
+      "look": "shadcn Pagination",
+      "responsive": "content",
       "features": [
         { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } },
         { "name": "scroll-margin", "baseline": { "chrome": "69", "firefox": "90", "safari": "14.1" } }
@@ -620,6 +663,8 @@
     {
       "name": "Table",
       "module": "table",
+      "look": "shadcn data table, Origin UI",
+      "responsive": "container",
       "features": [
         { "name": "?sort.<id>=<col>&dir.<id>=asc|desc", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "<search>", "baseline": { "chrome": "118", "firefox": "118", "safari": "17" } },
@@ -678,6 +723,8 @@
     {
       "name": "Paged table",
       "module": "paged_table",
+      "look": "shadcn data table, Origin UI",
+      "responsive": "container",
       "features": [
         { "name": "?page.<id>=n", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "<select>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -690,6 +737,8 @@
     {
       "name": "Wizard",
       "module": "wizard",
+      "look": "Origin UI Stepper",
+      "responsive": "container",
       "features": [
         { "name": "<form method=\"post\">", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "aria-current=\"step\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -721,6 +770,8 @@
     {
       "name": "Validated form",
       "module": "form",
+      "look": "shadcn Forms, Radix Themes",
+      "responsive": "container",
       "features": [
         { "name": "required", "baseline": { "chrome": "4", "firefox": "4", "safari": "5" } },
         { "name": "pattern", "baseline": { "chrome": "4", "firefox": "4", "safari": "5" } },
@@ -778,6 +829,8 @@
     {
       "name": "Error summary",
       "module": "error_summary",
+      "look": "Radix Themes Callout",
+      "responsive": "content",
       "features": [
         { "name": "role=\"alert\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "aria-labelledby", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -802,6 +855,8 @@
     {
       "name": "Counter",
       "module": "counter",
+      "look": "-",
+      "responsive": "-",
       "features": [
         { "name": "<form method=\"post\">", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "<button name value>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -828,6 +883,8 @@
     {
       "name": "Theme toggle",
       "module": "theme",
+      "look": "Radix Themes SegmentedControl",
+      "responsive": "content",
       "features": [
         { "name": "prefers-color-scheme", "baseline": { "chrome": "76", "firefox": "67", "safari": "12.1" } },
         { "name": "color-scheme", "baseline": { "chrome": "81", "firefox": "96", "safari": "13" } },
@@ -848,6 +905,8 @@
     {
       "name": "Flash",
       "module": "flash",
+      "look": "Radix Themes Callout",
+      "responsive": "content",
       "features": [
         { "name": "cookie", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "role=\"status\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -873,6 +932,8 @@
     {
       "name": "UI state",
       "module": "state",
+      "look": "-",
+      "responsive": "-",
       "features": [
         { "name": "links", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "cookies", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -884,6 +945,8 @@
     {
       "name": "Select",
       "module": "select",
+      "look": "Radix Themes Select",
+      "responsive": "content",
       "features": [
         { "name": "<selectedcontent>", "baseline": { "chrome": "135", "firefox": "no", "safari": "27" } },
         { "name": "appearance: base-select", "baseline": { "chrome": "135", "firefox": "no", "safari": "27" } },
@@ -923,6 +986,8 @@
     {
       "name": "Range",
       "module": "range",
+      "look": "Radix Themes Slider",
+      "responsive": "content",
       "features": [
         { "name": "<input type=\"range\">", "baseline": { "chrome": "4", "firefox": "23", "safari": "3.1" } },
         { "name": "<datalist>", "baseline": { "chrome": "20", "firefox": "110", "safari": "12.1" } },
@@ -951,6 +1016,8 @@
     {
       "name": "Color",
       "module": "color",
+      "look": "Radix Themes TextField",
+      "responsive": "content",
       "features": [
         { "name": "<input type=\"color\">", "baseline": { "chrome": "20", "firefox": "29", "safari": "12.1" } },
         { "name": "color-mix()", "baseline": { "chrome": "111", "firefox": "113", "safari": "16.2" } }
@@ -974,6 +1041,8 @@
     {
       "name": "Streaming",
       "module": "stream",
+      "look": "Radix Themes Skeleton",
+      "responsive": "-",
       "features": [
         { "name": "<template shadowrootmode=\"open\">", "baseline": { "chrome": "111", "firefox": "123", "safari": "16.4" } },
         { "name": "<slot name", "baseline": { "chrome": "53", "firefox": "63", "safari": "10" } },
@@ -985,6 +1054,8 @@
     {
       "name": "Upload",
       "module": "upload",
+      "look": "Origin UI file upload",
+      "responsive": "container",
       "features": [
         { "name": "<input type=\"file\" accept multiple>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "<progress>", "baseline": { "chrome": "6", "firefox": "6", "safari": "6" } },
@@ -1014,12 +1085,15 @@
     {
       "name": "Kanban",
       "module": "kanban",
+      "look": "Dice UI Kanban",
+      "responsive": "container",
       "features": [
         { "name": "<form method=\"post\">", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "scroll-snap-type", "baseline": { "chrome": "69", "firefox": "68", "safari": "11" } },
-        { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } }
+        { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } },
+        { "name": "@container", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } }
       ],
-      "fallback": "without view transitions a moved card is simply in its new column",
+      "fallback": "without view transitions a moved card is simply in its new column; without container queries the board keeps its narrow, snapping form",
       "needs_js": "partial",
       "needs_js_note": "drag and drop and reordering within a column need script",
       "builders": [
@@ -1039,8 +1113,36 @@
       ]
     },
     {
+      "name": "Sortable list",
+      "module": "sortable",
+      "look": "Dioxus Components drag and drop list",
+      "responsive": "content",
+      "features": [
+        { "name": "<form method=\"post\">", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } },
+        { "name": "@media (scripting: enabled)", "baseline": { "chrome": "120", "firefox": "113", "safari": "17" } }
+      ],
+      "fallback": "without view transitions a moved item is simply in its new place",
+      "needs_js": "partial",
+      "needs_js_note": "dragging needs the script; the named buttons move items one place at a time without it",
+      "builders": [
+        {
+          "builder": "Sortable",
+          "lui": "Sortable",
+          "status": "beta",
+          "calls": ["ui.sortable(label: &str, action: &str)"],
+          "props": [
+            { "name": "item", "kind": "item", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "An item, after the ones added before it." },
+            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the item added last." }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Alert",
       "module": "alert",
+      "look": "Radix Themes Callout",
+      "responsive": "content",
       "features": [
         { "name": "role=\"alert\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "role=\"status\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
@@ -1069,6 +1171,8 @@
     {
       "name": "Progress",
       "module": "progress",
+      "look": "Tremor ProgressBar",
+      "responsive": "content",
       "features": [
         { "name": "<progress>", "baseline": { "chrome": "6", "firefox": "6", "safari": "6" } },
         { "name": "appearance: none", "baseline": { "chrome": "84", "firefox": "80", "safari": "15.4" } }
@@ -1092,6 +1196,8 @@
     {
       "name": "Meter",
       "module": "meter",
+      "look": "Tremor CategoryBar colours",
+      "responsive": "content",
       "features": [
         { "name": "<meter>", "baseline": { "chrome": "6", "firefox": "16", "safari": "6" } }
       ],
@@ -1116,6 +1222,8 @@
     {
       "name": "Tooltip",
       "module": "tooltip",
+      "look": "Radix Themes Tooltip",
+      "responsive": "content",
       "features": [
         { "name": ":focus-within", "baseline": { "chrome": "60", "firefox": "52", "safari": "10.1" } },
         { "name": "@media (hover: none)", "baseline": { "chrome": "41", "firefox": "64", "safari": "9" } }
@@ -1139,6 +1247,8 @@
     {
       "name": "Separator",
       "module": "separator",
+      "look": "Radix Themes Separator",
+      "responsive": "content",
       "features": [
         { "name": "<hr>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "aria-orientation", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
@@ -1161,6 +1271,8 @@
     {
       "name": "Toast",
       "module": "toast",
+      "look": "shadcn Sonner",
+      "responsive": "viewport",
       "features": [
         { "name": "position: fixed", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "role=\"status\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -1186,6 +1298,8 @@
     {
       "name": "Breadcrumbs",
       "module": "breadcrumbs",
+      "look": "shadcn Breadcrumb",
+      "responsive": "container",
       "features": [
         { "name": "aria-current=\"page\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "::before", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -1209,6 +1323,8 @@
     {
       "name": "Skeleton",
       "module": "skeleton",
+      "look": "Radix Themes Skeleton",
+      "responsive": "content",
       "features": [
         { "name": "aria-busy", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "role=\"status\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -1233,6 +1349,8 @@
     {
       "name": "Empty state",
       "module": "empty_state",
+      "look": "shadcn Empty",
+      "responsive": "content",
       "features": [
         { "name": "<form method=\"post\">", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
       ],
@@ -1256,6 +1374,8 @@
     {
       "name": "Stat",
       "module": "stat",
+      "look": "Tremor KPI cards",
+      "responsive": "content",
       "features": [
         { "name": "repeat(auto-fit", "baseline": { "chrome": "57", "firefox": "52", "safari": "10.1" } },
         { "name": "animation-timeline: view()", "baseline": { "chrome": "115", "firefox": "no", "safari": "26" } }
@@ -1284,6 +1404,8 @@
     {
       "name": "Chart",
       "module": "chart",
+      "look": "Tremor AreaChart, BarChart, LineChart",
+      "responsive": "container",
       "features": [
         { "name": "<svg>", "baseline": { "chrome": "7", "firefox": "4", "safari": "5.1" } },
         { "name": "role=\"img\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -1315,6 +1437,8 @@
     {
       "name": "Sidebar",
       "module": "sidebar",
+      "look": "shadcn Sidebar",
+      "responsive": "content",
       "features": [
         { "name": "aria-current=\"page\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
       ],
@@ -1341,6 +1465,8 @@
     {
       "name": "Navigation menu",
       "module": "nav_menu",
+      "look": "shadcn Navigation Menu",
+      "responsive": "container",
       "features": [
         { "name": "popover", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
         { "name": "aria-current=\"page\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
@@ -1365,6 +1491,8 @@
     {
       "name": "Description list",
       "module": "description_list",
+      "look": "Radix Themes DataList",
+      "responsive": "content",
       "features": [
         { "name": "<dl>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "grid", "baseline": { "chrome": "57", "firefox": "52", "safari": "10.1" } }
@@ -1387,6 +1515,8 @@
     {
       "name": "Toggle group",
       "module": "toggle_group",
+      "look": "Radix Themes SegmentedControl",
+      "responsive": "content",
       "features": [
         { "name": "<fieldset>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": ":checked", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
@@ -1413,6 +1543,8 @@
     {
       "name": "Context menu",
       "module": "context_menu",
+      "look": "Radix Themes ContextMenu",
+      "responsive": "content",
       "features": [
         { "name": "popover", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
         { "name": "popovertarget", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } }
@@ -1444,6 +1576,8 @@
     {
       "name": "One-time code",
       "module": "input_otp",
+      "look": "shadcn Input OTP, Origin UI",
+      "responsive": "content",
       "features": [
         { "name": "autocomplete=\"one-time-code\"", "baseline": { "chrome": "84", "firefox": "no", "safari": "12" } },
         { "name": "inputmode=\"numeric\"", "baseline": { "chrome": "66", "firefox": "95", "safari": "12.1" } },
@@ -1467,6 +1601,8 @@
     {
       "name": "Drawer",
       "module": "drawer",
+      "look": "shadcn Sheet and Drawer",
+      "responsive": "viewport",
       "features": [
         { "name": "<dialog>", "baseline": { "chrome": "37", "firefox": "98", "safari": "15.4" } },
         { "name": "command=\"show-modal\"", "baseline": { "chrome": "135", "firefox": "144", "safari": "26.2" } },
@@ -1499,6 +1635,8 @@
     {
       "name": "Command palette",
       "module": "palette",
+      "look": "shadcn Command",
+      "responsive": "viewport",
       "features": [
         { "name": "popover", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
         { "name": "<datalist>", "baseline": { "chrome": "20", "firefox": "4", "safari": "12.1" } },
@@ -1531,6 +1669,8 @@
     {
       "name": "Marquee",
       "module": "marquee",
+      "look": "Magic UI Marquee",
+      "responsive": "content",
       "features": [
         { "name": "inert", "baseline": { "chrome": "102", "firefox": "112", "safari": "15.5" } },
         { "name": "translate", "baseline": { "chrome": "104", "firefox": "72", "safari": "14.1" } },

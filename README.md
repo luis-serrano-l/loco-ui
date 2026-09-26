@@ -258,27 +258,29 @@ component gives the HTML to another template engine.
 
 ## What a page weighs
 
-Measured on the demo (M30 and M31), gzip at level 9; every page inlines the whole stylesheet, so
+Measured on the demo (M34), gzip at level 9; every page inlines the whole stylesheet, so
 there is no second request for CSS, and no script is required.
 
 | | raw | gzip |
 |---|---|---|
-| The whole stylesheet, every component and block (`stylesheet()`) | 82.6 KB | 14.4 KB |
-| A demo page, stylesheet, sidebar and props tables included (`/nav` … `/calendar`) | 97–121 KB | 17.4–20.9 KB |
-| `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 178 KB | 30.4 KB |
-| The index, every component live on it (M31) | 220 KB | 37.3 KB |
+| The whole stylesheet, every component and block (`stylesheet()`) | 116.9 KB | 20.0 KB |
+| A demo page, stylesheet, sidebar and props tables included (`/nav` … `/calendar`) | 136–160 KB | 22.9–26.0 KB |
+| `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 249 KB | 41.8 KB |
+| The index, every component live on it | 292 KB | 47.1 KB |
 | JavaScript required | 0 | 0 |
-| The optional script, `/lui/enhance.js` (cached forever) | 10.6 KB | 3.6 KB |
+| The optional script, `/lui/enhance.js` (cached forever) | 12.6 KB | 4.3 KB |
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
-stylesheet stays under 128 KB (88 KB until M34, whose own limit is 24.4 KB gzipped), and every demo page's markup, the inlined stylesheet not
+stylesheet stays under 128 KB (88 KB until M34), and every demo page's markup, the inlined stylesheet not
 counted, under 48 KB (176 KB for the index with every component live on it; 160 until the M34 table listed hidden columns under each row) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
 stylesheet by 2.3 KB gzipped, from 12.1 KB (68.7 KB raw) at `cba5165`, under the 15 KB it was
-allowed; `stylesheet()` is built once and then costs about 1 ns (`cargo bench -p loco-ui`). The sidebar
+allowed. M34 (every component after its reference library, laid out by its own container)
+grew it by 5.6 KB gzipped, from 14.4 to 20.0 KB (82.6 to 116.9 KB raw), under the 10 KB it
+was allowed; `stylesheet()` is built once and then costs about 1 ns (`cargo bench -p loco-ui`). The sidebar
 of every component adds about 6.5 KB to each page since M31. (Before M29 added the blocks, the chart and six more components, the
 same limits were 64, 96 and 128 KB; M30's colour scales, depth tokens and motion raised them
 from 72, 104 and 152 KB.)
@@ -365,64 +367,65 @@ drifts). Versions are the first release of each engine with the feature, from MD
 browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 
 <!-- matrix:start -->
-| Component | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |
-|---|---|---|---|---|
-| Enhancement script | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
-| Layout | `@view-transition`, `prefers-color-scheme`, `custom properties` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1 | plain navigations (root never cross-fades); colours still switch by media query and data-theme | No |
-| Capability beacons | `@supports`, `selector()`, `background images`, `cookies` | 28 / 22 / 9; 83 / 69 / 14.1; 1 / 1 / 1; 1 / 1 / 1 | unknown browser gets every fallback; the first view always does | No |
-| Button | `invoker commands`, `popovertarget`, `aria-busy`, `prefers-reduced-motion`, `translate` | 135 / 144 / 26.2; 114 / 125 / 17; 1 / 1 / 1; 74 / 63 / 10.1; 104 / 72 / 14.1 | a popover command becomes popovertarget; other commands need the component's own fallback; a shimmer button is at rest without translate | No |
-| Input, checkbox, switch, radio group | `constraint validation`, `type=date`, `:user-invalid`, `role="switch"`, `appearance: none`, `<fieldset>`, `linear-gradient(in oklch` | 10 / 4 / 10.1; 20 / 57 / 14.1; 119 / 88 / 16.5; 1 / 1 / 1; 84 / 80 / 15.4; 1 / 1 / 1; 111 / 127 / 16.2 | none needed: native controls; the switch stays a checkbox without appearance: none; a gradient border is a plain one without in oklch gradients | Partly: a live character count while typing needs the enhancement script |
-| Badge | `<span>`, `translate` | 1 / 1 / 1; 104 / 72 / 14.1 | none needed; a shimmer badge is at rest without translate | No |
-| Card | `grid`, `conic-gradient`, `@property`, `mask-composite`, `color-mix()`, `linear-gradient(in oklch`, `animation-timeline: view()` | 57 / 52 / 10.1; 69 / 83 / 12.1; 85 / 128 / 16.4; 120 / 53 / 15.4; 111 / 113 / 16.2; 111 / 127 / 16.2; 115 / no / 26 | none needed; each showpiece effect is at rest without its feature or under reduced motion | No |
-| Icon | `<svg>`, `role="img"` | 4 / 3 / 3.2; 1 / 1 / 1 | none needed | No |
-| Avatar | `alt=""`, `loading="lazy"`, `role="img"` | 1 / 1 / 1; 77 / 75 / 15.4; 1 / 1 / 1 | the initials are the fallback | No |
-| Stack | `gap` | 84 / 63 / 14.1 | none needed | No |
-| Cluster | `flex-wrap`, `gap` | 29 / 28 / 9; 84 / 63 / 14.1 | none needed | No |
-| Grid | `repeat(auto-fill`, `@media` | 57 / 52 / 10.1; 1 / 1 / 1 | none needed | No |
-| Split | `flex-wrap`, `min-inline-size` | 29 / 28 / 9; 57 / 41 / 12.1 | none needed | No |
-| Calendar | `<table>`, `aria-current="date"`, `role="radiogroup"`, `:has(:checked)` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 105 / 121 / 15.4 | without :has() the picked radio's day is not filled in; it is still checked and posts | Partly: changing month in place and arrow-key moves between days need script |
-| Date picker | `popover`, `anchor-name`, `<input type="date">` | 114 / 125 / 17; 125 / 147 / 26; 20 / 57 / 14.1 | without popover the calendar is laid out in the form; .native() is the browser's own control | Partly: writing the picked day onto the button before the form is sent needs script |
-| Dialog | `<dialog>`, `command="show-modal"`, `<form method="dialog">`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete` | 37 / 98 / 15.4; 135 / 144 / 26.2; 37 / 98 / 15.4; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4 | link to #id opens it through a :target rule, chosen server-side; the confirm footer is a plain form either way | No |
-| Popover menu | `popover`, `anchor-name`, `@starting-style`, `transition-behavior: allow-discrete` | 114 / 125 / 17; 125 / 147 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4 | no anchor: UA-centred popover; no popover: <details> dropdown (submenus nested); actions are plain post forms either way | No |
-| Tabs | `<details name`, `display: contents`, `::details-content`, `view-transition-name` | 120 / 130 / 17.2; 65 / 37 / 11.1; 131 / 143 / 18.4; 111 / 144 / 18 | accordion markup, chosen server-side; the narrow-screen select has a Go button | No |
-| Accordion | `<details name`, `::details-content`, `interpolate-size` | 120 / 130 / 17.2; 131 / 143 / 18.4; 129 / no / no | plain <details>: no exclusivity, no animation; expand/collapse and every toggle are links either way | No |
-| Combobox | `<datalist>`, `<optgroup>`, `<search>`, `aria-live` | 20 / 4 / 12.1; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | none needed: chips, results and the create row are links and forms | Partly: static suggestions and per-submit results; live filtering and arrow keys into the results need script |
-| Load-more list | `view-transition-name`, `scroll-margin` | 111 / 144 / 18; 69 / 90 / 14.1 | plain navigation to ?page=n#more | Partly: click-to-load; scroll-to-load needs script |
-| Table | `?sort.<id>=<col>&dir.<id>=asc|desc`, `<search>`, `aria-sort`, `form attribute`, `<details>`, `<colgroup>`, `tabular-nums`, `position: sticky`, `view-transition-name`, `aria-busy` | 1 / 1 / 1; 118 / 118 / 17; 1 / 1 / 1; 10 / 4 / 5.1; 12 / 49 / 6; 1 / 1 / 1; 52 / 34 / 9.1; 56 / 32 / 13; 111 / 144 / 18; 1 / 1 / 1 | none needed: sorting, filtering, column choice and the bulk form are plain navigations and posts; no select-all without script | No |
-| Paged table | `?page.<id>=n`, `<select>`, `<input type="number">`, `<output>` | 1 / 1 / 1; 1 / 1 / 1; 6 / 29 / 5.1; 10 / 4 / 7 | none needed: every control is a link or a form | No |
-| Wizard | `<form method="post">`, `aria-current="step"`, `<fieldset>`, `formnovalidate`, `<progress>` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 4 / 4 / 5; 8 / 16 / 6 | none needed: one form per step, PRG between them | No |
-| Validated form | `required`, `pattern`, `:user-invalid`, `<fieldset>`, `<output>`, `type=date`, `accept`, `field-sizing` | 4 / 4 / 5; 4 / 4 / 5; 119 / 88 / 16.5; 1 / 1 / 1; 10 / 4 / 7; 20 / 57 / 14.1; 1 / 1 / 1; 123 / no / no | server re-renders with messages; no early styling; textareas keep their rows; the counter shows the submitted length | No |
-| Error summary | `role="alert"`, `aria-labelledby`, `autofocus` | 1 / 1 / 1; 1 / 1 / 1; 79 / 110 / 15.4 | where autofocus only works on form controls the summary is still first in the form and read out as an alert | Partly: moving the focus into the field a link points to needs script |
-| Counter | `<form method="post">`, `<button name value>`, `<input type="number">`, `cookie` | 1 / 1 / 1; 1 / 1 / 1; 6 / 29 / 5.1; 1 / 1 / 1 | none needed | No |
-| Theme toggle | `prefers-color-scheme`, `color-scheme`, `cookie` | 76 / 67 / 12.1; 81 / 96 / 13; 1 / 1 / 1 | OS preference | No |
-| Flash | `cookie`, `role="status"`, `role="alert"`, `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1 | without CSS animations the message stays | No |
-| UI state | `links`, `cookies`, `303 See Other` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1 | without cookies, state still travels in links on one page | No |
-| Select | `<selectedcontent>`, `appearance: base-select`, `<optgroup label>`, `formmethod` | 135 / no / 27; 135 / no / 27; 1 / 1 / 1; 9 / 4 / 5.1 | plain <select>, chosen server-side | No |
-| Range | `<input type="range">`, `<datalist>`, `pointer-events` | 4 / 23 / 3.1; 20 / 110 / 12.1; 1 / 1 / 1 | ticks not drawn | Partly: value shown after submit; live mirroring needs script |
-| Color | `<input type="color">`, `color-mix()` | 20 / 29 / 12.1; 111 / 113 / 16.2 | text field accepting #rrggbb | No |
-| Streaming | `<template shadowrootmode="open">`, `<slot name`, `Chunked transfer` | 111 / 123 / 16.4; 53 / 63 / 10; 1 / 1 / 1 | in-order streaming with in-place splicing | No |
-| Upload | `<input type="file" accept multiple>`, `<progress>`, `loading="lazy"` | 1 / 1 / 1; 6 / 6 / 6; 77 / 75 / 15.4 | none needed: a plain multipart post; the progress bar needs the enhancement script | Partly: upload progress and a preview before sending need script |
-| Kanban | `<form method="post">`, `scroll-snap-type`, `view-transition-name` | 1 / 1 / 1; 69 / 68 / 11; 111 / 144 / 18 | without view transitions a moved card is simply in its new column | Partly: drag and drop and reordering within a column need script |
-| Alert | `role="alert"`, `role="status"` | 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
-| Progress | `<progress>`, `appearance: none` | 6 / 6 / 6; 84 / 80 / 15.4 | without the pseudo-elements a browser draws its own bar | Partly: moving on its own needs a streamed page or the script |
-| Meter | `<meter>` | 6 / 16 / 6 | without the pseudo-elements a browser draws its own meter | No |
-| Tooltip | `:focus-within`, `@media (hover: none)` | 60 / 52 / 10.1; 41 / 64 / 9 | none needed | Partly: a delay before opening and Escape to close need script |
-| Separator | `<hr>`, `aria-orientation` | 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
-| Toast | `position: fixed`, `role="status"`, `role="alert"`, `@keyframes`, `prefers-reduced-motion`, `@starting-style` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1; 117 / 129 / 17.5 | without CSS animations toasts stay until the next page | No |
-| Breadcrumbs | `aria-current="page"`, `::before`, `<details>` | 1 / 1 / 1; 1 / 1 / 1; 12 / 49 / 6 | none needed | No |
-| Skeleton | `aria-busy`, `role="status"`, `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1 | without CSS animations the bars are still | No |
-| Empty state | `<form method="post">` | 1 / 1 / 1 | none needed | No |
-| Stat | `repeat(auto-fit`, `animation-timeline: view()` | 57 / 52 / 10.1; 115 / no / 26 | none needed; a reveal tile is shown in place without animation-timeline | No |
-| Chart | `<svg>`, `role="img"`, `<title>`, `CSS custom properties in SVG` | 7 / 4 / 5.1; 1 / 1 / 1; 1 / 1 / 1; 49 / 31 / 9.1 | none needed | Partly: zoom, pan and a crosshair that follows the pointer need script |
-| Sidebar | `aria-current="page"` | 1 / 1 / 1 | none needed | Partly: collapsing to an icon rail kept between pages needs script |
-| Navigation menu | `popover`, `aria-current="page"` | 114 / 125 / 17; 1 / 1 / 1 | a <details> dropdown without popover; a centred panel without anchor positioning | Partly: opening a panel on hover needs script |
-| Description list | `<dl>`, `grid` | 1 / 1 / 1; 57 / 52 / 10.1 | without grid the terms stack above their details | No |
-| Toggle group | `<fieldset>`, `:checked`, `:focus-visible` | 1 / 1 / 1; 1 / 1 / 1; 86 / 85 / 15.4 | none needed | Partly: applying a choice the moment it is pressed needs script (or the form's submit) |
-| Context menu | `popover`, `popovertarget` | 114 / 125 / 17; 114 / 125 / 17 | that of the popover menu: a <details> dropdown | Partly: opening on right-click or a long press needs script |
-| One-time code | `autocomplete="one-time-code"`, `inputmode="numeric"`, `pattern` | 84 / no / 12; 66 / 95 / 12.1; 4 / 4 / 5 | a plain spaced-out field; without autocomplete the code is typed or pasted | No |
-| Drawer | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
-| Command palette | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
-| Marquee | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
+| Component | Look after | Responsive by | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |
+|---|---|---|---|---|---|---|
+| Enhancement script | - | - | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent`, `HTML drag and drop` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6; 4 / 3.5 / 3.1 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
+| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | viewport | `@view-transition`, `prefers-color-scheme`, `custom properties` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1 | plain navigations (root never cross-fades); colours still switch by media query and data-theme | No |
+| Capability beacons | - | - | `@supports`, `selector()`, `background images`, `cookies` | 28 / 22 / 9; 83 / 69 / 14.1; 1 / 1 / 1; 1 / 1 / 1 | unknown browser gets every fallback; the first view always does | No |
+| Button | Radix Themes Button | content | `invoker commands`, `popovertarget`, `aria-busy`, `prefers-reduced-motion`, `translate` | 135 / 144 / 26.2; 114 / 125 / 17; 1 / 1 / 1; 74 / 63 / 10.1; 104 / 72 / 14.1 | a popover command becomes popovertarget; other commands need the component's own fallback; a shimmer button is at rest without translate | No |
+| Input, checkbox, switch, radio group | Radix Themes TextField, Checkbox, Switch, RadioGroup and RadioCards | container | `constraint validation`, `type=date`, `:user-invalid`, `role="switch"`, `appearance: none`, `<fieldset>`, `linear-gradient(in oklch` | 10 / 4 / 10.1; 20 / 57 / 14.1; 119 / 88 / 16.5; 1 / 1 / 1; 84 / 80 / 15.4; 1 / 1 / 1; 111 / 127 / 16.2 | none needed: native controls; the switch stays a checkbox without appearance: none; a gradient border is a plain one without in oklch gradients | Partly: a live character count while typing needs the enhancement script |
+| Badge | Radix Themes Badge | content | `<span>`, `translate` | 1 / 1 / 1; 104 / 72 / 14.1 | none needed; a shimmer badge is at rest without translate | No |
+| Card | Radix Themes Card | content | `grid`, `conic-gradient`, `@property`, `mask-composite`, `color-mix()`, `linear-gradient(in oklch`, `animation-timeline: view()` | 57 / 52 / 10.1; 69 / 83 / 12.1; 85 / 128 / 16.4; 120 / 53 / 15.4; 111 / 113 / 16.2; 111 / 127 / 16.2; 115 / no / 26 | none needed; each showpiece effect is at rest without its feature or under reduced motion | No |
+| Icon | Lucide | content | `<svg>`, `role="img"` | 4 / 3 / 3.2; 1 / 1 / 1 | none needed | No |
+| Avatar | Radix Themes Avatar | content | `alt=""`, `loading="lazy"`, `role="img"` | 1 / 1 / 1; 77 / 75 / 15.4; 1 / 1 / 1 | the initials are the fallback | No |
+| Stack | - | content | `gap` | 84 / 63 / 14.1 | none needed | No |
+| Cluster | - | content | `flex-wrap`, `gap` | 29 / 28 / 9; 84 / 63 / 14.1 | none needed | No |
+| Grid | - | content | `repeat(auto-fill`, `@media` | 57 / 52 / 10.1; 1 / 1 / 1 | none needed | No |
+| Split | - | content | `flex-wrap`, `min-inline-size` | 29 / 28 / 9; 57 / 41 / 12.1 | none needed | No |
+| Calendar | shadcn Calendar | content | `<table>`, `aria-current="date"`, `role="radiogroup"`, `:has(:checked)` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 105 / 121 / 15.4 | without :has() the picked radio's day is not filled in; it is still checked and posts | Partly: changing month in place and arrow-key moves between days need script |
+| Date picker | shadcn Date Picker | content | `popover`, `anchor-name`, `<input type="date">` | 114 / 125 / 17; 125 / 147 / 26; 20 / 57 / 14.1 | without popover the calendar is laid out in the form; .native() is the browser's own control | Partly: writing the picked day onto the button before the form is sent needs script |
+| Dialog | Radix Themes Dialog and AlertDialog | viewport | `<dialog>`, `command="show-modal"`, `<form method="dialog">`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete` | 37 / 98 / 15.4; 135 / 144 / 26.2; 37 / 98 / 15.4; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4 | link to #id opens it through a :target rule, chosen server-side; the confirm footer is a plain form either way | No |
+| Popover menu | Radix Themes Popover and DropdownMenu | content | `popover`, `anchor-name`, `@starting-style`, `transition-behavior: allow-discrete` | 114 / 125 / 17; 125 / 147 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4 | no anchor: UA-centred popover; no popover: <details> dropdown (submenus nested); actions are plain post forms either way | No |
+| Tabs | Radix Themes Tabs and TabNav | container | `<details name`, `display: contents`, `::details-content`, `view-transition-name` | 120 / 130 / 17.2; 65 / 37 / 11.1; 131 / 143 / 18.4; 111 / 144 / 18 | accordion markup, chosen server-side; the narrow-screen select has a Go button | No |
+| Accordion | shadcn Accordion | content | `<details name`, `::details-content`, `interpolate-size` | 120 / 130 / 17.2; 131 / 143 / 18.4; 129 / no / no | plain <details>: no exclusivity, no animation; expand/collapse and every toggle are links either way | No |
+| Combobox | shadcn Combobox | content | `<datalist>`, `<optgroup>`, `<search>`, `aria-live` | 20 / 4 / 12.1; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | none needed: chips, results and the create row are links and forms | Partly: static suggestions and per-submit results; live filtering and arrow keys into the results need script |
+| Load-more list | shadcn Pagination | content | `view-transition-name`, `scroll-margin` | 111 / 144 / 18; 69 / 90 / 14.1 | plain navigation to ?page=n#more | Partly: click-to-load; scroll-to-load needs script |
+| Table | shadcn data table, Origin UI | container | `?sort.<id>=<col>&dir.<id>=asc|desc`, `<search>`, `aria-sort`, `form attribute`, `<details>`, `<colgroup>`, `tabular-nums`, `position: sticky`, `view-transition-name`, `aria-busy` | 1 / 1 / 1; 118 / 118 / 17; 1 / 1 / 1; 10 / 4 / 5.1; 12 / 49 / 6; 1 / 1 / 1; 52 / 34 / 9.1; 56 / 32 / 13; 111 / 144 / 18; 1 / 1 / 1 | none needed: sorting, filtering, column choice and the bulk form are plain navigations and posts; no select-all without script | No |
+| Paged table | shadcn data table, Origin UI | container | `?page.<id>=n`, `<select>`, `<input type="number">`, `<output>` | 1 / 1 / 1; 1 / 1 / 1; 6 / 29 / 5.1; 10 / 4 / 7 | none needed: every control is a link or a form | No |
+| Wizard | Origin UI Stepper | container | `<form method="post">`, `aria-current="step"`, `<fieldset>`, `formnovalidate`, `<progress>` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 4 / 4 / 5; 8 / 16 / 6 | none needed: one form per step, PRG between them | No |
+| Validated form | shadcn Forms, Radix Themes | container | `required`, `pattern`, `:user-invalid`, `<fieldset>`, `<output>`, `type=date`, `accept`, `field-sizing` | 4 / 4 / 5; 4 / 4 / 5; 119 / 88 / 16.5; 1 / 1 / 1; 10 / 4 / 7; 20 / 57 / 14.1; 1 / 1 / 1; 123 / no / no | server re-renders with messages; no early styling; textareas keep their rows; the counter shows the submitted length | No |
+| Error summary | Radix Themes Callout | content | `role="alert"`, `aria-labelledby`, `autofocus` | 1 / 1 / 1; 1 / 1 / 1; 79 / 110 / 15.4 | where autofocus only works on form controls the summary is still first in the form and read out as an alert | Partly: moving the focus into the field a link points to needs script |
+| Counter | - | - | `<form method="post">`, `<button name value>`, `<input type="number">`, `cookie` | 1 / 1 / 1; 1 / 1 / 1; 6 / 29 / 5.1; 1 / 1 / 1 | none needed | No |
+| Theme toggle | Radix Themes SegmentedControl | content | `prefers-color-scheme`, `color-scheme`, `cookie` | 76 / 67 / 12.1; 81 / 96 / 13; 1 / 1 / 1 | OS preference | No |
+| Flash | Radix Themes Callout | content | `cookie`, `role="status"`, `role="alert"`, `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1 | without CSS animations the message stays | No |
+| UI state | - | - | `links`, `cookies`, `303 See Other` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1 | without cookies, state still travels in links on one page | No |
+| Select | Radix Themes Select | content | `<selectedcontent>`, `appearance: base-select`, `<optgroup label>`, `formmethod` | 135 / no / 27; 135 / no / 27; 1 / 1 / 1; 9 / 4 / 5.1 | plain <select>, chosen server-side | No |
+| Range | Radix Themes Slider | content | `<input type="range">`, `<datalist>`, `pointer-events` | 4 / 23 / 3.1; 20 / 110 / 12.1; 1 / 1 / 1 | ticks not drawn | Partly: value shown after submit; live mirroring needs script |
+| Color | Radix Themes TextField | content | `<input type="color">`, `color-mix()` | 20 / 29 / 12.1; 111 / 113 / 16.2 | text field accepting #rrggbb | No |
+| Streaming | Radix Themes Skeleton | - | `<template shadowrootmode="open">`, `<slot name`, `Chunked transfer` | 111 / 123 / 16.4; 53 / 63 / 10; 1 / 1 / 1 | in-order streaming with in-place splicing | No |
+| Upload | Origin UI file upload | container | `<input type="file" accept multiple>`, `<progress>`, `loading="lazy"` | 1 / 1 / 1; 6 / 6 / 6; 77 / 75 / 15.4 | none needed: a plain multipart post; the progress bar needs the enhancement script | Partly: upload progress and a preview before sending need script |
+| Kanban | Dice UI Kanban | container | `<form method="post">`, `scroll-snap-type`, `view-transition-name`, `@container` | 1 / 1 / 1; 69 / 68 / 11; 111 / 144 / 18; 105 / 110 / 16 | without view transitions a moved card is simply in its new column; without container queries the board keeps its narrow, snapping form | Partly: drag and drop and reordering within a column need script |
+| Sortable list | Dioxus Components drag and drop list | content | `<form method="post">`, `view-transition-name`, `@media (scripting: enabled)` | 1 / 1 / 1; 111 / 144 / 18; 120 / 113 / 17 | without view transitions a moved item is simply in its new place | Partly: dragging needs the script; the named buttons move items one place at a time without it |
+| Alert | Radix Themes Callout | content | `role="alert"`, `role="status"` | 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
+| Progress | Tremor ProgressBar | content | `<progress>`, `appearance: none` | 6 / 6 / 6; 84 / 80 / 15.4 | without the pseudo-elements a browser draws its own bar | Partly: moving on its own needs a streamed page or the script |
+| Meter | Tremor CategoryBar colours | content | `<meter>` | 6 / 16 / 6 | without the pseudo-elements a browser draws its own meter | No |
+| Tooltip | Radix Themes Tooltip | content | `:focus-within`, `@media (hover: none)` | 60 / 52 / 10.1; 41 / 64 / 9 | none needed | Partly: a delay before opening and Escape to close need script |
+| Separator | Radix Themes Separator | content | `<hr>`, `aria-orientation` | 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
+| Toast | shadcn Sonner | viewport | `position: fixed`, `role="status"`, `role="alert"`, `@keyframes`, `prefers-reduced-motion`, `@starting-style` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1; 117 / 129 / 17.5 | without CSS animations toasts stay until the next page | No |
+| Breadcrumbs | shadcn Breadcrumb | container | `aria-current="page"`, `::before`, `<details>` | 1 / 1 / 1; 1 / 1 / 1; 12 / 49 / 6 | none needed | No |
+| Skeleton | Radix Themes Skeleton | content | `aria-busy`, `role="status"`, `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1 | without CSS animations the bars are still | No |
+| Empty state | shadcn Empty | content | `<form method="post">` | 1 / 1 / 1 | none needed | No |
+| Stat | Tremor KPI cards | content | `repeat(auto-fit`, `animation-timeline: view()` | 57 / 52 / 10.1; 115 / no / 26 | none needed; a reveal tile is shown in place without animation-timeline | No |
+| Chart | Tremor AreaChart, BarChart, LineChart | container | `<svg>`, `role="img"`, `<title>`, `CSS custom properties in SVG` | 7 / 4 / 5.1; 1 / 1 / 1; 1 / 1 / 1; 49 / 31 / 9.1 | none needed | Partly: zoom, pan and a crosshair that follows the pointer need script |
+| Sidebar | shadcn Sidebar | content | `aria-current="page"` | 1 / 1 / 1 | none needed | Partly: collapsing to an icon rail kept between pages needs script |
+| Navigation menu | shadcn Navigation Menu | container | `popover`, `aria-current="page"` | 114 / 125 / 17; 1 / 1 / 1 | a <details> dropdown without popover; a centred panel without anchor positioning | Partly: opening a panel on hover needs script |
+| Description list | Radix Themes DataList | content | `<dl>`, `grid` | 1 / 1 / 1; 57 / 52 / 10.1 | without grid the terms stack above their details | No |
+| Toggle group | Radix Themes SegmentedControl | content | `<fieldset>`, `:checked`, `:focus-visible` | 1 / 1 / 1; 1 / 1 / 1; 86 / 85 / 15.4 | none needed | Partly: applying a choice the moment it is pressed needs script (or the form's submit) |
+| Context menu | Radix Themes ContextMenu | content | `popover`, `popovertarget` | 114 / 125 / 17; 114 / 125 / 17 | that of the popover menu: a <details> dropdown | Partly: opening on right-click or a long press needs script |
+| One-time code | shadcn Input OTP, Origin UI | content | `autocomplete="one-time-code"`, `inputmode="numeric"`, `pattern` | 84 / no / 12; 66 / 95 / 12.1; 4 / 4 / 5 | a plain spaced-out field; without autocomplete the code is typed or pasted | No |
+| Drawer | shadcn Sheet and Drawer | viewport | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
+| Command palette | shadcn Command | viewport | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
+| Marquee | Magic UI Marquee | content | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
 <!-- matrix:end -->
 
 ## Findings

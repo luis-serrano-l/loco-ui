@@ -866,3 +866,18 @@ is not drawn only because it sits behind the motion query.
   mixed `:has()` or `:user-invalid` (Chrome 119) with plain selectors: in one list, a
   browser that cannot parse one drops the whole rule. Before M34, Chrome 109 lost the
   `aria-invalid` border that way (the calendar lesson in M23, one more time).
+- **Stylo does not know `interpolate-size`.** Stylo 0.20 has no such property (nothing in
+  its source parses it), so the accordion's `interpolate-size: allow-keywords` is dropped and
+  a panel would snap open. Blitz shots are static, so nothing shows; Firefox lacks it too,
+  and the accordion is written to snap there. (No upstream issue yet; the owner files it.)
+- **`mask` is not a gap.** Blitz 0.3 paints CSS masks (`blitz-paint`'s `mask` module pushes
+  an isolation layer per masked element), so the card's gradient border and the marquee's
+  faded edges render as in a browser wherever their `@supports` and motion queries let them.
+- **The drag in the sortable list is tested with synthetic events.** WebDriver cannot drive
+  native HTML drag and drop in Firefox, so `browser-check.mjs` dispatches `pointerdown`,
+  `dragstart`, `dragover`, `drop` and `dragend` with one `DataTransfer`; the script decides
+  on its own `drop` flag rather than `dropEffect`, which a constructed `DataTransfer` leaves
+  at `none`. The move buttons, the no-script path, are clicked for real.
+- **The enhancement script grew past 11 KB.** Drag and drop for the sortable list took it
+  from 11,222 to 12,578 bytes served (4.3 KB gzipped); the budget went to 13 KB served and
+  16 KB of source, and the docs say 12 KB.

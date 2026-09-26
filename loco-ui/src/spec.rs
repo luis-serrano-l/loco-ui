@@ -45,6 +45,33 @@ pub enum NeedsJs {
     Partial(&'static str),
 }
 
+/// What a component's layout answers to (M34): its own container's width (`@container`,
+/// breakpoints at 30 and 48rem), its content (it wraps or stacks by itself, no breakpoint),
+/// the viewport (the page frame and what covers it), or nothing (it draws no layout).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Responsive {
+    /// `@container` rules on its own box.
+    Container,
+    /// One layout that wraps or stacks by its own content.
+    Content,
+    /// Media queries on the viewport: the page frame, modals, sheets and corner stacks.
+    Viewport,
+    /// Draws no layout of its own.
+    None,
+}
+
+impl Responsive {
+    /// As the README matrix and the JSON write it.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Responsive::Container => "container",
+            Responsive::Content => "content",
+            Responsive::Viewport => "viewport",
+            Responsive::None => "-",
+        }
+    }
+}
+
 /// A component's entry in the spec.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ComponentSpec {
@@ -52,6 +79,10 @@ pub struct ComponentSpec {
     pub name: &'static str,
     /// File name under `loco-ui/src/` without `.rs`.
     pub module: &'static str,
+    /// The library whose look it follows (M34), `"-"` for none.
+    pub look: &'static str,
+    /// What its layout answers to.
+    pub responsive: Responsive,
     /// Platform features it relies on, in the order the header lists them.
     pub features: &'static [Feature],
     /// What happens in a browser missing any of the features.
@@ -90,11 +121,14 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Enhancement script",
         module: "enhance",
+        look: "-",
+        responsive: Responsive::None,
         features: &[
             f("fetch", b("42", "39", "10.1")),
             f("history.pushState", b("5", "4", "5")),
             f("document.startViewTransition", b("111", "144", "18")),
             f("CustomEvent", b("15", "11", "6")),
+            f("HTML drag and drop", b("4", "3.5", "3.1")),
         ],
         fallback: "none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert",
         needs_js: NeedsJs::No,
@@ -102,6 +136,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Layout",
         module: "layout",
+        look: "Radix Themes scales and depth, a Linear / Magic UI finish",
+        responsive: Responsive::Viewport,
         features: &[
             f("@view-transition", b("126", "no", "18.2")),
             PREFERS_COLOR_SCHEME,
@@ -113,6 +149,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Capability beacons",
         module: "caps",
+        look: "-",
+        responsive: Responsive::None,
         features: &[
             f("@supports", b("28", "22", "9")),
             f("selector()", b("83", "69", "14.1")),
@@ -125,6 +163,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Button",
         module: "button",
+        look: "Radix Themes Button",
+        responsive: Responsive::Content,
         features: &[
             f("invoker commands", b("135", "144", "26.2")),
             f("popovertarget", b("114", "125", "17")),
@@ -138,6 +178,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Input, checkbox, switch, radio group",
         module: "input",
+        look: "Radix Themes TextField, Checkbox, Switch, RadioGroup and RadioCards",
+        responsive: Responsive::Container,
         features: &[
             f("constraint validation", b("10", "4", "10.1")),
             f("type=date", b("20", "57", "14.1")),
@@ -155,6 +197,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Badge",
         module: "badge",
+        look: "Radix Themes Badge",
+        responsive: Responsive::Content,
         features: &[f("<span>", ALWAYS), TRANSLATE],
         fallback: "none needed; a shimmer badge is at rest without translate",
         needs_js: NeedsJs::No,
@@ -162,6 +206,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Card",
         module: "card",
+        look: "Radix Themes Card",
+        responsive: Responsive::Content,
         features: &[
             f("grid", b("57", "52", "10.1")),
             f("conic-gradient", b("69", "83", "12.1")),
@@ -177,6 +223,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Icon",
         module: "icon",
+        look: "Lucide",
+        responsive: Responsive::Content,
         features: &[f("<svg>", b("4", "3", "3.2")), f("role=\"img\"", ALWAYS)],
         fallback: "none needed",
         needs_js: NeedsJs::No,
@@ -184,6 +232,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Avatar",
         module: "avatar",
+        look: "Radix Themes Avatar",
+        responsive: Responsive::Content,
         features: &[
             f("alt=\"\"", ALWAYS),
             f("loading=\"lazy\"", b("77", "75", "15.4")),
@@ -195,6 +245,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Stack",
         module: "stack",
+        look: "-",
+        responsive: Responsive::Content,
         features: &[f("gap", b("84", "63", "14.1"))],
         fallback: "none needed",
         needs_js: NeedsJs::No,
@@ -202,6 +254,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Cluster",
         module: "cluster",
+        look: "-",
+        responsive: Responsive::Content,
         features: &[
             f("flex-wrap", b("29", "28", "9")),
             f("gap", b("84", "63", "14.1")),
@@ -212,6 +266,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Grid",
         module: "grid",
+        look: "-",
+        responsive: Responsive::Content,
         features: &[
             f("repeat(auto-fill", b("57", "52", "10.1")),
             f("@media", ALWAYS),
@@ -222,6 +278,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Split",
         module: "split",
+        look: "-",
+        responsive: Responsive::Content,
         features: &[
             f("flex-wrap", b("29", "28", "9")),
             f("min-inline-size", b("57", "41", "12.1")),
@@ -232,6 +290,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Calendar",
         module: "calendar",
+        look: "shadcn Calendar",
+        responsive: Responsive::Content,
         features: &[
             f("<table>", ALWAYS),
             f("aria-current=\"date\"", ALWAYS),
@@ -246,6 +306,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Date picker",
         module: "date_picker",
+        look: "shadcn Date Picker",
+        responsive: Responsive::Content,
         features: &[
             f("popover", b("114", "125", "17")),
             f("anchor-name", b("125", "147", "26")),
@@ -259,6 +321,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Dialog",
         module: "dialog",
+        look: "Radix Themes Dialog and AlertDialog",
+        responsive: Responsive::Viewport,
         features: &[
             f("<dialog>", b("37", "98", "15.4")),
             f("command=\"show-modal\"", b("135", "144", "26.2")),
@@ -276,6 +340,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Popover menu",
         module: "popover",
+        look: "Radix Themes Popover and DropdownMenu",
+        responsive: Responsive::Content,
         features: &[
             f("popover", b("114", "125", "17")),
             f("anchor-name", b("125", "147", "26")),
@@ -291,6 +357,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Tabs",
         module: "tabs",
+        look: "Radix Themes Tabs and TabNav",
+        responsive: Responsive::Container,
         features: &[
             DETAILS_NAME,
             f("display: contents", b("65", "37", "11.1")),
@@ -303,6 +371,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Accordion",
         module: "accordion",
+        look: "shadcn Accordion",
+        responsive: Responsive::Content,
         features: &[
             DETAILS_NAME,
             DETAILS_CONTENT,
@@ -314,6 +384,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Combobox",
         module: "combobox",
+        look: "shadcn Combobox",
+        responsive: Responsive::Content,
         features: &[
             f("<datalist>", b("20", "4", "12.1")),
             f("<optgroup>", b("20", "4", "12.1")),
@@ -328,6 +400,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Load-more list",
         module: "pager",
+        look: "shadcn Pagination",
+        responsive: Responsive::Content,
         features: &[
             f("view-transition-name", b("111", "144", "18")),
             f("scroll-margin", b("69", "90", "14.1")),
@@ -338,6 +412,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Table",
         module: "table",
+        look: "shadcn data table, Origin UI",
+        responsive: Responsive::Container,
         features: &[
             f("?sort.<id>=<col>&dir.<id>=asc|desc", b("1", "1", "1")),
             f("<search>", b("118", "118", "17")),
@@ -356,6 +432,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Paged table",
         module: "paged_table",
+        look: "shadcn data table, Origin UI",
+        responsive: Responsive::Container,
         features: &[
             f("?page.<id>=n", b("1", "1", "1")),
             f("<select>", b("1", "1", "1")),
@@ -368,6 +446,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Wizard",
         module: "wizard",
+        look: "Origin UI Stepper",
+        responsive: Responsive::Container,
         features: &[
             f("<form method=\"post\">", b("1", "1", "1")),
             f("aria-current=\"step\"", b("1", "1", "1")),
@@ -381,6 +461,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Validated form",
         module: "form",
+        look: "shadcn Forms, Radix Themes",
+        responsive: Responsive::Container,
         features: &[
             f("required", b("4", "4", "5")),
             f("pattern", b("4", "4", "5")),
@@ -397,6 +479,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Error summary",
         module: "error_summary",
+        look: "Radix Themes Callout",
+        responsive: Responsive::Content,
         features: &[
             f("role=\"alert\"", ALWAYS),
             f("aria-labelledby", ALWAYS),
@@ -408,6 +492,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Counter",
         module: "counter",
+        look: "-",
+        responsive: Responsive::None,
         features: &[
             f("<form method=\"post\">", ALWAYS),
             f("<button name value>", ALWAYS),
@@ -420,6 +506,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Theme toggle",
         module: "theme",
+        look: "Radix Themes SegmentedControl",
+        responsive: Responsive::Content,
         features: &[
             PREFERS_COLOR_SCHEME,
             f("color-scheme", b("81", "96", "13")),
@@ -431,6 +519,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Flash",
         module: "flash",
+        look: "Radix Themes Callout",
+        responsive: Responsive::Content,
         features: &[
             COOKIE,
             f("role=\"status\"", ALWAYS),
@@ -444,6 +534,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "UI state",
         module: "state",
+        look: "-",
+        responsive: Responsive::None,
         features: &[
             f("links", ALWAYS),
             f("cookies", ALWAYS),
@@ -455,6 +547,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Select",
         module: "select",
+        look: "Radix Themes Select",
+        responsive: Responsive::Content,
         features: &[
             f("<selectedcontent>", b("135", "no", "27")),
             f("appearance: base-select", b("135", "no", "27")),
@@ -467,6 +561,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Range",
         module: "range",
+        look: "Radix Themes Slider",
+        responsive: Responsive::Content,
         features: &[
             f("<input type=\"range\">", b("4", "23", "3.1")),
             f("<datalist>", b("20", "110", "12.1")),
@@ -478,6 +574,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Color",
         module: "color",
+        look: "Radix Themes TextField",
+        responsive: Responsive::Content,
         features: &[
             f("<input type=\"color\">", b("20", "29", "12.1")),
             f("color-mix()", b("111", "113", "16.2")),
@@ -488,6 +586,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Streaming",
         module: "stream",
+        look: "Radix Themes Skeleton",
+        responsive: Responsive::None,
         features: &[
             f(
                 "<template shadowrootmode=\"open\">",
@@ -502,6 +602,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Upload",
         module: "upload",
+        look: "Origin UI file upload",
+        responsive: Responsive::Container,
         features: &[
             f("<input type=\"file\" accept multiple>", ALWAYS),
             f("<progress>", b("6", "6", "6")),
@@ -513,17 +615,37 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Kanban",
         module: "kanban",
+        look: "Dice UI Kanban",
+        responsive: Responsive::Container,
         features: &[
             f("<form method=\"post\">", ALWAYS),
             f("scroll-snap-type", b("69", "68", "11")),
             f("view-transition-name", b("111", "144", "18")),
+            f("@container", b("105", "110", "16")),
         ],
-        fallback: "without view transitions a moved card is simply in its new column",
+        fallback: "without view transitions a moved card is simply in its new column; without container queries the board keeps its narrow, snapping form",
         needs_js: NeedsJs::Partial("drag and drop and reordering within a column need script"),
+    },
+    ComponentSpec {
+        name: "Sortable list",
+        module: "sortable",
+        look: "Dioxus Components drag and drop list",
+        responsive: Responsive::Content,
+        features: &[
+            f("<form method=\"post\">", ALWAYS),
+            f("view-transition-name", b("111", "144", "18")),
+            f("@media (scripting: enabled)", b("120", "113", "17")),
+        ],
+        fallback: "without view transitions a moved item is simply in its new place",
+        needs_js: NeedsJs::Partial(
+            "dragging needs the script; the named buttons move items one place at a time without it",
+        ),
     },
     ComponentSpec {
         name: "Alert",
         module: "alert",
+        look: "Radix Themes Callout",
+        responsive: Responsive::Content,
         features: &[f("role=\"alert\"", ALWAYS), f("role=\"status\"", ALWAYS)],
         fallback: "none needed",
         needs_js: NeedsJs::No,
@@ -531,6 +653,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Progress",
         module: "progress",
+        look: "Tremor ProgressBar",
+        responsive: Responsive::Content,
         features: &[
             f("<progress>", b("6", "6", "6")),
             f("appearance: none", b("84", "80", "15.4")),
@@ -541,6 +665,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Meter",
         module: "meter",
+        look: "Tremor CategoryBar colours",
+        responsive: Responsive::Content,
         features: &[f("<meter>", b("6", "16", "6"))],
         fallback: "without the pseudo-elements a browser draws its own meter",
         needs_js: NeedsJs::No,
@@ -548,6 +674,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Tooltip",
         module: "tooltip",
+        look: "Radix Themes Tooltip",
+        responsive: Responsive::Content,
         features: &[
             f(":focus-within", b("60", "52", "10.1")),
             f("@media (hover: none)", b("41", "64", "9")),
@@ -558,6 +686,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Separator",
         module: "separator",
+        look: "Radix Themes Separator",
+        responsive: Responsive::Content,
         features: &[f("<hr>", ALWAYS), f("aria-orientation", ALWAYS)],
         fallback: "none needed",
         needs_js: NeedsJs::No,
@@ -565,6 +695,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Toast",
         module: "toast",
+        look: "shadcn Sonner",
+        responsive: Responsive::Viewport,
         features: &[
             f("position: fixed", ALWAYS),
             f("role=\"status\"", ALWAYS),
@@ -579,6 +711,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Breadcrumbs",
         module: "breadcrumbs",
+        look: "shadcn Breadcrumb",
+        responsive: Responsive::Container,
         features: &[
             f("aria-current=\"page\"", ALWAYS),
             f("::before", ALWAYS),
@@ -590,6 +724,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Skeleton",
         module: "skeleton",
+        look: "Radix Themes Skeleton",
+        responsive: Responsive::Content,
         features: &[
             f("aria-busy", ALWAYS),
             f("role=\"status\"", ALWAYS),
@@ -602,6 +738,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Empty state",
         module: "empty_state",
+        look: "shadcn Empty",
+        responsive: Responsive::Content,
         features: &[f("<form method=\"post\">", ALWAYS)],
         fallback: "none needed",
         needs_js: NeedsJs::No,
@@ -609,6 +747,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Stat",
         module: "stat",
+        look: "Tremor KPI cards",
+        responsive: Responsive::Content,
         features: &[f("repeat(auto-fit", b("57", "52", "10.1")), VIEW_TIMELINE],
         fallback: "none needed; a reveal tile is shown in place without animation-timeline",
         needs_js: NeedsJs::No,
@@ -616,6 +756,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Chart",
         module: "chart",
+        look: "Tremor AreaChart, BarChart, LineChart",
+        responsive: Responsive::Container,
         features: &[
             f("<svg>", b("7", "4", "5.1")),
             f("role=\"img\"", ALWAYS),
@@ -630,6 +772,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Sidebar",
         module: "sidebar",
+        look: "shadcn Sidebar",
+        responsive: Responsive::Content,
         features: &[f("aria-current=\"page\"", ALWAYS)],
         fallback: "none needed",
         needs_js: NeedsJs::Partial("collapsing to an icon rail kept between pages needs script"),
@@ -637,6 +781,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Navigation menu",
         module: "nav_menu",
+        look: "shadcn Navigation Menu",
+        responsive: Responsive::Container,
         features: &[
             f("popover", b("114", "125", "17")),
             f("aria-current=\"page\"", ALWAYS),
@@ -647,6 +793,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Description list",
         module: "description_list",
+        look: "Radix Themes DataList",
+        responsive: Responsive::Content,
         features: &[f("<dl>", ALWAYS), f("grid", b("57", "52", "10.1"))],
         fallback: "without grid the terms stack above their details",
         needs_js: NeedsJs::No,
@@ -654,6 +802,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Toggle group",
         module: "toggle_group",
+        look: "Radix Themes SegmentedControl",
+        responsive: Responsive::Content,
         features: &[
             f("<fieldset>", ALWAYS),
             f(":checked", ALWAYS),
@@ -667,6 +817,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Context menu",
         module: "context_menu",
+        look: "Radix Themes ContextMenu",
+        responsive: Responsive::Content,
         features: &[
             f("popover", b("114", "125", "17")),
             f("popovertarget", b("114", "125", "17")),
@@ -677,6 +829,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "One-time code",
         module: "input_otp",
+        look: "shadcn Input OTP, Origin UI",
+        responsive: Responsive::Content,
         features: &[
             f("autocomplete=\"one-time-code\"", b("84", "no", "12")),
             f("inputmode=\"numeric\"", b("66", "95", "12.1")),
@@ -688,6 +842,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Drawer",
         module: "drawer",
+        look: "shadcn Sheet and Drawer",
+        responsive: Responsive::Viewport,
         features: &[
             f("<dialog>", b("37", "98", "15.4")),
             f("command=\"show-modal\"", b("135", "144", "26.2")),
@@ -705,6 +861,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Command palette",
         module: "palette",
+        look: "shadcn Command",
+        responsive: Responsive::Viewport,
         features: &[
             f("popover", b("114", "125", "17")),
             f("<datalist>", b("20", "4", "12.1")),
@@ -719,6 +877,8 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Marquee",
         module: "marquee",
+        look: "Magic UI Marquee",
+        responsive: Responsive::Content,
         features: &[
             f("inert", b("102", "112", "15.5")),
             TRANSLATE,
@@ -741,6 +901,11 @@ pub fn to_json() -> String {
         out.push_str("    {\n");
         out.push_str(&format!("      \"name\": {},\n", json_str(c.name)));
         out.push_str(&format!("      \"module\": {},\n", json_str(c.module)));
+        out.push_str(&format!("      \"look\": {},\n", json_str(c.look)));
+        out.push_str(&format!(
+            "      \"responsive\": {},\n",
+            json_str(c.responsive.as_str())
+        ));
         out.push_str("      \"features\": [\n");
         for (j, ft) in c.features.iter().enumerate() {
             out.push_str(&format!(
@@ -811,7 +976,7 @@ pub fn to_json() -> String {
 /// The README feature matrix, one row per component.
 pub fn markdown_table() -> String {
     let mut out = String::from(
-        "| Component | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |\n|---|---|---|---|---|\n",
+        "| Component | Look after | Responsive by | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |\n|---|---|---|---|---|---|---|\n",
     );
     for c in SPECS {
         let features: Vec<String> = c
@@ -834,8 +999,10 @@ pub fn markdown_table() -> String {
             NeedsJs::Partial(n) => format!("Partly: {n}"),
         };
         out.push_str(&format!(
-            "| {} | {} | {} | {} | {} |\n",
+            "| {} | {} | {} | {} | {} | {} | {} |\n",
             c.name,
+            c.look,
+            c.responsive.as_str(),
             features.join(", "),
             versions.join("; "),
             c.fallback,
@@ -887,6 +1054,7 @@ mod tests {
         ("stream", include_str!("stream.rs")),
         ("upload", include_str!("upload.rs")),
         ("kanban", include_str!("kanban.rs")),
+        ("sortable", include_str!("sortable.rs")),
         ("alert", include_str!("alert.rs")),
         ("progress", include_str!("progress.rs")),
         ("meter", include_str!("meter.rs")),
@@ -922,6 +1090,30 @@ mod tests {
         let modules: Vec<&str> = SPECS.iter().map(|c| c.module).collect();
         let files: Vec<&str> = SOURCES.iter().map(|(m, _)| *m).collect();
         assert_eq!(modules, files, "spec order and file list must match");
+    }
+
+    #[test]
+    fn responsive_matches_the_css() {
+        for c in SPECS {
+            let (_, source) = SOURCES.iter().find(|(m, _)| *m == c.module).unwrap();
+            let css = source.split("pub const CSS").nth(1).unwrap_or("");
+            let container = css.contains("@container");
+            let viewport = css
+                .split("@media")
+                .skip(1)
+                .any(|q| q.split('{').next().is_some_and(|q| q.contains("width")));
+            let says = match c.responsive {
+                Responsive::Container => container,
+                Responsive::Viewport => viewport,
+                Responsive::Content => !container && !viewport,
+                Responsive::None => !container && !viewport,
+            };
+            assert!(
+                says,
+                "{}: the spec says {:?}, the CSS disagrees",
+                c.module, c.responsive
+            );
+        }
     }
 
     #[test]
