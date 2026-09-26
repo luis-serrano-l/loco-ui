@@ -1,4 +1,4 @@
-//! Widgets: calendar, upload, kanban and marquee.
+//! Widgets: calendar, upload, kanban, sortable list and marquee.
 
 use crate::site::page;
 use axum::{
@@ -21,6 +21,7 @@ pub(crate) fn routes() -> Router {
         .route("/upload/remove", post(upload_remove))
         .route("/upload/file/{n}", get(upload_file))
         .route("/kanban", get(kanban_page).post(kanban_move))
+        .route("/sortable", get(sortable_page).post(sortable_move))
 }
 
 /// The pages that are their component and a note (`super::pages`).
@@ -60,6 +61,7 @@ pub(crate) const PREVIEWS: &[super::Preview] = &[
     ("/calendar", calendar),
     ("/upload", |ui| upload(ui, &[])),
     ("/kanban", |ui| kanban(ui, &Board::default())),
+    ("/sortable", |ui| sortable(ui, &Order::default())),
 ];
 
 /// A month with two events coming up; weekends cannot be picked.
@@ -304,4 +306,61 @@ async fn kanban_move(ui: Ui, Saved(mut board): Saved<Board>, Form(m): Form<Move>
         board.0.push((m.card, m.to));
     }
     ui.redirect("/kanban").save(&board)
+}
+
+/// The order of the demo list, remembered per visitor: its keys, first to last.
+#[derive(Deserialize, Serialize)]
+struct Order(Vec<String>);
+
+const TASKS: [(&str, &str, &str); 5] = [
+    ("design", "Sketch the settings page", "Ada, due Monday"),
+    ("api", "Settings API", "Alan"),
+    ("tests", "Blitz tests for the page", "Grace"),
+    ("docs", "Document the new setters", "Ada"),
+    ("release", "Cut the release", "Friday"),
+];
+
+impl Default for Order {
+    fn default() -> Self {
+        Order(TASKS.iter().map(|t| t.0.to_string()).collect())
+    }
+}
+
+/// The list in the visitor's order.
+fn sortable(ui: &Ui, order: &Order) -> Markup {
+    let tasks = order
+        .0
+        .iter()
+        .filter_map(|k| TASKS.iter().find(|t| t.0 == k));
+    lui! {
+        // code: /sortable
+        Sortable("Release tasks", "/sortable") {
+            @for (key, title, who) in tasks { item (key) (title) description=(who); }
+        }
+        // end code
+    }
+}
+
+async fn sortable_page(ui: Ui, Saved(order): Saved<Order>) -> Page {
+    let list = sortable(&ui, &order);
+    page(
+        &ui,
+        "Sortable list",
+        html! { (list) p class="lui-note" { "Each arrow posts the task and the place it moves to; the server keeps the order and redirects back. With the script, drag a task by its grip." } },
+    )
+}
+
+#[derive(Deserialize)]
+struct Reorder {
+    item: String,
+    to: usize,
+}
+
+/// A move: the item leaves its place and goes in at `to` (known items only), then PRG.
+async fn sortable_move(ui: Ui, Saved(mut order): Saved<Order>, Form(m): Form<Reorder>) -> Redirect {
+    if let Some(at) = order.0.iter().position(|k| *k == m.item) {
+        let key = order.0.remove(at);
+        order.0.insert(m.to.min(order.0.len()), key);
+    }
+    ui.redirect("/sortable").save(&order)
 }

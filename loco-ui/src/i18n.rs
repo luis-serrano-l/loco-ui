@@ -146,6 +146,10 @@ pub enum Text {
     OverLimit,
     /// "Move {} to {}": kanban card.
     MoveTo,
+    /// "Move {} up": sortable list item.
+    MoveUp,
+    /// "Move {} down": sortable list item.
+    MoveDown,
     /// "Nothing by that name. Try one word, or pick from the list.": palette.
     NothingByThatName,
     /// "Type a command or a page": palette.
@@ -291,7 +295,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 122] = [
+    pub const ALL: [Text; 124] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -345,6 +349,8 @@ impl Text {
         Text::NoCards,
         Text::OverLimit,
         Text::MoveTo,
+        Text::MoveUp,
+        Text::MoveDown,
         Text::NothingByThatName,
         Text::TypeCommand,
         Text::Minimum,
@@ -495,6 +501,8 @@ const ENGLISH: [&str; N] = [
     "No cards",
     ", over the limit",
     "Move {} to {}",
+    "Move {} up",
+    "Move {} down",
     "Nothing by that name. Try one word, or pick from the list.",
     "Type a command or a page",
     "Minimum",

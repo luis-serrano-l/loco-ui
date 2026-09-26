@@ -1997,7 +1997,7 @@ owner has seen them.
   arrows on the right. The demo cards carry an area badge. Kanban left PENDING, and `/` and
   `/kanban` left the 320px list, which is now empty; a browser check asserts the wide board
   does not scroll.
-- [ ] Sortable list, a new component (`sortable.rs`; asked by the owner on 2026-09-26;
+- [x] Sortable list, a new component (`sortable.rs`; asked by the owner on 2026-09-26;
   reference: the Dioxus Components drag and drop list):
   - A vertical list of items, each with a grip handle, whose order the server keeps. One
     form posts `item=<key>&to=<index>`; the route saves the order and redirects back.
@@ -2009,6 +2009,23 @@ owner has seen them.
   - `view-transition-name` per item, so a moved item slides. Hit areas 44 px on touch.
   - Demo route, PATHS, PROPS, `lui!` doctest, browser check (drag moves the item, the order
     survives a reload), and a Blitz test that the fallback buttons render.
+  Done: new `sortable.rs`, `ui.sortable(label, action)` with `.item(key, title)` and
+  `.description(..)` (PROPS, props::COMPONENTS, beta). Each row is a small raised card: a
+  grip (new `Icon::GripVertical`, 32 icons), the title and small print, and a form with
+  "Move … up" / "Move … down" (new `Text::MoveUp`/`MoveDown`, Spanish in the demo) posting
+  `item` and `to`; the first and last rows keep an empty slot so every row's buttons line
+  up. `view-transition-name` per item; the grab cursor only under `@media (scripting:
+  enabled)`; touch hit areas come from `--lui-control-h-sm` (2.75rem on a coarse pointer).
+  `enhance.rs`: a drag starts only from the grip (pointerdown makes the row draggable), the
+  row follows the pointer through its list, a drop resubmits the row's own form through a
+  hidden `to=<index>` button (so the swap, busy state and transition are the usual ones),
+  and a drag that ends elsewhere puts the row back. The served script grew from 11,222 to
+  12,578 bytes (4.3 KB gzipped): budget 11 to 13 KB served, source cap 14 to 16 KB, and
+  README, docs and FINDINGS now say 12 KB. Demo `/sortable` (PATHS, index, look.sh);
+  browser check: a synthetic drag moves the first task below the third in place, the order
+  survives a reload, an up arrow moves it back one; Blitz: five rows, no dead buttons, the
+  down buttons aligned. Kept different: no in-list keyboard dragging (the named buttons are
+  the keyboard path, as the box says).
 - [ ] Marquee and the showpiece setters (`marquee.rs` and the setters on card, button, badge,
   input and stat): keep Magic UI. Re-shoot them on the new surfaces, and fix only what the
   new card and button variants broke.

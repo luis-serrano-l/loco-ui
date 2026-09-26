@@ -330,6 +330,22 @@ try {
   await until(async () => await js("return !!document.querySelector('.lui-kanban-column:nth-child(1) input[value=docs]')"), "kanban: card moved back");
   assert(true, "kanban: and back again");
 
+  // Sortable list: dragging the first task by its grip below the third posts to=2 and the
+  // list is replaced in place; the order survives a reload; an arrow moves it one place.
+  await go("/sortable");
+  const order = () => js("return [...document.querySelectorAll('.lui-sortable-item input[name=item]')].map(i => i.value).join()");
+  await js(`const items = [...document.querySelectorAll('.lui-sortable-item')], a = items[0], b = items[2], dt = new DataTransfer();
+    const r = b.getBoundingClientRect(), ev = (el, type, y) => el.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: dt, clientY: y }));
+    a.querySelector('.lui-sortable-grip').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    ev(a, 'dragstart'); ev(b, 'dragover', r.bottom - 2); ev(b, 'drop'); ev(a, 'dragend');`);
+  await until(async () => (await order()).startsWith("api,tests,design"), "sortable: the drop posted the new place");
+  assert(await navigations() === 1, "sortable: dragged in place, no reload");
+  await go("/sortable");
+  assert((await order()).startsWith("api,tests,design"), "sortable: the order survives a reload");
+  await click(".lui-sortable-item:has(input[value=design]) button[value='1']");
+  await until(async () => (await order()).startsWith("api,design,tests"), "sortable: the up arrow moved it one place");
+  assert(true, "sortable: and one place up with the arrow");
+
   // Calendar: the next-month link swaps the calendar in place; picking a day follows.
   await go("/calendar?month.day=2026-09");
   await click("#lui-calendar-day a[aria-label='Next month']");

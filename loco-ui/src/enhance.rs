@@ -51,7 +51,9 @@
 //! back with an error summary starts there, as it would on a page load); otherwise the
 //! element that had the focus gets it back.
 //! A tab title opens its panel and slides the underline on the click itself; the server's
-//! answer replaces the strip quietly once the slide ends (a lazy panel fills in then).
+//! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
+//! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
+//! own move form with its new index.
 //!
 //! [`script_tag`] goes at the end of `<body>`; [`router`] serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
@@ -67,7 +69,7 @@ use maud::{Markup, html};
 /// Path the script is served from. [`script_url`] appends a content hash.
 pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 
-/// The whole enhancement script. Plain ES2020, no build step, under 11 KB as [`served`].
+/// The whole enhancement script. Plain ES2020, no build step, about 12 KB as [`served`].
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
@@ -328,6 +330,36 @@ document.addEventListener("click", function (e) {
   });
 });
 
+// Sortable list: a drag starts only from the grip. The item follows the pointer through its
+// list; a drop posts the item's own form with to=<new index> (a hidden submit button), and a
+// drag that ends anywhere else puts the item back.
+var drag, from, dropped, near = function (e) { return e.target.closest && e.target.closest(".lui-sortable-item"); };
+document.addEventListener("pointerdown", function (e) { if (e.target.closest && e.target.closest(".lui-sortable-grip")) near(e).draggable = true; });
+document.addEventListener("dragstart", function (e) {
+  var li = near(e);
+  if (!li || !li.draggable) return;
+  drag = li; from = li.nextElementSibling; dropped = 0;
+  e.dataTransfer.setData("text/plain", "");
+  li.setAttribute("data-lui-dragging", "");
+});
+document.addEventListener("dragover", function (e) {
+  var o = drag && near(e), r;
+  if (!o || o.parentNode !== drag.parentNode) return;
+  e.preventDefault(); r = o.getBoundingClientRect();
+  if (o !== drag) o[e.clientY > r.top + r.height / 2 ? "after" : "before"](drag);
+});
+document.addEventListener("drop", function (e) { if (drag) { e.preventDefault(); dropped = 1; } });
+document.addEventListener("dragend", function () {
+  var li = drag, l = li && li.parentNode, f, b;
+  if (!li) return;
+  drag = null; li.draggable = false; li.removeAttribute("data-lui-dragging");
+  if (!dropped) return l.insertBefore(li, from);
+  if (li.nextElementSibling === from) return;
+  f = li.querySelector("form"); b = document.createElement("button");
+  b.name = "to"; b.value = [].indexOf.call(l.children, li); b.hidden = true;
+  f.append(b); f.requestSubmit(b); b.remove();
+});
+
 // Back and Forward: the entry's stored copy of each root when there is one, else a fetch.
 addEventListener("popstate", function (e) {
   var lui = e.state && e.state.lui;
@@ -348,7 +380,7 @@ addEventListener("popstate", function (e) {
 "##;
 
 /// [`JS`] as served: comment lines and indentation dropped, nothing else touched. The budget
-/// (11 KB) applies to this; the source keeps its comments for the reader.
+/// (13 KB) applies to this; the source keeps its comments for the reader.
 pub fn served() -> &'static str {
     static SERVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     SERVED.get_or_init(|| {
@@ -518,12 +550,12 @@ mod tests {
     #[test]
     fn script_is_small_and_plain() {
         assert!(
-            served().len() < 11264,
+            served().len() < 13312,
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 14336,
+            JS.len() < 16384,
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

@@ -356,6 +356,13 @@ pub(crate) const COMPONENTS: &[Component] = &[
         status: Status::Stable,
     },
     Component {
+        module: "sortable",
+        builder: "Sortable",
+        calls: &["ui.sortable(label: &str, action: &str)"],
+        props: crate::sortable::Sortable::PROPS,
+        status: Status::Beta,
+    },
+    Component {
         module: "marquee",
         builder: "Marquee",
         calls: &["ui.marquee(label: &str)"],

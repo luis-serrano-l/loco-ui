@@ -18,7 +18,7 @@ adds the account pages, and every page works with script off.
 calendar, uploads and a kanban board, written in Maud, in a Linear / Magic UI look (Radix-style colour scales, layered shadows,
 gradient accents and CSS-only motion). The HTML and CSS
 platform does the interactive work (`<dialog>`, `popover`, `<details>`, forms that post and
-redirect). One optional 11 KB script makes those forms and links update the page in place
+redirect). One optional 12 KB script makes those forms and links update the page in place
 instead of reloading it; block it and every page still works. On Loco, a scaffold generates
 HTML controllers and Maud views for a model. The core is plain functions over strings, so it
 also works with any other Rust server.
@@ -32,7 +32,7 @@ the button restyles every dialog, table and form, including yours.
 | | loco-ui | Leptos, Dioxus | htmx + hand-written Maud |
 |---|---|---|---|
 | Where the UI runs | server, HTML out | Rust compiled to WebAssembly in the browser, rendered first on the server | server |
-| JavaScript needed for it to work | none; one optional 11 KB script updates the page in place | the WASM bundle and its JS glue, to hydrate | the htmx library, for every `hx-` attribute |
+| JavaScript needed for it to work | none; one optional 12 KB script updates the page in place | the WASM bundle and its JS glue, to hydrate | the htmx library, for every `hx-` attribute |
 | With script blocked | every page works; CI proves it with a script-less renderer (Blitz) | server-rendered HTML shows; interactivity stops | whatever you wrote as plain links and forms |
 | Components | primitives, components and widgets, themed by tokens | from the ecosystem, or your own | your own |
 | State | URL, cookies, form posts (Post/Redirect/Get) | signals in the browser, server functions | on the server, swapped fragments |
@@ -45,7 +45,7 @@ refresh per action, where it gives the same components with nothing to hydrate.
 
 Every component starts from `ui`, the one value a handler extracts, and renders where `html!`
 splices it. Interactivity comes from the HTML/CSS platform and ordinary form round trips. One
-optional 11 KB script (`/lui/enhance.js`) makes the same markup update in place; see "How the
+optional 12 KB script (`/lui/enhance.js`) makes the same markup update in place; see "How the
 script works" below. Every page works identically with the script blocked; that is the only
 `<script>` tag allowed, and a test enforces it.
 
@@ -226,7 +226,7 @@ component gives the HTML to another template engine.
   from 460 to 436 lines while showing more (the forms now sit inside them), and its route files
   from 2,614 to 2,384 lines.
 - Primitives come first: `ui.button`/`ui.link_button`, `ui.input`/`ui.checkbox`/`ui.switch`/
-  `ui.radio_group`, `ui.badge`, `ui.card`, `Icon` (31 Lucide shapes as inline SVG),
+  `ui.radio_group`, `ui.badge`, `ui.card`, `Icon` (32 Lucide shapes as inline SVG),
   `ui.avatar`, and the layouts `ui.stack()`, `ui.cluster()`, `ui.grid(min)` (their content is
   `.body(..)`, a block in `lui!`: `Stack gap=6 { .. }`) and `ui.split(side, main)`, with
   `.gap(n)` on a `--lui-space-*` scale. Components are built from them (`ui.form`

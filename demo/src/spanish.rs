@@ -59,6 +59,8 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::NoCards, "Sin tarjetas")
     .with(Text::OverLimit, ", por encima del límite")
     .with(Text::MoveTo, "Mover {} a {}")
+    .with(Text::MoveUp, "Subir {}")
+    .with(Text::MoveDown, "Bajar {}")
     .with(
         Text::NothingByThatName,
         "Nada con ese nombre. Prueba una palabra o elige de la lista.",

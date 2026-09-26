@@ -20,7 +20,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 45] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 46] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -55,6 +55,13 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 45] = [
         "Widgets",
         "form POST per move, PRG, view-transition-name, scroll-snap",
         "Cards in columns; each move is a form post the server keeps.",
+    ),
+    (
+        "/sortable",
+        "Sortable list",
+        "Widgets",
+        "form POST per move, PRG, view-transition-name, drag and drop with the script",
+        "A list in the order the server keeps; arrows without script, a grip to drag with it.",
     ),
     (
         "/upload",

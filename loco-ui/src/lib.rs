@@ -101,6 +101,7 @@ pub mod select;
 pub mod separator;
 pub mod sidebar;
 pub mod skeleton;
+pub mod sortable;
 pub mod spec;
 pub mod split;
 pub mod stack;
@@ -297,6 +298,7 @@ pub const COMPONENT_CSS: &[&str] = &[
     date_picker::CSS,
     upload::CSS,
     kanban::CSS,
+    sortable::CSS,
     tooltip::CSS,
     alert::CSS,
     progress::CSS,
@@ -1263,6 +1265,10 @@ mod tests {
             "the root's id comes from the action, the columns' from their keys",
         ),
         (
+            "sortable",
+            "the root's id comes from the action, the items' transition names from their keys",
+        ),
+        (
             "blocks/settings_page",
             "section anchors from their titles, linked from its own nav",
         ),
@@ -1566,6 +1572,7 @@ mod tests {
             ("date_picker", date_picker::CSS),
             ("upload", upload::CSS),
             ("kanban", kanban::CSS),
+            ("sortable", sortable::CSS),
             ("tooltip", tooltip::CSS),
             ("alert", alert::CSS),
             ("progress", progress::CSS),
@@ -1625,6 +1632,7 @@ mod tests {
                 "the page frame: its container is the viewport (the drawer decides)",
             ),
             ("stack", "one column"),
+            ("sortable", "one column of rows at every width"),
             ("cluster", "wraps by its own content"),
             ("split", "wraps by flex-basis, no breakpoint"),
             ("grid", "auto-fill columns capped at min(…, 100%)"),

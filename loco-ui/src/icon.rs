@@ -55,6 +55,7 @@ pub enum Icon {
     Ellipsis,
     ExternalLink,
     File,
+    GripVertical,
     House,
     Info,
     Italic,
@@ -75,7 +76,7 @@ pub enum Icon {
 
 impl Icon {
     /// Every icon, in the order the enum lists them.
-    pub const ALL: [Icon; 31] = [
+    pub const ALL: [Icon; 32] = [
         Icon::ArrowLeft,
         Icon::ArrowRight,
         Icon::Bold,
@@ -91,6 +92,7 @@ impl Icon {
         Icon::Ellipsis,
         Icon::ExternalLink,
         Icon::File,
+        Icon::GripVertical,
         Icon::House,
         Icon::Info,
         Icon::Italic,
@@ -161,6 +163,10 @@ impl Icon {
             Icon::ExternalLink => (
                 "external-link",
                 r#"<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>"#,
+            ),
+            Icon::GripVertical => (
+                "grip-vertical",
+                r#"<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>"#,
             ),
             Icon::File => (
                 "file",

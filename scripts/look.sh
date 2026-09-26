@@ -59,6 +59,7 @@ table|/table?q.files=a|$shadcn/data-table
 description-list|/description-list|$radix/data-list
 card|/card|$radix/card
 kanban|/kanban|https://www.diceui.com/docs/components/kanban
+sortable|/sortable|https://dioxuslabs.com/components/drag_and_drop_list
 marquee|/marquee|https://magicui.design/docs/components/marquee
 counter|/counter|
 stream|/stream|$radix/skeleton

@@ -1083,7 +1083,7 @@ async fn buttons_badges_and_icons() {
     );
     assert_eq!(
         page.count(".lui-stage svg.lui-icon"),
-        31,
+        32,
         "every icon in Icon::ALL"
     );
 }
@@ -1289,6 +1289,25 @@ async fn calendar_date_picker_upload_and_kanban() {
     assert!(
         !page.exists(".lui-kanban-column:nth-child(1) .lui-kanban-card button[value=todo]"),
         "no arrow off the board"
+    );
+
+    let page = Page::render(demo::router(), "/sortable", MODERN).await;
+    assert_eq!(page.count(".lui-sortable-item"), 5);
+    assert!(page.is_visible(".lui-sortable-item:nth-child(1) button[name=to][value='1']"));
+    assert!(
+        !page.exists(".lui-sortable-item:nth-child(1) button[value='0']")
+            && !page.exists(".lui-sortable-item:nth-child(5) button[value='5']"),
+        "no up on the first item, no down on the last"
+    );
+    let (first, second) = (
+        page.bbox(".lui-sortable-item:nth-child(1) button[value='1']")
+            .unwrap(),
+        page.bbox(".lui-sortable-item:nth-child(2) button[value='2']")
+            .unwrap(),
+    );
+    assert!(
+        (first.x - second.x).abs() < 1.0,
+        "the down buttons line up: an empty slot stands in for the first item's up"
     );
 }
 
