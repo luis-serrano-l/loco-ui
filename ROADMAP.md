@@ -1623,13 +1623,18 @@ owner has seen them.
   they shrink to fit; the digit size follows. Each background layer is a custom property, so
   ring and dividers combine without a rule per case. The redundant `2 / 6` counter is
   visually hidden (still the field's description). Demo groups 3 + 3.
-- [ ] One-time code overflow (`input_otp.rs`; asked by the owner on 2026-09-26): with all six
+- [x] One-time code overflow (`input_otp.rs`; asked by the owner on 2026-09-26): with all six
   digits typed, the field shows a strange overflow (the text shifts or the cells misalign).
   Likely the letter spacing after the last digit plus the caret need room the field's width
   does not give, so it scrolls inside itself. Reproduce in Firefox and Chrome at 1280 and
   420, fix it (for example room for the trailing spacing with the extra clipped, or no
   spacing after the last cell) so a full code sits exactly in its cells, and add a browser
   check that typing six digits leaves `scrollLeft` at 0.
+  Done: the cause was the text indent plus the letter spacing after the last digit plus the
+  caret, one indent wider than the cells, so the field scrolled. The field is now one cell
+  wider, the extra cell clipped with `clip-path` and given back with a negative right margin;
+  the last divider draws the right edge (the ring colour on focus). `browser-check.mjs` types
+  six digits and asserts `scrollLeft` stays 0.
 - [x] Upload (`upload.rs`; reference: the Origin UI file upload):
   - A dashed dropzone with an icon tile, a title ("Drop files or browse"), a hint with types
     and size, and a hover or `:focus-within` tint.

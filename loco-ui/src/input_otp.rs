@@ -140,7 +140,14 @@ pub const CSS: &str = r#"
   --lui-otp-cell: min(2.5rem, (100cqi - 2px) / var(--lui-otp-cells));
   --lui-otp-none: linear-gradient(transparent, transparent);
   --lui-otp-active: var(--lui-otp-none); --lui-otp-sep: var(--lui-otp-none);
-  box-sizing: content-box; width: calc(var(--lui-otp-cell) * var(--lui-otp-cells)); height: var(--lui-otp-cell); padding: 0;
+  /* One cell more than the code: the text indent and the spacing after the last digit (and
+     the caret there) need that room, or a full code scrolls the field sideways inside
+     itself and the digits leave their cells. The extra cell is clipped away, the negative
+     margin gives its width back to the layout, and the last cell's divider is the right
+     edge (the real right border would sit in the clipped part). */
+  box-sizing: content-box; width: calc(var(--lui-otp-cell) * (var(--lui-otp-cells) + 1)); height: var(--lui-otp-cell); padding: 0;
+  margin-right: calc(var(--lui-otp-cell) * -1); border-right: 0;
+  clip-path: inset(0 var(--lui-otp-cell) 0 0 round var(--lui-radius));
   border-radius: var(--lui-radius); caret-color: var(--lui-primary);
   font-family: var(--lui-font-mono); font-size: min(1.25rem, var(--lui-otp-cell) / 2); font-variant-numeric: tabular-nums;
   letter-spacing: calc(var(--lui-otp-cell) - 1ch); text-indent: calc((var(--lui-otp-cell) - 1ch) / 2);
@@ -155,7 +162,8 @@ pub const CSS: &str = r#"
    by the enhancement script while typing) gets a 2px ring over a faint tint. */
 .lui-otp .lui-otp-input:focus-visible {
   outline: none; border-color: var(--lui-ring);
-  --lui-otp-active: linear-gradient(color-mix(in srgb, var(--lui-ring) 10%, var(--lui-bg)) 0 0) calc(var(--lui-otp-cell) * var(--lui-otp-at) + 2px) 2px / calc(var(--lui-otp-cell) - 4px) calc(100% - 4px) no-repeat,
+  --lui-otp-active: linear-gradient(var(--lui-ring) 0 0) calc(var(--lui-otp-cell) * var(--lui-otp-cells) - 1px) 0 / 1px 100% no-repeat,
+    linear-gradient(color-mix(in srgb, var(--lui-ring) 10%, var(--lui-bg)) 0 0) calc(var(--lui-otp-cell) * var(--lui-otp-at) + 2px) 2px / calc(var(--lui-otp-cell) - 4px) calc(100% - 4px) no-repeat,
     linear-gradient(var(--lui-ring) 0 0) calc(var(--lui-otp-cell) * var(--lui-otp-at)) 0 / var(--lui-otp-cell) 100% no-repeat;
 }
 "#;

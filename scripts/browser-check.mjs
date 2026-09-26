@@ -282,6 +282,8 @@ try {
   await go("/otp");
   await type("#f-code", "123");
   assert(await js("return document.querySelector('#f-code').style.getPropertyValue('--lui-otp-at')") === "3", "otp: the active cell moves as digits are typed");
+  await type("#f-code", "456");
+  assert(await js("return document.querySelector('#f-code').scrollLeft") === 0, "otp: a full code stays in its cells (the field does not scroll)");
   await go("/inputs");
   // Select: typing in the filter re-renders the options through a GET, nothing is saved.
   await type("input[name=country-q]", "jap");
