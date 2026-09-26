@@ -329,7 +329,7 @@ impl Render for Select<'_> {
                     }
                     select id=(id) name=(name) aria-invalid=[error.map(|_| "true")]
                         aria-describedby=[error.map(|_| error_id.as_str())] {
-                        @if rich { button type="button" { selectedcontent {} } }
+                        @if rich { button type="button" class="lui-select-trigger" { selectedcontent {} } }
                         @for g in groups {
                             @let visible: Vec<&SelectOption> = g.options.iter().filter(|o| shown(o)).collect();
                             @if let (Some(label), false) = (g.label, visible.is_empty()) {
@@ -347,23 +347,38 @@ impl Render for Select<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-select { display: inline-grid; gap: 0.4rem; }
-.lui-select-search { display: flex; gap: 0.4rem; }
-.lui-select-filter { flex: 1; min-width: 0; }
+/* After Radix Themes Select. The trigger is the field look from input.rs at the control
+   height, the value and a chevron. With appearance: base-select the picker is Radix's
+   content panel: 2rem rows with a check in a 1.5rem left gutter, the primary colour on the
+   highlighted row, group labels in --lui-gray-10. A native <select> keeps the gradient chevron. */
+.lui-select { display: inline-grid; gap: var(--lui-space-2); max-width: 100%; }
+.lui-select-search { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); }
+.lui-select-filter { flex: 1; min-width: min(10rem, 100%); }
 .lui-select select, .lui-select select::picker(select) { appearance: base-select; }
-.lui-select select { min-width: 12rem; }
-/* base-select draws its own ::picker-icon; drop the gradient chevron from layout.rs. */
-@supports (appearance: base-select) { .lui-select select { background-image: none; padding-right: 0.75rem; } }
+.lui-select select { min-width: min(12rem, 100%); }
+/* base-select draws its own ::picker-icon; drop the gradient chevron from input.rs. */
+@supports (appearance: base-select) {
+  .lui-select select { display: flex; align-items: center; gap: var(--lui-space-2); background-image: none; padding-right: 0.75rem; }
+  .lui-select-trigger { display: contents; }
+}
+.lui-select select::picker-icon { margin-left: auto; color: var(--lui-muted); transition: rotate var(--lui-duration-fast); }
+.lui-select select:open::picker-icon { rotate: 180deg; }
 .lui-select select::picker(select) {
-  border: 1px solid var(--lui-line); border-radius: var(--lui-radius); padding: 0.25rem;
+  margin-block: var(--lui-space-1); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); padding: var(--lui-space-1);
   background: var(--lui-popover); color: var(--lui-fg); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
   max-height: 20rem;
 }
-.lui-select option { padding: 0.375rem 0.5rem; border-radius: var(--lui-radius-sm); font-size: 0.875rem; }
-.lui-select option:hover, .lui-select option:focus-visible { background: var(--lui-accent); color: var(--lui-on-accent); }
-.lui-select option::checkmark { order: 1; margin-left: auto; }
-.lui-select optgroup { font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); padding: 0.375rem 0.5rem 0; }
+.lui-select option {
+  position: relative; display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; box-sizing: border-box;
+  padding: 0 0.75rem 0 1.5rem; border-radius: var(--lui-radius-sm); font-size: 0.875rem; cursor: default;
+}
+.lui-select option:hover, .lui-select option:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
+.lui-select option::checkmark { position: absolute; left: 0.5rem; }
+.lui-select optgroup { font-size: 0.75rem; font-weight: 500; color: var(--lui-gray-10); padding-top: var(--lui-space-2); }
+.lui-select optgroup + optgroup { border-top: 1px solid var(--lui-line); margin-top: var(--lui-space-1); }
 .lui-select optgroup option { font-weight: 400; color: var(--lui-fg); }
+.lui-select optgroup option:hover, .lui-select optgroup option:focus-visible { color: var(--lui-on-primary); }
+@media (pointer: coarse) { .lui-select option { min-height: var(--lui-hit); } }
 .lui-select-icon { display: inline-block; width: 1.25em; text-align: center; }
 .lui-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 50%; vertical-align: -0.15em; margin-right: 0.4em; border: 1px solid var(--lui-line); }
 "#;

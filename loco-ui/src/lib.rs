@@ -1632,6 +1632,14 @@ mod tests {
             ("counter", "one row that wraps: − value +"),
             ("auth_page", "one centred column of width min(24rem, 100%)"),
             ("error_page", "one centred column"),
+            (
+                "select",
+                "a column of the filter row and the select; the row wraps",
+            ),
+            (
+                "combobox",
+                "one row of chips, search box and button that wraps",
+            ),
         ];
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.
@@ -1653,10 +1661,8 @@ mod tests {
             ("alert", "Callout box"),
             ("progress", "Progress box"),
             ("tabs", "Tabs box"),
-            ("combobox", "Select and combobox box"),
             ("error_summary", "Callout box"),
             ("flash", "Callout box"),
-            ("select", "Select and combobox box"),
             ("range", "Range and colour box"),
             ("color", "Range and colour box"),
             ("table", "Table box"),

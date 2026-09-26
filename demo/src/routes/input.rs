@@ -333,10 +333,10 @@ async fn inputs_page(ui: Ui, Query(q): Query<Inputs>, Saved(saved): Saved<Inputs
     } else {
         saved
     };
-    let body = lui! {
+    let body = lui! { Stack {
         (inputs(&ui, &v))
         p class="lui-note" { "Without the enhancement script the outputs and the swatch show the last saved values and update on submit, and the country filter needs its button." }
-    };
+    } };
     page(&ui, "Select, range, colour", body)
 }
 

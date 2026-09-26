@@ -1566,13 +1566,25 @@ owner has seen them.
   end of a wide one (row-reverse, so the primary action is first in both). The inline form
   may now be 48rem wide (40rem before). The error summary already comes first. The wide
   checks moved to the browser check (Blitz has no `@container`).
-- [ ] Select and combobox (`select.rs`, `combobox.rs`; reference: Radix Themes Select and the
+- [x] Select and combobox (`select.rs`, `combobox.rs`; reference: Radix Themes Select and the
   shadcn Combobox):
   - The trigger has the control height, shows the value and ends in a chevron.
   - Where `appearance: base-select` is supported, the picker is the Radix popover: item
     height 2 rem, a check on the selected item, a highlighted row on hover and focus. Native
     `<select>` elsewhere, styled to match.
   - The combobox list takes the same item look, plus an empty row ("No results").
+  Done: the select trigger is the Input box's field at `--lui-control-h`, the value (with its
+  icon) and a muted chevron that turns over while open (`:open`, own rule). Under
+  `base-select` the picker is Radix's content panel: 2rem rows (44px on touch) with the
+  `::checkmark` in a 1.5rem left gutter, the primary colour on the hovered or focused row
+  (Radix's solid highlight, not shadcn's gray), group labels in gray-10 with a hairline
+  between groups; the native select keeps input.rs's chevron. The combobox results take
+  the same rows, a check in the gutter on an already picked one, and "No matches" is a
+  centred empty row inside the panel with the Create button (now ghost) under it. Chips
+  are soft brand badges. Both wrap by themselves, so they moved from PENDING to
+  NO_BREAKPOINT. Not checked by eye: the `base-select` picker (Firefox and Chrome 109 lack
+  it; the shots show the native path). `/inputs` puts its note in a Stack so the
+  full-width Save no longer touches it.
 - [ ] Range and colour (`range.rs`, `color.rs`; reference: Radix Themes Slider and the
   Origin UI sliders):
   - The track fills up to the value, using the existing `--value` custom property or

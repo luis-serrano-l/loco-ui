@@ -261,18 +261,20 @@ impl Render for Combobox<'_> {
                             @for r in &results {
                                 @let picked = selected.contains(r);
                                 li class=[picked.then_some("lui-combobox-chosen")] {
-                                    @if picked { (r) span class="lui-combobox-picked" { (ui.text(Text::IsSelected)) } }
+                                    @if picked { (Icon::Check) (r) span class="lui-combobox-picked" { (ui.text(Text::IsSelected)) } }
                                     @else { a href=(add(r)) { (r) } }
                                 }
                             }
                         }
                     } @else if nothing {
-                        p class="lui-combobox-status" { (ui.text(Text::NoMatches)) }
-                        @if let Some(to) = create {
-                            form method="post" action=(to) class="lui-combobox-create" {
-                                @for v in &selected { input type="hidden" name="sel" value=(v); }
-                                input type="hidden" name="name" value=(query);
-                                (ui.button(ui.text(Text::Create)).body(html! { (Icon::Plus) (ui.fill(Text::CreateValue, &[&query])) }))
+                        div class="lui-combobox-list" {
+                            p class="lui-combobox-status lui-combobox-empty" { (ui.text(Text::NoMatches)) }
+                            @if let Some(to) = create {
+                                form method="post" action=(to) class="lui-combobox-create" {
+                                    @for v in &selected { input type="hidden" name="sel" value=(v); }
+                                    input type="hidden" name="name" value=(query);
+                                    (ui.button(ui.text(Text::Create)).ghost().body(html! { (Icon::Plus) (ui.fill(Text::CreateValue, &[&query])) }))
+                                }
                             }
                         }
                     }
@@ -283,28 +285,37 @@ impl Render for Combobox<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-combobox form { display: flex; flex-wrap: wrap; gap: var(--lui-space); align-items: center; }
-.lui-combobox-input { flex: 1; min-width: 10rem; }
+/* One row of chips, search box and button that wraps by itself. */
+.lui-combobox form { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); align-items: center; }
+.lui-combobox-input { flex: 1; min-width: min(10rem, 100%); }
 .lui-combobox-chips { display: contents; }
-/* Picked values are shadcn secondary badges with a remove link. */
+/* Picked values are soft badges with a remove link. */
 .lui-combobox-chip {
   display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.25rem 0.125rem 0.5rem;
-  border: 1px solid transparent; border-radius: var(--lui-radius-sm); background: var(--lui-secondary);
+  border-radius: var(--lui-radius-sm); background: var(--lui-brand-3); color: var(--lui-brand-11);
   font-size: 0.75rem; line-height: 1rem; font-weight: 500;
 }
-.lui-combobox-chip a { color: var(--lui-muted); text-decoration: none; padding: 0 0.25rem; border-radius: var(--lui-radius-sm); line-height: 1rem; }
-.lui-combobox-chip a:hover { color: var(--lui-fg); background: var(--lui-bg); }
-/* Results are a Command list: a bordered rounded box of items with accent hover. */
-.lui-combobox-results { margin: var(--lui-space) 0 calc(var(--lui-space) * 2); }
-.lui-combobox-status { margin: 0 0 var(--lui-space); font-size: 0.875rem; color: var(--lui-muted); }
+.lui-combobox-chip a { color: inherit; text-decoration: none; padding: 0 0.25rem; border-radius: var(--lui-radius-sm); line-height: 1rem; }
+.lui-combobox-chip a:hover { background: var(--lui-brand-5); }
+/* Results take the Select picker's look (Radix Themes Select content): a raised panel of
+   2rem rows, a check in the left gutter on the picked one, the primary colour on hover and
+   focus, and an empty row when nothing matches. */
+.lui-combobox-results { margin: var(--lui-space-2) 0 var(--lui-space-4); }
+.lui-combobox-status { margin: 0 0 var(--lui-space-2); font-size: 0.875rem; color: var(--lui-muted); }
 .lui-combobox-list {
-  list-style: none; margin: 0; padding: 0.25rem; background: var(--lui-popover);
+  list-style: none; margin: 0; padding: var(--lui-space-1); background: var(--lui-popover);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
 .lui-combobox-list > li { max-width: none; font-size: 0.875rem; }
-.lui-combobox-list a { display: block; padding: 0.375rem 0.5rem; border-radius: var(--lui-radius-sm); text-decoration: none; color: inherit; }
-.lui-combobox-list a:hover, .lui-combobox-list a:focus-visible { background: var(--lui-accent); color: var(--lui-on-accent); outline: none; }
-.lui-combobox-list > .lui-combobox-chosen { padding: 0.375rem 0.5rem; color: var(--lui-muted); }
-.lui-combobox-picked { font-size: 0.875rem; }
-.lui-combobox-create { display: inline-block; }
+.lui-combobox-list a, .lui-combobox-list > .lui-combobox-chosen {
+  display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; box-sizing: border-box;
+  padding: 0 0.75rem 0 1.5rem; border-radius: var(--lui-radius-sm); text-decoration: none; color: inherit;
+}
+.lui-combobox-list a:hover, .lui-combobox-list a:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
+.lui-combobox-list > .lui-combobox-chosen { position: relative; }
+.lui-combobox-chosen > .lui-icon { position: absolute; left: 0.375rem; width: 0.875rem; height: 0.875rem; }
+.lui-combobox-picked { margin-left: auto; color: var(--lui-muted); font-size: 0.75rem; }
+.lui-combobox-empty { margin: 0; padding: var(--lui-space-6) 0; text-align: center; }
+.lui-combobox-create { display: flex; justify-content: center; padding-bottom: var(--lui-space-1); }
+@media (pointer: coarse) { .lui-combobox-list a, .lui-combobox-list > .lui-combobox-chosen { min-height: var(--lui-hit); } }
 "#;
