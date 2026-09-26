@@ -1991,7 +1991,8 @@ owner has seen them.
   Done: the board is its own container (`.lui-kanban`) around a `.lui-kanban-board` grid.
   Narrow, and where container queries are missing (Blitz), each column is 85% of the board
   and the board snaps column by column; from 48rem the columns share the width (15rem floor,
-  scrolling only when there are many). Columns are gray-2 surfaces with no line; the count is
+  scrolling only when there are many). Columns are gray-3 surfaces with no line (gray-2 in
+  the box, but that is the demo stage's own fill since the shell box); the count is
   a gray badge reading `n` or `n/limit` (was `n / limit`), a red badge past the limit. Cards
   keep the raised look and gain a meta row: new `.badge(..)` (in PROPS) on the left, the move
   arrows on the right. The demo cards carry an area badge. Kanban left PENDING, and `/` and
@@ -2038,13 +2039,21 @@ owner has seen them.
   looping row, or at rest a row that wraps by its own content), so PENDING is empty.
 
 ### Close
-- [ ] Demo shell, light polish only. Keep the structure and simplicity the owner likes:
+- [x] Demo shell, light polish only. Keep the structure and simplicity the owner likes:
   - Group the language links and the Auto/Light/Dark toggle into one toolbar row, aligned
     with the page title.
   - Draw the stage (the preview box above the code) as a gray-2 surface with no border, so
     a component card inside it is the only frame.
   - The mobile "Browse components" disclosure takes the button look with a chevron.
   - Nothing else moves.
+  Done: the back link stands alone on top; under it `.lui-title-bar` puts the title and one
+  `.lui-toolbar` (languages, then the theme switch) on a row, the toolbar wrapping under the
+  title when narrow. The stage is a borderless gray-2 surface (rounded on top, the snippet
+  still joined under it), so a component's own card is the only frame; the Kanban columns
+  moved to gray-3 so they still show on it. The mobile "Browse components" summary is a
+  full-width `lui-button` with a chevron that turns when open. Also fixed: the light strip
+  beside the sidebar was the sticky nav's scrollbar track; it is now a thin scrollbar in the
+  line colour. Kept different: nothing else moved.
 - [ ] Wrap-up:
   - Refresh `tests/shots/` on purpose, reviewing each changed PNG.
   - Re-measure the stylesheet size (gzipped) and write the growth in README. The budget is

@@ -241,7 +241,7 @@ pub const CSS: &str = r#"
 }
 .lui-kanban-column {
   display: grid; align-content: start; gap: 0.5rem; padding: 0.75rem; scroll-snap-align: start;
-  background: var(--lui-gray-2); border-radius: var(--lui-radius-lg);
+  background: var(--lui-gray-3); border-radius: var(--lui-radius-lg);
 }
 .lui-kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 0.25rem 0.25rem; }
 .lui-kanban-head h3 { margin: 0; font-size: 0.875rem; font-weight: 600; }

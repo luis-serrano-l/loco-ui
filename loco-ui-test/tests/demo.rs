@@ -1076,7 +1076,7 @@ async fn buttons_badges_and_icons() {
         "a link can look like a button"
     );
     assert_eq!(page.count(".lui-stage .lui-badge"), 11);
-    let svg = page.bbox("svg.lui-icon").unwrap();
+    let svg = page.bbox(".lui-stage svg.lui-icon").unwrap();
     assert!(
         (svg.width - 16.0).abs() < 1.0 && (svg.height - 16.0).abs() < 1.0,
         "icons are 1rem: {svg:?}"

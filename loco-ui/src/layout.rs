@@ -658,7 +658,8 @@ tbody tr:hover { background: color-mix(in srgb, var(--lui-accent) 50%, transpare
 
 /* Demo shell, after the shadcn docs: the sidebar of every component beside the page, a
    toolbar with the way back and the theme switch, the lede under a title, "built on" as
-   outline badges, the plate (a preview box over a muted code block), and the index as a
+   outline badges, the plate (a --lui-gray-2 stage over a muted code block, so a card on the stage
+   is the only frame), and the index as a
    gallery of the components themselves, per group. */
 /* The frame: from 60rem the component list is a sticky column beside a readable page (the
    index spreads wider); narrower, it follows a closed <details> that hides it until opened,
@@ -671,10 +672,10 @@ tbody tr:hover { background: color-mix(in srgb, var(--lui-accent) 50%, transpare
 }
 body:has(.lui-site) > .lui-header { max-width: 84rem; }
 .lui-site-main { min-width: 0; }
-.lui-site-menu > summary {
-  padding: 0.5rem 0.75rem; font-size: 0.875rem; border: 1px solid var(--lui-line);
-  border-radius: var(--lui-radius); background: var(--lui-card); box-shadow: var(--lui-shadow-xs);
-}
+.lui-site-menu > summary { display: flex; width: 100%; justify-content: space-between; list-style: none; }
+.lui-site-menu > summary::-webkit-details-marker { display: none; }
+.lui-site-menu > summary svg { transition: rotate var(--lui-duration-fast) ease; }
+.lui-site-menu[open] > summary svg { rotate: 180deg; }
 .lui-site-menu[open] > summary { margin-bottom: var(--lui-space); }
 @media (max-width: 59.99rem) {
   .lui-site-menu:not([open]) + .lui-sidebar { display: none; }
@@ -682,12 +683,19 @@ body:has(.lui-site) > .lui-header { max-width: 84rem; }
 @media (min-width: 60rem) {
   .lui-site { grid-template-columns: 14rem minmax(0, 1fr); gap: calc(var(--lui-space) * 6); align-items: start; }
   .lui-site-menu { display: none; }
-  .lui-site-nav { position: sticky; top: calc(var(--lui-space) * 2); max-height: calc(100vh - var(--lui-space) * 4); overflow-y: auto; }
+  .lui-site-nav {
+    position: sticky; top: calc(var(--lui-space) * 2); max-height: calc(100vh - var(--lui-space) * 4); overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--lui-line) transparent;
+  }
   .lui-site-main:not(.lui-site-wide) { max-width: 56rem; }
 }
-.lui-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--lui-space); margin: 0 0 calc(var(--lui-space) * 3); min-height: 2.25rem; }
+/* The title with the toolbar (languages, theme) on its row; the toolbar goes under the title
+   when they do not fit side by side. */
+.lui-title-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--lui-space) calc(var(--lui-space) * 2); margin: 0 0 0.75rem; }
+.lui-title-bar h1 { margin: 0; }
+.lui-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); }
 .lui-popover-row { display: flex; justify-content: space-between; gap: var(--lui-space); margin-bottom: calc(var(--lui-space) * 2); }
-.lui-back { color: var(--lui-muted); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+.lui-back { display: inline-block; margin-bottom: calc(var(--lui-space) * 2); color: var(--lui-muted); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
 .lui-back::before { content: "\2190"; margin-right: 0.35em; }
 .lui-back:hover { color: var(--lui-fg); }
 .lui-lede { font-size: 1.125rem; line-height: 1.75rem; color: var(--lui-muted); margin-bottom: 1rem; }
@@ -702,8 +710,8 @@ body:has(.lui-site) > .lui-header { max-width: 84rem; }
    drawers and toasts still escape it. */
 .lui-plate { margin: 0 0 2rem; }
 .lui-stage {
-  padding: calc(var(--lui-space) * 5) calc(var(--lui-space) * 4); background: var(--lui-bg);
-  border: 1px solid var(--lui-line); border-bottom: 0; border-radius: var(--lui-radius-lg) var(--lui-radius-lg) 0 0;
+  padding: calc(var(--lui-space) * 5) calc(var(--lui-space) * 4); background: var(--lui-gray-2);
+  border-radius: var(--lui-radius-lg) var(--lui-radius-lg) 0 0;
 }
 .lui-stage > :last-child { margin-bottom: 0; }
 .lui-stage h2:first-child { margin-top: 0; }

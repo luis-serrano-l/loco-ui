@@ -510,15 +510,16 @@ fn sidebar(ui: &Ui) -> Markup {
     }
     html! {
         div class="lui-site-nav" {
-            details class="lui-site-menu" { summary { "Browse components" } }
+            details class="lui-site-menu" { summary class="lui-button" { "Browse components" (Icon::ChevronDown) } }
             (nav)
         }
     }
 }
 
-/// The row above every title: the way back to the index (not on the index), the language of
-/// the components' own words, and the theme switch.
-fn toolbar(ui: &Ui, back: bool) -> Markup {
+/// The top of every page: the way back to the index (not on the index), then the title with
+/// one toolbar beside it, the language of the components' own words and the theme switch
+/// (under the title when the page is narrow).
+fn title_bar(ui: &Ui, back: bool, title: Markup) -> Markup {
     let languages = html! {
         form method="post" action="/lang" class="lui-lang" {
             @for (tag, name) in [("en", "English"), ("es", "Español")] {
@@ -526,10 +527,13 @@ fn toolbar(ui: &Ui, back: bool) -> Markup {
             }
         }
     };
-    html! { nav class="lui-toolbar" {
-        @if back { a class="lui-back" href="/" { "All components" } } @else { span {} }
-        (ui.cluster().body(html! { (languages) (ui.theme_toggle("/theme")) }))
-    } }
+    html! {
+        @if back { a class="lui-back" href="/" { "All components" } }
+        div class="lui-title-bar" {
+            h1 { (title) }
+            div class="lui-toolbar" { (languages) (ui.theme_toggle("/theme")) }
+        }
+    }
 }
 
 /// What every page shows around its body: the toolbar and the title, and on a component page
@@ -538,7 +542,7 @@ pub(crate) fn shell(ui: &Ui, title: &str, body: Markup) -> Markup {
     let component = COMPONENTS.iter().find(|c| c.1 == title);
     let page = match component {
         Some(c) => component_page(ui, c, body),
-        None => html! { (toolbar(ui, false)) h1 { (title) } (body) },
+        None => html! { (title_bar(ui, false, html! { (title) })) (body) },
     };
     html! {
         div class="lui-site" {
@@ -552,8 +556,7 @@ pub(crate) fn shell(ui: &Ui, title: &str, body: Markup) -> Markup {
 /// that drew it underneath, and the props of the builders that code calls.
 fn component_page(ui: &Ui, c: &(&str, &str, &str, &str, &str), body: Markup) -> Markup {
     html! {
-        (toolbar(ui, true))
-        h1 { (c.1) @if beta(c.0) { " " (ui.badge("beta").warn()) } }
+        (title_bar(ui, true, html! { (c.1) @if beta(c.0) { " " (ui.badge("beta").warn()) } }))
         p class="lui-lede" { (c.4) }
         p class="lui-built" { "Built on " @for f in c.3.split(", ") { code { (f) } " " } }
         // The live component and the code that drew it, joined as one plate.
