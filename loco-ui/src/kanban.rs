@@ -235,6 +235,7 @@ pub const CSS: &str = r#"
 .lui-kanban-board {
   display: grid; grid-auto-flow: column; grid-auto-columns: 85%; gap: 0.75rem; align-items: start;
   overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding-bottom: 0.5rem;
+  position: relative; /* holds the visually hidden (absolute) "over the limit" text inside the scroller */
 }
 @container lui-kanban (min-width: 48rem) {
   .lui-kanban-board { grid-auto-columns: minmax(15rem, 1fr); scroll-snap-type: none; }

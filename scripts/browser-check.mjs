@@ -320,8 +320,11 @@ try {
 
   // Kanban: an arrow posts the move; the card lands in the next column in place.
   await go("/kanban");
-  assert(await js("const b = document.querySelector('.lui-kanban-board'); return b.scrollWidth <= b.clientWidth"),
-    "kanban: in a wide board the three columns share the width, nothing to scroll");
+  const board = "const b = document.querySelector('.lui-kanban-board'); return b.scrollWidth > b.clientWidth";
+  assert(await js(board), "kanban: in a narrow board (under 48rem) the columns snap and scroll");
+  await wd("POST", S + "/window/rect", { width: 1400, height: 700 });
+  assert(!(await js(board)), "kanban: in a wide board the three columns share the width, nothing to scroll");
+  await wd("POST", S + "/window/rect", { width: 1000, height: 700 });
   await click(".lui-kanban-card:has(input[value=docs]) button[value=doing]");
   await until(async () => await js("return !!document.querySelector('.lui-kanban-column:nth-child(2) input[value=docs]')"), "kanban: card moved");
   assert(await navigations() === 1, "kanban: moved in place, no reload");
@@ -334,11 +337,13 @@ try {
   // list is replaced in place; the order survives a reload; an arrow moves it one place.
   await go("/sortable");
   const order = () => js("return [...document.querySelectorAll('.lui-sortable-item input[name=item]')].map(i => i.value).join()");
+  await js("document.querySelector('.lui-sortable').dataset.old = '1'");
   await js(`const items = [...document.querySelectorAll('.lui-sortable-item')], a = items[0], b = items[2], dt = new DataTransfer();
     const r = b.getBoundingClientRect(), ev = (el, type, y) => el.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: dt, clientY: y }));
     a.querySelector('.lui-sortable-grip').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     ev(a, 'dragstart'); ev(b, 'dragover', r.bottom - 2); ev(b, 'drop'); ev(a, 'dragend');`);
-  await until(async () => (await order()).startsWith("api,tests,design"), "sortable: the drop posted the new place");
+  // The drag already reorders the rows, so wait for the server's list to replace the old one.
+  await until(async () => (await js("return !document.querySelector('.lui-sortable[data-old]')")) && (await order()).startsWith("api,tests,design"), "sortable: the drop posted the new place");
   assert(await navigations() === 1, "sortable: dragged in place, no reload");
   await go("/sortable");
   assert((await order()).startsWith("api,tests,design"), "sortable: the order survives a reload");

@@ -308,9 +308,10 @@ async fn kanban_move(ui: Ui, Saved(mut board): Saved<Board>, Form(m): Form<Move>
     ui.redirect("/kanban").save(&board)
 }
 
-/// The order of the demo list, remembered per visitor: its keys, first to last.
+/// The order of the demo list, remembered per visitor: `("item", key)` pairs, first to
+/// last (a saved value is form-encoded, so a list is kept as pairs, as the board is).
 #[derive(Deserialize, Serialize)]
-struct Order(Vec<String>);
+struct Order(Vec<(String, String)>);
 
 const TASKS: [(&str, &str, &str); 5] = [
     ("design", "Sketch the settings page", "Ada, due Monday"),
@@ -322,7 +323,7 @@ const TASKS: [(&str, &str, &str); 5] = [
 
 impl Default for Order {
     fn default() -> Self {
-        Order(TASKS.iter().map(|t| t.0.to_string()).collect())
+        Order(TASKS.iter().map(|t| ("item".into(), t.0.into())).collect())
     }
 }
 
@@ -331,7 +332,7 @@ fn sortable(ui: &Ui, order: &Order) -> Markup {
     let tasks = order
         .0
         .iter()
-        .filter_map(|k| TASKS.iter().find(|t| t.0 == k));
+        .filter_map(|(_, k)| TASKS.iter().find(|t| t.0 == k));
     lui! {
         // code: /sortable
         Sortable("Release tasks", "/sortable") {
@@ -358,7 +359,7 @@ struct Reorder {
 
 /// A move: the item leaves its place and goes in at `to` (known items only), then PRG.
 async fn sortable_move(ui: Ui, Saved(mut order): Saved<Order>, Form(m): Form<Reorder>) -> Redirect {
-    if let Some(at) = order.0.iter().position(|k| *k == m.item) {
+    if let Some(at) = order.0.iter().position(|(_, k)| *k == m.item) {
         let key = order.0.remove(at);
         order.0.insert(m.to.min(order.0.len()), key);
     }

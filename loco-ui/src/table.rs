@@ -1400,7 +1400,9 @@ pub const CSS: &str = r#"
 .lui-table-cols a:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
 .lui-table-cols-mark { color: var(--lui-fg); }
 .lui-table-scroll {
-  overflow-x: auto; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
+  /* position: the scroller contains the visually hidden (absolute) labels inside it, which
+     would otherwise hang out past it and widen the page. */
+  position: relative; overflow-x: auto; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
   background:
     linear-gradient(to right, var(--lui-bg) 40%, transparent) left / 1.5rem 100% no-repeat local,
     linear-gradient(to left, var(--lui-bg) 40%, transparent) right / 1.5rem 100% no-repeat local,

@@ -2054,6 +2054,16 @@ owner has seen them.
   full-width `lui-button` with a chevron that turns when open. Also fixed: the light strip
   beside the sidebar was the sticky nav's scrollbar track; it is now a thin scrollbar in the
   line colour. Kept different: nothing else moved.
+- [ ] One snippet style (asked by the owner on 2026-09-26): the `/counter` snippet still shows
+  the builder chain (`ui.counter("/counter", n).min(0).max(20).step(2).typed()`) where the
+  other pages show `lui!`, so it reads differently. Go through every `// code:` block and make
+  the component's markup `lui!`, as CLAUDE.md asks: today that is `/counter`, `/wizard` and
+  `/palette` (found by a scan for blocks with neither `lui!` nor an element). Keep the
+  builder only where the route calls a method on it afterwards (`counter(..).apply(..)`,
+  `palette.exact()`), and there show the `lui!` render block beside it. Handler logic in a
+  snippet (a redirect, a toast, `ui.stream`) stays Rust. Add a demo test that fails when a
+  component page's first snippet block renders markup without `lui!`, with a short allow list
+  for the handler-only blocks, so a new page cannot drift back.
 - [ ] Wrap-up:
   - Refresh `tests/shots/` on purpose, reviewing each changed PNG.
   - Re-measure the stylesheet size (gzipped) and write the growth in README. The budget is
