@@ -1799,13 +1799,21 @@ owner has seen them.
   Done: it already matched shadcn (hairline items, no box, medium summary, a rotating chevron,
   height to `auto` under `interpolate-size`); the chevron and height transitions now use the
   motion tokens, so reduced motion (which zeroes the durations) turns them off.
-- [ ] Breadcrumbs and pager (`breadcrumbs.rs`, `pager.rs`; reference: shadcn Breadcrumb and
+- [x] Breadcrumbs and pager (`breadcrumbs.rs`, `pager.rs`; reference: shadcn Breadcrumb and
   Pagination):
   - Breadcrumbs: gray-11 links, chevron separators and the current page in gray-12. In a
     narrow container the middle crumbs collapse into a `…` that opens a small popover menu
     (the existing popover, no script).
   - Pager: ghost buttons for pages, an outline chip for the current page, and previous and
     next with labels. In a narrow container it shows previous, "page X of Y" and next.
+  Done: breadcrumbs have muted links, CSS chevron separators (turned borders, silent to
+  screen readers) and the current page in the text colour, cut with an ellipsis. They are
+  their own container: a trail with one middle crumb renders it inline and in a `…` fold
+  (the existing `<details>` menu, now 2rem rows, 44px on touch), and under 30rem the fold
+  replaces it; longer trails fold always, as before. The demo's first trail gains a middle
+  crumb to show it. The pager part moves to the Table box: `pager.rs` is the load-more
+  list (restyled there only where needed), and the numbered pages with previous/next are
+  the table's page links in `table.rs`.
 - [ ] Sidebar and nav menu (`sidebar.rs`, `nav_menu.rs`; reference: the shadcn Sidebar block
   and NavigationMenu):
   - Sidebar: group labels, items with icons and badges, and the current item on a gray-4

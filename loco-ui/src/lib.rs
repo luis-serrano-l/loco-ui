@@ -1679,7 +1679,6 @@ mod tests {
             ("progress", "Progress box"),
             ("table", "Table box"),
             ("paged_table", "Table box"),
-            ("breadcrumbs", "Breadcrumbs box"),
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),
             ("stat", "Stat box"),

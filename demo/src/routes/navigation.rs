@@ -71,7 +71,7 @@ fn drawer(ui: &Ui) -> Markup {
                     li { a href="/nav" aria-current="page" { "Overview" } }
                     li { a href="/table" { "Files" } } li { a href="/dashboard" { "Reports" } } li { a href="/settings" { "Settings" } }
                 } } {
-                    Breadcrumbs { link "Home" "/"; link "Projects" "/nav"; here "loco-ui"; }
+                    Breadcrumbs { link "Home" "/"; link "Projects" "/nav"; link "loco-ui" "/nav"; here "Docs"; }
                     p { "Wider than 60rem the navigation is a sidebar; narrower, the menu button opens it as a drawer. Escape or a click outside closes it." }
                     p { "A long trail folds its middle so both ends stay readable:" }
                     Breadcrumbs {
