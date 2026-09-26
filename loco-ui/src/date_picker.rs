@@ -189,6 +189,7 @@ impl Render for DatePicker<'_> {
             span class=[shown.is_none().then_some("lui-date-picker-empty")] {
                 @if let Some(s) = &shown { (s) } @else { (ui.text(Text::PickDate)) }
             }
+            span class="lui-date-picker-chevron" { (Icon::ChevronDown) }
         };
         let legend = format!("{id}-label");
         let text = html! { (self.label) @if self.required { " *" } };
@@ -216,11 +217,19 @@ impl Render for DatePicker<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn DatePicker: an outline
 /// button with a calendar icon, 15rem wide, the Calendar in a PopoverContent (p-0, no border).
 pub const CSS: &str = r#"
+/* The trigger takes the Select trigger's look (input.rs and select.rs): the field border,
+   no shadow, --lui-control-h tall, a calendar icon, the date or a muted prompt, a chevron at
+   the end. The popover holds the calendar, raised. */
 .lui-date-picker-anchor { position: relative; }
-.lui-date-picker-label { font-size: 0.875rem; line-height: 1; font-weight: 500; }
+.lui-date-picker-label { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
 .lui-date-picker > .lui-calendar { justify-self: start; }
-.lui-date-picker-trigger { width: 15rem; justify-content: flex-start; font-weight: 400; }
+.lui-date-picker-trigger.lui-button {
+  width: min(15rem, 100%); justify-content: flex-start; gap: var(--lui-space-2); padding-inline: 0.75rem;
+  font-weight: 400; background: transparent; border-color: var(--lui-input); box-shadow: none;
+}
+.lui-date-picker-trigger > .lui-icon:first-child { color: var(--lui-muted); }
+.lui-date-picker-chevron { display: inline-flex; margin-left: auto; color: var(--lui-muted); }
 .lui-date-picker-empty { color: var(--lui-muted); }
-.lui-date-picker-panel { margin: 0; margin-top: 4px; padding: 0; border: 0; background: none; overflow: visible; }
-.lui-date-picker-panel > .lui-calendar { box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
+.lui-date-picker-panel { margin: 0; margin-top: var(--lui-space-1); padding: 0; border: 0; background: none; overflow: visible; }
+.lui-date-picker-panel > .lui-calendar { width: 17.5rem; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
 "#;

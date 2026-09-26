@@ -1635,7 +1635,7 @@ owner has seen them.
   bordered thumbnail, the ghost remove button at the end. Kept: the native file input stays
   visible inside the zone (it is the drop target without script) and remove keeps the trash
   icon.
-- [ ] Calendar and date picker (`calendar.rs`, `date_picker.rs`; reference: shadcn Calendar,
+- [x] Calendar and date picker (`calendar.rs`, `date_picker.rs`; reference: shadcn Calendar,
   the react-day-picker v9 look):
   - The caption has previous and next as ghost icon buttons and the month centred, with
     space between the grid and anything under it (today's bug).
@@ -1648,6 +1648,17 @@ owner has seen them.
   - Optional, from the Dioxus Components calendar: the caption's month and year as two small
     `<select>`s in a GET form (a Go button without script, submitted on change by the
     enhancement script), for jumping far without paging month by month.
+  Done: the caption is a three-column grid (ghost icon buttons either side, the month centred)
+  with 16px under it; days are `aspect-ratio: 1` cells in a fixed-layout table that fills
+  the calendar, and the calendar is `min(100%, 17.5rem)` wide, so a narrow container gets a
+  full-width grid of square cells (no container query needed: NO_BREAKPOINT). Today is the
+  accent surface in semibold, the picked day the primary fill, outside days gray-11 (gray-10 fails axe contrast),
+  disabled days gray-9 struck through with no fading, event dots in the primary colour
+  (current colour on the picked day). The date picker trigger takes the Select trigger's
+  look: field border, no shadow, muted calendar icon and prompt, a chevron at the end,
+  `min(15rem, 100%)` wide. The `/calendar` page stacks its note, so nothing sits flush under
+  the calendar. Not done: the optional month and year selects (kept for later; paging by
+  month covers the demo).
 - [ ] Wizard (`wizard.rs`; reference: the Origin UI Stepper):
   - Each step is a numbered dot (a check when done) with the title and "optional" under it,
     joined by connector lines. Done connectors are brand, the rest gray-6.

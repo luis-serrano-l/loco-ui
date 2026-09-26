@@ -75,7 +75,7 @@ fn calendar(ui: &Ui) -> Markup {
 }
 
 async fn calendar_page(ui: Ui) -> Page {
-    let body = lui! {
+    let body = lui! { Stack {
         (calendar(&ui))
         p class="lui-note" { @match ui.param("day") {
             Some(d) => { "You picked " (d) ". Weekends cannot be picked; a dot marks an event." },
@@ -88,7 +88,7 @@ async fn calendar_page(ui: Ui) -> Page {
             DatePicker("born", "Born") native max="2026-12-31";
         }
         // end code
-    };
+    } };
     page(&ui, "Calendar", body)
 }
 

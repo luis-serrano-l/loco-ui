@@ -432,34 +432,43 @@ impl Calendar<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn Calendar: p-3, 2rem
 /// day cells, the picked day in the primary colour, today on the accent.
 pub const CSS: &str = r#"
+/* After shadcn Calendar (react-day-picker v9): the caption is previous, the month centred,
+   next, with space under it; days are square cells in a grid that fills the calendar, and
+   the calendar fills a narrow container (up to its natural 17.5rem). Today is an accent
+   surface, the picked day the solid primary fill, days outside the month muted (--lui-gray-11; --lui-gray-10 fails AA contrast), days that
+   cannot be picked --lui-gray-9 and struck through; event dots sit under the number. */
 .lui-calendar {
-  display: inline-block; padding: 0.75rem; background: var(--lui-card); color: var(--lui-fg);
-  border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-xs);
+  display: inline-block; box-sizing: border-box; width: min(100%, 17.5rem); padding: var(--lui-space-3);
+  background: var(--lui-card); color: var(--lui-fg);
+  border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); box-shadow: var(--lui-shadow-xs);
 }
-.lui-calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
-.lui-calendar-title { margin: 0; font-size: 0.875rem; font-weight: 500; }
+.lui-calendar-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--lui-space-2); margin-bottom: var(--lui-space-4); }
+.lui-calendar-title { margin: 0; text-align: center; font-size: 0.875rem; font-weight: 500; }
 .lui-calendar-head .lui-button[aria-disabled=true] { visibility: hidden; }
-.lui-calendar-grid { width: auto; border-collapse: separate; border-spacing: 0 0.25rem; font-size: 0.875rem; }
-.lui-calendar-grid th { height: auto; padding: 0 0 0.25rem; width: 2.25rem; text-align: center; font-size: 0.8rem; font-weight: 400; color: var(--lui-muted); border: 0; }
+.lui-calendar-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0 0.125rem; font-size: 0.875rem; margin: 0; }
+.lui-calendar-grid th { height: auto; padding: 0 0 var(--lui-space-2); text-align: center; font-size: 0.75rem; font-weight: 400; color: var(--lui-muted); border: 0; }
 .lui-calendar-grid td { padding: 0; border: 0; text-align: center; }
 .lui-calendar-grid tbody tr:hover { background: none; }
 .lui-calendar-day {
-  position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; box-sizing: border-box; border-radius: var(--lui-radius-sm);
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 100%; aspect-ratio: 1; box-sizing: border-box; border-radius: var(--lui-radius-sm);
   color: inherit; text-decoration: none; font-weight: 400; cursor: pointer; font-variant-numeric: tabular-nums;
+  transition: background-color var(--lui-duration-fast);
 }
 a.lui-calendar-day:hover, label.lui-calendar-day:not(.lui-calendar-off):hover { background: var(--lui-accent); color: var(--lui-on-accent); }
 .lui-calendar-outside { color: var(--lui-muted); }
-.lui-calendar-today { background: var(--lui-accent); color: var(--lui-on-accent); }
+.lui-calendar-today { background: var(--lui-accent); color: var(--lui-on-accent); font-weight: 600; }
 /* Two rules, not one list: a browser without :has() drops a whole selector list it cannot
    parse, which would lose the picked link's fill too. */
-.lui-calendar-picked, a.lui-calendar-picked:hover { background: var(--lui-primary); color: var(--lui-on-primary); }
-.lui-calendar-day:has(.lui-calendar-radio:checked) { background: var(--lui-primary); color: var(--lui-on-primary); }
-.lui-calendar-off { color: var(--lui-muted); opacity: 0.5; cursor: not-allowed; }
-.lui-calendar-day .lui-calendar-radio { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: inherit; }
+.lui-calendar-picked, a.lui-calendar-picked:hover { background: var(--lui-primary); color: var(--lui-on-primary); font-weight: 500; }
+.lui-calendar-day:has(.lui-calendar-radio:checked) { background: var(--lui-primary); color: var(--lui-on-primary); font-weight: 500; }
+.lui-calendar-off { color: var(--lui-gray-9); text-decoration: line-through; cursor: not-allowed; }
+.lui-calendar-day .lui-calendar-radio { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: inherit; }
 .lui-calendar-day:has(.lui-calendar-radio:focus-visible) { outline: 3px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); }
-.lui-calendar-dots { position: absolute; bottom: 3px; display: flex; gap: 2px; }
-.lui-calendar-dots span { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.lui-calendar-dots { position: absolute; bottom: 12%; display: flex; gap: 2px; }
+.lui-calendar-dots span { width: 4px; height: 4px; border-radius: 50%; background: var(--lui-primary); }
+.lui-calendar-picked .lui-calendar-dots span { background: currentColor; }
+.lui-calendar-day:has(.lui-calendar-radio:checked) .lui-calendar-dots span { background: currentColor; }
 "#;
 
 #[cfg(test)]

@@ -1642,6 +1642,10 @@ mod tests {
             ),
             ("range", "one row: the slider and its value"),
             (
+                "calendar",
+                "width min(100%, 17.5rem): fills a narrow box with square cells",
+            ),
+            (
                 "color",
                 "a row of picker, value chip and presets that wraps",
             ),
