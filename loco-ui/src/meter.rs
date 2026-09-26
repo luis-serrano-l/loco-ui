@@ -139,9 +139,9 @@ impl Render for Meter<'_> {
 pub const CSS: &str = r#"
 .lui-meter {
   appearance: none; display: block; width: 100%; height: 0.5rem; border: 0; border-radius: 9999px; overflow: hidden;
-  background: var(--lui-secondary);
+  background: var(--lui-gray-4);
 }
-.lui-meter::-webkit-meter-bar { background: var(--lui-secondary); border: 0; border-radius: 9999px; height: 0.5rem; }
+.lui-meter::-webkit-meter-bar { background: var(--lui-gray-4); border: 0; border-radius: 9999px; height: 0.5rem; }
 .lui-meter::-webkit-meter-optimum-value { background: var(--lui-ok); border-radius: 9999px; }
 .lui-meter::-webkit-meter-suboptimum-value { background: var(--lui-warn); border-radius: 9999px; }
 .lui-meter::-webkit-meter-even-less-good-value { background: var(--lui-danger); border-radius: 9999px; }

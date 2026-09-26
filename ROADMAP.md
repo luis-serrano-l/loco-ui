@@ -1914,12 +1914,17 @@ owner has seen them.
   different: the header no longer sticks to the page (a sticky header inside a sideways
   scroller sticks to the scroller, which does not scroll vertically), and the inline Edit
   does not fold into the row's … menu (the menu is the caller's items; it stays a button).
-- [ ] Progress and meter (`progress.rs`, `meter.rs`; reference: Tremor ProgressBar and
+- [x] Progress and meter (`progress.rs`, `meter.rs`; reference: Tremor ProgressBar and
   CategoryBar):
   - A label and value on one line above a rounded gray-4 track with a brand fill. The meter
     colours by its low, high and optimum ranges.
   - A `.segments(..)` category bar variant for the meter, only if it fits the existing API
     (otherwise note it and skip).
+  Done: both already put the label and value on one line over a rounded bar, the meter
+  coloured ok / warn / danger by `low`, `high` and `optimum`; the tracks are now gray-4 (the
+  progress track was a primary tint, the meter's the secondary surface) and the fill eases
+  on the motion tokens. Skipped: `.segments(..)`, since a category bar is several values
+  and the meter is one native `<meter>` with one value; it would be a new component.
 - [ ] Description list (`description_list.rs`; reference: Radix Themes DataList):
   - In medium or wider containers, label (gray-11, fixed column) and value side by side,
     rows separated by space not borders. Stacked in narrow containers. `.stacked()` forces

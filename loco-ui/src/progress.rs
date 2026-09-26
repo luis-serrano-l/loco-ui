@@ -113,14 +113,16 @@ impl Render for Progress<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn Progress: an 8px
 /// rounded track in the primary colour at 20%, the fill in the primary colour.
 pub const CSS: &str = r#"
-.lui-progress-field { display: grid; gap: 0.5rem; }
+/* Tremor ProgressBar: the label and the value on one line over a rounded --lui-gray-4 track
+   with the primary fill. */
+.lui-progress-field { display: grid; gap: var(--lui-space-2); }
 .lui-progress-field label { display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500; }
 .lui-progress-value { color: var(--lui-muted); font-variant-numeric: tabular-nums; font-weight: 400; }
 .lui-progress {
   appearance: none; display: block; width: 100%; height: 0.5rem; border: 0; border-radius: 9999px; overflow: hidden;
-  background: color-mix(in srgb, var(--lui-primary) 20%, transparent); accent-color: var(--lui-primary);
+  background: var(--lui-gray-4); accent-color: var(--lui-primary);
 }
 .lui-progress::-webkit-progress-bar { background: transparent; }
-.lui-progress::-webkit-progress-value { background: var(--lui-primary); border-radius: 9999px; transition: width 0.3s; }
+.lui-progress::-webkit-progress-value { background: var(--lui-primary); border-radius: 9999px; transition: width var(--lui-duration-slow) var(--lui-ease-out); }
 .lui-progress::-moz-progress-bar { background: var(--lui-primary); border-radius: 9999px; }
 "#;
