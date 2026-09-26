@@ -133,29 +133,20 @@ async fn pages_ship_only_the_enhancement_script() {
                 .await
                 .unwrap();
             let html = String::from_utf8(body.to_vec()).unwrap();
-            // The whole page, inline stylesheet included (README: "What a page weighs").
-            // A streamed page with declarative shadow DOM carries the stylesheet twice
-            // (styles do not cross into the shadow root), so it gets its own budget. Both were
-            // raised in M29 (from 128 and 96 KB) as blocks, a chart and six components joined
-            // the one stylesheet (README: "What a page weighs"), and again in M30 (from 152
-            // and 104 KB) for the colour scales, depth tokens and motion; M30's budget box
-            // holds that growth under 15 KB gzipped. The index shows every component live
-            // since M31 (the same calls their pages make, the calendar, table and theme builder
-            // among them), so it gets its own budget: about 36 KB gzipped. M34's component
-            // reworks (touch sizing, container layouts) raised it from 224; the stylesheet's
-            // own M34 cap is +10 KB gzipped.
-            let budget = if html.contains("shadowrootmode") {
-                180
-            } else if path == "/" {
-                240
-            } else {
-                // 120 until M31's sidebar joined every page.
-                128
-            } * 1024;
+            // The page without its stylesheet (README: "What a page weighs"): the stylesheet
+            // is inlined once per page, or twice in a streamed page with declarative shadow
+            // DOM (styles do not cross into the shadow root), and has its own budget in
+            // `stylesheet_stays_under_its_budget`. Until M34 this counted whole pages, so every
+            // stylesheet change moved all three numbers; the markup is what a route controls.
+            // The index shows every component live since M31 (the calendar, table and theme
+            // builder among them), so it gets its own budget.
+            let copies = html.matches(loco_ui::stylesheet()).count();
+            assert!(copies >= 1, "{path}: the stylesheet is inlined");
+            let markup = html.len() - copies * loco_ui::stylesheet().len();
+            let budget = if path == "/" { 160 } else { 48 } * 1024;
             assert!(
-                html.len() < budget,
-                "{path}: {} bytes, over the {} KB page budget",
-                html.len(),
+                markup < budget,
+                "{path}: {markup} bytes of markup, over the {} KB budget",
                 budget / 1024
             );
             assert_eq!(

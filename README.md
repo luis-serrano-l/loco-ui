@@ -272,8 +272,10 @@ there is no second request for CSS, and no script is required.
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
-stylesheet stays under 88 KB, and every demo page under 128 KB (180 KB for the shadow-DOM
-stream, 224 KB for the index with every component live on it) in `cargo test`. M30's look
+stylesheet stays under 88 KB, and every demo page's markup, the inlined stylesheet not
+counted, under 48 KB (160 KB for the index with every component live on it) in `cargo test`.
+Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
+moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
 stylesheet by 2.3 KB gzipped, from 12.1 KB (68.7 KB raw) at `cba5165`, under the 15 KB it was
 allowed; `stylesheet()` is built once and then costs about 1 ns (`cargo bench -p loco-ui`). The sidebar

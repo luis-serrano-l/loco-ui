@@ -425,9 +425,10 @@ mod tests {
                 let func = ["rgb(", "rgba(", "hsl(", "hsla(", "oklch(", "light-dark("]
                     .iter()
                     .any(|f| line.contains(f));
-                // `white-space` is a property, not a colour.
+                // `white-space` is a property and `--lui-gray-4` a token, not colours.
                 let named = line
                     .replace("white-space", "")
+                    .replace("--lui-gray-", "")
                     .split(|c: char| !c.is_ascii_alphabetic())
                     .any(|w| {
                         ["white", "black", "gray", "grey", "red", "blue", "green"].contains(&w)

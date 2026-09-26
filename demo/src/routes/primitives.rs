@@ -25,11 +25,17 @@ fn buttons(ui: &Ui) -> Markup {
             // code: /button
             Cluster {
                 Button("Save") primary loading=(loading);
+                Button("Invite") soft;
+                Button("Share") surface;
                 Button("Cancel");
-                Button("Delete") danger;
                 Button("Skip") ghost;
-                Button("Small") small;
+                Button("Delete") danger;
+                Button("Archived") disabled;
+            }
+            Cluster {
+                Button("Small") small; Button("Default"); Button("Large") size=3;
                 Button("\u{2026}") icon_only ghost aria_label="More";
+                Button("Bold") pressed=(true) aria_label="Bold, on";
                 LinkButton("Read the docs", "/");
             }
             Cluster {

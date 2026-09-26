@@ -1491,7 +1491,7 @@ owner has seen them.
   section links it. Add it to the crate's `include` if packaging ever filters files.
 
 ### Forms and inputs
-- [ ] Button (`button.rs`, the primitive everything uses; reference: Radix Themes Button and
+- [x] Button (`button.rs`, the primitive everything uses; reference: Radix Themes Button and
   IconButton):
   - Variants: solid (primary, with the gradient), soft, surface, outline and ghost. Map the
     existing `.secondary()`/outline/ghost onto them, and keep old names as deprecated
@@ -1500,6 +1500,15 @@ owner has seen them.
   - Styles for the pressed state, `aria-busy` loading (a spinner that replaces the icon;
     the label stays for width) and disabled.
   - An icon-only button is square.
+  Done: `.soft()` (brand-3/4/5 fill, brand-11 text) and `.surface()` (brand-2 fill in a
+  brand-7 border) beside solid (`.primary()`, `.danger()`), the gray outline default and
+  `.ghost()`; no renames, so no aliases. `.size(1..=3)` on 2 / 2.25 / 2.5 rem (Radix's 24 / 32 /
+  40 px kept at our taller heights, 2.75 rem on touch; `.small()` stays as size 1, new token
+  `--lui-control-h-lg`). Pressed: `:active` and `aria-pressed` one step deeper. Busy: the label
+  stays (transparent, for width and name) under a centred spinner. Disabled: gray-3 fill,
+  gray-8 text, no opacity. Icon-only is square at every size. Kept different: no per-button
+  colour prop (Radix's `color`), soft/surface are brand only. Page budgets now count markup
+  without the stylesheet (README "What a page weighs").
 - [ ] Input, textarea, checkbox, switch, radio (`input.rs`; reference: Radix Themes TextField,
   TextArea, Checkbox, Switch, RadioGroup, RadioCards):
   - Slots for a leading and trailing icon or text inside the field, drawn inside the field's

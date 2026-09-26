@@ -587,13 +587,14 @@ pub const CSS: &str = r#"
   --lui-duration-fast: 150ms; --lui-duration: 200ms; --lui-duration-slow: 250ms;
   --lui-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --lui-ease-spring: ease-out;
-  /* Touch sizing (M34): controls are --lui-control-h tall, small ones --lui-control-h-sm, and a
+  /* Touch sizing (M34): controls are --lui-control-h tall, small ones --lui-control-h-sm, large
+     ones --lui-control-h-lg, and a
      small inline target (a close ×, a menu's …) gets at least --lui-hit of hit area. On a
      coarse pointer all three become 2.75rem (44px), the WCAG 2.5.5 target size. */
-  --lui-control-h: 2.25rem; --lui-control-h-sm: 2rem; --lui-hit: 2.25rem;
+  --lui-control-h: 2.25rem; --lui-control-h-sm: 2rem; --lui-control-h-lg: 2.5rem; --lui-hit: 2.25rem;
 }
 @media (pointer: coarse) {
-  :root { --lui-control-h: 2.75rem; --lui-control-h-sm: 2.75rem; --lui-hit: 2.75rem; }
+  :root { --lui-control-h: 2.75rem; --lui-control-h-sm: 2.75rem; --lui-control-h-lg: 2.75rem; --lui-hit: 2.75rem; }
 }
 @supports (transition-timing-function: linear(0, 1)) {
   :root { --lui-ease-spring: linear(0, 0.033 3%, 0.116 6%, 0.268 10%, 0.435 14%, 0.594 18%, 0.761 23%, 0.886 28%, 0.981 34%, 1.029 40%, 1.046 48%, 1.037 56%, 1.019 66%, 1.004 78%, 1); }

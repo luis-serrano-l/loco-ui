@@ -86,7 +86,7 @@ echo "$pages" | while IFS='|' read -r name path url; do
     done
   done
   if [ -n "$url" ] && [ "$ref" = 1 ]; then
-    shot light 1280,1100 "$name-ref" "$url"
+    shot light 1280,2600 "$name-ref" "$url"
   fi
   echo "shot $name"
 done

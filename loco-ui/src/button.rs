@@ -1,8 +1,12 @@
 //! # Button
 //!
-//! The one button every other component builds on: shadcn's outline button by default, with
-//! primary, danger and ghost tones, a small size and a square icon size. `ui.link_button`
-//! gives a link the same look, for actions that are a navigation (GET) rather than a post.
+//! The one button every other component builds on, drawn after Radix Themes' Button and
+//! IconButton: a neutral outline by default, then solid (`.primary()` with the brand gradient,
+//! `.danger()`), `.soft()`, `.surface()` and `.ghost()`; three sizes (`.size(1..=3)`, `.small()`
+//! for 1); a square icon button. Pressed, busy and disabled each have their own look: a busy
+//! button keeps its width and shows a spinner over its label, a disabled one turns gray.
+//! `ui.link_button` gives a link the same look, for actions that are a navigation (GET) rather
+//! than a post.
 //!
 //! **Platform features:** `<button>` with its `type`, `name`/`value` (sent with the form that
 //! submits it), `form=` (submit a form elsewhere on the page), invoker commands
@@ -48,6 +52,10 @@
 //! // The server knows the job is still running, so the page it renders says so.
 //! let busy = ui.button("Export").loading(true).render().into_string();
 //! assert!(busy.contains("disabled") && busy.contains(r#"aria-busy="true""#));
+//! // Radix's quieter variants and sizes.
+//! let soft = ui.button("Invite").soft().size(3).render().into_string();
+//! assert!(soft.contains(r#"class="lui-button lui-button-soft lui-button-large""#));
+//! assert_eq!(lui! { Button("Invite") soft size=3; }.into_string(), soft);
 //! // Opt-in motion: a light sweeps across it, CSS only.
 //! let shiny = ui.button("Upgrade").primary().shimmer().render().into_string();
 //! assert!(shiny.contains(r#"class="lui-button lui-button-primary lui-button-shimmer""#));
@@ -62,12 +70,19 @@ use crate::{Cap, Caps, Ui};
 /// The colour a button takes.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tone {
-    /// shadcn "outline": the page background, a border, the accent surface on hover.
+    /// Radix "outline" in gray: the page background, a border, the accent surface on hover.
     #[default]
     Outline,
+    /// Radix "solid" in the brand colour, with the gradient.
     Primary,
+    /// Radix "solid" in the danger colour.
     Danger,
+    /// Radix "ghost" in gray.
     Ghost,
+    /// Radix "soft": a brand-3 fill, brand-11 text.
+    Soft,
+    /// Radix "surface": a brand-2 fill inside a brand-7 border, brand-11 text.
+    Surface,
 }
 
 /// A `<button>` or a link that looks like one, made by [`Ui::button`] or [`Ui::link_button`].
@@ -75,8 +90,9 @@ enum Tone {
 /// **Setters.** Values and items: `.command(..)`, `.popovertarget(..)`, `.form(..)`,
 /// `.name(..)`, `.value(..)`, `.aria_label(..)`, `.class(..)`, `.body(..)`, `.id(..)`,
 /// `.role(..)`, `.title(..)`, `.style(..)`, `.aria_haspopup(..)`, `.accesskey(..)`,
-/// `.aria_keyshortcuts(..)`, `.formmethod(..)`, `.formaction(..)`, `.rel(..)`; switches:
-/// `.primary()`, `.danger()`, `.ghost()`, `.small()`, `.icon_only()`, `.submit()`, `.reset()`,
+/// `.aria_keyshortcuts(..)`, `.formmethod(..)`, `.formaction(..)`, `.rel(..)`,
+/// `.size(..)`; switches: `.primary()`, `.danger()`, `.ghost()`, `.soft()`, `.surface()`,
+/// `.small()`, `.icon_only()`, `.submit()`, `.reset()`,
 /// `.disabled()`, `.formnovalidate()`, `.shimmer()`; from a condition: `.loading(bool)`, `.pressed(bool)`,
 /// `.current(bool)`.
 #[derive(Clone, Debug)]
@@ -86,7 +102,7 @@ pub struct Button<'a> {
     content: Option<Markup>,
     href: Option<&'a str>,
     tone: Tone,
-    small: bool,
+    size: u8,
     icon: bool,
     kind: Option<&'static str>,
     command: Option<(&'a str, &'a str)>,
@@ -112,8 +128,14 @@ impl Button<'_> {
             .doc("Destroys or removes something."),
         Prop::new("ghost", PropKind::Switch, "")
             .doc("No border or fill until hovered."),
+        Prop::new("soft", PropKind::Switch, "")
+            .doc("A quiet tinted fill in the brand colour, for a secondary action."),
+        Prop::new("surface", PropKind::Switch, "")
+            .doc("A pale brand fill inside a brand border."),
+        Prop::new("size", PropKind::Value, "size: u8").default("2")
+            .doc("1 (2rem tall), 2 (2.25rem) or 3 (2.5rem); 2.75rem each on a touch screen."),
         Prop::new("small", PropKind::Switch, "")
-            .doc("2rem tall instead of 2.25rem."),
+            .doc("Size 1: 2rem tall instead of 2.25rem."),
         Prop::new("icon_only", PropKind::Switch, "")
             .doc("Square, for a glyph or an icon."),
         Prop::new("submit", PropKind::Switch, "")
@@ -220,7 +242,7 @@ impl<'a> Button<'a> {
             content: None,
             href: None,
             tone: Tone::Outline,
-            small: false,
+            size: 2,
             icon: false,
             kind: None,
             command: None,
@@ -263,10 +285,29 @@ impl<'a> Button<'a> {
         self
     }
 
-    /// 2rem tall instead of 2.25rem.
-    pub fn small(mut self) -> Self {
-        self.small = true;
+    /// A quiet tinted fill in the brand colour (Radix "soft"), for a secondary action beside a
+    /// primary one.
+    pub fn soft(mut self) -> Self {
+        self.tone = Tone::Soft;
         self
+    }
+
+    /// A pale brand fill inside a brand border (Radix "surface").
+    pub fn surface(mut self) -> Self {
+        self.tone = Tone::Surface;
+        self
+    }
+
+    /// 1 (2rem tall, smaller text), 2 (the default, 2.25rem) or 3 (2.5rem, larger text); on a
+    /// coarse pointer every size is at least 2.75rem. Other numbers take the nearest size.
+    pub fn size(mut self, size: u8) -> Self {
+        self.size = size.clamp(1, 3);
+        self
+    }
+
+    /// Size 1: 2rem tall instead of 2.25rem.
+    pub fn small(self) -> Self {
+        self.size(1)
     }
 
     /// Square, for a glyph or an icon; give it a `.aria_label()` for screen readers.
@@ -459,9 +500,13 @@ impl<'a> Button<'a> {
             Tone::Primary => c.push_str(" lui-button-primary"),
             Tone::Danger => c.push_str(" lui-button-danger"),
             Tone::Ghost => c.push_str(" lui-button-ghost"),
+            Tone::Soft => c.push_str(" lui-button-soft"),
+            Tone::Surface => c.push_str(" lui-button-surface"),
         }
-        if self.small {
-            c.push_str(" lui-button-small");
+        match self.size {
+            1 => c.push_str(" lui-button-small"),
+            3 => c.push_str(" lui-button-large"),
+            _ => {}
         }
         if self.icon {
             c.push_str(" lui-button-icon");
@@ -492,6 +537,12 @@ impl Render for Button<'_> {
         let class = self.classes();
         let a = &self.attrs;
         let text = html! { @if let Some(m) = &self.content { (m) } @else { (self.text) } };
+        // Busy: the label stays (for the width and the accessible name) under the spinner.
+        let text = if self.loading {
+            html! { span class="lui-button-label" { (text) } }
+        } else {
+            text
+        };
         let spinner =
             html! { @if self.loading { span class="lui-button-spinner" aria-hidden="true" {} } };
         if let Some(href) = self.href {
@@ -562,27 +613,52 @@ button.lui-danger, .lui-button.lui-button-danger { background: var(--lui-danger)
 button.lui-danger:hover, .lui-button.lui-button-danger:hover { background: color-mix(in srgb, var(--lui-danger) 90%, transparent); color: var(--lui-on-danger); }
 .lui-button.lui-button-ghost { background: transparent; border-color: transparent; box-shadow: none; }
 .lui-button.lui-button-ghost:hover { background: var(--lui-accent); }
-.lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; }
+/* Radix "soft" and "surface" in the brand scale: step 3/4/5 fills (rest, hover, pressed) or a
+   step 2 fill in a step 7 border (8 on hover), step 11 text. */
+.lui-button.lui-button-soft { background: var(--lui-brand-3); color: var(--lui-brand-11); border-color: transparent; box-shadow: none; }
+.lui-button.lui-button-soft:hover { background: var(--lui-brand-4); color: var(--lui-brand-11); }
+.lui-button.lui-button-surface { background: var(--lui-brand-2); color: var(--lui-brand-11); border-color: var(--lui-brand-7); }
+.lui-button.lui-button-surface:hover { background: var(--lui-brand-3); color: var(--lui-brand-11); border-color: var(--lui-brand-8); }
+/* Pressed (held down, or a toggle that is on): one step deeper, no lift. */
+.lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface)):is(:active:not(:disabled), [aria-pressed=true]) { background: var(--lui-gray-4); box-shadow: none; }
+.lui-button.lui-button-ghost:active:not(:disabled), .lui-button.lui-button-ghost[aria-pressed=true] { background: var(--lui-gray-4); }
+.lui-button.lui-button-soft:active:not(:disabled), .lui-button.lui-button-soft[aria-pressed=true] { background: var(--lui-brand-5); }
+.lui-button.lui-button-surface:active:not(:disabled), .lui-button.lui-button-surface[aria-pressed=true] { background: var(--lui-brand-4); }
+.lui-button:is(.lui-button-primary, .lui-button-danger):active:not(:disabled) { background-image: none; filter: brightness(0.92); }
+/* Sizes: Radix 1 to 3, on the shared control heights (all 2.75rem on a touch screen). */
+.lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; font-size: 0.8125rem; }
+.lui-button.lui-button-large { min-height: var(--lui-control-h-lg); padding: 0.5rem 1.25rem; gap: 0.625rem; font-size: 1rem; line-height: 1.5rem; }
 .lui-button.lui-button-icon { width: var(--lui-control-h); min-width: var(--lui-control-h); padding: 0; }
 .lui-button.lui-button-icon.lui-button-small { width: var(--lui-control-h-sm); min-width: var(--lui-control-h-sm); }
+.lui-button.lui-button-icon.lui-button-large { width: var(--lui-control-h-lg); min-width: var(--lui-control-h-lg); }
 button:focus-visible, .lui-button:focus-visible { border-color: var(--lui-ring); }
 /* Where gradients take oklch, a focused outline button draws its border in the ring gradient
    (a padding-box fill over a border-box gradient: same width, no shift) inside the solid ring.
    :where keeps it at two classes, so a component that paints its own buttons still wins. */
 @supports (background-image: linear-gradient(in oklch, currentColor, transparent)) {
-  .lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost)):focus-visible {
+  .lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface)):focus-visible {
     border-color: transparent;
     background: linear-gradient(var(--lui-bg), var(--lui-bg)) padding-box, var(--lui-gradient-ring) border-box;
   }
-  .lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost)):focus-visible:hover {
+  .lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface)):focus-visible:hover {
     background: linear-gradient(var(--lui-accent), var(--lui-accent)) padding-box, var(--lui-gradient-ring) border-box;
   }
 }
+/* Disabled (Radix): a --lui-gray-3 fill, --lui-gray-8 text, no border colour, gradient or shadow. A busy
+   button is disabled too but keeps its own look under the spinner. */
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-.lui-button[aria-disabled=true] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-.lui-button[aria-busy=true] { cursor: progress; }
+.lui-button:is(:disabled, [aria-disabled=true]):not([aria-busy=true]) {
+  opacity: 1; cursor: not-allowed; background: var(--lui-gray-3); background-image: none; color: var(--lui-gray-8);
+  border-color: transparent; box-shadow: none; filter: none;
+}
+.lui-button.lui-button-ghost:is(:disabled, [aria-disabled=true]):not([aria-busy=true]) { background: transparent; }
+.lui-button[aria-disabled=true] { pointer-events: none; }
+/* Busy: the label keeps its place (and the button's width and name) under a centred spinner. */
+.lui-button[aria-busy=true] { position: relative; cursor: progress; opacity: 1; }
+.lui-button[aria-busy=true] > .lui-button-label { opacity: 0; }
+.lui-button[aria-busy=true] > .lui-button-spinner { position: absolute; inset: 0; margin: auto; }
 .lui-button-spinner {
-  width: 1rem; height: 1rem; flex: none; border-radius: 50%;
+  width: 1rem; height: 1rem; flex: none; box-sizing: border-box; border-radius: 50%;
   border: 2px solid currentColor; border-right-color: transparent;
   animation: lui-spin 0.6s linear infinite;
 }
