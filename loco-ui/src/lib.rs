@@ -1674,6 +1674,10 @@ mod tests {
                 "a sheet over the viewport, a column of the page above 60rem",
             ),
             ("toast", "the stack is fixed to a corner of the viewport"),
+            (
+                "palette",
+                "the panel is a top-layer popover, full width on a phone",
+            ),
         ];
         // Not responsive yet, each until its M34 box lands. The test fails once one passes,
         // so the entry leaves with the fix. Empty by the M34 wrap-up.

@@ -1496,6 +1496,8 @@
             { "name": "link", "kind": "item", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A destination." },
             { "name": "links", "kind": "value", "args": "links: impl IntoIterator<Item = (&'a str, &'a str)>", "default": "", "attr": "", "doc": "Several `(label, href)` destinations at once." },
             { "name": "keywords", "kind": "modifier", "args": "keywords: &'a str", "default": "", "attr": "", "doc": "Extra words that find the command added last, space-separated." },
+            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the command added last." },
+            { "name": "shortcut", "kind": "modifier", "args": "keys: &'a str", "default": "", "attr": "", "doc": "A key hint at the end of the command added last (shown, not bound)." },
             { "name": "group", "kind": "item", "args": "heading: &'a str", "default": "", "attr": "", "doc": "List the commands added after this under a heading." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Search", "attr": "", "doc": "The opener's label (default \"Search\")." },
             { "name": "accesskey", "kind": "value", "args": "key: &'a str", "default": "k", "attr": "accesskey", "doc": "The opener's access key (default `k`)." },

@@ -46,11 +46,16 @@
 //! assert_eq!(same.into_string(), m);
 //! let ui = Ui::from_request("/search", "q=open+settings", "");
 //! assert_eq!(ui.palette("/search").link("Open settings", "/settings").exact(), Some("/settings"));
+//! // An icon and a key hint on a row.
+//! let m = ui.palette("/search").link("Open settings", "/settings").icon(Icon::Pencil).shortcut("⌘ ,").render().into_string();
+//! assert!(m.contains(r#"<kbd class="lui-palette-shortcut">⌘ ,</kbd>"#));
+//! assert_eq!(lui! { Palette("/search") { link "Open settings" "/settings" icon=(Icon::Pencil) shortcut="⌘ ,"; } }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
+use crate::icon::Glyph;
 use crate::input::Input;
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Icon, Ui};
@@ -62,6 +67,8 @@ struct Command<'a> {
     href: &'a str,
     group: &'a str,
     keywords: &'a str,
+    icon: Option<Glyph<'a>>,
+    shortcut: Option<&'a str>,
 }
 
 /// The command whose label is `query`, ignoring case and outer spaces: where Enter goes.
@@ -88,8 +95,8 @@ fn matches<'c, 'a>(commands: &'c [Command<'a>], query: &str) -> Vec<&'c Command<
 /// A command palette submitting `q` to its action with GET, made by [`Ui::palette`]. The
 /// request's `?q=` is the search; its results show below the opener.
 ///
-/// **Setters.** Values and items: `.links(..)`, `.link(..)`, `.keywords(..)`,
-/// `.group(..)`, `.label(..)`, `.accesskey(..)`, `.id(..)`.
+/// **Setters.** Values and items: `.links(..)`, `.link(..)`, `.keywords(..)`, `.icon(..)`,
+/// `.shortcut(..)`, `.group(..)`, `.label(..)`, `.accesskey(..)`, `.id(..)`.
 #[derive(Clone, Debug)]
 pub struct Palette<'a> {
     ui: &'a Ui,
@@ -114,6 +121,10 @@ impl Palette<'_> {
         .doc("Several `(label, href)` destinations at once."),
         Prop::new("keywords", PropKind::Modifier, "keywords: &'a str")
             .doc("Extra words that find the command added last, space-separated."),
+        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .doc("An icon before the command added last."),
+        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str")
+            .doc("A key hint at the end of the command added last (shown, not bound)."),
         Prop::new("group", PropKind::Item, "heading: &'a str")
             .doc("List the commands added after this under a heading."),
         Prop::new("label", PropKind::Value, "label: &'a str")
@@ -154,6 +165,8 @@ impl<'a> Palette<'a> {
             href,
             group: self.group,
             keywords: "",
+            icon: None,
+            shortcut: None,
         });
         self
     }
@@ -181,6 +194,23 @@ impl<'a> Palette<'a> {
     pub fn keywords(mut self, keywords: &'a str) -> Self {
         if let Some(c) = self.commands.last_mut() {
             c.keywords = keywords;
+        }
+        self
+    }
+
+    /// An icon before the command added last.
+    pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        if let Some(c) = self.commands.last_mut() {
+            c.icon = Some(icon.into());
+        }
+        self
+    }
+
+    /// A key hint at the end of the command added last, right-aligned: shown to the visitor,
+    /// not bound (the page's own keys are the app's business).
+    pub fn shortcut(mut self, keys: &'a str) -> Self {
+        if let Some(c) = self.commands.last_mut() {
+            c.shortcut = Some(keys);
         }
         self
     }
@@ -246,7 +276,7 @@ impl Render for Palette<'_> {
             html! {
                 section class="lui-palette-results" aria-labelledby={ (id) "-results" } {
                     h2 id={ (id) "-results" } { (ui.fill(Text::ForQuery, &[&count(ui, found.len()), &q])) }
-                    @if found.is_empty() { p { (ui.text(Text::NothingByThatName)) } }
+                    @if found.is_empty() { p class="lui-palette-empty" { (ui.text(Text::NothingByThatName)) } }
                     @else { (grouped(found)) }
                 }
             }
@@ -254,6 +284,7 @@ impl Render for Palette<'_> {
         let form = html! {
             search {
                 form method="get" action=(action) class="lui-palette-form" {
+                    (Icon::Search)
                     (Input::search_box("q", label, query.unwrap_or("")).id(&input_id).list(&list_id).autofocus().autocomplete("off").placeholder(ui.text(Text::TypeCommand)).class("lui-palette-input"))
                     (ui.button(ui.text(Text::Go)).primary().small())
                 }
@@ -291,7 +322,11 @@ fn grouped(commands: Vec<&Command>) -> Markup {
         @for g in groups {
             div class="lui-palette-group" {
                 @if !g.is_empty() { p class="lui-palette-heading" { (g) } }
-                ul { @for c in commands.iter().filter(|c| c.group == g) { li { a href=(c.href) { (c.label) } } } }
+                ul { @for c in commands.iter().filter(|c| c.group == g) { li { a href=(c.href) {
+                    @if let Some(i) = c.icon { (i.hidden()) }
+                    span class="lui-palette-label" { (c.label) }
+                    @if let Some(k) = c.shortcut { kbd class="lui-palette-shortcut" { (k) } }
+                } } } }
             }
         }
     }
@@ -308,8 +343,11 @@ pub(crate) fn count(ui: &Ui, n: usize) -> String {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* shadcn Command in a CommandDialog: a search-bar trigger with its shortcut, a popover
-   panel, a borderless input over a rule, grouped items with small muted headings. */
+/* shadcn Command in a CommandDialog, on the Radix popover surface: a search-bar trigger with
+   its shortcut; in the panel a borderless search field with its icon over a hairline, then
+   groups under small muted labels of 2rem rows (icon, label, right-aligned key hint) that
+   take the primary colour on hover and focus, and an empty row when nothing matches. On a
+   phone the panel is full width at the top. */
 /* The trigger is an outline button drawn as a search bar: muted text, the shortcut at the end. */
 .lui-palette-open { min-width: 16rem; justify-content: flex-start; padding: 0.375rem 0.5rem 0.375rem 0.75rem; font-weight: 400; color: var(--lui-muted); background: var(--lui-surface); list-style: none; }
 .lui-palette-open .lui-palette-kbd { margin-left: auto; }
@@ -326,14 +364,27 @@ pub const CSS: &str = r#"
 .lui-palette-panel[popover] { margin: 12vh auto auto; max-height: 70vh; overflow: auto; }
 .lui-palette-panel[popover]::backdrop { background: var(--lui-overlay); }
 .lui-palette-details .lui-palette-panel { margin-top: var(--lui-space); width: min(32rem, 100%); }
-.lui-palette-form { display: flex; gap: var(--lui-space); align-items: center; margin: -0.25rem -0.25rem 0.25rem; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--lui-line); }
+.lui-palette-form { display: flex; gap: var(--lui-space-2); align-items: center; margin: -0.25rem -0.25rem 0.25rem; padding: 0.25rem 0.5rem 0.25rem 0.75rem; border-bottom: 1px solid var(--lui-line); }
+.lui-palette-form > .lui-icon { color: var(--lui-muted); }
 .lui-palette-input { flex: 1; min-height: 2.75rem; padding: 0.5rem 0.25rem; border: 0; box-shadow: none; background: transparent; }
 .lui-palette-input:focus-visible { outline: none; }
-.lui-palette-heading { margin: 0; padding: 0.375rem 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
+.lui-palette-heading { display: flex; align-items: center; min-height: 1.75rem; margin: 0; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
 .lui-palette ul { list-style: none; margin: 0; padding: 0; }
 .lui-palette li { max-width: none; }
-.lui-palette li a { display: block; padding: 0.375rem 0.5rem; border-radius: var(--lui-radius-sm); font-size: 0.875rem; color: var(--lui-fg); text-decoration: none; }
-.lui-palette li a:hover, .lui-palette li a:focus-visible { background: var(--lui-accent); color: var(--lui-on-accent); outline: none; }
+.lui-palette li a {
+  display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; padding: 0 0.5rem; box-sizing: border-box;
+  border-radius: var(--lui-radius-sm); font-size: 0.875rem; color: var(--lui-fg); text-decoration: none;
+}
+@media (pointer: coarse) { .lui-palette li a { min-height: var(--lui-hit); } }
+.lui-palette li a > .lui-icon { color: var(--lui-muted); }
+.lui-palette-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lui-palette-shortcut { font: inherit; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0; }
+.lui-palette li a:hover, .lui-palette li a:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
+.lui-palette li a:is(:hover, :focus-visible) > :is(.lui-icon, .lui-palette-shortcut) { color: inherit; }
+.lui-palette-empty { margin: 0; padding: var(--lui-space-6) 0; text-align: center; font-size: 0.875rem; color: var(--lui-muted); }
+@media (max-width: 30rem) {
+  .lui-palette-panel[popover] { width: 100%; margin: 0 0 auto; max-height: 85vh; border-width: 0 0 1px; border-radius: 0 0 var(--lui-radius-lg) var(--lui-radius-lg); }
+}
 .lui-palette-results { margin-top: calc(var(--lui-space) * 3); }
 .lui-palette-results h2 { font-size: 1.125rem; }
 "#;

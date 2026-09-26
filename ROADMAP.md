@@ -1832,12 +1832,20 @@ owner has seen them.
   `(text, href, description)` tuple), and a panel is its own container, 32rem wide at most,
   its links two across from 30rem and one below. Kept different: the rail does not stay
   folded between pages (each page renders it open).
-- [ ] Command palette (`palette.rs`; reference: shadcn Command and Radix Themes for the
+- [x] Command palette (`palette.rs`; reference: shadcn Command and Radix Themes for the
   surface):
   - The search field sits at the top with an icon and no border, a hairline below.
   - Results are grouped with small gray-11 labels. Each row has an icon, a label and a
     right-aligned shortcut, highlighted on focus.
   - An empty state row. In a narrow viewport the palette takes the full width at the top.
+  Done: the search field is borderless with a muted search icon, over a hairline. Rows are
+  2rem (44px on touch): new `.icon(..)` and `.shortcut(..)` modifiers on the command added
+  last give a muted icon slot and a right-aligned key hint (shown, not bound); labels cut
+  with an ellipsis; the primary colour on hover and focus, as the other menus. Group labels
+  are 1.75rem rows of small muted text. "Nothing by that name" is a centred empty row. Under
+  a 30rem viewport the popover panel is full width at the top, rounded at the bottom only,
+  at most 85vh (palette joins the VIEWPORT list: a top-layer panel). Demo shortcuts gain
+  icons and key hints.
 
 ### Data
 - [ ] Stat (`stat.rs`; reference: the Tremor KPI cards):

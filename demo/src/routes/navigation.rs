@@ -40,10 +40,15 @@ fn palette(ui: &Ui) -> loco_ui::palette::Palette<'_> {
         .group("Shortcuts")
         .link("Notification settings", "/settings?tab.settings=1")
         .keywords("email releases")
+        .icon(Icon::Mail)
+        .shortcut("g n")
         .link("Largest files", "/table?sort.files=size&dir.files=desc")
         .keywords("sort size big")
+        .icon(Icon::File)
+        .shortcut("g f")
         .link("Open the delete dialog", "/dialog?dialog=confirm")
         .keywords("account remove")
+        .icon(Icon::Trash)
     // end code
 }
 
