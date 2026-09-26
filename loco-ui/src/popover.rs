@@ -120,6 +120,7 @@ pub struct MenuItem<'a> {
     pub(crate) shortcut: Option<&'a str>,
     pub(crate) disabled: bool,
     pub(crate) danger: bool,
+    pub(crate) description: Option<&'a str>,
 }
 
 impl<'a> MenuItem<'a> {
@@ -131,6 +132,7 @@ impl<'a> MenuItem<'a> {
             shortcut: None,
             disabled: false,
             danger: false,
+            description: None,
         }
     }
 
@@ -158,6 +160,19 @@ impl<'a> MenuItem<'a> {
     pub const fn danger(mut self) -> Self {
         self.danger = true;
         self
+    }
+
+    /// A line of muted text under the item's own (a navigation menu's panel links).
+    pub const fn description(mut self, text: &'a str) -> Self {
+        self.description = Some(text);
+        self
+    }
+}
+
+/// `("Mail", "/mail", "Read and send")`: a link with a line of description under it.
+impl<'a> From<(&'a str, &'a str, &'a str)> for MenuItem<'a> {
+    fn from((text, href, description): (&'a str, &'a str, &'a str)) -> Self {
+        MenuItem::link(text, href).description(description)
     }
 }
 
@@ -403,7 +418,10 @@ fn item(menu_id: &str, it: &MenuItem, popover: bool, anchor: bool) -> Markup {
     );
     let inner = html! {
         @if let Some(i) = it.icon { span class="lui-popover-icon" aria-hidden="true" { (i) } }
-        span class="lui-popover-text" { (it.text) }
+        span class="lui-popover-text" {
+            (it.text)
+            @if let Some(d) = it.description { span class="lui-popover-description" { (d) } }
+        }
         @if let Some(k) = it.shortcut { kbd class="lui-popover-kbd" { (k) } }
     };
     html! {
@@ -474,6 +492,9 @@ pub const CSS: &str = r#"
 .lui-popover-item:hover .lui-popover-icon, .lui-popover-item:focus-visible .lui-popover-icon,
 .lui-popover-item:hover .lui-popover-kbd, .lui-popover-item:focus-visible .lui-popover-kbd { color: inherit; }
 .lui-popover-text { flex: 1; }
+.lui-popover-description { display: block; margin-top: 0.125rem; font-size: 0.8125rem; line-height: 1.125rem; color: var(--lui-muted); }
+.lui-popover-item:has(.lui-popover-description) { align-items: flex-start; padding-block: var(--lui-space-2); }
+.lui-popover-item:is(:hover, :focus-visible) .lui-popover-description { color: inherit; opacity: 0.85; }
 .lui-popover-kbd { font: inherit; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0 0 0 var(--lui-space-4); margin-left: auto; }
 .lui-popover-danger { color: var(--lui-danger); }
 .lui-popover-danger:hover, .lui-popover-danger:focus-visible { color: var(--lui-danger); background: color-mix(in srgb, var(--lui-danger) 10%, transparent); }

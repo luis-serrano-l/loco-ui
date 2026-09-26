@@ -1310,7 +1310,8 @@
             { "name": "link", "kind": "item", "args": "text: &'a str, href: &'a str", "default": "", "attr": "href", "doc": "A link; the one to the current path is marked current." },
             { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the link added last." },
             { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the link added last." },
-            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the group headings' ids instead of `lui-sidebar-<label>`." }
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the group headings' ids instead of `lui-sidebar-<label>`." },
+            { "name": "collapsible", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A toggle that folds it to an icon rail, the labels shown as tooltips." }
           ]
         }
       ]

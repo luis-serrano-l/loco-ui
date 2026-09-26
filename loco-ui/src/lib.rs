@@ -1642,6 +1642,10 @@ mod tests {
             ),
             ("range", "one row: the slider and its value"),
             (
+                "sidebar",
+                "one column; the icon rail is a toggle, not a width",
+            ),
+            (
                 "alert",
                 "a callout: the icon column beside the text at any width",
             ),
@@ -1682,8 +1686,6 @@ mod tests {
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),
             ("stat", "Stat box"),
-            ("sidebar", "Sidebar box"),
-            ("nav_menu", "Sidebar box"),
             ("description_list", "Description list box"),
             ("marquee", "Marquee box"),
             ("record_page", "Description list box"),

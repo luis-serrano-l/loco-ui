@@ -89,7 +89,7 @@ fn sidebar(ui: &Ui) -> Markup {
     lui! {
         div style="max-width: 16rem" {
             // code: /sidebar
-            Sidebar("Mail") {
+            Sidebar("Mail") collapsible {
                 group "Mail";
                 link "Inbox" "/sidebar" icon=(Icon::Mail) badge="12";
                 link "Drafts" "/sidebar?box=drafts" icon=(Icon::Pencil);
@@ -107,7 +107,11 @@ fn nav_menu(ui: &Ui) -> Markup {
     lui! {
         // code: /nav-menu
         NavMenu("Main") {
-            panel "Products" ([("Mail", "/sidebar"), ("Calendar", "/calendar"), ("Files", "/table")]);
+            panel "Products" ([
+                ("Mail", "/sidebar", "An inbox with folders and labels."),
+                ("Calendar", "/calendar", "Months you page through, days you pick."),
+                ("Files", "/table", "Sort, filter and page a thousand rows."),
+            ]);
             panel "Resources" ([("Docs", "/"), ("Theming", "/?palette=linen")]);
             link "Pricing" "/pricing";
             link "Navigation menu" "/nav-menu";

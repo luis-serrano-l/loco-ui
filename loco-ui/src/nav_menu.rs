@@ -13,6 +13,10 @@
 //! Checked by axe-core in headless Firefox on every demo route, both capability variants, light
 //! and dark (no serious or critical violation).
 //!
+//! The look follows shadcn NavigationMenu: quiet triggers, and panels that are a grid of links,
+//! each a title over a line of description (`(text, href, description)` items), two across
+//! in a wide panel and one in a narrow one.
+//!
 //! **What it does not do without script:** open a panel on hover; a click opens it.
 //!
 //! **Fallback:** that of the popover menu: a `<details>` dropdown without `popover`, a centred
@@ -36,6 +40,9 @@
 //!     link "Pricing" "/pricing";
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // Panel links with a line of description each.
+//! let m = ui.nav_menu("Main").panel("Products", [("Mail", "/mail", "Read and send")]).render().into_string();
+//! assert!(m.contains(r#"<span class="lui-popover-description">Read and send</span>"#));
 //! ```
 
 use maud::{Markup, Render, html};
@@ -147,8 +154,17 @@ impl Render for NavMenu<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn NavigationMenu: a row
 /// of quiet triggers and links that light up on hover.
 pub const CSS: &str = r#"
-.lui-nav-menu > ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+/* After shadcn NavigationMenu: a row of quiet triggers and links that light up on hover; a
+   panel is a grid of links, each a title over one line of description, two across when the
+   panel is 30rem wide and one when narrower (its own container). */
+.lui-nav-menu > ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-1); }
 .lui-nav-menu .lui-popover > .lui-button, .lui-nav-menu .lui-popover > summary.lui-button { background: transparent; border-color: transparent; box-shadow: none; }
+.lui-nav-menu .lui-popover > .lui-button:hover, .lui-nav-menu .lui-popover > summary.lui-button:hover { background: var(--lui-accent); }
 .lui-nav-menu-link { display: inline-flex; align-items: center; height: var(--lui-control-h); padding: 0 1rem; border-radius: var(--lui-radius); font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); text-decoration: none; }
 .lui-nav-menu-link:hover, .lui-nav-menu-link[aria-current="page"] { background: var(--lui-accent); color: var(--lui-on-accent); }
+.lui-nav-menu .lui-popover nav { container: lui-nav-menu / inline-size; width: min(32rem, calc(100vw - 2rem)); box-sizing: border-box; padding: var(--lui-space-2); }
+.lui-nav-menu .lui-popover nav > ul { display: grid; gap: var(--lui-space-1); }
+@container lui-nav-menu (width >= 30rem) { .lui-nav-menu .lui-popover nav > ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lui-nav-menu .lui-popover-item { border-radius: var(--lui-radius); }
+.lui-nav-menu .lui-popover-text { font-weight: 500; }
 "#;

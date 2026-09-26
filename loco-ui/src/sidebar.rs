@@ -13,8 +13,12 @@
 //! text. Checked by axe-core in headless Firefox on every demo route, both capability variants,
 //! light and dark (no serious or critical violation).
 //!
-//! **What it does not do without script:** collapse to an icon rail with a toggle kept between
-//! pages; wrap it in a drawer for the narrow-screen case.
+//! The look follows the shadcn Sidebar block: muted group labels, 2rem rows with icons and
+//! counts, the current row on gray-4. `.collapsible()` adds a toggle that folds it to an icon
+//! rail whose labels show as tooltips.
+//!
+//! **What it does not do without script:** keep the rail folded between pages (each page
+//! renders it open); wrap it in a drawer for the narrow-screen case.
 //!
 //! **Fallback:** none needed.
 //!
@@ -41,6 +45,11 @@
 //!     link "Work" "/labels/work";
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // A toggle that folds it to an icon rail (where `::details-content` can be styled).
+//! let ui = Ui::from(Caps::all());
+//! let rail = ui.sidebar("Mail").collapsible().link("Inbox", "/inbox").icon(Icon::Mail).render().into_string();
+//! assert!(rail.starts_with(r#"<details class="lui-sidebar-rail" open>"#));
+//! assert_eq!(lui! { Sidebar("Mail") collapsible { link "Inbox" "/inbox" icon=(Icon::Mail); } }.into_string(), rail);
 //! ```
 
 use std::fmt::Display;
@@ -49,7 +58,7 @@ use maud::{Markup, Render, html};
 
 use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
-use crate::{Ui, slug};
+use crate::{Cap, Caps, Icon, Ui, slug};
 
 /// One link: its text, where it goes, an icon and a count.
 #[derive(Clone, Debug)]
@@ -63,13 +72,15 @@ struct Link<'a> {
 /// A navigation column, made by [`Ui::sidebar`].
 ///
 /// **Setters.** Values and items: `.group(..)`, `.link(..)`, `.icon(..)`, `.badge(..)`,
-/// `.id(..)`.
+/// `.id(..)`; switches: `.collapsible()`.
 #[derive(Clone, Debug)]
 pub struct Sidebar<'a> {
     label: &'a str,
     here: String,
     groups: Vec<(Option<&'a str>, Vec<Link<'a>>)>,
     id: Option<&'a str>,
+    collapsible: bool,
+    caps: Caps,
 }
 
 impl Sidebar<'_> {
@@ -88,6 +99,8 @@ impl Sidebar<'_> {
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The prefix of the group headings' ids instead of `lui-sidebar-<label>`."),
+        Prop::new("collapsible", PropKind::Switch, "")
+            .doc("A toggle that folds it to an icon rail, the labels shown as tooltips."),
     ];
 }
 
@@ -99,6 +112,8 @@ impl Ui {
             here: self.state.path().to_string(),
             groups: vec![(None, Vec::new())],
             id: None,
+            collapsible: false,
+            caps: self.caps,
         }
     }
 }
@@ -144,6 +159,15 @@ impl<'a> Sidebar<'a> {
         self.id = Some(id);
         self
     }
+
+    /// A toggle (a `<details>` summary) that folds the sidebar to an icon rail: labels,
+    /// headings and counts hide, and each label shows as a tooltip on hover or focus. Only
+    /// where the browser styles `::details-content` (a closed `<details>` would otherwise hide
+    /// the whole navigation); elsewhere it is the plain column.
+    pub fn collapsible(mut self) -> Self {
+        self.collapsible = true;
+        self
+    }
 }
 
 impl Render for Sidebar<'_> {
@@ -152,7 +176,7 @@ impl Render for Sidebar<'_> {
             || format!("lui-sidebar-{}", slug(self.label)),
             str::to_string,
         );
-        html! {
+        let nav = html! {
             nav class="lui-sidebar" aria-label=(self.label) {
                 @for (i, (heading, links)) in self.groups.iter().enumerate().filter(|(_, g)| g.0.is_some() || !g.1.is_empty()) {
                     @let heading_id = format!("{root}-{i}");
@@ -162,7 +186,9 @@ impl Render for Sidebar<'_> {
                             @for l in links {
                                 li {
                                     a href=(l.href) aria-current=[(l.href == self.here).then_some("page")] {
-                                        @if let Some(icon) = l.icon { (icon.hidden()) }
+                                        @if let Some(icon) = l.icon { (icon.hidden()) } @else {
+                                            span class="lui-sidebar-initial" aria-hidden="true" { (l.text.chars().next().unwrap_or(' ')) }
+                                        }
                                         span class="lui-sidebar-text" { (l.text) }
                                         @if let Some(b) = &l.badge { span class="lui-sidebar-badge" { (b) } }
                                     }
@@ -172,19 +198,60 @@ impl Render for Sidebar<'_> {
                     }
                 }
             }
+        };
+        if self.collapsible && self.caps.has(Cap::DetailsContent) {
+            return html! {
+                details class="lui-sidebar-rail" open {
+                    summary class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-sidebar-toggle" aria-label=(self.label) {
+                        (Icon::Menu)
+                    }
+                    (nav)
+                }
+            };
         }
+        nav
     }
 }
 
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn Sidebar: small muted
 /// group labels, full-width rows, the current one on the accent.
 pub const CSS: &str = r#"
-.lui-sidebar { display: grid; gap: calc(var(--lui-space) * 2); font-size: 0.875rem; }
+/* After the shadcn Sidebar block: small muted group labels, 2rem rows (44px on touch) with an
+   icon slot and a count at the end, the current row on --lui-gray-4 in medium weight. */
+.lui-sidebar { display: grid; gap: var(--lui-space-4); font-size: 0.875rem; }
 .lui-sidebar-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.125rem; }
-.lui-sidebar-heading { margin: 0 0 0.25rem; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
-.lui-sidebar a { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: var(--lui-radius-sm); color: var(--lui-fg); text-decoration: none; }
+.lui-sidebar-heading { display: flex; align-items: center; min-height: 2rem; margin: 0; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
+.lui-sidebar a {
+  position: relative; display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; box-sizing: border-box; padding: 0 0.5rem;
+  border-radius: var(--lui-radius-sm); color: var(--lui-fg); text-decoration: none;
+}
+@media (pointer: coarse) { .lui-sidebar a { min-height: var(--lui-hit); } }
+.lui-sidebar a > .lui-icon { color: var(--lui-muted); }
 .lui-sidebar a:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
-.lui-sidebar a[aria-current="page"] { background: var(--lui-accent); color: var(--lui-on-accent); font-weight: 500; }
+.lui-sidebar a[aria-current="page"] { background: var(--lui-gray-4); color: var(--lui-fg); font-weight: 500; }
+.lui-sidebar a[aria-current="page"] > .lui-icon { color: var(--lui-fg); }
 .lui-sidebar-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lui-sidebar-badge { font-size: 0.75rem; font-variant-numeric: tabular-nums; color: inherit; }
+.lui-sidebar-initial { display: none; }
+.lui-sidebar-badge { margin-left: auto; font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--lui-muted); }
+/* .collapsible(): the <details> keeps its content in view when closed, and closed it is an
+   icon rail: headings and counts go, each label becomes a tooltip chip beside its icon (still
+   the link's name for assistive tech). */
+.lui-sidebar-rail { display: grid; gap: var(--lui-space-2); justify-items: start; }
+.lui-sidebar-rail > summary { list-style: none; }
+.lui-sidebar-rail > summary::-webkit-details-marker { display: none; }
+.lui-sidebar-rail::details-content { content-visibility: visible; display: contents; }
+.lui-sidebar-rail:not([open]) .lui-sidebar-heading, .lui-sidebar-rail:not([open]) .lui-sidebar-badge { display: none; }
+.lui-sidebar-rail:not([open]) .lui-sidebar a { width: 2rem; justify-content: center; padding: 0; }
+/* A link with no icon keeps its first letter in the rail, in a small tile. */
+.lui-sidebar-rail:not([open]) .lui-sidebar-initial {
+  display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: var(--lui-radius-sm);
+  background: var(--lui-gray-3); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+}
+.lui-sidebar-rail:not([open]) .lui-sidebar-text {
+  position: absolute; z-index: 30; left: calc(100% + 0.5rem); top: 50%; translate: 0 -50%; width: max-content; max-width: 14rem;
+  padding: 0.375rem 0.75rem; border-radius: var(--lui-radius-sm); font-size: 0.75rem; line-height: 1rem; font-weight: 400;
+  color: var(--lui-gray-1); background: var(--lui-gray-12); box-shadow: var(--lui-shadow-md);
+  opacity: 0; pointer-events: none; transition: opacity var(--lui-duration-fast);
+}
+.lui-sidebar-rail:not([open]) .lui-sidebar a:is(:hover, :focus-visible) .lui-sidebar-text { opacity: 1; }
 "#;

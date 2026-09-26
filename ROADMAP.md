@@ -1814,13 +1814,24 @@ owner has seen them.
   crumb to show it. The pager part moves to the Table box: `pager.rs` is the load-more
   list (restyled there only where needed), and the numbered pages with previous/next are
   the table's page links in `table.rs`.
-- [ ] Sidebar and nav menu (`sidebar.rs`, `nav_menu.rs`; reference: the shadcn Sidebar block
+- [x] Sidebar and nav menu (`sidebar.rs`, `nav_menu.rs`; reference: the shadcn Sidebar block
   and NavigationMenu):
   - Sidebar: group labels, items with icons and badges, and the current item on a gray-4
     surface in medium weight. With `.collapsible()`, a `<details>`-driven icon rail where
     labels hide and tooltips show them.
   - Nav menu: trigger buttons that open a panel with a grid of links (title and one-line
     description), two columns in wide containers and one when narrow.
+  Done: sidebar rows are 2rem (44px on touch) with muted icons and counts, 2rem muted group
+  labels, the current row on gray-4 in medium weight. New `.collapsible()`: a `<details>`
+  whose summary is a ghost icon button; closed, the content stays visible
+  (`::details-content { content-visibility: visible }`) as an icon rail: headings and counts
+  hide, each label becomes the inverted tooltip chip on hover or focus (still the link's
+  name), and a link without an icon shows its initial in a small tile. Rendered only with
+  `Cap::DetailsContent`, since a closed `<details>` would otherwise hide the navigation.
+  Nav menu: menu items gain an optional description (`MenuItem::description`, or a
+  `(text, href, description)` tuple), and a panel is its own container, 32rem wide at most,
+  its links two across from 30rem and one below. Kept different: the rail does not stay
+  folded between pages (each page renders it open).
 - [ ] Command palette (`palette.rs`; reference: shadcn Command and Radix Themes for the
   surface):
   - The search field sits at the top with an icon and no border, a hairline below.
