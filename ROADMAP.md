@@ -1418,7 +1418,7 @@ after shot per component in `target/look/review/` for the final review. Delete t
 owner has seen them.
 
 ### Groundwork
-- [ ] `scripts/look.sh`:
+- [x] `scripts/look.sh`:
   - A 768 width beside 1280 and 420.
   - `--only <name>` shoots one page.
   - `--tag <before|after>` writes to `target/look/<tag>/`.
@@ -1426,6 +1426,9 @@ owner has seen them.
     example `dialog|/dialog?dialog=confirm|https://www.radix-ui.com/themes/docs/components/dialog`.
     Fill in every component's reference from the boxes below.
   - The script still runs with `--no-ref` for offline checks.
+  Done: `--only`, `--tag`, `--no-ref` (`--no-shadcn` kept as an alias); 36 pages, each with
+  the reference named in its box below (Radix Themes, shadcn, Origin UI, Tremor, Dice UI,
+  Magic UI), shot as `<name>-ref.png`; the warm-up shots are deleted.
 - [ ] Container convention in `layout.rs`, written in the file's header comment:
   - Every component root sets `container: lui-<component> / inline-size`.
   - Three shared breakpoints, used everywhere and never others: narrow below 30 rem, medium

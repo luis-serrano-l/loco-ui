@@ -29,7 +29,7 @@ cargo test -p loco-ui-test       # Blitz layout assertions + screenshots into te
 cargo bench -p loco-ui           # criterion: stylesheet, layout, table with 1 000 rows, paged table, UiState
 scripts/bench.sh                   # latency baseline: curl p50/p95 TTFB and Firefox navigation timing on 3001
 node scripts/bench-swap.mjs [runs] # click-to-paint of in-place updates: the script beside htmx 2 on the same answers
-scripts/look.sh                    # Firefox shots of every page (light/dark, 1280/420) beside the shadcn docs, into target/look/
+scripts/look.sh [--only <name>] [--tag <tag>] [--no-ref]  # Firefox shots of every page (light/dark, 1280/768/420) beside its M34 reference, into target/look/[<tag>/]
 scripts/verify.sh                  # everything above plus a <script> grep and the browser check; run before committing
 ```
 
