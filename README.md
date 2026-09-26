@@ -250,9 +250,10 @@ component gives the HTML to another template engine.
   `layout::Tokens` holds them for light and dark, `ui.page(..).tokens(&t)` applies another set
   once per page, and `docs/theming.md` says what each one affects and which pairs must keep contrast.
   `/?palette=linen` in the demo is the same index under a second palette.
-  `scripts/look.sh` shoots every demo page (light and dark, 1280 and 420 wide), for comparing
-  the look by eye with linear.app and magicui.design (`--no-shadcn` skips the old shadcn docs
-  shots it still takes beside them).
+  `scripts/look.sh` shoots every demo page (light and dark, 1280, 768 and 420 wide) beside the
+  reference library page it copies (Radix Themes, shadcn, Origin UI, Tremor, Dice UI, Magic UI),
+  for comparing by eye; `--only <name>` shoots one page, `--tag before` writes to its own
+  folder, and `--no-ref` skips the reference shots.
   A test fails if any component CSS names a colour instead of a token.
 
 ## What a page weighs
