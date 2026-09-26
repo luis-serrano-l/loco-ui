@@ -1032,7 +1032,8 @@
             { "name": "column", "kind": "item", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A column." },
             { "name": "limit", "kind": "modifier", "args": "limit: usize", "default": "", "attr": "", "doc": "A work-in-progress limit for the column added last." },
             { "name": "card", "kind": "modifier", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A card in the column added last." },
-            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the card added last." }
+            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the card added last." },
+            { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A badge in the meta row of the card added last: a label, an estimate, a tag." }
           ]
         }
       ]

@@ -320,6 +320,8 @@ try {
 
   // Kanban: an arrow posts the move; the card lands in the next column in place.
   await go("/kanban");
+  assert(await js("const b = document.querySelector('.lui-kanban-board'); return b.scrollWidth <= b.clientWidth"),
+    "kanban: in a wide board the three columns share the width, nothing to scroll");
   await click(".lui-kanban-card:has(input[value=docs]) button[value=doing]");
   await until(async () => await js("return !!document.querySelector('.lui-kanban-column:nth-child(2) input[value=docs]')"), "kanban: card moved");
   assert(await navigations() === 1, "kanban: moved in place, no reload");
@@ -486,10 +488,7 @@ try {
   }
   // Routes still wider than 320, each until its M34 box lands; the check fails when one of
   // them fits, so the entry is removed with the fix. Empty by the M34 wrap-up.
-  const pending = {
-    "/": "Kanban box (the index shows it)",
-    "/kanban": "Kanban box",
-  };
+  const pending = {};
   const wide = [];
   let inner = 0;
   for (const [variant, cookie] of Object.entries(caps)) {

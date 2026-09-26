@@ -238,13 +238,13 @@ async fn upload_file(
 #[derive(Deserialize, Serialize)]
 struct Board(Vec<(String, String)>);
 
-const CARDS: [(&str, &str, &str); 6] = [
-    ("docs", "Write the component guide", "M24"),
-    ("calendar", "Calendar and date picker", "M23"),
-    ("upload", "Upload with progress", "M23"),
-    ("kanban", "This board", "M23"),
-    ("buttons", "Button primitive", "M21"),
-    ("tokens", "shadcn tokens", "M20"),
+const CARDS: [(&str, &str, &str, &str); 6] = [
+    ("docs", "Write the component guide", "M24", "Docs"),
+    ("calendar", "Calendar and date picker", "M23", "Forms"),
+    ("upload", "Upload with progress", "M23", "Forms"),
+    ("kanban", "This board", "M23", "Data"),
+    ("buttons", "Button primitive", "M21", "Primitives"),
+    ("tokens", "shadcn tokens", "M20", "Theme"),
 ];
 const LANES: [(&str, &str); 3] = [("todo", "To do"), ("doing", "Doing"), ("done", "Done")];
 
@@ -269,8 +269,8 @@ fn kanban(ui: &Ui, board: &Board) -> Markup {
             @for (lane, title) in LANES {
                 column (lane) (title) limit=[(lane == "doing").then_some(2)] {
                     @for (key, _) in board.0.iter().filter(|(_, l)| l == lane) {
-                        @if let Some((key, text, note)) = CARDS.iter().find(|c| c.0 == key) {
-                            card (key) (text) description=(note);
+                        @if let Some((key, text, note, tag)) = CARDS.iter().find(|c| c.0 == key) {
+                            card (key) (text) description=(note) badge=(tag);
                         }
                     }
                 }

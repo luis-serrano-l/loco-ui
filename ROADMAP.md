@@ -1982,12 +1982,21 @@ owner has seen them.
     motion.
   - Demo: badges add solid and surface, the Team card shows an avatar group, Storage is a
     classic card with a square avatar.
-- [ ] Kanban (`kanban.rs`; reference: Dice UI Kanban):
+- [x] Kanban (`kanban.rs`; reference: Dice UI Kanban):
   - Each column is a gray-2 surface with its title, a count badge and the limit shown as
     "3/5".
   - Cards are raised and hold a title, description and meta row (note or badge).
   - Columns are side by side in wide containers. When narrow, the board scrolls sideways
     inside itself with scroll-snap per column, at 85% of the width so the next column peeks.
+  Done: the board is its own container (`.lui-kanban`) around a `.lui-kanban-board` grid.
+  Narrow, and where container queries are missing (Blitz), each column is 85% of the board
+  and the board snaps column by column; from 48rem the columns share the width (15rem floor,
+  scrolling only when there are many). Columns are gray-2 surfaces with no line; the count is
+  a gray badge reading `n` or `n/limit` (was `n / limit`), a red badge past the limit. Cards
+  keep the raised look and gain a meta row: new `.badge(..)` (in PROPS) on the left, the move
+  arrows on the right. The demo cards carry an area badge. Kanban left PENDING, and `/` and
+  `/kanban` left the 320px list, which is now empty; a browser check asserts the wide board
+  does not scroll.
 - [ ] Sortable list, a new component (`sortable.rs`; asked by the owner on 2026-09-26;
   reference: the Dioxus Components drag and drop list):
   - A vertical list of items, each with a grip handle, whose order the server keeps. One

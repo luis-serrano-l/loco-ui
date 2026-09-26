@@ -6,8 +6,9 @@
 //!
 //! **Platform features:** `<form method="post">` with `name`/`value` buttons, Post/Redirect/Get;
 //! each column is a `<section>` with a heading and an ordered list; the board scrolls sideways
-//! (`overflow-x: auto`, `scroll-snap-type`, Chrome 69, Firefox 68, Safari 11) on a narrow
-//! screen; `view-transition-name` per card (Chrome 111, Firefox 144, Safari 18) so, with the
+//! (`overflow-x: auto`, `scroll-snap-type`, Chrome 69, Firefox 68, Safari 11) with each column
+//! at 85% of the board's width when the board is narrow, so the next one peeks; `@container`
+//! (Chrome 105, Firefox 110, Safari 16) puts the columns side by side from 48rem; `view-transition-name` per card (Chrome 111, Firefox 144, Safari 18) so, with the
 //! enhancement script, a moved card slides to its new column.
 //!
 //! **Accessibility:** each column is a `<section>` labelled by its heading; every card moves
@@ -18,30 +19,34 @@
 //! **What it does not do without script:** drag and drop, or reorder cards within a column
 //! (the server decides the order: a moved card goes last in its new column).
 //!
-//! **Fallback:** without view transitions a card is simply in its new column after the move.
+//! **Fallback:** without view transitions a card is simply in its new column after the move;
+//! without container queries the board keeps its narrow form (snapping columns that scroll).
 //!
 //! ```rust
 //! use loco_ui::prelude::*;
 //! let ui = Ui::from(Caps::all());
 //! let board = ui.kanban("/board/move")
 //!     .column("todo", "To do").card("c1", "Write the docs")
-//!     .column("doing", "Doing").limit(2).card("c2", "Calendar").description("M23").card("c3", "Upload")
+//!     .column("doing", "Doing").limit(2).card("c2", "Calendar").description("M23").badge("Beta")
+//!     .card("c3", "Upload")
 //!     .column("done", "Done");
 //! let m = board.render().into_string();
 //! assert!(m.contains(r#"name="card" value="c1""#) && m.contains(r#"name="to" value="doing""#));
-//! assert!(m.contains("2 / 2") && !m.contains(r#"value="todo" aria-label="Move Write"#));
+//! assert!(m.contains("2/2") && m.contains(">Beta</span>") && !m.contains(r#"value="todo" aria-label="Move Write"#));
 //!
 //! // The same in `lui!`:
 //! let same = lui! { Kanban("/board/move") {
 //!     column "todo" "To do" { card "c1" "Write the docs"; }
 //!     column "doing" "Doing" limit=2 {
-//!         card "c2" "Calendar" description="M23";
+//!         card "c2" "Calendar" description="M23" badge="Beta";
 //!         card "c3" "Upload";
 //!     }
 //!     column "done" "Done";
 //! } };
 //! assert_eq!(same.into_string(), m);
 //! ```
+
+use std::fmt::Display;
 
 use maud::{Markup, Render, html};
 
@@ -56,6 +61,7 @@ struct Card<'a> {
     key: &'a str,
     title: &'a str,
     note: Option<&'a str>,
+    badge: Option<String>,
 }
 
 /// A column: its key (the `to` a move posts), title, limit and cards.
@@ -70,7 +76,8 @@ struct Column<'a> {
 /// A board, made by [`Ui::kanban`]. Add columns with [`Kanban::column`] and cards, into the
 /// column added last, with [`Kanban::card`].
 ///
-/// **Setters.** Values and items: `.column(..)`, `.limit(..)`, `.card(..)`, `.description(..)`.
+/// **Setters.** Values and items: `.column(..)`, `.limit(..)`, `.card(..)`, `.description(..)`,
+/// `.badge(..)`.
 #[derive(Clone, Debug)]
 pub struct Kanban<'a> {
     ui: &'a Ui,
@@ -89,6 +96,8 @@ impl Kanban<'_> {
             .doc("A card in the column added last."),
         Prop::new("description", PropKind::Modifier, "text: &'a str")
             .doc("Small print under the card added last."),
+        Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .doc("A badge in the meta row of the card added last: a label, an estimate, a tag."),
     ];
 }
 
@@ -131,6 +140,7 @@ impl<'a> Kanban<'a> {
                 key,
                 title,
                 note: None,
+                badge: None,
             });
         }
         self
@@ -140,6 +150,15 @@ impl<'a> Kanban<'a> {
     pub fn description(mut self, text: &'a str) -> Self {
         if let Some(card) = self.columns.last_mut().and_then(|c| c.cards.last_mut()) {
             card.note = Some(text);
+        }
+        self
+    }
+
+    /// A badge in the meta row of the card added last, beside its move buttons: a label, an
+    /// estimate, a tag.
+    pub fn badge(mut self, text: impl Display) -> Self {
+        if let Some(card) = self.columns.last_mut().and_then(|c| c.cards.last_mut()) {
+            card.badge = Some(text.to_string());
         }
         self
     }
@@ -159,34 +178,40 @@ impl Render for Kanban<'_> {
         let cols = &self.columns;
         html! {
             div id=(root) data-lui="swap" data-lui-morph class="lui-kanban" {
-                @for (i, col) in cols.iter().enumerate() {
-                    @let heading = format!("{root}-{}", slug(col.key));
-                    @let over = col.limit.is_some_and(|l| col.cards.len() > l);
-                    section class="lui-kanban-column" aria-labelledby=(heading) {
-                        header class="lui-kanban-head" {
-                            h3 id=(heading) { (col.title) }
-                            span class={ "lui-kanban-count" @if over { " lui-kanban-over" } } {
-                                (col.cards.len()) @if let Some(l) = col.limit { " / " (l) }
-                                @if over { span class="lui-sr" { (self.ui.text(Text::OverLimit)) } }
+                div class="lui-kanban-board" {
+                    @for (i, col) in cols.iter().enumerate() {
+                        @let heading = format!("{root}-{}", slug(col.key));
+                        @let over = col.limit.is_some_and(|l| col.cards.len() > l);
+                        @let count = match col.limit { Some(l) => format!("{}/{l}", col.cards.len()), None => col.cards.len().to_string() };
+                        section class="lui-kanban-column" aria-labelledby=(heading) {
+                            header class="lui-kanban-head" {
+                                h3 id=(heading) { (col.title) }
+                                span class={ "lui-kanban-count" @if over { " lui-kanban-over" } } {
+                                    @if over { (self.ui.badge(&count).danger()) span class="lui-sr" { (self.ui.text(Text::OverLimit)) } }
+                                    @else { (self.ui.badge(&count).secondary()) }
+                                }
                             }
-                        }
-                        @if col.cards.is_empty() {
-                            p class="lui-kanban-empty" { (self.ui.text(Text::NoCards)) }
-                        } @else {
-                            ol class="lui-kanban-cards" {
-                                @for card in &col.cards {
-                                    li class="lui-kanban-card" style=[vt.then(|| format!("view-transition-name: lui-kanban-{}", slug(card.key)))] {
-                                        p class="lui-kanban-title" { (card.title) }
-                                        @if let Some(n) = card.note { p class="lui-kanban-note" { (n) } }
-                                        form method="post" action=(self.action) class="lui-kanban-move" {
-                                            input type="hidden" name="card" value=(card.key);
-                                            @if let Some(prev) = i.checked_sub(1).and_then(|p| cols.get(p)) {
-                                                @let label = self.ui.fill(Text::MoveTo, &[&card.title, &prev.title]);
-                                                (Button::new(caps, "").ghost().small().icon_only().name("to").value(prev.key).aria_label(&label).body(html! { (Icon::ArrowLeft) }))
-                                            }
-                                            @if let Some(next) = cols.get(i + 1) {
-                                                @let label = self.ui.fill(Text::MoveTo, &[&card.title, &next.title]);
-                                                (Button::new(caps, "").ghost().small().icon_only().name("to").value(next.key).aria_label(&label).body(html! { (Icon::ArrowRight) }))
+                            @if col.cards.is_empty() {
+                                p class="lui-kanban-empty" { (self.ui.text(Text::NoCards)) }
+                            } @else {
+                                ol class="lui-kanban-cards" {
+                                    @for card in &col.cards {
+                                        li class="lui-kanban-card" style=[vt.then(|| format!("view-transition-name: lui-kanban-{}", slug(card.key)))] {
+                                            p class="lui-kanban-title" { (card.title) }
+                                            @if let Some(n) = card.note { p class="lui-kanban-note" { (n) } }
+                                            div class="lui-kanban-meta" {
+                                                @if let Some(b) = &card.badge { (self.ui.badge(b).secondary()) }
+                                                form method="post" action=(self.action) class="lui-kanban-move" {
+                                                    input type="hidden" name="card" value=(card.key);
+                                                    @if let Some(prev) = i.checked_sub(1).and_then(|p| cols.get(p)) {
+                                                        @let label = self.ui.fill(Text::MoveTo, &[&card.title, &prev.title]);
+                                                        (Button::new(caps, "").ghost().small().icon_only().name("to").value(prev.key).aria_label(&label).body(html! { (Icon::ArrowLeft) }))
+                                                    }
+                                                    @if let Some(next) = cols.get(i + 1) {
+                                                        @let label = self.ui.fill(Text::MoveTo, &[&card.title, &next.title]);
+                                                        (Button::new(caps, "").ghost().small().icon_only().name("to").value(next.key).aria_label(&label).body(html! { (Icon::ArrowRight) }))
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -203,25 +228,32 @@ impl Render for Kanban<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. Columns on the surface, cards
 /// as small shadcn cards; the board scrolls sideways when the columns do not fit.
 pub const CSS: &str = r#"
-.lui-kanban {
-  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(15rem, 1fr); gap: calc(var(--lui-space) * 2);
-  overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem;
+/* The board is its own container. Narrow (and where container queries are missing) each
+   column is 85% of the board, so the next one peeks, and the board snaps column by column;
+   from 48rem the columns share the width, and scroll only when there are too many. */
+.lui-kanban { container: lui-kanban / inline-size; }
+.lui-kanban-board {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 85%; gap: 0.75rem; align-items: start;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding-bottom: 0.5rem;
+}
+@container lui-kanban (min-width: 48rem) {
+  .lui-kanban-board { grid-auto-columns: minmax(15rem, 1fr); scroll-snap-type: none; }
 }
 .lui-kanban-column {
   display: grid; align-content: start; gap: 0.5rem; padding: 0.75rem; scroll-snap-align: start;
-  background: var(--lui-surface); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
+  background: var(--lui-gray-2); border-radius: var(--lui-radius-lg);
 }
-.lui-kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 0.25rem; }
+.lui-kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 0.25rem 0.25rem; }
 .lui-kanban-head h3 { margin: 0; font-size: 0.875rem; font-weight: 600; }
-.lui-kanban-count { font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); font-variant-numeric: tabular-nums; }
-.lui-kanban-over { color: var(--lui-danger); }
+.lui-kanban-count { font-variant-numeric: tabular-nums; }
 .lui-kanban-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .lui-kanban-card {
-  display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 0.25rem 0.5rem; padding: 0.625rem 0.75rem;
+  display: grid; gap: 0.25rem; padding: 0.75rem 0.75rem 0.5rem;
   background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-sm), var(--lui-highlight);
 }
-.lui-kanban-title { grid-column: 1; margin: 0; font-size: 0.875rem; font-weight: 500; }
-.lui-kanban-note { grid-column: 1; margin: 0; font-size: 0.75rem; color: var(--lui-muted); }
-.lui-kanban-move { grid-column: 2; grid-row: 1 / span 2; display: flex; margin: -0.25rem -0.375rem 0 0; }
-.lui-kanban-empty { margin: 0; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--lui-muted); border: 1px dashed var(--lui-line); border-radius: var(--lui-radius); }
+.lui-kanban-title { margin: 0; font-size: 0.875rem; font-weight: 500; }
+.lui-kanban-note { margin: 0; font-size: 0.75rem; color: var(--lui-muted); }
+.lui-kanban-meta { display: flex; align-items: center; gap: 0.5rem; min-height: 2rem; }
+.lui-kanban-move { display: flex; margin: 0 -0.375rem 0 auto; }
+.lui-kanban-empty { margin: 0; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--lui-muted); border: 1px dashed var(--lui-gray-6); border-radius: var(--lui-radius); }
 "#;
