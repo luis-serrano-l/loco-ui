@@ -2068,7 +2068,7 @@ owner has seen them.
   typed;`, the post handler builds its rules from the same constants). `/wizard` and
   `/palette` wait on the owner (BLOCKED.md: a builder mode for `lui!` is suggested), and the
   drift test waits with them.
-- [ ] Wrap-up:
+- [x] Wrap-up:
   - Refresh `tests/shots/` on purpose, reviewing each changed PNG.
   - Re-measure the stylesheet size (gzipped) and write the growth in README. The budget is
     +10 KB gzipped over M30's 14.4 KB; above that, cut before shipping.
@@ -2080,3 +2080,17 @@ owner has seen them.
     an issue link.
   - clippy, `cargo test`, `scripts/verify.sh` and `node scripts/browser-check.mjs` all green.
   - Local commit per group.
+  Done: every changed PNG under `tests/shots/` was looked at and committed with its box. The
+  stylesheet is 116.9 KB, 20.0 KB gzipped (+5.6 KB over M30's 14.4 KB, inside the +10 KB),
+  in README with the other page weights. The README matrix gained "Look after" and
+  "Responsive by" (container, content, viewport), generated from the spec, with a test that
+  checks the second against each file's CSS; the sortable list joined the spec. theming.md
+  has the container breakpoints and `--lui-control-h-lg`; comparison.md a Responsive row;
+  FINDINGS the M34 gaps (`@container` with servo#43346, `:has()` with servo#44902, `min()`
+  tracks with taffy#225, `interpolate-size` without an issue yet, `mask` not a gap).
+  `scripts/verify.sh` then found three things, all fixed: the visually hidden labels inside
+  the kanban board and the table scroller hung out past them at 320px (the scrollers are now
+  `position: relative`), the sortable demo's order was not saved (a bare list cannot be
+  form-encoded; it is kept as pairs), and two browser checks raced the swap or ran at the
+  wrong width. Clippy, `cargo test`, `verify.sh` and the browser check (axe on 50 routes x
+  2 caps x 2 themes, 320px with nothing pending) are green.
