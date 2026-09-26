@@ -111,3 +111,21 @@ Suggested: one issue per item on github.com/DioxusLabs/blitz, each with a minima
 (items 1–4 can share one "motion features" issue if the maintainers prefer), then replace
 "(no upstream issue yet; the owner files it)" in FINDINGS.md with the links. Nothing else in
 the library waits on it: every effect has its at-rest fallback proved in Blitz today.
+
+## One snippet style: `/wizard` and `/palette` (M34, "One snippet style" box), open
+
+`/counter` now shows `lui!` (its rules are three constants the post handler shares). The
+wizard and the palette cannot follow without a choice: their handlers call methods on the
+builder after building it (`wizard.at(step)`, `.is_last(..)`, `.link(..)`; `palette.exact()`),
+and `lui!` only returns `Markup`. The options:
+
+1. **A builder mode in `lui!`** (suggested): for example `lui!(build: Wizard("signup",
+   "/wizard") { step "Account" (..); .. })`, expanding to the same chain but returning the
+   builder instead of wrapping it in `html!`. The component functions keep one definition,
+   the snippets read like every other page, and the macro's `component()` already produces
+   that expression, so it is small. It is new macro syntax, which is why it is yours.
+2. Show `lui!` on the page and keep a second builder chain for the handler, from shared data.
+   No macro change, but each page defines its steps or links twice.
+3. Keep the chain on these two pages, and let the snippet test allow it.
+
+The demo test that stops snippets drifting back waits on this answer.

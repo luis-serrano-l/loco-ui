@@ -2064,6 +2064,10 @@ owner has seen them.
   snippet (a redirect, a toast, `ui.stream`) stays Rust. Add a demo test that fails when a
   component page's first snippet block renders markup without `lui!`, with a short allow list
   for the handler-only blocks, so a new page cannot drift back.
+  Progress: `/counter` is `lui!` (`Counter("/counter", n) min=(MIN) max=(MAX) step=(STEP)
+  typed;`, the post handler builds its rules from the same constants). `/wizard` and
+  `/palette` wait on the owner (BLOCKED.md: a builder mode for `lui!` is suggested), and the
+  drift test waits with them.
 - [ ] Wrap-up:
   - Refresh `tests/shots/` on purpose, reviewing each changed PNG.
   - Re-measure the stylesheet size (gzipped) and write the growth in README. The budget is

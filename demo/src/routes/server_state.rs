@@ -27,7 +27,7 @@ pub(crate) const PAGES: &[super::Simple] = &[("/list", list, "")];
 /// The other pages' live components, which the index shows too (`site::preview`), with a
 /// visitor's saved values left out there, and the streamed page's section while it loads.
 pub(crate) const PREVIEWS: &[super::Preview] = &[
-    ("/counter", |ui| counter(ui, 0).render()),
+    ("/counter", |ui| counter(ui, 0)),
     ("/settings", |ui| settings(ui, &Settings::default())),
     ("/caps", caps),
     ("/stream", |ui| pending(ui, "fast", 100)),
@@ -48,10 +48,16 @@ struct Count {
 }
 
 /// The counter's rules, shared by the page (to render them) and the post (to apply them).
-fn counter(ui: &Ui, n: i64) -> loco_ui::counter::Counter<'static> {
-    // code: /counter
-    ui.counter("/counter", n).min(0).max(20).step(2).typed()
-    // end code
+const MIN: i64 = 0;
+const MAX: i64 = 20;
+const STEP: i64 = 2;
+
+fn counter(ui: &Ui, n: i64) -> Markup {
+    lui! {
+        // code: /counter
+        Counter("/counter", n) min=(MIN) max=(MAX) step=(STEP) typed;
+        // end code
+    }
 }
 
 async fn counter_page(ui: Ui, Saved(c): Saved<Count>) -> Page {
@@ -73,7 +79,8 @@ struct CounterOp {
 
 async fn counter_submit(ui: Ui, Saved(c): Saved<Count>, Form(f): Form<CounterOp>) -> Redirect {
     // code: /counter
-    let n = counter(&ui, c.n).apply(&f.op, f.value);
+    let rules = ui.counter("/counter", c.n).min(MIN).max(MAX).step(STEP);
+    let n = rules.apply(&f.op, f.value);
     ui.redirect("/counter").save(&Count { n })
     // end code
 }
