@@ -94,9 +94,8 @@ impl Render for Grid<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--lui-grid-min, 15rem), 1fr)); }
-/* On a phone the minimum is capped at the grid's width, so a wide one cannot overflow. */
-@media (max-width: 30rem) { .lui-grid { grid-template-columns: repeat(auto-fill, minmax(min(var(--lui-grid-min, 15rem), 100%), 1fr)); } }
+/* The minimum is capped at the grid's own width, so a wide one cannot overflow a narrow box. */
+.lui-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--lui-grid-min, 15rem), 100%), 1fr)); }
 :where(.lui-grid) { gap: var(--lui-space-4); }
 .lui-grid > * { margin: 0; min-width: 0; }
 "#;

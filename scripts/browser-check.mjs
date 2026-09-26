@@ -377,6 +377,17 @@ try {
   await click(".lui-theme button[value=auto]");
   await until(async () => (await js("return document.documentElement.dataset.theme")) === "auto", "theme back");
 
+  // Grids lay out side by side when there is room (moved from Blitz in M34: it stacks
+  // `auto-fill` tracks sized with `min(…, 100%)`).
+  await wd("POST", S + "/window/rect", { width: 1000, height: 700 });
+  const sideBySide = (a, b) => js("const [p, q] = [arguments[0], arguments[1]].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(p.top - q.top) < 1 && q.left > p.left && Math.abs(p.height - q.height) < 1", a, b);
+  await go("/card");
+  assert(await js("const [p, q] = ['.lui-grid > .lui-card:nth-child(1)', '.lui-grid > .lui-card:nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(p.top - q.top) < 1 && q.left > p.left"), "card: two cards side by side at 1000px");
+  await go("/layout");
+  assert(await js("const [p, q] = ['.lui-grid > :nth-child(1)', '.lui-grid > :nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(p.top - q.top) < 1 && Math.abs(q.left - p.right - 8) < 1"), "layout: grid columns side by side, gap(2) is 8px");
+  await go("/pricing?billing=yearly");
+  assert(await sideBySide("#demo-pricing-hobby", "#demo-pricing-pro"), "pricing: tiers side by side, equal height");
+
   // Accessibility: axe-core on every route, as each visitor variant sees it.
   // Runs in the page: load axe, check, answer the violations. Two patterns are let through
   // (FINDINGS, M29): a link filling a <summary>, the no-script tab and accordion design; and

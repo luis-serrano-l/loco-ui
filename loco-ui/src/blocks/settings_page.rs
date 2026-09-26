@@ -98,7 +98,7 @@ impl Render for SettingsPage<'_> {
 
 /// Styles for this block; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-settings-page { display: grid; gap: calc(var(--lui-space) * 3); }
+.lui-settings-page { display: grid; gap: calc(var(--lui-space) * 3); container: lui-settings-page / inline-size; }
 .lui-settings-page h1 { margin: 0; }
 .lui-settings-page-nav { display: flex; flex-wrap: wrap; gap: calc(var(--lui-space) * 2); font-size: 0.875rem; padding-bottom: calc(var(--lui-space) * 2); border-bottom: 1px solid var(--lui-line); }
 .lui-settings-page-nav a { color: var(--lui-muted); text-decoration: none; }
@@ -106,5 +106,5 @@ pub const CSS: &str = r#"
 .lui-settings-page-section { display: grid; gap: calc(var(--lui-space) * 2); padding-bottom: calc(var(--lui-space) * 3); border-bottom: 1px solid var(--lui-line); scroll-margin-top: calc(var(--lui-space) * 2); }
 .lui-settings-page-section h2 { margin: 0; font-size: 1rem; font-weight: 600; }
 .lui-settings-page-section p { margin: 0.25rem 0 0; color: var(--lui-muted); font-size: 0.875rem; }
-@media (min-width: 48rem) { .lui-settings-page-section { grid-template-columns: 16rem 1fr; } }
+@container lui-settings-page (width >= 48rem) { .lui-settings-page-section { grid-template-columns: 16rem 1fr; } }
 "#;

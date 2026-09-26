@@ -1541,6 +1541,168 @@ mod tests {
         }
     }
 
+    /// M34: components respond to the box they sit in, not the viewport (`layout.rs` header).
+    /// A component whose CSS sets a layout (`display: grid`, wrapping flex, `grid-template-*`)
+    /// needs an `@container` rule, and no component CSS asks the viewport's size: media
+    /// queries are for `prefers-*` and `pointer`.
+    #[test]
+    fn layouts_respond_to_their_container() {
+        let named: &[(&str, &str)] = &[
+            ("layout", layout::CSS),
+            ("button", button::CSS),
+            ("input", input::CSS),
+            ("badge", badge::CSS),
+            ("card", card::CSS),
+            ("icon", icon::CSS),
+            ("avatar", avatar::CSS),
+            ("stack", stack::CSS),
+            ("cluster", cluster::CSS),
+            ("grid", grid::CSS),
+            ("split", split::CSS),
+            ("calendar", calendar::CSS),
+            ("date_picker", date_picker::CSS),
+            ("upload", upload::CSS),
+            ("kanban", kanban::CSS),
+            ("tooltip", tooltip::CSS),
+            ("alert", alert::CSS),
+            ("progress", progress::CSS),
+            ("meter", meter::CSS),
+            ("separator", separator::CSS),
+            ("dialog", dialog::CSS),
+            ("popover", popover::CSS),
+            ("tabs", tabs::CSS),
+            ("accordion", accordion::CSS),
+            ("combobox", combobox::CSS),
+            ("pager", pager::CSS),
+            ("form", form::CSS),
+            ("error_summary", error_summary::CSS),
+            ("counter", counter::CSS),
+            ("theme", theme::CSS),
+            ("flash", flash::CSS),
+            ("select", select::CSS),
+            ("range", range::CSS),
+            ("color", color::CSS),
+            ("table", table::CSS),
+            ("paged_table", paged_table::CSS),
+            ("wizard", wizard::CSS),
+            ("toast", toast::CSS),
+            ("breadcrumbs", breadcrumbs::CSS),
+            ("skeleton", skeleton::CSS),
+            ("empty_state", empty_state::CSS),
+            ("stat", stat::CSS),
+            ("chart", chart::CSS),
+            ("sidebar", sidebar::CSS),
+            ("nav_menu", nav_menu::CSS),
+            ("description_list", description_list::CSS),
+            ("toggle_group", toggle_group::CSS),
+            ("context_menu", context_menu::CSS),
+            ("input_otp", input_otp::CSS),
+            ("drawer", drawer::CSS),
+            ("palette", palette::CSS),
+            ("marquee", marquee::CSS),
+            ("app_shell", blocks::app_shell::CSS),
+            ("auth_page", blocks::auth_page::CSS),
+            ("settings_page", blocks::settings_page::CSS),
+            ("record_page", blocks::record_page::CSS),
+            ("dashboard_page", blocks::dashboard_page::CSS),
+            ("error_page", blocks::error_page::CSS),
+        ];
+        // `stream::CSS` exists only with the `http` feature and sets no layout.
+        let streamed = usize::from(cfg!(feature = "http"));
+        assert_eq!(
+            named.len() + streamed,
+            COMPONENT_CSS.len() + blocks::CSS.len(),
+            "list every stylesheet here"
+        );
+        // One layout at every width, or one that adapts by itself: no breakpoint to add.
+        const NO_BREAKPOINT: &[(&str, &str)] = &[
+            ("layout", "the page shell: its container is the viewport"),
+            (
+                "app_shell",
+                "the page frame: its container is the viewport (the drawer decides)",
+            ),
+            ("stack", "one column"),
+            ("cluster", "wraps by its own content"),
+            ("split", "wraps by flex-basis, no breakpoint"),
+            ("grid", "auto-fill columns capped at min(…, 100%)"),
+            ("avatar", "a grid only centres the initials"),
+            ("counter", "one row that wraps: − value +"),
+            ("auth_page", "one centred column of width min(24rem, 100%)"),
+            ("error_page", "one centred column"),
+        ];
+        // Pinned to the viewport in the top layer, so the viewport is the right question, for
+        // their layout as for their media queries.
+        const VIEWPORT: &[(&str, &str)] = &[
+            ("layout", "the page shell and demo site"),
+            ("dialog", "a modal sized against the viewport"),
+            (
+                "drawer",
+                "a sheet over the viewport, a column of the page above 60rem",
+            ),
+            ("toast", "the stack is fixed to a corner of the viewport"),
+        ];
+        // Not responsive yet, each until its M34 box lands. The test fails once one passes,
+        // so the entry leaves with the fix. Empty by the M34 wrap-up.
+        const PENDING: &[(&str, &str)] = &[
+            ("input", "Input box"),
+            ("card", "Card box"),
+            ("upload", "Upload box"),
+            ("kanban", "Kanban box"),
+            ("alert", "Callout box"),
+            ("progress", "Progress box"),
+            ("tabs", "Tabs box"),
+            ("combobox", "Select and combobox box"),
+            ("form", "Form layout box"),
+            ("error_summary", "Callout box"),
+            ("flash", "Callout box"),
+            ("select", "Select and combobox box"),
+            ("range", "Range and colour box"),
+            ("color", "Range and colour box"),
+            ("table", "Table box"),
+            ("paged_table", "Table box"),
+            ("wizard", "Wizard box"),
+            ("breadcrumbs", "Breadcrumbs box"),
+            ("skeleton", "Card box"),
+            ("empty_state", "Card box"),
+            ("stat", "Stat box"),
+            ("sidebar", "Sidebar box"),
+            ("nav_menu", "Sidebar box"),
+            ("description_list", "Description list box"),
+            ("marquee", "Marquee box"),
+            ("record_page", "Description list box"),
+        ];
+        let listed = |list: &[(&str, &str)], name: &str| list.iter().any(|(n, _)| *n == name);
+        let mut wrong = Vec::new();
+        for (name, css) in named {
+            let css = minify_css(css);
+            let lays_out = [
+                "display:grid",
+                "display:inline-grid",
+                "flex-wrap:wrap",
+                "grid-template",
+            ]
+            .iter()
+            .any(|d| css.contains(d));
+            let responds = css.contains("@container");
+            let asks_viewport = css.match_indices("@media").any(|(i, _)| {
+                let query = &css[i..css[i..].find('{').map_or(css.len(), |e| i + e)];
+                ["width", "height"].iter().any(|w| query.contains(w))
+            });
+            let exempt = listed(NO_BREAKPOINT, name) || listed(VIEWPORT, name);
+            let fine =
+                (!lays_out || responds || exempt) && (!asks_viewport || listed(VIEWPORT, name));
+            match (fine, listed(PENDING, name)) {
+                (true, true) => wrong.push(format!("{name} responds now: take it off PENDING")),
+                (false, false) if lays_out && !responds && !exempt => {
+                    wrong.push(format!("{name} sets a layout but has no @container rule"))
+                }
+                (false, false) => wrong.push(format!("{name} asks the viewport's width in @media")),
+                _ => {}
+            }
+        }
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+    }
+
     /// Every component nests in `html!` and converts to a plain `String`.
     #[test]
     fn components_render_and_stringify() {

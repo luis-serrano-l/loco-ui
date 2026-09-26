@@ -1469,7 +1469,7 @@ owner has seen them.
   table scrolls inside, record fields shrink, the fallback palette panel fits its box.
   Pending, each removed by its box (the check fails once the route fits): `/` (calendar,
   table), `/kanban`, the two `/table` routes.
-- [ ] Test that layouts respond to their container, in `lib.rs` beside
+- [x] Test that layouts respond to their container, in `lib.rs` beside
   `only_the_primitives_select_bare_buttons_and_inputs`:
   - Fail when a component whose `CSS` sets a layout (`display: grid`, `display: flex` with
     wrap, `grid-template-*`) has no `@container` rule.
@@ -1477,6 +1477,14 @@ owner has seen them.
     layout).
   - Also fail on any new viewport `@media (width…)` in component CSS. Media queries stay
     only for `prefers-*` and `pointer`.
+  Done: `layouts_respond_to_their_container`. Three lists: `NO_BREAKPOINT` (one layout, or
+  one that adapts by itself: stack, cluster, split, grid, avatar, counter, the page shell,
+  auth and error pages), `VIEWPORT` (top-layer overlays and the shell: dialog, drawer, toast,
+  layout) and `PENDING` (26 components, each named with its box; the test fails once one
+  responds, so the entry leaves with the fix). Fixed on the way: `grid` drops its `@media`
+  (auto-fill with `min(…, 100%)` is enough) and the settings page block uses `@container`.
+  Blitz stacks those `min()` tracks (FINDINGS, taffy#225), so the side-by-side checks for
+  `/card`, `/layout` and `/pricing` moved to the browser check.
 - [ ] `NOTICE`: one paragraph per reference library, with its name, licence, URL and "look
   reproduced, no code copied". Link it from README.
 

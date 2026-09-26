@@ -851,3 +851,9 @@ is not drawn only because it sits behind the motion query.
   `scripts/browser-check.mjs` loads each route into a 320 px `srcdoc` iframe instead
   (WebDriver keeps a Firefox window at least 500 px wide, and the demo's
   `frame-ancestors 'none'` refuses an ordinary iframe).
+- **Blitz stacks `repeat(auto-fill, minmax(min(15rem, 100%), 1fr))` into one column.** It is
+  the standard way to let a grid's minimum give way in a narrow box, and Firefox lays two or
+  three columns at 1000 px; Blitz (Taffy) gives one. `ui.grid` and the theme builder use it
+  anyway, and the side-by-side assertions for `/card` and `/pricing` moved to the browser
+  check. Taffy has no `calc()`/`min()` track sizes yet:
+  [taffy#225](https://github.com/DioxusLabs/taffy/issues/225).
