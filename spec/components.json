@@ -1464,6 +1464,8 @@
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The page's content, beside the drawer." },
             { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The drawer's id instead of the label's slug." },
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A heading at the top of the panel (also its accessible name)." },
+            { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, the panel's description." },
+            { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Actions pinned to the bottom of the panel, under the scrolling navigation." },
             { "name": "sidebar", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A permanent sidebar above 60rem." },
             { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open (non-modal) from the server." }
           ]

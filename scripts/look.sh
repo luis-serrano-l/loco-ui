@@ -19,6 +19,9 @@ out="$PWD/target/look${tag:+/$tag}"
 mkdir -p "$out/light" "$out/dark"
 echo 'user_pref("layout.css.prefers-color-scheme.content-override", 1);' > "$out/light/user.js"
 printf 'user_pref("layout.css.prefers-color-scheme.content-override", 0);\nuser_pref("ui.systemUsesDarkTheme", 1);\n' > "$out/dark/user.js"
+# Reduced motion: every duration is zero, so a shot never catches an opening dialog, drawer or
+# menu at its @starting-style first frame (they looked blank or half-slid in).
+for scheme in light dark; do echo 'user_pref("ui.prefersReducedMotion", 1);' >> "$out/$scheme/user.js"; done
 
 # name | demo path | reference page (the M34 box's library; empty: no counterpart)
 radix=https://www.radix-ui.com/themes/docs/components

@@ -65,7 +65,8 @@ async fn palette_page(ui: Ui) -> Response {
 fn drawer(ui: &Ui) -> Markup {
     lui! {
             // code: /nav
-            Drawer("Menu") id="site" title="loco-ui" sidebar
+            Drawer("Menu") id="site" title="loco-ui" description="Version 0.1" sidebar
+                footer={ LinkButton("Help", "/") ghost; }
                 nav={ ul {
                     li { a href="/nav" aria-current="page" { "Overview" } }
                     li { a href="/table" { "Files" } } li { a href="/dashboard" { "Reports" } } li { a href="/settings" { "Settings" } }

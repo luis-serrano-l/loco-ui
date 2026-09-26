@@ -1723,9 +1723,9 @@ owner has seen them.
   at most 100dvh − 2rem tall, a flex column whose body scrolls while title and actions
   stay; below 30rem the footer stacks, confirm on top. The × is a small ghost icon button
   top-right, 44px on coarse pointers through `--lui-control-h-sm`. Demo adds a size-3
-  terms dialog with a long body. To check at the final verify: a Firefox headless shot of
-  `/dialog?dialog=confirm` shows the space but not the dialog, on the committed code as
-  well (the terms dialog opened the same way shows).
+  terms dialog with a long body. (A Firefox headless shot of `/dialog?dialog=confirm` first
+  came out blank: the shot caught the `@starting-style` frame of the fade. `look.sh` now
+  shoots with reduced motion, and the dialog shows.)
 - [x] Popover, menu, context menu, tooltip (`popover.rs`, `context_menu.rs`, `tooltip.rs`;
   reference: Radix Themes Popover, DropdownMenu, ContextMenu, Tooltip):
   - Menu items are 2 rem tall with an 8 px inline padding and a leading icon slot. The
@@ -1744,11 +1744,19 @@ owner has seen them.
   `min(24rem, 100dvh − 2rem)` tall and scrolls inside (the `<details>` fallback does not, so
   its submenus are not clipped). Tooltips are the inverted gray-12 chip with gray-1 text and
   a shadow. The context menu shares the menu CSS.
-- [ ] Drawer and sheet (`drawer.rs`; reference: the shadcn Sheet and Drawer):
+- [x] Drawer and sheet (`drawer.rs`; reference: the shadcn Sheet and Drawer):
   - A side sheet with its header, body and footer as the Sheet.
   - Under a 30 rem viewport, the drawer comes from the bottom as a sheet with a grab handle
     and rounded top corners, max 85 vh, with the body scrolling inside. Keep it the same
     `<dialog>`; only the CSS changes.
+  Done: the side sheet is the shadcn Sheet: 24rem (85vw at most), 24px padding, a header of
+  title, new `.description(..)` (`aria-describedby`) and the ×, the navigation scrolling in
+  the middle, and new `.footer(..)` pinned to the bottom; 2rem links (44px on touch). Under
+  a 30rem viewport the same `<dialog>` is a bottom sheet: full width, rounded top corners,
+  a gray-5 grab handle, at most 85vh, sliding up (`--lui-drawer-away` flips the slide
+  axis). The sidebar mode above 60rem keeps its look with the new radius. Demo adds a
+  description and a footer link. The drawer keeps viewport `@media` (it is on the VIEWPORT
+  list: a top-layer sheet).
 - [ ] Toasts (`toast.rs`; reference: shadcn Sonner):
   - Toasts stack in depth: only the front one is full, and those behind are scaled and
     peeking. Hover or `:focus-within` on the stack fans them out, in CSS only.
