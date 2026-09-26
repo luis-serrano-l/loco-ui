@@ -1606,13 +1606,23 @@ owner has seen them.
   stay round, ringed in the primary colour when chosen, 44px on touch. Both wrap or sit in
   one row by themselves (NO_BREAKPOINT). The enhancement script's source limit went from
   13 to 14 KB for the fill code (served size still under its 11 KB limit).
-- [ ] One-time code (`input_otp.rs`; reference: the Origin UI OTP input and the shadcn
+- [x] One-time code (`input_otp.rs`; reference: the Origin UI OTP input and the shadcn
   InputOTP):
   - Joined boxes: shared borders, rounded only at the group's ends, and an optional
     separator after a set count (`.group(3)`).
   - The active box has a ring, and the caret shows through `:focus` on the single real
     input.
   - Narrow containers shrink the boxes to fit, down to 320 px.
+  Done: still one real field (paste, autofill and back-space keep working) whose background
+  draws joined cells, rounded only at the ends. `.group(n)` (new) draws a 2px gray-8 divider
+  after every n cells; a true gap is impossible with one field's uniform letter spacing, so
+  the divider stands in for shadcn's separator dot. On `:focus-visible` the cell the next
+  digit goes in gets a 2px ring over a faint tint: `--lui-otp-at` is the rendered value's
+  length, and the enhancement script moves it while typing (the caret, in the primary
+  colour, shows through). Cells are `min(2.5rem, 100cqi / n)` in a `lui-otp` container, so
+  they shrink to fit; the digit size follows. Each background layer is a custom property, so
+  ring and dividers combine without a rule per case. The redundant `2 / 6` counter is
+  visually hidden (still the field's description). Demo groups 3 + 3.
 - [ ] Upload (`upload.rs`; reference: the Origin UI file upload):
   - A dashed dropzone with an icon tile, a title ("Drop files or browse"), a hint with types
     and size, and a hover or `:focus-within` tint.

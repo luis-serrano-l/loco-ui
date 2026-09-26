@@ -33,7 +33,7 @@ form|/form|$shadcn/form
 form-inline|/form?layout=inline|
 form-errors|/form?errors=1|$radix/callout
 combobox|/combobox?q=r&sel=Zig|$shadcn/combobox
-otp|/otp|$shadcn/input-otp
+otp|/otp?code=12|$shadcn/input-otp
 upload|/upload|$origin/file-upload
 calendar|/calendar?month.day=2026-09&day=2026-09-17|$shadcn/calendar
 wizard|/wizard?step.signup=1|$origin/stepper

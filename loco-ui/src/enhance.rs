@@ -288,6 +288,7 @@ document.addEventListener("input", function (e) {
       k.style.cssText = "--lui-range-lo:" + v[0] + "%;--lui-range-hi:" + v[1] + "%"; }
     else t.style.setProperty("--lui-range-fill", p(t) + "%");
   }
+  if (t.classList.contains("lui-otp-input")) t.style.setProperty("--lui-otp-at", Math.min(t.value.length, t.maxLength - 1));
   if (t.type === "color") {
     var box = t.closest(".lui-color");
     if (box) {

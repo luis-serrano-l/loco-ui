@@ -401,7 +401,7 @@ fn otp(ui: &Ui) -> Markup {
     lui! {
         Form("/otp") get submit="Verify" {
             // code: /otp
-            InputOtp("code", "Code from the text message");
+            InputOtp("code", "Code from the text message") group=3;
             // end code
             @if let Some(code) = ui.param("code") { p class="lui-note" { "Sent " code { (code) } "." } }
         }

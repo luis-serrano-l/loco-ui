@@ -1431,7 +1431,8 @@
           "status": "beta",
           "calls": ["ui.input_otp(name: &str, label: &str)"],
           "props": [
-            { "name": "length", "kind": "number", "args": "digits: u8", "default": "6", "attr": "maxlength", "doc": "How many digits the code has." }
+            { "name": "length", "kind": "number", "args": "digits: u8", "default": "6", "attr": "maxlength", "doc": "How many digits the code has." },
+            { "name": "group", "kind": "number", "args": "size: u8", "default": "", "attr": "", "doc": "A stronger divider after every `size` cells (3 for a 123 456 code)." }
           ]
         }
       ]

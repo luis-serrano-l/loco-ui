@@ -278,6 +278,11 @@ try {
   assert((await text("output[for=f-price_max]")) === "75", "range pair: the high thumb mirrors into its own output");
   assert(await js("return document.querySelector('#f-volume').style.getPropertyValue('--lui-range-fill')") !== "40%", "range: the track's fill follows the thumb");
   assert(await js("return document.querySelector('.lui-range-track').style.getPropertyValue('--lui-range-hi')") === "75%", "range pair: the fill ends at the high thumb");
+  // One-time code: the ringed cell follows the digits typed.
+  await go("/otp");
+  await type("#f-code", "123");
+  assert(await js("return document.querySelector('#f-code').style.getPropertyValue('--lui-otp-at')") === "3", "otp: the active cell moves as digits are typed");
+  await go("/inputs");
   // Select: typing in the filter re-renders the options through a GET, nothing is saved.
   await type("input[name=country-q]", "jap");
   await until(async () => (await js("return [...document.querySelectorAll('#f-country option')].map(o => o.value).join()")) === "es,jp", "filtered to Japan plus the selected Spain");
