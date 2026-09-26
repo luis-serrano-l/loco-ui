@@ -387,6 +387,11 @@ try {
   assert(await js("const [p, q] = ['.lui-grid > :nth-child(1)', '.lui-grid > :nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(p.top - q.top) < 1 && Math.abs(q.left - p.right - 8) < 1"), "layout: grid columns side by side, gap(2) is 8px");
   await go("/pricing?billing=yearly");
   assert(await sideBySide("#demo-pricing-hobby", "#demo-pricing-pro"), "pricing: tiers side by side, equal height");
+  // The form is its own container (M34): side labels and an end-aligned button once it is
+  // 30rem wide, which Blitz cannot show (no @container).
+  await go("/form?layout=inline");
+  assert(await js("const [l, i] = ['label[for=f-name]', '#f-name'].map((s) => document.querySelector(s).getBoundingClientRect()); return i.left >= l.right - 1 && Math.abs(i.top - l.top) < 20"), "form: inline labels beside the fields in a wide form");
+  assert(await js("const b = document.querySelector('.lui-form-actions > .lui-button').getBoundingClientRect(), f = document.querySelector('.lui-form').getBoundingClientRect(); return Math.abs(b.right - f.right) < 1 && b.width < f.width / 2"), "form: the submit button sits at the end of a wide form");
 
   // Accessibility: axe-core on every route, as each visitor variant sees it.
   // Runs in the page: load axe, check, answer the violations. Two patterns are let through

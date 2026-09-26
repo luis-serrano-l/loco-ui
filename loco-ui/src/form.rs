@@ -5,14 +5,22 @@
 //! characters, take files, dates, times and bounded numbers, and lay out stacked (label above)
 //! or inline (label beside). No script needed.
 //!
+//! The look follows the shadcn Forms examples and the Radix Themes settings layouts: a group
+//! is a section (a heading, an optional `.description(..)` and its fields) drawn without a
+//! frame, a hairline between sections. The form is its own container: `.inline()` puts the
+//! label and its help beside the field once the form is 30rem wide, and the submit button
+//! fills a narrower form and sits at the end of a wider one.
+//!
 //! **Platform features:**
 //! - Constraint validation attributes `required`, `pattern`, `min`, `max`, `maxlength`,
 //!   `type=email` (baseline 2015); `type=date` and `type=time` with `min`/`max` (Chrome 20,
 //!   Firefox 57, Safari 14.1).
 //! - `:user-invalid` / `:user-valid` (baseline 2023): styles only after the user has interacted,
 //!   so fields are not red on first paint.
-//! - `<fieldset>` + `<legend>` per [`Form::group`]; help text and the error are tied to the
-//!   field with `aria-describedby`.
+//! - `<fieldset>` + `<legend>` per [`Form::group`], described by its `.description(..)`; help
+//!   text and the error are tied to the field with `aria-describedby`.
+//! - Container queries (Chrome 105, Firefox 110, Safari 16) for the side labels and the
+//!   submit row.
 //! - `<output>` counts characters for a field with a `maxlength`: the server renders the count
 //!   of the value it has, the enhancement script keeps it live while typing.
 //! - `<input type=file accept>` (baseline 2015); any file field makes the form
@@ -31,7 +39,8 @@
 //! **What it does not do without script:** validate against the server as you type, or warn
 //! about unsaved changes on leaving the page.
 //!
-//! **Fallback:** without `field-sizing` a textarea keeps its `rows` and can be resized by
+//! **Fallback:** without container queries the labels stay above the fields and the button
+//! fills the form's width. Without `field-sizing` a textarea keeps its `rows` and can be resized by
 //! hand. Without the script the counter shows the length of the last submitted value and
 //! `maxlength` still stops input at the limit.
 //!
@@ -50,7 +59,7 @@
 //! // `required`, `help`, `maxlength`, `value` and friends apply to the field added last;
 //! // `group` starts a fieldset for the fields after it.
 //! let m = ui.form("/profile")
-//!     .group("About you")
+//!     .group("About you").description("Shown on your public page.")
 //!     .textarea("bio", "Bio", 3).maxlength(280).value("Hi").help("Shown on your profile.")
 //!     .file("avatar", "Avatar", "image/png,image/jpeg")
 //!     .date("born", "Born", "1900-01-01", "2026-12-31")
@@ -59,14 +68,15 @@
 //!     .inline();
 //! let html = m.render().into_string();
 //! assert!(html.contains("enctype=\"multipart/form-data\""));
-//! assert!(html.contains("<legend>About you</legend>"));
+//! assert!(html.contains(r#"<legend class="lui-form-group-legend">About you</legend>"#));
+//! assert!(html.contains(r#"aria-describedby="lui-form-about-you-description""#));
 //! assert!(html.contains(">2 / 280</output>"));
 //! assert!(html.contains("accept=\"image/png,image/jpeg\""));
 //! assert!(html.contains(r#"<option value="weekly" selected>"#));
 //!
 //! // The same in `lui!`:
 //! let same = lui! { Form("/profile") submit="Save profile" inline {
-//!     group "About you";
+//!     group "About you" description="Shown on your public page.";
 //!     textarea "bio" "Bio" 3 maxlength=280 value="Hi" help="Shown on your profile.";
 //!     file "avatar" "Avatar" "image/png,image/jpeg";
 //!     date "born" "Born" "1900-01-01" "2026-12-31";
@@ -114,10 +124,10 @@ use crate::{Caps, Ui, enhance};
 
 /// A POST form of fields, made by [`Ui::form`], or the fields alone, made by [`Ui::fields`].
 /// Fields are added in order; `required`, `help`, `maxlength`, `value`, `error`,
-/// `placeholder`, `multiple` and `checked` apply to the field added last. A stacked form
+/// `placeholder`, `multiple` and `checked` apply to the field added last, and `description` to the group. A stacked form
 /// with a "Submit" button unless told otherwise.
 ///
-/// **Setters.** Values and items: `.values(..)`, `.errors(..)`, `.group(..)`, `.text(..)`, `.password(..)`,
+/// **Setters.** Values and items: `.values(..)`, `.errors(..)`, `.group(..)`, `.description(..)`, `.text(..)`, `.password(..)`,
 /// `.email(..)`, `.number(..)`, `.pattern(..)`, `.textarea(..)`, `.file(..)`, `.date(..)`,
 /// `.time(..)`, `.datetime(..)`, `.select(..)`, `.checkbox(..)`, `.switch(..)`, `.hidden(..)`,
 /// `.body(..)`, `.help(..)`, `.maxlength(..)`,
@@ -127,7 +137,7 @@ use crate::{Caps, Ui, enhance};
 pub struct Form<'a> {
     action: Option<&'a str>,
     get: bool,
-    groups: Vec<(Option<&'a str>, Vec<Field<'a>>)>,
+    groups: Vec<Group<'a>>,
     submit: &'a str,
     inline: bool,
     values: &'a [(String, String)],
@@ -136,12 +146,23 @@ pub struct Form<'a> {
     strings: &'static Strings,
 }
 
+/// A section of a form: its legend and description (none for the fields before the first
+/// `.group(..)`) and its fields.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Group<'a> {
+    legend: Option<&'a str>,
+    description: Option<&'a str>,
+    pub(crate) fields: Vec<Field<'a>>,
+}
+
 impl Form<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("group", PropKind::Item, "legend: &'a str")
             .doc("A `<fieldset>` with this `<legend>` around the fields added after it."),
+        Prop::new("description", PropKind::Value, "text: &'a str")
+            .doc("A line under the legend of the group added last."),
         Prop::new("text", PropKind::Item, "name: &'a str, label: &'a str")
             .doc("Single-line text."),
         Prop::new("password", PropKind::Item, "name: &'a str, label: &'a str")
@@ -218,7 +239,7 @@ impl Ui {
         Form {
             action: None,
             get: false,
-            groups: vec![(None, Vec::new())],
+            groups: vec![Group::default()],
             submit: self.text(Text::Submit),
             strings: self.strings,
             inline: false,
@@ -235,13 +256,13 @@ impl<'a> Form<'a> {
         self.groups
             .last_mut()
             .expect("a form always has a group")
-            .1
+            .fields
             .push(field);
         self
     }
 
     fn last(mut self, change: impl FnOnce(&mut Field<'a>)) -> Self {
-        if let Some(f) = self.groups.last_mut().and_then(|g| g.1.last_mut()) {
+        if let Some(f) = self.groups.last_mut().and_then(|g| g.fields.last_mut()) {
             change(f);
         }
         self
@@ -249,7 +270,19 @@ impl<'a> Form<'a> {
 
     /// A `<fieldset>` with this `<legend>` around the fields added after it.
     pub fn group(mut self, legend: &'a str) -> Self {
-        self.groups.push((Some(legend), Vec::new()));
+        self.groups.push(Group {
+            legend: Some(legend),
+            ..Group::default()
+        });
+        self
+    }
+
+    /// A line under the legend of the group added last, what the section is for; the
+    /// fieldset is described by it. Call it right after `.group(..)`.
+    pub fn description(mut self, text: &'a str) -> Self {
+        if let Some(g) = self.groups.last_mut().filter(|g| g.legend.is_some()) {
+            g.description = Some(text);
+        }
         self
     }
 
@@ -446,12 +479,12 @@ impl<'a> Form<'a> {
     }
 
     /// Every field, with the values and errors filled in by name.
-    pub(crate) fn filled(&self) -> impl Iterator<Item = (Option<&'a str>, Vec<Field<'a>>)> + '_ {
+    pub(crate) fn filled(&self) -> impl Iterator<Item = Group<'a>> + '_ {
         self.groups
             .iter()
-            .filter(|(legend, fs)| legend.is_some() || !fs.is_empty())
-            .map(|(legend, fs)| {
-                let fs = fs.iter().map(|f| {
+            .filter(|g| g.legend.is_some() || !g.fields.is_empty())
+            .map(|g| {
+                let fs = g.fields.iter().map(|f| {
                     let value = if f.value.is_empty() {
                         self.values
                             .iter()
@@ -472,14 +505,18 @@ impl<'a> Form<'a> {
                         ..f.clone()
                     }
                 });
-                (*legend, fs.collect())
+                Group {
+                    legend: g.legend,
+                    description: g.description,
+                    fields: fs.collect(),
+                }
             })
     }
 
     /// The error summary: every field with a message, linked by its id and named by its
     /// label, then the messages that name no field.
     fn summary(&self) -> crate::error_summary::ErrorSummary<'a> {
-        let fields: Vec<Field<'a>> = self.filled().flat_map(|(_, fs)| fs).collect();
+        let fields: Vec<Field<'a>> = self.filled().flat_map(|g| g.fields).collect();
         let mut items: Vec<_> = fields
             .iter()
             .filter_map(|f| {
@@ -499,16 +536,23 @@ impl<'a> Form<'a> {
     /// Whether any field has a server message.
     pub(crate) fn has_errors(&self) -> bool {
         self.filled()
-            .any(|(_, fs)| fs.iter().any(|f| f.error.is_some()))
+            .any(|g| g.fields.iter().any(|f| f.error.is_some()))
     }
 
     fn fields(&self) -> Markup {
         html! {
-            @for (legend, fs) in self.filled() {
-                @if let Some(legend) = legend {
-                    fieldset class="lui-form-group" { legend { (legend) } @for f in &fs { (f) } }
+            @for g in self.filled() {
+                @if let Some(legend) = g.legend {
+                    @let did = g.description.map(|_| format!("lui-form-{}-description", crate::slug(legend)));
+                    fieldset class="lui-form-group" aria-describedby=[did.as_deref()] {
+                        legend class="lui-form-group-legend" { (legend) }
+                        @if let (Some(d), Some(did)) = (g.description, &did) {
+                            p id=(did) class="lui-form-group-description" { (d) }
+                        }
+                        @for f in &g.fields { (f) }
+                    }
                 } @else {
-                    @for f in &fs { (f) }
+                    @for f in &g.fields { (f) }
                 }
             }
         }
@@ -523,7 +567,7 @@ impl Render for Form<'_> {
         let multipart = self
             .groups
             .iter()
-            .flat_map(|g| &g.1)
+            .flat_map(|g| &g.fields)
             .any(|f| matches!(f.kind, FieldKind::File { .. }));
         let class = if self.inline {
             "lui-form lui-form-inline"
@@ -544,17 +588,37 @@ impl Render for Form<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-form { display: grid; gap: calc(var(--lui-space) * 3); max-width: 28rem; }
-.lui-form-inline { max-width: 40rem; }
-.lui-form-group { display: grid; gap: calc(var(--lui-space) * 2); margin: 0; padding: calc(var(--lui-space) * 3); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); }
-.lui-form-group legend { padding: 0 0.5rem; font-weight: 600; }
-@media (min-width: 40rem) {
-  .lui-form-inline .lui-field { grid-template-columns: 10rem 1fr; column-gap: calc(var(--lui-space) * 2); }
-  .lui-form-inline .lui-field > :not(label) { grid-column: 2; }
-  /* The label sits on the input's row, centred on it; help, counter and error stack below. */
-  .lui-form-inline .lui-field > label { grid-column: 1; grid-row: 1; align-self: center; }
+/* After the shadcn Forms examples and the Radix Themes settings layouts: a section is a
+   heading, one line of description and its fields; the fieldset stays for its semantics but
+   draws no frame, and a hairline and space separate one section from the next. The form is
+   its own container, so its layout follows the box it sits in, not the viewport. */
+.lui-form { container: lui-form / inline-size; display: grid; gap: var(--lui-space-6); max-width: 28rem; }
+.lui-form-inline { max-width: 48rem; }
+.lui-form-group { display: grid; gap: var(--lui-space-4); min-width: 0; margin: 0; padding: 0; border: 0; }
+fieldset.lui-form-group ~ fieldset.lui-form-group { padding-top: var(--lui-space-6); border-top: 1px solid var(--lui-line); }
+.lui-form-group-legend { float: left; width: 100%; padding: 0; font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+/* Floated, a legend is no longer drawn in the fieldset's border but laid out as an ordinary
+   grid item, so the gap spaces it; the description pulls up under it. */
+.lui-form-group-description { margin: calc(var(--lui-space-4) * -1 + var(--lui-space-1)) 0 0; color: var(--lui-muted); font-size: 0.875rem; line-height: 1.25rem; }
+/* The submit row: the button fills a narrow form, and sits at the end of a wide one. */
+.lui-form-actions { display: flex; flex-direction: column; gap: var(--lui-space-2); }
+.lui-form-actions > .lui-button { width: 100%; }
+@container lui-form (width >= 30rem) {
+  .lui-form-actions { flex-direction: row-reverse; justify-content: flex-start; }
+  .lui-form-actions > .lui-button { width: auto; }
+}
+/* .inline(): from 30rem, the label and its help in a column beside the field (Radix
+   settings); the counter and error stay under the field. */
+@container lui-form (width >= 30rem) {
+  .lui-form-inline .lui-field { grid-template-columns: minmax(8rem, 1fr) minmax(0, 2fr); column-gap: var(--lui-space-6); row-gap: var(--lui-space-1); }
+  .lui-form-inline .lui-field > * { grid-column: 2; }
+  /* The label lines up with the text inside the field, its help under it; the control spans
+     both rows, so help adds no empty row beside it. */
+  .lui-form-inline .lui-field > label { grid-column: 1; grid-row: 1; align-self: start; padding-top: calc((var(--lui-control-h) - 1.25rem) / 2); }
+  .lui-form-inline .lui-field > .lui-field-help { grid-column: 1; grid-row: 2; align-self: start; }
+  .lui-form-inline .lui-field:not(.lui-field-check) > label + * { grid-row: 1 / span 2; align-self: start; }
   .lui-form-inline .lui-field-check > label { grid-column: 2; }
-  .lui-form-inline .lui-form-actions { padding-left: calc(10rem + var(--lui-space) * 2); }
+  .lui-form-inline .lui-field-check > .lui-field-help { grid-column: 2; grid-row: auto; }
 }
 "#;
 
@@ -673,7 +737,8 @@ mod tests {
         );
         assert!(m.contains("placeholder=\"Type\""));
         assert!(
-            m.contains("class=\"lui-form lui-form-inline\"") && m.contains("<legend>G</legend>")
+            m.contains("class=\"lui-form lui-form-inline\"")
+                && m.contains(r#"<legend class="lui-form-group-legend">G</legend>"#)
         );
     }
 }

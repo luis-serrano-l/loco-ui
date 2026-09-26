@@ -176,13 +176,13 @@ fn signup_form(ui: &Ui, values: &[(String, String)], errors: &[(&str, &str)]) ->
     // code: /form
     let form = lui! {
         Form("/form") submit="Sign up" values=(values) errors=(errors) inline[inline] {
-            group "Account";
+            group "Account" description="How you sign in and what you pay.";
             text "name" "Name" required;
             email "email" "Email" required;
             number "age" "Age" 13 120 required;
             pattern "handle" "Handle" "[a-z0-9_]{3,16}" "3–16 lowercase letters, digits or _" required;
             select "plan" "Plan" ([("free", "Free"), ("team", "Team"), ("enterprise", "Enterprise")]);
-            group "Profile";
+            group "Profile" description="What others see on your page.";
             textarea "bio" "Bio" 3 maxlength=160 help="Grows as you type where the browser supports it.";
             file "avatar" "Avatar" "image/png,image/jpeg" help="PNG or JPEG.";
             date "start" "Start date" "2026-01-01" "2027-12-31";

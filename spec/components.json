@@ -720,6 +720,7 @@
           "calls": ["ui.form(action: &str)", "ui.fields()"],
           "props": [
             { "name": "group", "kind": "item", "args": "legend: &'a str", "default": "", "attr": "", "doc": "A `<fieldset>` with this `<legend>` around the fields added after it." },
+            { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the legend of the group added last." },
             { "name": "text", "kind": "item", "args": "name: &'a str, label: &'a str", "default": "", "attr": "", "doc": "Single-line text." },
             { "name": "password", "kind": "item", "args": "name: &'a str, label: &'a str", "default": "", "attr": "", "doc": "`type=\"password\"`." },
             { "name": "email", "kind": "item", "args": "name: &'a str, label: &'a str", "default": "", "attr": "", "doc": "`type=\"email\"`." },

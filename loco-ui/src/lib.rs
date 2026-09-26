@@ -1654,7 +1654,6 @@ mod tests {
             ("progress", "Progress box"),
             ("tabs", "Tabs box"),
             ("combobox", "Select and combobox box"),
-            ("form", "Form layout box"),
             ("error_summary", "Callout box"),
             ("flash", "Callout box"),
             ("select", "Select and combobox box"),

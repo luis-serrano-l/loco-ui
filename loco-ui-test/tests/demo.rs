@@ -800,12 +800,15 @@ async fn form_groups_help_counters_and_layouts() {
         "stacked: label above the field: {label:?} {input:?}"
     );
 
+    // Side labels come from a container query, which Blitz lacks (FINDINGS, M34): here the
+    // inline form keeps the narrow base, label above; `scripts/browser-check.mjs` checks the
+    // wide layout in Firefox.
     let inline = Page::render(demo::router(), "/form?layout=inline", MODERN).await;
     let label = inline.bbox("label[for=f-name]").unwrap();
     let input = inline.bbox("#f-name").unwrap();
     assert!(
-        input.x >= label.x + label.width - 1.0 && (input.y - label.y).abs() < 20.0,
-        "inline: label beside the field: {label:?} {input:?}"
+        input.y > label.y + label.height - 1.0,
+        "Blitz: the inline form's narrow base stacks: {label:?} {input:?}"
     );
 }
 

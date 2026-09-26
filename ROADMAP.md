@@ -1546,7 +1546,7 @@ owner has seen them.
   Stylesheet test raised to 128 KB raw (91.9 KB, 15.9 KB gzipped; M34's limit is gzip).
   Kept different: no size or variant setters on fields (Radix has 3 sizes, 3 variants); the
   demo's form is narrower than 30rem, so its cards stack.
-- [ ] Form layout (`form.rs`; reference: the shadcn "Forms" examples and the Radix Themes
+- [x] Form layout (`form.rs`; reference: the shadcn "Forms" examples and the Radix Themes
   settings layouts):
   - A section is a heading, a description and its fields. The `<fieldset>` and `<legend>`
     stay for semantics but are drawn borderless, which removes the box inside the card.
@@ -1557,6 +1557,15 @@ owner has seen them.
   - The submit row aligns to the end in wide containers and fills the width in narrow ones,
     with the primary action first on narrow screens.
   - The error summary sits above the first section (see Callout below).
+  Done: a group is a section: its legend (floated, so it is a grid item and not drawn in the
+  border; 1rem semibold), an optional `.description(..)` (new setter, `aria-describedby` on
+  the fieldset) and its fields, with no frame; a hairline and 24px separate sections. The
+  form is `container: lui-form`: `.inline()` (kept as the side-labels option, no rename)
+  puts label and help in a column beside the field from 30rem (the control spans both rows,
+  so help adds no gap beside it), and the submit button fills a narrow form and sits at the
+  end of a wide one (row-reverse, so the primary action is first in both). The inline form
+  may now be 48rem wide (40rem before). The error summary already comes first. The wide
+  checks moved to the browser check (Blitz has no `@container`).
 - [ ] Select and combobox (`select.rs`, `combobox.rs`; reference: Radix Themes Select and the
   shadcn Combobox):
   - The trigger has the control height, shows the value and ends in a chevron.

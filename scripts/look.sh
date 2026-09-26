@@ -30,6 +30,7 @@ button|/button?loading=1|$radix/button
 field|/field?email=ada|$radix/text-field
 inputs|/inputs|$radix/select
 form|/form|$shadcn/form
+form-inline|/form?layout=inline|
 form-errors|/form?errors=1|$radix/callout
 combobox|/combobox?q=r&sel=Zig|$shadcn/combobox
 otp|/otp|$shadcn/input-otp

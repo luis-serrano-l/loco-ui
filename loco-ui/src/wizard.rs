@@ -286,8 +286,8 @@ impl<'a> Wizard<'a> {
             dl class="lui-wizard-review" {
                 @for (i, step) in self.steps[..upto].iter().enumerate() {
                     @if let Body::Fields(form) = &step.body {
-                        @for (_, fields) in self.filled(form).filled() {
-                            @for f in fields.iter().filter(|f| f.shown()) {
+                        @for g in self.filled(form).filled() {
+                            @for f in g.fields.iter().filter(|f| f.shown()) {
                                 dt { (f.label) }
                                 dd {
                                     @if f.value.is_empty() { span class="lui-note" { (self.ui.text(Text::Skipped)) } } @else { (f.value) }
