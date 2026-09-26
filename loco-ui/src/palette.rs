@@ -325,7 +325,7 @@ pub const CSS: &str = r#"
 }
 .lui-palette-panel[popover] { margin: 12vh auto auto; max-height: 70vh; overflow: auto; }
 .lui-palette-panel[popover]::backdrop { background: var(--lui-overlay); }
-.lui-palette-details .lui-palette-panel { margin-top: var(--lui-space); }
+.lui-palette-details .lui-palette-panel { margin-top: var(--lui-space); width: min(32rem, 100%); }
 .lui-palette-form { display: flex; gap: var(--lui-space); align-items: center; margin: -0.25rem -0.25rem 0.25rem; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--lui-line); }
 .lui-palette-input { flex: 1; min-height: 2.75rem; padding: 0.5rem 0.25rem; border: 0; box-shadow: none; background: transparent; }
 .lui-palette-input:focus-visible { outline: none; }

@@ -1456,10 +1456,19 @@ owner has seen them.
   Done: decided up front instead: the existing half-unit scale (`--lui-space-N` is N × 4 px)
   already holds Radix's 4–32 px, so it gains `-10`, `-12`, `-16` (40, 48, 64 px) rather than a
   second, renumbered scale. Component reworks use these steps, never literals.
-- [ ] Test that no page scrolls sideways. In `loco-ui-test` or the browser check, render
+- [x] Test that no page scrolls sideways. In `loco-ui-test` or the browser check, render
   every path in `PATHS` at 320 px wide and fail when the document's scroll width exceeds
   its client width. Inner scrollers (the table body, tabs, kanban) are fine; only the page
   counts.
+  Done: in `scripts/browser-check.mjs`, real Firefox: each route's HTML is fetched and loaded
+  into a 320 px `srcdoc` iframe (WebDriver will not size a window under 500 px, and the demo
+  forbids framing), both capability sets; a failure names the outermost boxes that stick out.
+  Not Blitz: it has no `@container` and sizes inputs wider than browsers, so it reported pages
+  that fit in Firefox. Fixed on the way: `fieldset { min-inline-size: 0 }`, the theme
+  builder's and previews' `minmax(min(18rem, 100%), 1fr)`, "Built on" chips wrap, the caps
+  table scrolls inside, record fields shrink, the fallback palette panel fits its box.
+  Pending, each removed by its box (the check fails once the route fits): `/` (calendar,
+  table), `/kanban`, the two `/table` routes.
 - [ ] Test that layouts respond to their container, in `lib.rs` beside
   `only_the_primitives_select_bare_buttons_and_inputs`:
   - Fail when a component whose `CSS` sets a layout (`display: grid`, `display: flex` with

@@ -2,7 +2,8 @@
 // Drives headless Firefox through geckodriver (plain WebDriver over HTTP) to prove the
 // enhancement script does its job: actions happen in place, with no navigation. Then runs
 // axe-core over every PATHS route, both capability variants, light and dark; any violation of
-// serious or critical impact fails. axe is injected by this driver into the page under test,
+// serious or critical impact fails; last, fails when any route scrolls sideways at 320 px.
+// axe is injected by this driver into the page under test,
 // never served by the demo, so the one-script rule holds.
 // Usage: npm install --prefix scripts; node scripts/browser-check.mjs
 //        (needs target/debug/demo built, geckodriver, firefox)
@@ -429,6 +430,58 @@ try {
   }
   if (serious.length) console.error(serious.join("\n"));
   assert(serious.length === 0, `axe: no serious or critical violations on ${paths.length} routes x 2 caps x 2 themes (${minor} minor or moderate)`);
+
+  // No page scrolls sideways at 320 px (M34): the document may not be wider than its
+  // viewport. Inner scrollers (a table body, a tab list, the kanban board) are fine; only the
+  // page counts. WebDriver will not make a window narrower than 500 px and the demo refuses
+  // to be framed (`frame-ancestors 'none'`), so each route is fetched and its HTML loaded into
+  // a 320 px `srcdoc` iframe, whose media and container queries see 320. Both capability
+  // variants, since the fallbacks lay out differently.
+  function measure(path, done) {
+    fetch(path).then((r) => r.text()).then((html) => {
+      const frame = document.createElement("iframe");
+      frame.style.cssText = "width: 320px; height: 900px; border: 0";
+      frame.onload = () => {
+        const doc = frame.contentDocument, root = doc.documentElement, edge = root.clientWidth + 0.5;
+        // Name the outermost boxes that stick out, outside any scroller, to say where to look.
+        const out = (el) => el.getBoundingClientRect().right > edge;
+        const clipped = (el) => { for (let a = el.parentElement; a; a = a.parentElement) if (getComputedStyle(a).overflowX !== "visible") return true; return false; };
+        const names = [...doc.body.querySelectorAll("*")]
+          .filter((el) => out(el) && !(el.parentElement && out(el.parentElement)) && !clipped(el))
+          .slice(0, 3).map((el) => el.localName + (el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""));
+        done([frame.contentWindow.innerWidth, root.scrollWidth - root.clientWidth, names.join(", ")]);
+      };
+      frame.srcdoc = html;
+      document.body.replaceChildren(frame);
+    }, (e) => done([0, String(e)]));
+  }
+  // Routes still wider than 320, each until its M34 box lands; the check fails when one of
+  // them fits, so the entry is removed with the fix. Empty by the M34 wrap-up.
+  const pending = {
+    "/": "Calendar and Table boxes (the index shows both)",
+    "/kanban": "Kanban box",
+    "/table?sort.files=size&dir.files=desc&q.files=a&per.files=5&page.files=2&cols.files=name,size": "Table box",
+    "/table?per.files=5&edit.files=src/build.rs": "Table box",
+  };
+  const wide = [];
+  let inner = 0;
+  for (const [variant, cookie] of Object.entries(caps)) {
+    await go("/caps");
+    await setCookies(cookie);
+    for (const path of paths) {
+      await go("/caps");
+      const [width, over, where] = await wd("POST", S + "/execute/async", {
+        args: [path],
+        script: "(" + measure + ")(arguments[0], arguments[arguments.length - 1]);",
+      });
+      inner = width;
+      if (pending[path]) {
+        if (over === 0) wide.push(`${path} [${variant}]: fits now, remove it from pending (${pending[path]})`);
+      } else if (over !== 0) wide.push(`${path} [${variant}]: ${over}px wider than ${width} (${where})`);
+    }
+  }
+  if (wide.length) console.error(wide.join("\n"));
+  assert(inner === 320 && wide.length === 0, `320px: no page scrolls sideways on ${paths.length} routes x 2 caps (frame ${inner}px; ${Object.keys(pending).length} pending M34 boxes)`);
 } catch (e) {
   console.error("FAIL: " + e.message);
   await wd("DELETE", S).catch(() => {});

@@ -845,3 +845,9 @@ is not drawn only because it sits behind the motion query.
   component's narrow base layout at every width, which is why the base is written narrow.
   An assertion that needs a wide layout belongs in `scripts/browser-check.mjs`, not in
   `loco-ui-test`.
+- **The 320 px check runs in Firefox, not Blitz.** Besides lacking `@container`, Blitz gives
+  an `<input>` a wider intrinsic size than browsers do, so a grid of fields that fits a
+  320 px phone in Firefox reported up to 88 px of sideways overflow in Blitz.
+  `scripts/browser-check.mjs` loads each route into a 320 px `srcdoc` iframe instead
+  (WebDriver keeps a Firefox window at least 500 px wide, and the demo's
+  `frame-ancestors 'none'` refuses an ordinary iframe).

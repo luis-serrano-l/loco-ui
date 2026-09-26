@@ -131,15 +131,15 @@ impl Render for RecordPage<'_> {
 
 /// Styles for this block; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-record { display: grid; gap: calc(var(--lui-space) * 2); }
+.lui-record { display: grid; grid-template-columns: minmax(0, 1fr); gap: calc(var(--lui-space) * 2); }
 .lui-record-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--lui-space) * 2); }
 .lui-record-head h1 { margin: 0; }
 .lui-record-actions { display: flex; gap: var(--lui-space); }
 .lui-record-actions form { margin: 0; }
 .lui-record-fields {
-  display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: calc(var(--lui-space) * 1.5) calc(var(--lui-space) * 3); margin: 0;
+  display: grid; grid-template-columns: minmax(min(8rem, 40%), max-content) minmax(0, 1fr); gap: calc(var(--lui-space) * 1.5) calc(var(--lui-space) * 3); margin: 0;
   padding: calc(var(--lui-space) * 3); background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
 }
 .lui-record-fields dt { color: var(--lui-muted); font-size: 0.875rem; }
-.lui-record-fields dd { margin: 0; }
+.lui-record-fields dd { margin: 0; overflow-wrap: anywhere; }
 "#;

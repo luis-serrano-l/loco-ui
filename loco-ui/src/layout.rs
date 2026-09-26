@@ -605,6 +605,8 @@ html {
 body { margin: 0; background: var(--lui-bg); color: var(--lui-fg); }
 main { max-width: 52rem; margin: 0 auto; padding: calc(var(--lui-space) * 4) calc(var(--lui-space) * 2) calc(var(--lui-space) * 8); }
 p, li { max-width: 44rem; }
+/* A fieldset's UA min-inline-size is min-content: one wide field would push the page sideways. */
+fieldset { min-inline-size: 0; }
 .lui-header {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem;
   max-width: 52rem; margin: 0 auto; padding: calc(var(--lui-space) * 2);
@@ -690,7 +692,7 @@ body:has(.lui-site) > .lui-header { max-width: 84rem; }
 .lui-lede { font-size: 1.125rem; line-height: 1.75rem; color: var(--lui-muted); margin-bottom: 1rem; }
 .lui-built { color: var(--lui-muted); font-size: 0.875rem; margin: 0 0 1.5rem; }
 .lui-built code {
-  display: inline-block; margin: 0 0.25rem 0.25rem 0; padding: 0.125rem 0.5rem; white-space: nowrap;
+  display: inline-block; max-width: 100%; box-sizing: border-box; margin: 0 0.25rem 0.25rem 0; padding: 0.125rem 0.5rem; overflow-wrap: anywhere;
   font-size: 0.75rem; line-height: 1rem; font-weight: 500; color: var(--lui-fg);
   background: transparent; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-sm);
 }
@@ -728,9 +730,9 @@ body:has(.lui-site) > .lui-header { max-width: 84rem; }
 .lui-hl-f { color: var(--lui-fg); }
 /* The demo's props tables under the snippet: one <details> per builder. */
 .lui-theme-builder { display: grid; gap: calc(var(--lui-space) * 2); max-width: none; }
-.lui-theme-builder fieldset > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: var(--lui-space); }
+.lui-theme-builder fieldset > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr)); gap: var(--lui-space); }
 .lui-theme-builder fieldset { margin: 0; padding: calc(var(--lui-space) * 2); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
-.lui-theme-previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: calc(var(--lui-space) * 2); margin-block: calc(var(--lui-space) * 2); }
+.lui-theme-previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr)); gap: calc(var(--lui-space) * 2); margin-block: calc(var(--lui-space) * 2); }
 .lui-theme-preview { padding: calc(var(--lui-space) * 2); background: var(--lui-bg); color: var(--lui-fg); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
 /* The builder's depth row: a tile per shadow step, then the primary gradient. */
 .lui-theme-depth { display: flex; flex-wrap: wrap; gap: calc(var(--lui-space) * 2); margin-top: calc(var(--lui-space) * 3); }
@@ -741,6 +743,7 @@ body:has(.lui-site) > .lui-header { max-width: 84rem; }
 .lui-props summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem; padding: 0.5rem 0.75rem; cursor: pointer; }
 .lui-props summary span { margin-left: auto; color: var(--lui-muted); font-size: 0.8125rem; }
 .lui-props-scroll { overflow-x: auto; border-top: 1px solid var(--lui-line); }
+.lui-caps-scroll { overflow-x: auto; }
 .lui-playground > form > p { margin: 0; padding: 0.5rem 0.75rem; border-top: 1px solid var(--lui-line); }
 .lui-playground-preview { padding: 1rem 0.75rem; border-top: 1px solid var(--lui-line); }
 .lui-playground > pre { margin: 0; padding: 0.5rem 0.75rem; border-top: 1px solid var(--lui-line); overflow-x: auto; font-size: 0.8125rem; }

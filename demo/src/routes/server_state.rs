@@ -256,6 +256,7 @@ async fn caps_page(ui: Ui) -> Page {
 fn caps(ui: &Ui) -> Markup {
     let probed = ui.has(Cap::Probed);
     html! {
+        div class="lui-caps-scroll" tabindex="0" role="region" aria-label="Capabilities" {
             table class="lui-caps-table" {
                 thead { tr { th { "Capability" } th { "Supported" } th { "Effect" } th { "@supports test" } } }
                 // code: /caps
@@ -269,5 +270,6 @@ fn caps(ui: &Ui) -> Markup {
                 } }
                 // end code
             }
+        }
     }
 }
