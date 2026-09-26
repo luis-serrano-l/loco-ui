@@ -143,7 +143,7 @@ async fn pages_ship_only_the_enhancement_script() {
             let copies = html.matches(loco_ui::stylesheet()).count();
             assert!(copies >= 1, "{path}: the stylesheet is inlined");
             let markup = html.len() - copies * loco_ui::stylesheet().len();
-            let budget = if path == "/" { 160 } else { 48 } * 1024;
+            let budget = if path == "/" { 176 } else { 48 } * 1024;
             assert!(
                 markup < budget,
                 "{path}: {markup} bytes of markup, over the {} KB budget",

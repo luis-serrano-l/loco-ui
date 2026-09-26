@@ -273,7 +273,7 @@ there is no second request for CSS, and no script is required.
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
 stylesheet stays under 128 KB (88 KB until M34, whose own limit is 24.4 KB gzipped), and every demo page's markup, the inlined stylesheet not
-counted, under 48 KB (160 KB for the index with every component live on it) in `cargo test`.
+counted, under 48 KB (176 KB for the index with every component live on it; 160 until the M34 table listed hidden columns under each row) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the

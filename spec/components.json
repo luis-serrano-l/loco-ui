@@ -641,6 +641,7 @@
             { "name": "editable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last becomes a text box when its row is edited in place (`Table::edit`)." },
             { "name": "edit", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "Rows (with a `Row::key`) can be edited in place." },
             { "name": "width", "kind": "modifier", "args": "width: &'a str", "default": "", "attr": "", "doc": "A CSS width for the column added last, such as `6rem` or `30%`." },
+            { "name": "priority", "kind": "modifier", "args": "priority: u8", "default": "1", "attr": "", "doc": "1 always shown, 2 hidden in a narrow table, 3 below a medium one; values then show under the first cell." },
             { "name": "rows", "kind": "value", "args": "rows: impl IntoIterator<Item = R>", "default": "", "attr": "", "doc": "The rows, already sorted and filtered as `Table::sort` and `Table::filter` say: `Row`s, or tuples of cells." },
             { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page (`status`) carried, with the request's value, by every sort link, the search form, the pager and the CSV link." },
             { "name": "filter_select", "kind": "item", "args": "name: &'a str, label: &'a str, options: impl IntoIterator<Item = (&'a str, &'a str)>", "default": "", "attr": "", "doc": "A `<select>` of `(value, text)` options in the search form, filtering by the query parameter `name`, which the table then keeps." },

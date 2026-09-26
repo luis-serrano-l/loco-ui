@@ -251,9 +251,12 @@ pub(crate) fn paged_table_with(
                         li { (page_button(caps, &first, t(Text::First), false).class("lui-paged-table-end")) }
                         li { (page_button(caps, &prev, t(Text::Previous), false).rel("prev").body(html! { (Icon::ChevronLeft) (t(Text::Previous)) })) }
                     }
+                    li class="lui-paged-table-of" aria-hidden="true" {
+                        (t(Text::Page)) " " (Thousands(page)) " " (strings.fill(Text::OfTotal, &[&Thousands(pages)]))
+                    }
                     @for slot in window(page, pages) {
                         @match slot {
-                            Some(n) => li {
+                            Some(n) => li class="lui-paged-table-num" {
                                 @let h = link(n).to_string();
                                 (page_button(caps, &h, "", n == page).current(n == page).body(html! { (Thousands(n)) }))
                             },
@@ -371,15 +374,23 @@ impl fmt::Display for PageLink<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* shadcn Pagination: ghost page links, the current one an outline button, h-9 squares. */
-.lui-paged-table-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space) calc(var(--lui-space) * 2); margin-top: calc(var(--lui-space) * 2); font-size: 0.875rem; color: var(--lui-muted); }
-.lui-paged-table-pages { display: flex; flex-wrap: wrap; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
-.lui-paged-table-pages .lui-button { min-width: 2.25rem; padding-inline: 0.625rem; }
+/* shadcn Pagination: ghost page links, the current one the outline chip, previous and next
+   with their labels. It is its own container: under 30rem it is previous, "Page X of Y" and
+   next, the numbers, first/last and the jump form gone (the page select stays). */
+.lui-paged-table { container: lui-paged-table / inline-size; }
+.lui-paged-table-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2) var(--lui-space-4); margin-top: var(--lui-space-4); font-size: 0.875rem; color: var(--lui-muted); }
+.lui-paged-table-pages { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-1); list-style: none; margin: 0; padding: 0; }
+.lui-paged-table-pages .lui-button { min-width: var(--lui-control-h); padding-inline: 0.625rem; }
 .lui-paged-table-gap { align-self: center; padding: 0 0.25rem; }
-.lui-paged-table-jump, .lui-paged-table-per { display: flex; align-items: center; gap: var(--lui-space); }
+.lui-paged-table-of { display: none; padding-inline: var(--lui-space-2); color: var(--lui-fg); white-space: nowrap; }
+.lui-paged-table-jump, .lui-paged-table-per { display: flex; align-items: center; gap: var(--lui-space-2); }
 .lui-paged-table-jump { margin-left: auto; }
 .lui-paged-table-page { width: 5em; }
-@media (max-width: 40rem) { .lui-paged-table-jump { margin-left: 0; } }
+@container lui-paged-table (width < 30rem) {
+  .lui-paged-table-num, .lui-paged-table-gap, .lui-paged-table-end, .lui-paged-table-jump { display: none; }
+  .lui-paged-table-of { display: block; }
+  .lui-paged-table-pages { flex: 1; justify-content: space-between; }
+}
 "#;
 
 #[cfg(test)]

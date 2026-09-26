@@ -98,8 +98,8 @@ fn files_page(ui: &Ui, kinds: &Kinds) -> Markup {
     lui! { Table("files", "/table") paged=(total) choose_columns csv="/table.csv" edit="/table/edit"
             empty="No files match this filter." loading=(ui.param("loading") == Some("1")) {
         column "name" "Name" sortable;
-        column "size" "Size" sortable numeric width="7rem";
-        column "kind" "Kind" sortable editable width="9rem";
+        column "size" "Size" sortable numeric width="7rem" priority=2;
+        column "kind" "Kind" sortable editable width="9rem" priority=3;
         bulk "/table/bulk" ([("archive", "Archive"), ("delete", "Delete")]);
         rows (page.iter().map(|f| file_row(f, kinds)));
     } }

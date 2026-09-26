@@ -86,6 +86,14 @@
 //!     rows ([row]);
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // Priorities: 2 hides the column in a narrow table, 3 below a medium one; the values
+//! // then show under the first cell.
+//! let ui = Ui::default();
+//! let t = ui.table("t", "/t").column("name", "Name").column("size", "Size").priority(2)
+//!     .rows([(html! { "a.txt" }, html! { "1 KB" })]).render().into_string();
+//! assert!(t.contains(r#"<td class="lui-table-p2">1 KB</td>"#) && t.contains(r#"<div class="lui-table-more-p2"><dt>Size</dt><dd>1 KB</dd>"#));
+//! let same = lui! { Table("t", "/t") { column "name" "Name"; column "size" "Size" priority=2; rows ([(html! { "a.txt" }, html! { "1 KB" })]); } };
+//! assert_eq!(same.into_string(), t);
 //! ```
 //!
 //! **Fetching first, in `lui!`:** [`Ui::table_query`] reads the same sort, filter, page and page
@@ -151,6 +159,8 @@ pub(crate) struct Column<'a> {
     pub width: Option<&'a str>,
     /// Becomes a text box when its row is edited in place.
     pub editable: bool,
+    /// 1 always shown, 2 hidden in a narrow table, 3 hidden below a medium one.
+    pub priority: u8,
 }
 
 impl<'a> Column<'a> {
@@ -164,6 +174,7 @@ impl<'a> Column<'a> {
             numeric: false,
             width: None,
             editable: false,
+            priority: 1,
         }
     }
 
@@ -176,6 +187,7 @@ impl<'a> Column<'a> {
             numeric: false,
             width: None,
             editable: false,
+            priority: 1,
         }
     }
 
@@ -189,6 +201,7 @@ impl<'a> Column<'a> {
             numeric: true,
             width: None,
             editable: false,
+            priority: 1,
         }
     }
 }
@@ -863,14 +876,15 @@ pub(crate) fn table_in(
                     }
                 }
                 @if let Some(base) = csv {
-                    a class="lui-table-csv" href=(join(base, &query(sort, &carried))) download { (t(Text::DownloadCsv)) }
+                    a class="lui-button lui-button-small lui-table-csv" href=(join(base, &query(sort, &carried))) download { (Icon::Download) (t(Text::DownloadCsv)) }
                 }
             }
             }
+            div class={ "lui-table-scroll" @if bulk.is_some() { " lui-table-has-select" } } {
             table {
                 colgroup {
                     @if bulk.is_some() { col class="lui-table-select-col"; }
-                    @for (_, c) in &visible { col style=[c.width.map(|w| format!("width: {w}"))]; }
+                    @for (_, c) in &visible { col class=[prio(c)] style=[c.width.map(|w| format!("width: {w}"))]; }
                     @if edit.is_some() { col class="lui-table-edit-col"; }
                     @if has_menu { col class="lui-table-menu-col"; }
                 }
@@ -879,7 +893,7 @@ pub(crate) fn table_in(
                     @for (_, col) in &visible {
                         @let sorted = sort.filter(|(k, _)| *k == col.key);
                         @let aria = sorted.map(|(_, d)| if d { "descending" } else { "ascending" });
-                        th scope="col" aria-sort=[aria] class={ @if sorted.is_some() { "lui-table-sorted" } @if col.numeric { " lui-table-num" } } {
+                        th scope="col" aria-sort=[aria] class={ @if sorted.is_some() { "lui-table-sorted" } @if col.numeric { " lui-table-num" } @if let Some(p) = prio(col) { " " (p) } } {
                             @if col.sortable {
                                 @let next_desc = matches!(sorted, Some((_, false)));
                                 @let pairs: Vec<(&str, &str)> = carried.clone();
@@ -909,7 +923,8 @@ pub(crate) fn table_in(
                         }
                         @for (n, (i, col)) in visible.iter().enumerate() {
                             @let cell = row.cells.get(*i);
-                            td class=[col.numeric.then_some("lui-table-num")] {
+                            @let class = [col.numeric.then_some("lui-table-num"), prio(col)].into_iter().flatten().collect::<Vec<_>>().join(" ");
+                            td class=[(!class.is_empty()).then_some(class)] {
                                 @if editing && col.editable {
                                     (Input::text_box(col.key, col.label, row.values.get(*i).copied().unwrap_or("")).form(&edit_id).class("lui-table-edit-input"))
                                 } @else {
@@ -919,6 +934,15 @@ pub(crate) fn table_in(
                                         div class="lui-table-detail-body" { (detail) }
                                     },
                                     _ => @if let Some(c) = cell { (c) },
+                                }
+                                @if n == 0 && visible.iter().any(|(_, c)| c.priority > 1) {
+                                    dl class="lui-table-more" {
+                                        @for (j, c) in visible.iter().filter(|(_, c)| c.priority > 1) {
+                                            div class={ "lui-table-more-p" (c.priority) } {
+                                                dt { (c.label) } dd { @if let Some(v) = row.cells.get(*j) { (v) } }
+                                            }
+                                        }
+                                    }
                                 }
                                 }
                             }
@@ -944,6 +968,7 @@ pub(crate) fn table_in(
                     } }
                 }
             }
+            }
             @if let (Some(e), Some(key)) = (edit, edit.and_then(|e| e.key)) {
                 form method="post" action=(e.action) id=(edit_id) class="lui-table-edit-form" {
                     input type="hidden" name="key" value=(key);
@@ -967,7 +992,7 @@ pub(crate) fn table_in(
 /// To fetch the rows before writing the table (in `lui!`, say), read the same parameters
 /// with [`Ui::table_query`].
 ///
-/// **Setters.** Values and items: `.bulk(..)`, `.column(..)`, `.edit(..)`, `.width(..)`,
+/// **Setters.** Values and items: `.bulk(..)`, `.column(..)`, `.edit(..)`, `.width(..)`, `.priority(..)`,
 /// `.rows(..)`, `.paged(..)`, `.paged_from(..)`, `.csv(..)`, `.empty(..)`, `.keep(..)`,
 /// `.filter_select(..)`; switches: `.sortable()`, `.numeric()`, `.editable()`,
 /// `.choose_columns()`, `.hide_search()`; from a condition: `.loading(bool)`.
@@ -1007,6 +1032,9 @@ impl Table<'_> {
             .doc("Rows (with a `Row::key`) can be edited in place."),
         Prop::new("width", PropKind::Modifier, "width: &'a str")
             .doc("A CSS width for the column added last, such as `6rem` or `30%`."),
+        Prop::new("priority", PropKind::Modifier, "priority: u8")
+            .default("1")
+            .doc("1 always shown, 2 hidden in a narrow table, 3 below a medium one; values then show under the first cell."),
         Prop::new("rows", PropKind::Value, "rows: impl IntoIterator<Item = R>")
             .doc("The rows, already sorted and filtered as `Table::sort` and `Table::filter` say: `Row`s, or tuples of cells."),
         Prop::new("keep", PropKind::Item, "name: &'a str")
@@ -1059,6 +1087,15 @@ impl Ui {
     }
 }
 
+/// The class that hides a column of priority 2 or 3 by the table's width.
+fn prio(c: &Column) -> Option<&'static str> {
+    match c.priority {
+        2 => Some("lui-table-p2"),
+        3 => Some("lui-table-p3"),
+        _ => None,
+    }
+}
+
 impl<'a> Table<'a> {
     fn last(mut self, change: impl FnOnce(&mut Column<'a>)) -> Self {
         if let Some(c) = self.columns.last_mut() {
@@ -1100,6 +1137,13 @@ impl<'a> Table<'a> {
     /// A CSS width for the column added last, such as `6rem` or `30%`.
     pub fn width(self, width: &'a str) -> Self {
         self.last(|c| c.width = Some(width))
+    }
+
+    /// How much the column added last matters on a small screen: 1 (the default) is always
+    /// shown, 2 hides when the table is under 30rem wide, 3 under 48rem (container queries).
+    /// A hidden column's values still show, label and value, under the row's first cell.
+    pub fn priority(self, priority: u8) -> Self {
+        self.last(|c| c.priority = priority.clamp(1, 3))
     }
 
     /// The rows, already sorted and filtered as [`Table::sort`] and [`Table::filter`] say;
@@ -1330,14 +1374,20 @@ impl std::fmt::Display for Encoded<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* shadcn Data Table: a toolbar (filter input, outline buttons), a bordered rounded frame
-   round the table, text-sm cells, muted/50 row hover, a DropdownMenu for columns. */
+/* After the shadcn data-table and the Origin UI tables: a toolbar (search, filters, columns,
+   CSV as an outline button) that wraps with the search full width in a narrow table; a
+   bordered rounded frame that scrolls sideways inside itself, the first column (with the
+   checkbox, if any) sticky and soft shadows at an edge only while there is more that way;
+   a --lui-gray-2 header, --lui-gray-2 row hover, --lui-brand-3 selected rows. The table is its own
+   container: .priority(2) columns hide under 30rem and .priority(3) under 48rem, their
+   values then listed under the row's first cell. */
+.lui-table { container: lui-table / inline-size; }
 .lui-table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); margin-bottom: calc(var(--lui-space) * 2); }
-.lui-table-filter { flex: 1; min-width: 14rem; }
+.lui-table-filter { flex: 1; min-width: min(14rem, 100%); }
 .lui-table-filter form { display: flex; gap: var(--lui-space); align-items: center; }
 .lui-table-filter-input { flex: 1; min-width: 8rem; max-width: 24rem; }
-.lui-table-clear, .lui-table-csv { color: var(--lui-muted); font-size: 0.875rem; }
-.lui-table-clear:hover, .lui-table-csv:hover { color: var(--lui-fg); }
+.lui-table-clear { color: var(--lui-muted); font-size: 0.875rem; }
+.lui-table-clear:hover { color: var(--lui-fg); }
 .lui-table-cols { position: relative; font-size: 0.875rem; }
 .lui-table-cols summary { list-style: none; }
 .lui-table-cols summary::-webkit-details-marker { display: none; }
@@ -1349,12 +1399,24 @@ pub const CSS: &str = r#"
 .lui-table-cols a { display: flex; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: var(--lui-radius-sm); color: inherit; text-decoration: none; }
 .lui-table-cols a:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
 .lui-table-cols-mark { color: var(--lui-fg); }
-.lui-table > table { border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
+.lui-table-scroll {
+  overflow-x: auto; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
+  background:
+    linear-gradient(to right, var(--lui-bg) 40%, transparent) left / 1.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--lui-bg) 40%, transparent) right / 1.5rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--lui-fg) 16%, transparent), transparent) left / 0.75rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--lui-fg) 16%, transparent), transparent) right / 0.75rem 100% no-repeat scroll;
+}
+.lui-table-scroll > table { width: 100%; margin: 0; }
+.lui-table-scroll :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: var(--lui-bg); }
+.lui-table-has-select :is(th, td):nth-child(2) { position: sticky; left: 2.5rem; z-index: 1; background: var(--lui-bg); }
+.lui-table-scroll thead th:is(:first-child, :nth-child(2)) { background: var(--lui-gray-2); }
 .lui-table table { table-layout: auto; border-collapse: separate; border-spacing: 0; }
 .lui-table tbody tr:last-child > * { border-bottom: 0; }
-.lui-table thead th { position: sticky; top: 0; background: var(--lui-bg); z-index: 1; }
-.lui-table thead th:first-child { border-top-left-radius: var(--lui-radius); }
-.lui-table thead th:last-child { border-top-right-radius: var(--lui-radius); }
+.lui-table thead th { background: var(--lui-gray-2); color: var(--lui-muted); font-size: 0.8125rem; font-weight: 500; white-space: nowrap; }
+.lui-table tbody tr > td { transition: background-color var(--lui-duration-fast); }
+.lui-table tbody tr:hover > td { background: var(--lui-gray-2); }
+.lui-table tbody tr:has(.lui-table-check:checked) > td { background: var(--lui-brand-3); }
 .lui-table th a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
 .lui-table th a:hover { color: var(--lui-fg); }
 .lui-table th.lui-table-sorted { color: var(--lui-fg); }
@@ -1369,7 +1431,24 @@ pub const CSS: &str = r#"
 .lui-table-edit .lui-button + .lui-button { margin-left: 0.25rem; }
 .lui-table-edit-input { width: 100%; box-sizing: border-box; min-height: 2rem; padding-block: 0.25rem; }
 .lui-table-check { margin: 0; }
-.lui-table-empty { color: var(--lui-muted); text-align: center; padding: 1.5rem; height: 6rem; }
+.lui-table-empty { color: var(--lui-muted); text-align: center; padding: var(--lui-space-6); height: 6rem; }
+.lui-table tbody tr:hover > .lui-table-empty { background: none; }
+/* Priorities: the cells hide, and the matching lines under the first cell appear. */
+.lui-table-more { display: none; margin: var(--lui-space-1) 0 0; font-size: 0.8125rem; color: var(--lui-muted); }
+.lui-table-more > div { display: none; gap: 0.375rem; }
+.lui-table-more dt::after { content: ":"; }
+.lui-table-more dd { margin: 0; color: var(--lui-fg); }
+@container lui-table (width < 48rem) {
+  .lui-table .lui-table-p3 { display: none; }
+  .lui-table-more { display: grid; }
+  .lui-table-more > .lui-table-more-p3 { display: flex; }
+}
+@container lui-table (width < 30rem) {
+  .lui-table .lui-table-p2 { display: none; }
+  .lui-table-more > .lui-table-more-p2 { display: flex; }
+  .lui-table-filter { flex-basis: 100%; }
+  .lui-table-filter-input { max-width: none; }
+}
 .lui-table-detail summary { cursor: pointer; list-style: none; font-weight: 400; }
 .lui-table-detail summary::-webkit-details-marker { display: none; }
 .lui-table-detail summary::before { content: "\25B8"; color: var(--lui-muted); margin-right: 0.4em; }

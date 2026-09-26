@@ -1689,8 +1689,6 @@ mod tests {
             ("card", "Card box"),
             ("kanban", "Kanban box"),
             ("progress", "Progress box"),
-            ("table", "Table box"),
-            ("paged_table", "Table box"),
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),
             ("description_list", "Description list box"),

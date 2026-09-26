@@ -485,10 +485,8 @@ try {
   // Routes still wider than 320, each until its M34 box lands; the check fails when one of
   // them fits, so the entry is removed with the fix. Empty by the M34 wrap-up.
   const pending = {
-    "/": "Calendar and Table boxes (the index shows both)",
+    "/": "Kanban box (the index shows it)",
     "/kanban": "Kanban box",
-    "/table?sort.files=size&dir.files=desc&q.files=a&per.files=5&page.files=2&cols.files=name,size": "Table box",
-    "/table?per.files=5&edit.files=src/build.rs": "Table box",
   };
   const wide = [];
   let inner = 0;

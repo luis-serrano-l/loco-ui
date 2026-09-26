@@ -1883,7 +1883,7 @@ owner has seen them.
   30rem every other x label goes and axis text is drawn larger to survive the scaling.
   The series is the primary colour; a chart has one series, so the categorical order
   after it is only noted in the CSS. Demo text updated.
-- [ ] Table and paged table (`table.rs`, `paged_table.rs`; reference: the shadcn data-table
+- [x] Table and paged table (`table.rs`, `paged_table.rs`; reference: the shadcn data-table
   and the Origin UI tables):
   - `.priority(n)` on a column: 1 is always shown, 2 hides in a narrow container, 3 hides
     below medium. Hidden columns still show in the row's `<details>` detail, and the columns
@@ -1898,6 +1898,22 @@ owner has seen them.
   - The pager takes the shadcn Pagination look (moved here from the Breadcrumbs box): ghost
     buttons for pages, an outline chip for the current one, previous and next with labels,
     and in a narrow container previous, "page X of Y" and next.
+  Done: new `.priority(n)` (in PROPS): 2 hides the column when the table (its own container)
+  is under 30rem, 3 under 48rem; its values then show, label and value, in a small list
+  under the row's first cell, and the columns menu works as before. The table sits in
+  `.lui-table-scroll`: the bordered, rounded frame scrolls sideways inside itself, the first
+  column (after the checkbox when there is one) is sticky, and soft shadows show at an edge
+  only while there is more that way (background-attachment `local` covers over `scroll`
+  shadows, no script). Header gray-2 in small muted medium; row hover gray-2; selected rows
+  brand-3 (`:has(:checked)`, its own rule). The toolbar wraps, with the search full width
+  under 30rem; the CSV link is a small outline button with a download icon. Pager: page
+  numbers ghost, the current one outline, previous and next labelled; under 30rem only
+  previous, "Page X of Y" and next (and the page-size form). Empty and loading rows were
+  styled already. The two `/table` routes left the 320px pending list; the index budget
+  went from 160 to 176 KB of markup (every row carries its hidden-column list). Kept
+  different: the header no longer sticks to the page (a sticky header inside a sideways
+  scroller sticks to the scroller, which does not scroll vertically), and the inline Edit
+  does not fold into the row's … menu (the menu is the caller's items; it stays a button).
 - [ ] Progress and meter (`progress.rs`, `meter.rs`; reference: Tremor ProgressBar and
   CategoryBar):
   - A label and value on one line above a rounded gray-4 track with a brand fill. The meter
