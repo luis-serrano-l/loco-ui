@@ -1,0 +1,33 @@
+loco-ui
+Copyright (c) the loco-ui authors. MIT licence, see LICENSE.
+
+The look of loco-ui's components is reproduced from the open-source libraries below: their
+published measurements, colour steps, spacing and states, rewritten as plain CSS over
+loco-ui's own --lui-* tokens and server-rendered HTML. No code, markup or asset of theirs is
+copied into this repository. They are credited here because the design is theirs.
+
+Radix Themes and Radix Colors (MIT), https://www.radix-ui.com
+  The base look (M34): buttons, fields, checkbox, switch, radio cards, select, slider,
+  segmented control, callout, dialog, dropdown and context menus, tooltip, tabs, data list,
+  card, avatar, badge, skeleton; and the 12-step colour scales (M30). Look reproduced, no
+  code copied.
+
+shadcn/ui (MIT), https://ui.shadcn.com
+  Forms, combobox, one-time code, calendar (the react-day-picker v9 look), sheet and drawer,
+  Sonner toasts, accordion, breadcrumb, pagination, sidebar, navigation menu, command
+  palette and data table; and the earlier look (M20). Look reproduced, no code copied.
+
+Origin UI (MIT), https://coss.com/origin
+  Input slots, sliders, OTP input, file upload, stepper and tables. Look reproduced, no code
+  copied.
+
+Tremor (Apache-2.0), https://tremor.so
+  KPI cards, area, bar and line charts, progress bar and category bar. Look reproduced, no
+  code copied.
+
+Dice UI (MIT), https://www.diceui.com
+  Kanban board. Look reproduced, no code copied.
+
+Magic UI (MIT), https://magicui.design
+  The opt-in showpiece effects: shimmer, border beam, marquee (M30). Look reproduced, no
+  code copied.

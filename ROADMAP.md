@@ -1485,8 +1485,10 @@ owner has seen them.
   (auto-fill with `min(…, 100%)` is enough) and the settings page block uses `@container`.
   Blitz stacks those `min()` tracks (FINDINGS, taffy#225), so the side-by-side checks for
   `/card`, `/layout` and `/pricing` moved to the browser check.
-- [ ] `NOTICE`: one paragraph per reference library, with its name, licence, URL and "look
+- [x] `NOTICE`: one paragraph per reference library, with its name, licence, URL and "look
   reproduced, no code copied". Link it from README.
+  Done: also credits Radix Colors (the M30 scales) and Magic UI's effects; README's License
+  section links it. Add it to the crate's `include` if packaging ever filters files.
 
 ### Forms and inputs
 - [ ] Button (`button.rs`, the primitive everything uses; reference: Radix Themes Button and

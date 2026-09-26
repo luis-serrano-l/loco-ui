@@ -496,4 +496,5 @@ CHANGELOG.md                what each version added; both crates share the versi
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). The component look is reproduced from Radix Themes, shadcn/ui,
+Origin UI, Tremor, Dice UI and Magic UI, credited in [NOTICE](NOTICE); no code of theirs is copied.
