@@ -1,7 +1,7 @@
 //! # Dialog
 //!
 //! A modal opened by a button and closed by a button, with no script. It can carry a title
-//! with a close control, a size, a `danger` variant, and a footer that is a real form: a
+//! with a close control, a size (Radix's 1–4), a `danger` variant, and a footer that is a real form: a
 //! confirm button posting to a URL beside a cancel button, so "Delete account?" is one round
 //! trip and the server redirects back to the page that opened it.
 //!
@@ -48,7 +48,7 @@
 //! let m = ui.dialog("Delete account")
 //!     .id("confirm")
 //!     .title("Delete account?")
-//!     .small()
+//!     .size(1)
 //!     .danger()
 //!     .confirm("Delete", "/account/delete")
 //!     .returns_to("/settings")
@@ -64,7 +64,7 @@
 //! assert!(html.contains("<form method=\"post\" action=\"/account/delete\""));
 //! assert!(html.contains("name=\"returns_to\" value=\"/settings\""));
 //! // The same in `lui!`:
-//! let same = lui! { Dialog("Delete account") id="confirm" title="Delete account?" small danger
+//! let same = lui! { Dialog("Delete account") id="confirm" title="Delete account?" size=1 danger
 //!     confirm=("Delete", "/account/delete") returns_to="/settings" cancel="Keep it"
 //!     closedby="closerequest" open=(true) {
 //!     p { "This cannot be undone." }
@@ -77,6 +77,11 @@
 //! let ui = Ui::from_request("/account", "dialog=confirm", "");
 //! let html = ui.dialog("Delete account").id("confirm").confirm("Delete", "/account/delete").render().into_string();
 //! assert!(html.contains(" open>") && html.contains("value=\"/account\""));
+//!
+//! // Radix's four sizes; `.small()` and `.large()` are sizes 1 and 3.
+//! let wide = ui.dialog("Terms").size(4).render().into_string();
+//! assert!(wide.contains(r#"class="lui-dialog-xl""#));
+//! assert_eq!(lui! { Dialog("Terms") size=4; }.into_string(), wide);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -85,13 +90,14 @@ use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Icon, Ui, slug};
 
-/// Width of a dialog: `max-width` of 20, 28 or 40 rem.
+/// Width of a dialog, Radix's sizes 1–4: `max-width` of 20, 32, 42 or 56 rem.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum DialogSize {
     Sm,
     #[default]
     Md,
     Lg,
+    Xl,
 }
 
 impl DialogSize {
@@ -100,6 +106,7 @@ impl DialogSize {
             DialogSize::Sm => "lui-dialog-sm",
             DialogSize::Md => "lui-dialog-md",
             DialogSize::Lg => "lui-dialog-lg",
+            DialogSize::Xl => "lui-dialog-xl",
         }
     }
 }
@@ -108,7 +115,7 @@ impl DialogSize {
 /// a "Close" button, unless told otherwise.
 ///
 /// **Setters.** Values and items: `.body(..)`, `.id(..)`, `.title(..)`, `.confirm(..)`,
-/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`; switches: `.small()`,
+/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`; switches: `.small()`,
 /// `.large()`, `.danger()`; from a condition: `.open(bool)`.
 #[derive(Clone, Debug)]
 pub struct Dialog<'a> {
@@ -139,12 +146,15 @@ impl Dialog<'_> {
             .doc("Render the dialog already open (non-modal, no backdrop)."),
         Prop::new("title", PropKind::Value, "title: &'a str")
             .doc("A title in a header with a close control."),
+        Prop::new("size", PropKind::Value, "size: u8")
+            .default("2")
+            .doc("Radix's sizes 1–4: 20, 32, 42 or 56 rem wide, roomier padding as it grows."),
         Prop::new("small", PropKind::Switch, "")
-            .doc("20 rem wide."),
+            .doc("`.size(1)`: 20 rem wide."),
         Prop::new("large", PropKind::Switch, "")
-            .doc("40 rem wide."),
+            .doc("`.size(3)`: 42 rem wide."),
         Prop::new("danger", PropKind::Switch, "")
-            .doc("Red confirm button and title rule."),
+            .doc("A red solid confirm button."),
         Prop::new("confirm", PropKind::Value, "label: &'a str, action: &'a str")
             .doc("A confirm button labelled `label`."),
         Prop::new("returns_to", PropKind::Value, "path: &'a str")
@@ -206,19 +216,29 @@ impl<'a> Dialog<'a> {
         self
     }
 
-    /// 20 rem wide: a confirmation.
-    pub fn small(mut self) -> Self {
-        self.size = DialogSize::Sm;
+    /// Radix's sizes 1–4 (clamped): 20 rem (a confirmation), 32 (the default), 42 (a long
+    /// form) or 56 rem wide (a table), with roomier padding as it grows.
+    pub fn size(mut self, size: u8) -> Self {
+        self.size = match size {
+            0 | 1 => DialogSize::Sm,
+            2 => DialogSize::Md,
+            3 => DialogSize::Lg,
+            _ => DialogSize::Xl,
+        };
         self
     }
 
-    /// 40 rem wide: a long form or a table.
-    pub fn large(mut self) -> Self {
-        self.size = DialogSize::Lg;
-        self
+    /// `.size(1)`: 20 rem wide, a confirmation.
+    pub fn small(self) -> Self {
+        self.size(1)
     }
 
-    /// Red confirm button and title rule: for destructive actions.
+    /// `.size(3)`: 42 rem wide, a long form or a table.
+    pub fn large(self) -> Self {
+        self.size(3)
+    }
+
+    /// A red solid confirm button (Radix AlertDialog's): for destructive actions.
     pub fn danger(mut self) -> Self {
         self.danger = true;
         self
@@ -331,32 +351,41 @@ impl Render for Dialog<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-dialog { display: inline-flex; flex-wrap: wrap; gap: var(--lui-space); align-items: center; }
-/* shadcn Dialog: popover surface, rounded-lg, p-6, shadow-lg, the --lui-overlay backdrop. */
+.lui-dialog { display: inline-flex; flex-wrap: wrap; gap: var(--lui-space-2); align-items: center; }
+/* After Radix Themes Dialog and AlertDialog: a popover surface with a large radius and shadow
+   over the --lui-overlay backdrop; max width and padding by size (1–4); the title at the
+   heading size, the body in --lui-gray-11, actions at the end. The width is the viewport less a
+   16px gutter either side, and a tall body scrolls inside while title and actions stay. */
 .lui-dialog dialog {
+  --lui-dialog-pad: var(--lui-space-6);
+  box-sizing: border-box; width: calc(100% - 2rem); max-height: calc(100dvh - 2rem);
   background: var(--lui-popover); color: var(--lui-fg);
-  border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
-  padding: calc(var(--lui-space) * 3); width: calc(100% - 2rem); box-shadow: var(--lui-shadow-lg), var(--lui-highlight);
+  border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
+  padding: var(--lui-dialog-pad); box-shadow: var(--lui-shadow-lg), var(--lui-highlight);
 }
+.lui-dialog dialog[open], .lui-dialog dialog:target { display: flex; flex-direction: column; }
+.lui-dialog-form { display: flex; flex-direction: column; min-height: 0; }
 /* Server-opened (non-modal) dialogs sit in the flow; positioned so the close control anchors. */
 .lui-dialog dialog:not(:modal):not(:target) { position: relative; }
-.lui-dialog-sm { max-width: 20rem; }
-.lui-dialog-md { max-width: 32rem; }
-.lui-dialog-lg { max-width: 42rem; }
+.lui-dialog dialog.lui-dialog-sm { max-width: 20rem; --lui-dialog-pad: var(--lui-space-4); }
+.lui-dialog dialog.lui-dialog-md { max-width: 32rem; }
+.lui-dialog dialog.lui-dialog-lg { max-width: 42rem; }
+.lui-dialog dialog.lui-dialog-xl { max-width: 56rem; --lui-dialog-pad: var(--lui-space-8); }
 .lui-dialog dialog::backdrop { background: var(--lui-overlay); }
 .lui-dialog dialog h2 { margin-top: 0; }
-.lui-dialog-title { font-size: 1.125rem; line-height: 1.75rem; font-weight: 600; margin: 0 2rem var(--lui-space) 0; }
-.lui-dialog-danger .lui-dialog-title { color: var(--lui-danger); }
-.lui-dialog-body { font-size: 0.875rem; color: var(--lui-muted); }
+.lui-dialog-title { flex: none; font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 2.5rem var(--lui-space-2) 0; }
+.lui-dialog-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-muted); }
+.lui-dialog-body > :first-child { margin-top: 0; }
 .lui-dialog-body > :last-child { margin-bottom: 0; }
 .lui-dialog-body label { color: var(--lui-fg); }
-.lui-dialog-actions { display: flex; flex-wrap: wrap-reverse; justify-content: flex-end; gap: var(--lui-space); margin: calc(var(--lui-space) * 3) 0 0; }
-/* The close control is a small ghost icon button in the corner, 70% opacity until hovered. */
-.lui-dialog-close { position: absolute; top: calc(var(--lui-space) * 1.5); right: calc(var(--lui-space) * 1.5); opacity: 0.7; }
+.lui-dialog-actions { flex: none; display: flex; flex-wrap: wrap-reverse; justify-content: flex-end; gap: var(--lui-space-3); margin: var(--lui-space-6) 0 0; }
+/* The close × is a ghost icon button in the corner (44px itself on a coarse pointer, where
+   the small control height is --lui-hit), 70% opacity until hovered. */
+.lui-dialog-close { position: absolute; top: var(--lui-space-3); right: var(--lui-space-3); opacity: 0.7; }
 .lui-dialog-close:hover { opacity: 1; }
 
-/* Narrow screens: the footer stacks, full width, confirm on top (shadcn's flex-col-reverse). */
-@media (max-width: 40rem) {
+/* Narrow screens: the footer stacks, full width, confirm on top. */
+@media (max-width: 30rem) {
   .lui-dialog-actions { flex-direction: column-reverse; align-items: stretch; }
   .lui-dialog-actions > * { width: 100%; }
 }

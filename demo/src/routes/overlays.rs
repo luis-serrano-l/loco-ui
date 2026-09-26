@@ -32,10 +32,15 @@ pub(crate) const PAGES: &[super::Simple] = &[
 fn dialog(ui: &Ui) -> Markup {
     lui! {
             // code: /dialog
-            Dialog("Delete account") id="confirm" title="Delete account?" small danger
+            Dialog("Delete account") id="confirm" title="Delete account?" size=1 danger
                 confirm=("Delete account", "/dialog/delete") cancel="Keep it" {
                 p { "This cannot be undone. Everything you wrote goes with it." }
                 Input("reason", "Tell us why (optional)") placeholder="Moving on";
+            }
+            Dialog("Read the terms") id="terms" title="Terms of service" size=3 {
+                @for n in 1..=12 {
+                    p { (n) ". A long body scrolls inside the dialog; the title and the Close button stay put." }
+                }
             }
             // end code
     }

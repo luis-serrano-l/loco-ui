@@ -1709,13 +1709,23 @@ owner has seen them.
   All three are an icon column beside text at any width (NO_BREAKPOINT).
 
 ### Overlays and navigation
-- [ ] Dialog (`dialog.rs`; reference: Radix Themes Dialog and AlertDialog):
+- [x] Dialog (`dialog.rs`; reference: Radix Themes Dialog and AlertDialog):
   - Max width by `.size(..)` (Radix 1–4). The title uses the heading size and the
     description gray-11. The footer holds actions at the end, with danger actions in red
     solid.
   - In a narrow viewport the dialog takes the width minus a 16 px gutter, the footer stacks
     with the confirm action on top, and the body scrolls inside if tall.
   - The close × is an icon button top-right with a 44 px touch area.
+  Done: `.size(1..=4)` (new; `.small()`/`.large()` are 1 and 3) for 20, 32, 42 and 56rem,
+  padding 16, 24, 24 and 32px; large radius; the title at the heading size (1.25rem bold),
+  the body gray-11; actions at the end, 12px apart, danger confirm solid red (the red title
+  is gone, as in Radix AlertDialog). The dialog is the viewport less 16px either side and
+  at most 100dvh − 2rem tall, a flex column whose body scrolls while title and actions
+  stay; below 30rem the footer stacks, confirm on top. The × is a small ghost icon button
+  top-right, 44px on coarse pointers through `--lui-control-h-sm`. Demo adds a size-3
+  terms dialog with a long body. To check at the final verify: a Firefox headless shot of
+  `/dialog?dialog=confirm` shows the space but not the dialog, on the committed code as
+  well (the terms dialog opened the same way shows).
 - [ ] Popover, menu, context menu, tooltip (`popover.rs`, `context_menu.rs`, `tooltip.rs`;
   reference: Radix Themes Popover, DropdownMenu, ContextMenu, Tooltip):
   - Menu items are 2 rem tall with an 8 px inline padding and a leading icon slot. The
