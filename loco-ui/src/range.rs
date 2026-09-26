@@ -23,8 +23,14 @@
 //! **Fallback:** none needed. Without `list` support the ticks are simply not drawn. A pair
 //! whose thumbs cross posts a low above the high; [`order`] swaps them back on the server.
 //!
-//! **Enhanced:** the enhancement script mirrors each slider into its `<output for>` while it
-//! moves. Without it the `<output>` shows the value the server last saw.
+//! The look follows Radix Themes Slider: a thin gray track filled in the primary colour up to
+//! the value (between the thumbs for a pair; `--lui-range-fill`, or `--lui-range-lo` and
+//! `--lui-range-hi`, set by the server), a round white thumb, and `.ticks()` for the lowest,
+//! middle and highest values under the track. The value stays beside the slider: CSS cannot
+//! place a label over a thumb that moves without script.
+//!
+//! **Enhanced:** the enhancement script mirrors each slider into its `<output for>` and its
+//! fill while it moves. Without it the `<output>` shows the value the server last saw.
 //!
 //! ```rust
 //! use loco_ui::prelude::*;
@@ -34,6 +40,10 @@
 //! let m = ui.range("volume", "Volume").step(5).render().into_string();
 //! assert!(m.contains(r#"<label for="f-volume">Volume</label>"#) && m.contains("<output for=\"f-volume\">40</output>"));
 //! assert!(ui.range("volume", "Volume").value(70).render().into_string().contains("<output for=\"f-volume\">70</output>"));
+//! assert!(m.contains(r#"style="--lui-range-fill: 40%""#));
+//! let ticked = ui.range("volume", "Volume").ticks().render().into_string();
+//! assert!(ticked.contains(r#"<div class="lui-range-ticks" aria-hidden="true"><span>0</span>"#));
+//! assert_eq!(lui! { Range("volume", "Volume") ticks; }.into_string(), ticked);
 //! // A pair posted the wrong way round is put back in order.
 //! let m = ui.range_pair("price", "Price").step(10).render().into_string();
 //! assert!(m.contains("name=\"price_min\"") && m.contains("name=\"price_max\""));
@@ -55,7 +65,7 @@ use crate::props::{Prop, PropKind};
 /// otherwise.
 ///
 /// **Setters.** Values and items: `.value(..)`, `.values(..)`, `.min(..)`, `.max(..)`,
-/// `.step(..)`.
+/// `.step(..)`; switches: `.ticks()`.
 #[derive(Clone, Debug)]
 pub struct Range<'a> {
     name: &'a str,
@@ -67,6 +77,7 @@ pub struct Range<'a> {
     min: i64,
     max: i64,
     step: i64,
+    ticks: bool,
     strings: &'static Strings,
 }
 
@@ -91,6 +102,8 @@ impl Range<'_> {
             .default("1")
             .attr("step")
             .doc("Distance between allowed values (at least 1)."),
+        Prop::new("ticks", PropKind::Switch, "")
+            .doc("The lowest, middle and highest values marked under the track."),
     ];
 }
 
@@ -108,6 +121,7 @@ impl Ui {
             min: 0,
             max: 100,
             step: 1,
+            ticks: false,
         }
     }
 
@@ -159,6 +173,21 @@ impl<'a> Range<'a> {
         self.step = step.max(1);
         self
     }
+
+    /// The lowest, middle and highest values marked under the track, with a label at each
+    /// end.
+    pub fn ticks(mut self) -> Self {
+        self.ticks = true;
+        self
+    }
+}
+
+/// Where `value` sits between `min` and `max`, as a CSS percentage: what the track is filled
+/// up to (`--lui-range-fill`, or `--lui-range-lo` and `--lui-range-hi` for a pair).
+fn percent(value: i64, min: i64, max: i64) -> String {
+    let span = (max - min).max(1) as f64;
+    let at = ((value.clamp(min, max) - min) as f64 / span * 100.0).round();
+    format!("{at}%")
 }
 
 impl Render for Range<'_> {
@@ -172,7 +201,15 @@ impl Render for Range<'_> {
             min,
             max,
             step,
+            ticks,
         } = *self;
+        let ticks = ticks.then(|| {
+            html! {
+                div class="lui-range-ticks" aria-hidden="true" {
+                    span { (min) } span {} span { (max) }
+                }
+            }
+        });
         let value = match high {
             None => (value.unwrap_or((min + max) / 2), None),
             Some(high) => {
@@ -185,7 +222,11 @@ impl Render for Range<'_> {
                 let (list, id) = (format!("{name}-ticks"), format!("f-{name}"));
                 html! {
                     div class="lui-range" {
-                        input type="range" class="lui-range-input" id=(id) name=(name) min=(min) max=(max) step=(step) value=(value) list=(list);
+                        div class="lui-range-main" {
+                            input type="range" class="lui-range-input" id=(id) name=(name) min=(min) max=(max) step=(step) value=(value) list=(list)
+                                style={ "--lui-range-fill: " (percent(value, min, max)) };
+                            @if let Some(t) = &ticks { (t) }
+                        }
                         datalist id=(list) {
                             option value=(min) label=(min) {}
                             option value=((min + max) / 2) {}
@@ -199,9 +240,12 @@ impl Render for Range<'_> {
                 let (lo_id, hi_id) = (format!("f-{name}_min"), format!("f-{name}_max"));
                 html! {
                     div class="lui-range lui-range-pair" {
-                        div class="lui-range-track" {
+                        div class="lui-range-main" {
+                        div class="lui-range-track" style={ "--lui-range-lo: " (percent(lo, min, max)) "; --lui-range-hi: " (percent(hi, min, max)) } {
                             input type="range" class="lui-range-input" id=(lo_id) name={ (name) "_min" } min=(min) max=(max) step=(step) value=(lo) aria-label=(self.strings.get(Text::Minimum));
                             input type="range" class="lui-range-input" id=(hi_id) name={ (name) "_max" } min=(min) max=(max) step=(step) value=(hi) aria-label=(self.strings.get(Text::Maximum));
+                        }
+                        @if let Some(t) = &ticks { (t) }
                         }
                         span class="lui-range-values" { output for=(lo_id) { (lo) } " – " output for=(hi_id) { (hi) } }
                     }
@@ -224,29 +268,62 @@ pub fn order(a: i64, b: i64) -> (i64, i64) {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-range { display: flex; align-items: center; gap: var(--lui-space); }
-.lui-range-input { flex: 1; accent-color: var(--lui-primary); }
-.lui-range output { min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
-/* Two inputs share one grid cell; only their thumbs catch the pointer. */
-.lui-range-track { flex: 1; display: grid; align-items: center; min-height: 1.5rem; }
-.lui-range-track::before { content: ""; grid-area: 1 / 1; height: 6px; border-radius: 3px; background: var(--lui-secondary); }
-.lui-range-track .lui-range-input {
-  grid-area: 1 / 1; appearance: none; width: 100%; height: 1.5rem; margin: 0; padding: 0;
-  border: 0; background: none; pointer-events: none;
+/* After Radix Themes Slider (size 2) and the Origin UI sliders: a 6px --lui-gray-4 track filled
+   in the primary colour up to the value, a 1rem round --lui-on-primary thumb with a hairline ring and
+   a small shadow, a wide soft ring on focus. The fill comes from --lui-range-fill, which the
+   server sets and the enhancement script keeps live while dragging; Firefox draws it itself
+   with ::-moz-range-progress. The value sits beside the slider in its <output>. */
+.lui-range { display: flex; align-items: flex-start; gap: var(--lui-space-3); }
+.lui-range-main { flex: 1; min-width: 0; display: grid; gap: var(--lui-space-1); }
+.lui-range-input {
+  appearance: none; width: 100%; height: 1.25rem; margin: 0; padding: 0; border: 0;
+  background: transparent; box-shadow: none; cursor: pointer; --lui-range-fill: 50%;
 }
+.lui-range-input::-webkit-slider-runnable-track {
+  height: 0.375rem; border-radius: 9999px;
+  background: linear-gradient(to right, var(--lui-primary) var(--lui-range-fill), var(--lui-gray-4) var(--lui-range-fill));
+}
+.lui-range-input::-moz-range-track { height: 0.375rem; border-radius: 9999px; background: var(--lui-gray-4); }
+.lui-range-input::-moz-range-progress { height: 0.375rem; border-radius: 9999px; background: var(--lui-primary); }
+.lui-range-input::-webkit-slider-thumb {
+  appearance: none; width: 1rem; height: 1rem; margin-top: -0.3125rem; border-radius: 50%;
+  background: var(--lui-on-primary); box-shadow: 0 0 0 1px var(--lui-gray-7), var(--lui-shadow-xs);
+  transition: box-shadow var(--lui-duration-fast);
+}
+.lui-range-input::-moz-range-thumb {
+  width: 1rem; height: 1rem; border: 0; border-radius: 50%;
+  background: var(--lui-on-primary); box-shadow: 0 0 0 1px var(--lui-gray-7), var(--lui-shadow-xs);
+  transition: box-shadow var(--lui-duration-fast);
+}
+.lui-range-input:focus-visible { outline: none; }
+.lui-range-input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--lui-primary), 0 0 0 5px color-mix(in srgb, var(--lui-ring) 40%, transparent); }
+.lui-range-input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 1px var(--lui-primary), 0 0 0 5px color-mix(in srgb, var(--lui-ring) 40%, transparent); }
+.lui-range-input:disabled { cursor: not-allowed; }
+.lui-range-input:disabled::-webkit-slider-runnable-track { background: var(--lui-gray-4); }
+.lui-range-input:disabled::-moz-range-progress { background: var(--lui-gray-8); }
+.lui-range output, .lui-range-values { line-height: 1.25rem; min-width: 3ch; text-align: right; font-size: 0.875rem; font-variant-numeric: tabular-nums; text-wrap: nowrap; }
+/* .ticks(): the lowest, middle and highest value under the track, the ends labelled. */
+.lui-range-ticks { display: flex; justify-content: space-between; padding-inline: 0.5rem; color: var(--lui-muted); font-size: 0.75rem; line-height: 1rem; font-variant-numeric: tabular-nums; }
+.lui-range-ticks > span { display: grid; justify-items: center; width: 0; white-space: nowrap; }
+.lui-range-ticks > span::before { content: ""; width: 1px; height: 0.25rem; margin-bottom: 0.125rem; background: var(--lui-gray-7); }
+/* A pair: two inputs share one grid cell over one drawn track, filled between the thumbs;
+   only the thumbs catch the pointer. */
+.lui-range-track { display: grid; align-items: center; min-height: 1.25rem; }
+.lui-range-track::before {
+  content: ""; grid-area: 1 / 1; height: 0.375rem; border-radius: 9999px;
+  background: linear-gradient(to right, var(--lui-gray-4) var(--lui-range-lo, 0%), var(--lui-primary) var(--lui-range-lo, 0%) var(--lui-range-hi, 100%), var(--lui-gray-4) var(--lui-range-hi, 100%));
+}
+.lui-range-track .lui-range-input { grid-area: 1 / 1; pointer-events: none; }
 .lui-range-track .lui-range-input::-webkit-slider-runnable-track { background: none; }
 .lui-range-track .lui-range-input::-moz-range-track { background: none; }
 .lui-range-track .lui-range-input::-moz-range-progress { background: none; }
-.lui-range-track .lui-range-input::-webkit-slider-thumb {
-  appearance: none; pointer-events: auto; cursor: pointer; width: 1rem; height: 1rem; border-radius: 50%;
-  background: var(--lui-bg); border: 1px solid var(--lui-primary); box-shadow: var(--lui-shadow-xs);
+.lui-range-track .lui-range-input::-webkit-slider-thumb { pointer-events: auto; }
+.lui-range-track .lui-range-input::-moz-range-thumb { pointer-events: auto; }
+/* Touch: a bigger thumb in a 44px tall input. */
+@media (pointer: coarse) {
+  .lui-range-input, .lui-range-track { height: var(--lui-hit); }
+  .lui-range output, .lui-range-values { line-height: var(--lui-hit); }
+  .lui-range-input::-webkit-slider-thumb { width: 1.5rem; height: 1.5rem; margin-top: -0.5625rem; }
+  .lui-range-input::-moz-range-thumb { width: 1.5rem; height: 1.5rem; }
 }
-.lui-range-track .lui-range-input::-moz-range-thumb {
-  pointer-events: auto; cursor: pointer; width: 1rem; height: 1rem; border-radius: 50%; box-sizing: border-box;
-  background: var(--lui-bg); border: 1px solid var(--lui-primary); box-shadow: var(--lui-shadow-xs);
-}
-.lui-range-track .lui-range-input:focus-visible { outline: none; }
-.lui-range-track .lui-range-input:focus-visible::-webkit-slider-thumb { outline: 4px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); outline-offset: 0; }
-.lui-range-track .lui-range-input:focus-visible::-moz-range-thumb { outline: 4px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); outline-offset: 0; }
-.lui-range-values { text-wrap: nowrap; font-variant-numeric: tabular-nums; }
 "#;

@@ -1640,6 +1640,11 @@ mod tests {
                 "combobox",
                 "one row of chips, search box and button that wraps",
             ),
+            ("range", "one row: the slider and its value"),
+            (
+                "color",
+                "a row of picker, value chip and presets that wraps",
+            ),
         ];
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.
@@ -1663,8 +1668,6 @@ mod tests {
             ("tabs", "Tabs box"),
             ("error_summary", "Callout box"),
             ("flash", "Callout box"),
-            ("range", "Range and colour box"),
-            ("color", "Range and colour box"),
             ("table", "Table box"),
             ("paged_table", "Table box"),
             ("wizard", "Wizard box"),

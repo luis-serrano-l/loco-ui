@@ -921,7 +921,8 @@
             { "name": "values", "kind": "value", "args": "low: i64, high: i64", "default": "", "attr": "", "doc": "A pair's two values, put in order, instead of the query's." },
             { "name": "min", "kind": "number", "args": "min: i64", "default": "0", "attr": "min", "doc": "Lowest value." },
             { "name": "max", "kind": "number", "args": "max: i64", "default": "100", "attr": "max", "doc": "Highest value." },
-            { "name": "step", "kind": "number", "args": "step: i64", "default": "1", "attr": "step", "doc": "Distance between allowed values (at least 1)." }
+            { "name": "step", "kind": "number", "args": "step: i64", "default": "1", "attr": "step", "doc": "Distance between allowed values (at least 1)." },
+            { "name": "ticks", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The lowest, middle and highest values marked under the track." }
           ]
         }
       ]

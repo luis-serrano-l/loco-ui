@@ -1585,7 +1585,7 @@ owner has seen them.
   NO_BREAKPOINT. Not checked by eye: the `base-select` picker (Firefox and Chrome 109 lack
   it; the shots show the native path). `/inputs` puts its note in a Stack so the
   full-width Save no longer touches it.
-- [ ] Range and colour (`range.rs`, `color.rs`; reference: Radix Themes Slider and the
+- [x] Range and colour (`range.rs`, `color.rs`; reference: Radix Themes Slider and the
   Origin UI sliders):
   - The track fills up to the value, using the existing `--value` custom property or
     `<output>`. The thumb is round with a ring on focus.
@@ -1594,6 +1594,18 @@ owner has seen them.
   - A range pair shows two thumbs on one track.
   - The colour field shows a swatch chip beside the hex value, and presets as a row of
     round swatches.
+  Done: every slider (and the colour's opacity slider) is drawn: a 6px gray-4 track filled
+  in the primary colour up to `--lui-range-fill`, which the server sets inline and the
+  enhancement script updates while dragging (Firefox also fills natively with
+  `::-moz-range-progress`); a 1rem white thumb with a gray-7 hairline and a soft 5px focus
+  ring; 1.5rem thumbs in a 44px row on touch. A pair fills between its thumbs
+  (`--lui-range-lo`/`--lui-range-hi`). New `.ticks()`: min, middle and max marks under the
+  track, the ends labelled. The value stays beside the slider (CSS cannot follow a moving
+  thumb without script), aligned to the track. The colour field is a square picker well,
+  then one chip with a round swatch (checkerboard under opacity) and the mono hex; presets
+  stay round, ringed in the primary colour when chosen, 44px on touch. Both wrap or sit in
+  one row by themselves (NO_BREAKPOINT). The enhancement script's source limit went from
+  13 to 14 KB for the fill code (served size still under its 11 KB limit).
 - [ ] One-time code (`input_otp.rs`; reference: the Origin UI OTP input and the shadcn
   InputOTP):
   - Joined boxes: shared borders, rounded only at the group's ends, and an optional

@@ -137,12 +137,15 @@ impl Render for Color<'_> {
             html! {
                 div class="lui-color" {
                     input type="color" class="lui-color-input" id=(id) name=(name) value=(value);
-                    span class="lui-color-swatch" style={ "--lui-color-value: " (value) "; --lui-color-alpha: " (pct) "%" } aria-hidden="true" {}
-                    code { @if pct < 100 { (hex_alpha(value, pct)) } @else { (value) } }
+                    span class="lui-color-value" {
+                        span class="lui-color-swatch" style={ "--lui-color-value: " (value) "; --lui-color-alpha: " (pct) "%" } aria-hidden="true" {}
+                        code { @if pct < 100 { (hex_alpha(value, pct)) } @else { (value) } }
+                    }
                     @if alpha.is_some() {
                         label class="lui-color-alpha" {
                             (self.strings.get(Text::Opacity).replace("{}", "").trim_end()) " "
-                            input type="range" class="lui-color-alpha-range" id={ (id) "-alpha" } name={ (name) "-alpha" } min="0" max="100" value=(pct);
+                            input type="range" class="lui-range-input lui-color-alpha-range" id={ (id) "-alpha" } name={ (name) "-alpha" } min="0" max="100" value=(pct)
+                                style={ "--lui-range-fill: " (pct) "%" };
                             span { output for={ (id) "-alpha" } { (pct) } "%" }
                         }
                     }
@@ -161,22 +164,34 @@ impl Render for Color<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-color { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); }
-.lui-color-input { width: 3rem; height: var(--lui-control-h); padding: 2px; }
-.lui-color-swatch {
-  width: var(--lui-control-h); height: var(--lui-control-h); border-radius: var(--lui-radius-sm); border: 1px solid var(--lui-input); box-shadow: var(--lui-shadow-xs);
-  background: linear-gradient(color-mix(in srgb, var(--lui-color-value) var(--lui-color-alpha, 100%), transparent) 0 0),
-    repeating-conic-gradient(var(--lui-line) 0 25%, var(--lui-surface) 0 50%) 0 0 / 0.75rem 0.75rem;
+/* After the Origin UI colour inputs: the native picker as a square well, then one chip with
+   a round swatch (over a checkerboard, for opacity) and the hex value, the opacity slider in
+   the range look, and presets as a row of round swatches. Wraps by itself. */
+.lui-color { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); max-width: 100%; }
+.lui-color-input { width: var(--lui-control-h); height: var(--lui-control-h); padding: 0.1875rem; cursor: pointer; }
+.lui-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.lui-color-input::-webkit-color-swatch { border: 0; border-radius: calc(var(--lui-radius-sm) - 2px); }
+.lui-color-input::-moz-color-swatch { border: 0; border-radius: calc(var(--lui-radius-sm) - 2px); }
+.lui-color-value {
+  display: inline-flex; align-items: center; gap: var(--lui-space-2); height: var(--lui-control-h); box-sizing: border-box;
+  padding: 0 0.75rem 0 0.5rem; border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
 }
-.lui-color-alpha { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 400; }
-.lui-color-alpha-range { width: 8rem; accent-color: var(--lui-primary); }
+.lui-color-value code { font-family: var(--lui-font-mono); font-size: 0.8125rem; background: none; border: 0; padding: 0; }
+.lui-color-swatch {
+  width: 1.25rem; height: 1.25rem; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lui-fg) 15%, transparent);
+  background: linear-gradient(color-mix(in srgb, var(--lui-color-value) var(--lui-color-alpha, 100%), transparent) 0 0),
+    repeating-conic-gradient(var(--lui-line) 0 25%, var(--lui-surface) 0 50%) 0 0 / 0.5rem 0.5rem;
+}
+.lui-color-alpha { display: inline-flex; align-items: center; gap: var(--lui-space-2); font-weight: 400; font-size: 0.875rem; }
+.lui-color-alpha-range { width: 8rem; }
 .lui-color-alpha output { min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
-.lui-color-presets { display: flex; flex-basis: 100%; gap: 0.5rem; }
-/* A preset is a button drawn as a round swatch of its colour. */
+.lui-color-presets { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: var(--lui-space-2); }
+/* A preset is a button drawn as a round swatch of its colour, ringed when it is the value. */
 .lui-color-presets .lui-button {
   width: 1.75rem; height: 1.75rem; min-height: 0; padding: 0; border-radius: 50%;
   background: var(--lui-color-value); border: 2px solid var(--lui-bg); box-shadow: 0 0 0 1px var(--lui-input);
 }
-.lui-color-presets .lui-button:hover { background: var(--lui-color-value); box-shadow: 0 0 0 1px var(--lui-ring); }
-.lui-color-presets .lui-button[aria-pressed=true] { box-shadow: 0 0 0 2px var(--lui-fg); }
+.lui-color-presets .lui-button:hover { background: var(--lui-color-value); box-shadow: 0 0 0 1px var(--lui-gray-8); }
+.lui-color-presets .lui-button[aria-pressed=true] { box-shadow: 0 0 0 2px var(--lui-primary); }
+@media (pointer: coarse) { .lui-color-presets .lui-button { width: var(--lui-hit); height: var(--lui-hit); } }
 "#;

@@ -281,6 +281,13 @@ document.addEventListener("input", function (e) {
   var t = e.target, out = t.id && document.querySelector("output[for='" + t.id + "']");
   // Range: its value. Field with maxlength: length / limit.
   if (out) out.textContent = t.maxLength > 0 ? t.value.length + " / " + t.maxLength : t.value;
+  if (t.type === "range") {
+    // The track's fill: up to the value, or between a pair's thumbs.
+    var p = function (r) { return (r.value - r.min) * 100 / (r.max - r.min || 1); }, k = t.closest(".lui-range-track");
+    if (k) { var v = [].map.call(k.querySelectorAll("input"), p).sort(function (a, b) { return a - b; });
+      k.style.cssText = "--lui-range-lo:" + v[0] + "%;--lui-range-hi:" + v[1] + "%"; }
+    else t.style.setProperty("--lui-range-fill", p(t) + "%");
+  }
   if (t.type === "color") {
     var box = t.closest(".lui-color");
     if (box) {
@@ -515,7 +522,7 @@ mod tests {
             served().len()
         );
         assert!(
-            JS.len() < 13312,
+            JS.len() < 14336,
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

@@ -347,8 +347,8 @@ fn inputs(ui: &Ui, v: &Inputs) -> Markup {
         Form("/inputs") submit="Save" {
             Select("size", "Size") value=(&v.size) options=(SIZES);
             Select("country", "Country") value=(&v.country) groups=(COUNTRIES) search="/inputs";
-            Range("volume", "Volume") value=(v.volume) step=5;
-            RangePair("price", "Price") values=(v.price_min, v.price_max) step=5;
+            Range("volume", "Volume") value=(v.volume) step=5 ticks;
+            RangePair("price", "Price") values=(v.price_min, v.price_max) step=5 ticks;
             Color("accent", "Accent") value=(&v.accent) presets=(&ACCENTS) alpha=(v.alpha);
         }
         // end code
