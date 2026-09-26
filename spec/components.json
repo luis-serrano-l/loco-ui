@@ -142,7 +142,9 @@
             { "name": "form", "kind": "value", "args": "id: &'a str", "default": "", "attr": "form", "doc": "`form`." },
             { "name": "class", "kind": "value", "args": "class: &'a str", "default": "", "attr": "class", "doc": "A class on the control, for a component's part name." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The control's id, `f-<name>` by default." },
-            { "name": "gradient_border", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The border drawn with `--lui-gradient-ring`." }
+            { "name": "gradient_border", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The border drawn with `--lui-gradient-ring`." },
+            { "name": "leading", "kind": "value", "args": "slot: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon or text inside the field's border, before the text." },
+            { "name": "trailing", "kind": "value", "args": "slot: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon or text inside the field's border, after the text." }
           ]
         },
         {
@@ -152,6 +154,8 @@
           "calls": ["ui.radio_group(name: &str, legend: &str)"],
           "props": [
             { "name": "option", "kind": "item", "args": "value: &'a str, label: &'a str", "default": "", "attr": "", "doc": "One choice posting `value`, labelled `label`." },
+            { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the choice added last, read out with it." },
+            { "name": "cards", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Each choice a selectable card, 1, 2 or 3 across by the container's width." },
             { "name": "value", "kind": "value", "args": "value: &'a str", "default": "", "attr": "value", "doc": "The value of the choice that is selected." },
             { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "One choice must be picked before the form submits." },
             { "name": "help", "kind": "value", "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the choices." },

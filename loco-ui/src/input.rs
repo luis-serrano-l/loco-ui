@@ -6,11 +6,19 @@
 //! file, so a field looks and behaves the same inside a form built with `ui.form` and in a
 //! form a route writes by hand.
 //!
+//! The look follows Radix Themes (TextField, TextArea, Checkbox, Switch, RadioGroup and
+//! RadioCards): a gray-7 border with no shadow, `.leading(..)`/`.trailing(..)` slots inside
+//! the border, help in gray-11 and the error after a warning icon, a drawn checkbox, radio and
+//! switch, and `.cards()` for a radio group of selectable cards.
+//!
 //! **Platform features:** constraint validation (`required`, `pattern`, `min`, `max`,
 //! `maxlength`, `type=email`, baseline 2015; `type=date`/`time`/`datetime-local`, Chrome 20, Firefox 57 (93 for `datetime-local`),
 //! Safari 14.1); `:user-invalid` (baseline 2023) so a field is not red before it is touched;
 //! `<output for>` counts characters; `role="switch"` on a checkbox (ARIA 1.2) drawn as a
-//! track and thumb with `appearance: none`; `<fieldset>` + `<legend>` for a radio group.
+//! track and thumb with `appearance: none`; `<fieldset>` + `<legend>` for a radio group;
+//! `appearance: none` checkboxes and radios with the tick drawn in CSS; `:has()` (Chrome 105,
+//! Firefox 121, Safari 15.4) for the slot wrapper's focus ring and the picked card; a
+//! container query (Chrome 105, Firefox 110, Safari 16) lays radio cards 1, 2 or 3 across.
 //! `.gradient_border()` draws a text field's or textarea's border with `--lui-gradient-ring`, a
 //! padding-box layer over a border-box one, behind `@supports` for
 //! `linear-gradient(in oklch, ..)` (Chrome 111, Firefox 127, Safari 16.2); nothing moves.
@@ -24,7 +32,9 @@
 //! enhancement script does; without it the counter shows the length the server rendered).
 //!
 //! **Fallback:** none needed: every control is a native one, and the switch is still a
-//! checkbox where `appearance: none` is not supported. A `.gradient_border()` field keeps its
+//! checkbox where `appearance: none` is not supported. Without `:has()` a slotted field keeps
+//! the input's own focus outline and a picked card shows no ring; without container queries
+//! radio cards stay one per row. A `.gradient_border()` field keeps its
 //! plain border where `in oklch` gradients are not supported.
 //!
 //! ```rust
@@ -50,11 +60,29 @@
 //! let plan = ui.radio_group("plan", "Plan").option("free", "Free").option("pro", "Pro").value("pro");
 //! let plan = plan.render().into_string();
 //! assert!(plan.contains("<legend>Plan</legend>") && plan.contains(r#"value="pro" checked"#));
+//! // Text or an icon inside the border; text is read out with the field.
+//! let site = ui.input("site", "Website").leading("https://").trailing(Icon::Search);
+//! let site = site.render().into_string();
+//! assert!(site.contains(r#"<div class="lui-input-slots"><span id="f-site-leading""#));
+//! assert!(site.contains(r#"aria-describedby="f-site-leading""#));
+//! assert_eq!(lui! { Input("site", "Website") leading="https://" trailing=(Icon::Search); }.into_string(), site);
+//! // A radio group of cards, 1, 2 or 3 across by the container's width.
+//! let tier = ui.radio_group("tier", "Tier").cards()
+//!     .option("hobby", "Hobby").description("One project")
+//!     .option("team", "Team").description("Unlimited projects").value("team");
+//! let tier = tier.render().into_string();
+//! assert!(tier.contains("lui-radio-cards") && tier.contains(r#"aria-describedby="f-tier-1-description""#));
+//! let same = lui! { RadioGroup("tier", "Tier") cards value="team" {
+//!     option "hobby" "Hobby" description="One project";
+//!     option "team" "Team" description="Unlimited projects";
+//! } };
+//! assert_eq!(same.into_string(), tier);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::Ui;
+use crate::icon::{Glyph, Icon};
 use crate::props::{Prop, PropKind};
 
 /// Input type of a field.
@@ -154,6 +182,8 @@ pub(crate) struct Extra<'a> {
     class: Option<&'a str>,
     form: Option<&'a str>,
     gradient_border: bool,
+    leading: Option<Glyph<'a>>,
+    trailing: Option<Glyph<'a>>,
 }
 
 impl<'a> Field<'a> {
@@ -184,7 +214,7 @@ impl<'a> Field<'a> {
 /// **Setters.** Values and items: `.number(..)`, `.pattern(..)`, `.textarea(..)`, `.file(..)`,
 /// `.date(..)`, `.time(..)`, `.datetime(..)`, `.help(..)`, `.maxlength(..)`, `.value(..)`, `.error(..)`,
 /// `.placeholder(..)`, `.list(..)`, `.autocomplete(..)`, `.inputmode(..)`, `.step(..)`,
-/// `.aria_controls(..)`, `.form(..)`, `.class(..)`, `.id(..)`; switches: `.email()`,
+/// `.aria_controls(..)`, `.form(..)`, `.class(..)`, `.id(..)`, `.leading(..)`, `.trailing(..)`; switches: `.email()`,
 /// `.password()`, `.multiple()`, `.required()`, `.search()`, `.hide_label()`, `.autofocus()`,
 /// `.gradient_border()`;
 /// from a condition: `.checked(bool)`.
@@ -273,6 +303,10 @@ impl Input<'_> {
             .doc("The control's id, `f-<name>` by default."),
         Prop::new("gradient_border", PropKind::Switch, "")
             .doc("The border drawn with `--lui-gradient-ring`."),
+        Prop::new("leading", PropKind::Value, "slot: impl Into<Glyph<'a>>")
+            .doc("An icon or text inside the field's border, before the text."),
+        Prop::new("trailing", PropKind::Value, "slot: impl Into<Glyph<'a>>")
+            .doc("An icon or text inside the field's border, after the text."),
     ];
 }
 
@@ -502,6 +536,31 @@ impl<'a> Input<'a> {
         self.0.extra.gradient_border = true;
         self
     }
+
+    /// An icon or text inside the field's border, before the text: an [`Icon`] (a search
+    /// glass, decorative) or a `&str` (`"https://"`, read out after the label). Single-line
+    /// fields only.
+    pub fn leading(mut self, slot: impl Into<Glyph<'a>>) -> Self {
+        self.0.extra.leading = Some(slot.into());
+        self
+    }
+
+    /// An icon or text inside the field's border, after the text: a unit (`"kg"`) or an
+    /// [`Icon`]. Single-line fields only.
+    pub fn trailing(mut self, slot: impl Into<Glyph<'a>>) -> Self {
+        self.0.extra.trailing = Some(slot.into());
+        self
+    }
+}
+
+/// A server message under a field, after a warning icon; `role="alert"` so it is read out.
+pub(crate) fn error_line(id: &str, message: &str) -> Markup {
+    html! { p id=(id) class="lui-error" role="alert" { (Icon::TriangleAlert) (message) } }
+}
+
+/// A slot's text is read out with the field (`aria-describedby`); an icon is decoration.
+fn slot_id(id: &str, side: &str, glyph: Option<Glyph>) -> Option<String> {
+    matches!(glyph, Some(Glyph::Text(_))).then(|| format!("{id}-{side}"))
 }
 
 impl Render for Input<'_> {
@@ -521,7 +580,15 @@ impl Render for Field<'_> {
             FieldKind::Pattern { hint, .. } => Some(hint),
             _ => None,
         });
+        let slotted = !matches!(f.kind, FieldKind::Textarea { .. } | FieldKind::Select(_));
+        let (lead, trail) = if slotted {
+            (f.extra.leading, f.extra.trailing)
+        } else {
+            (None, None)
+        };
         let ids = [
+            slot_id(&id, "leading", lead),
+            slot_id(&id, "trailing", trail),
             help.map(|_| format!("{id}-help")),
             f.maxlength.map(|_| format!("{id}-count")),
             f.error.map(|_| format!("{id}-error")),
@@ -578,7 +645,7 @@ impl Render for Field<'_> {
                         " " (f.label)
                     }
                     @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                    @if let Some(e) = f.error { p id={ (id) "-error" } class="lui-error" role="alert" { (e) } }
+                    @if let Some(e) = f.error { (error_line(&format!("{id}-error"), e)) }
                 }
             };
         }
@@ -596,6 +663,16 @@ impl Render for Field<'_> {
                 form=[x.form] list=[x.list] autocomplete=[x.autocomplete] autofocus[x.autofocus] inputmode=[x.inputmode]
                 aria-label=[x.hide_label.then_some(f.label)] aria-controls=[x.aria_controls]
                 aria-invalid=[invalid] aria-describedby=[described.as_deref()];
+        };
+        let slot = |side: &str, glyph: Option<Glyph>| {
+            html! { @if let Some(g) = glyph {
+                span id=[slot_id(&id, side, glyph)] class={ "lui-input-" (side) } { (g) }
+            } }
+        };
+        let control = if lead.is_some() || trail.is_some() {
+            html! { div class="lui-input-slots" { (slot("leading", lead)) (control) (slot("trailing", trail)) } }
+        } else {
+            control
         };
         if x.hide_label && !matches!(f.kind, FieldKind::Textarea { .. } | FieldKind::Select(_)) {
             return control;
@@ -617,7 +694,7 @@ impl Render for Field<'_> {
                 @if let Some(max) = f.maxlength {
                     output id={ (id) "-count" } for=(id) class="lui-field-count" { (f.value.chars().count()) " / " (max) }
                 }
-                @if let Some(e) = f.error { p id={ (id) "-error" } class="lui-error" role="alert" { (e) } }
+                @if let Some(e) = f.error { (error_line(&format!("{id}-error"), e)) }
             }
         }
     }
@@ -626,13 +703,14 @@ impl Render for Field<'_> {
 /// A set of radio buttons under a legend, made by [`Ui::radio_group`]. Add choices with
 /// [`RadioGroup::option`].
 ///
-/// **Setters.** Values and items: `.option(..)`, `.value(..)`, `.help(..)`, `.error(..)`;
-/// switches: `.required()`.
+/// **Setters.** Values and items: `.option(..)`, `.description(..)`, `.value(..)`, `.help(..)`,
+/// `.error(..)`; switches: `.required()`, `.cards()`.
 #[derive(Clone, Debug)]
 pub struct RadioGroup<'a> {
     name: &'a str,
     legend: &'a str,
-    options: Vec<(&'a str, &'a str)>,
+    options: Vec<(&'a str, &'a str, Option<&'a str>)>,
+    cards: bool,
     value: &'a str,
     required: bool,
     help: Option<&'a str>,
@@ -645,6 +723,10 @@ impl RadioGroup<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("option", PropKind::Item, "value: &'a str, label: &'a str")
             .doc("One choice posting `value`, labelled `label`."),
+        Prop::new("description", PropKind::Value, "text: &'a str")
+            .doc("A line under the choice added last, read out with it."),
+        Prop::new("cards", PropKind::Switch, "")
+            .doc("Each choice a selectable card, 1, 2 or 3 across by the container's width."),
         Prop::new("value", PropKind::Value, "value: &'a str")
             .attr("value")
             .doc("The value of the choice that is selected."),
@@ -664,6 +746,7 @@ impl Ui {
             name,
             legend,
             options: Vec::new(),
+            cards: false,
             value: "",
             required: false,
             help: None,
@@ -675,7 +758,23 @@ impl Ui {
 impl<'a> RadioGroup<'a> {
     /// One choice posting `value`, labelled `label`.
     pub fn option(mut self, value: &'a str, label: &'a str) -> Self {
-        self.options.push((value, label));
+        self.options.push((value, label, None));
+        self
+    }
+
+    /// A line under the choice added last, read out with it (`aria-describedby`); shown in
+    /// both layouts, and what a card holds under its title.
+    pub fn description(mut self, text: &'a str) -> Self {
+        if let Some(o) = self.options.last_mut() {
+            o.2 = Some(text);
+        }
+        self
+    }
+
+    /// Each choice a selectable card (title and description, the radio hidden, the card
+    /// ringed when picked), 1, 2 or 3 across by the container's width.
+    pub fn cards(mut self) -> Self {
+        self.cards = true;
         self
     }
 
@@ -715,19 +814,28 @@ impl Render for RadioGroup<'_> {
         let described: Vec<&str> = ids.iter().flatten().map(String::as_str).collect();
         let described = (!described.is_empty()).then(|| described.join(" "));
         html! {
-            fieldset class="lui-field lui-radio-group" aria-describedby=[described.as_deref()]
-                aria-invalid=[self.error.map(|_| "true")] {
+            fieldset class={ "lui-field lui-radio-group" @if self.cards { " lui-radio-cards" } }
+                aria-describedby=[described.as_deref()] aria-invalid=[self.error.map(|_| "true")] {
                 legend { (self.legend) @if self.required { " *" } }
-                @for (i, (value, label)) in self.options.iter().enumerate() {
-                    @let oid = format!("{id}-{i}");
-                    label for=(oid) {
-                        input id=(oid) type="radio" name=(self.name) value=(value)
-                            checked[*value == self.value] required[self.required && i == 0];
-                        " " (label)
+                div class="lui-radio-group-options" {
+                    @for (i, (value, label, description)) in self.options.iter().enumerate() {
+                        @let oid = format!("{id}-{i}");
+                        @let did = description.map(|_| format!("{oid}-description"));
+                        label for=(oid) class="lui-radio-group-option" {
+                            input id=(oid) type="radio" name=(self.name) value=(value)
+                                checked[*value == self.value] required[self.required && i == 0]
+                                aria-describedby=[did.as_deref()];
+                            span class="lui-radio-group-text" {
+                                span class="lui-radio-group-title" { (label) }
+                                @if let (Some(d), Some(did)) = (description, &did) {
+                                    span id=(did) class="lui-radio-group-description" { (d) }
+                                }
+                            }
+                        }
                     }
                 }
                 @if let Some(h) = self.help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                @if let Some(e) = self.error { p id={ (id) "-error" } class="lui-error" role="alert" { (e) } }
+                @if let Some(e) = self.error { (error_line(&format!("{id}-error"), e)) }
             }
         }
     }
@@ -735,18 +843,20 @@ impl Render for RadioGroup<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* Native controls, shadcn sizes: 2.25rem tall, px-3, a 1px --lui-input border, shadow-xs.
-   These bare element rules are the one place inputs are styled: a hand-written field and a
-   component's control look the same. */
+/* Native controls after Radix Themes TextField (surface variant): a 1px --lui-gray-7 border, no
+   shadow, --lui-control-h tall (Radix's 32px at our taller control height), px-3. These bare
+   element rules are the one place inputs are styled: a hand-written field and a component's
+   control look the same. */
 input, select, textarea { font: inherit; font-size: 0.875rem; line-height: 1.25rem; color: inherit; }
 label { font-weight: 500; }
 input, select, textarea {
   min-height: var(--lui-control-h); padding: 0.375rem 0.75rem; min-width: 0;
   background: transparent; border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
-  box-shadow: var(--lui-shadow-xs); transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--lui-duration-fast), box-shadow var(--lui-duration-fast);
 }
 textarea { min-height: 4rem; }
-input::placeholder, textarea::placeholder { color: var(--lui-muted); }
+input::placeholder, textarea::placeholder { color: var(--lui-gray-10); }
+input[type=number] { font-variant-numeric: tabular-nums; }
 /* Native select: no OS chrome, a chevron drawn from two gradients in the muted colour. */
 select {
   appearance: none; padding-right: 2rem;
@@ -754,24 +864,66 @@ select {
   background-position: right 1rem center, right 0.75rem center; background-size: 0.25rem 0.25rem; background-repeat: no-repeat;
 }
 select[multiple], select[size] { padding-right: 0.75rem; background-image: none; }
-input:is([type=checkbox], [type=radio]) { width: 1rem; height: 1rem; min-height: 0; padding: 0; margin: 0; accent-color: var(--lui-primary); vertical-align: -0.15em; }
+/* Radix Checkbox and Radio, size 2: a 1rem box (radius 4px) or circle in a --lui-gray-7 border,
+   filled with the primary colour when checked; the tick (two borders turned 45°) and the
+   dot scale in. A component that hides its input (calendar, toggle group) sets opacity 0. */
+input:is([type=checkbox], [type=radio]) {
+  appearance: none; display: inline-grid; place-content: center; flex: none;
+  width: 1rem; height: 1rem; min-height: 0; padding: 0; margin: 0; vertical-align: -0.15em;
+  border: 1px solid var(--lui-input); border-radius: 0.25rem; background: var(--lui-bg); cursor: pointer;
+}
+input[type=radio] { border-radius: 50%; }
+input:is([type=checkbox], [type=radio]):checked { background: var(--lui-primary); border-color: var(--lui-primary); }
+input[type=checkbox]:not(.lui-switch)::before {
+  content: ""; width: 0.3rem; height: 0.55rem; translate: 0 -0.0625rem; rotate: 45deg; scale: 0;
+  border: solid var(--lui-on-primary); border-width: 0 2px 2px 0;
+  transition: scale var(--lui-duration-fast) var(--lui-ease-spring);
+}
+input[type=radio]::before {
+  content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--lui-on-primary); scale: 0;
+  transition: scale var(--lui-duration-fast) var(--lui-ease-spring);
+}
+input:is([type=checkbox], [type=radio]):checked::before { scale: 1; }
 input[type=range] { min-height: 0; padding: 0; border: 0; box-shadow: none; accent-color: var(--lui-primary); }
 input[type=color] { padding: 0.25rem; }
 input[type=file] { padding-block: 0.25rem; }
 input::file-selector-button { font: inherit; font-weight: 500; color: var(--lui-fg); background: transparent; border: 0; padding: 0 0.5rem 0 0; }
 :is(input, select, textarea):focus-visible { border-color: var(--lui-ring); }
-:is(input, select, textarea):disabled { opacity: 0.5; cursor: not-allowed; }
+/* Radix disabled: a --lui-gray-2 fill, --lui-gray-6 border and --lui-gray-11 text, not a faded control. */
+:is(input, select, textarea):disabled { background-color: var(--lui-gray-2); border-color: var(--lui-gray-6); color: var(--lui-gray-11); cursor: not-allowed; }
+input:is([type=checkbox], [type=radio]):disabled { background: var(--lui-gray-3); }
+input:is([type=checkbox], [type=radio]):disabled:checked { background: var(--lui-gray-8); border-color: var(--lui-gray-8); }
 .lui-field { display: grid; gap: 0.5rem; }
-.lui-field label { font-size: 0.875rem; line-height: 1; font-weight: 500; }
-.lui-field-check label, .lui-radio-group label { display: flex; align-items: center; gap: 0.5rem; }
+.lui-field label { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+.lui-field-check label, .lui-radio-group-option { display: flex; align-items: center; gap: 0.5rem; }
 /* :where keeps this at one class, so a component inside a field (colour, range) sizes itself. */
 .lui-field :where(input:not([type=file], [type=color], [type=range], [type=checkbox], [type=radio]), textarea) { width: 100%; box-sizing: border-box; }
 .lui-field textarea { resize: vertical; field-sizing: content; min-height: 3lh; max-height: 20lh; font: inherit; }
-.lui-field-help { color: var(--lui-muted); font-size: 0.875rem; }
+.lui-field-help { color: var(--lui-muted); font-size: 0.8125rem; line-height: 1.25rem; }
 .lui-field-count { justify-self: end; color: var(--lui-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
-.lui-field :is(input, textarea):user-invalid, .lui-field [aria-invalid=true] { border-color: var(--lui-danger); }
-.lui-field [aria-invalid=true] ~ label, .lui-field:has([aria-invalid=true]) > label { color: var(--lui-danger); }
-.lui-error { color: var(--lui-danger); margin: 0; font-size: 0.875rem; }
+/* One rule per newer selector (:user-invalid is Chrome 119, :has() Chrome 105 and not in
+   Blitz): in a list, a browser that lacks one drops the whole rule (FINDINGS, M23). */
+.lui-field [aria-invalid=true] { border-color: var(--lui-danger); }
+.lui-field :is(input, textarea):user-invalid { border-color: var(--lui-danger); }
+.lui-field [aria-invalid=true] ~ label { color: var(--lui-danger); }
+.lui-field:has([aria-invalid=true]) > label { color: var(--lui-danger); }
+.lui-error { display: flex; align-items: flex-start; gap: 0.375rem; color: var(--lui-danger); margin: 0; font-size: 0.8125rem; line-height: 1.25rem; }
+.lui-error > .lui-icon { margin-top: 0.125rem; width: 0.875rem; height: 0.875rem; }
+/* .leading() / .trailing(): Radix TextField slots. The wrapper draws the border; the input
+   inside is borderless and the wrapper takes its focus, invalid and disabled looks. */
+.lui-input-slots {
+  display: flex; align-items: center; gap: var(--lui-space-2); box-sizing: border-box; width: 100%;
+  min-height: var(--lui-control-h); padding-inline: 0.75rem; color: var(--lui-muted); font-size: 0.875rem;
+  border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm); cursor: text;
+  transition: border-color var(--lui-duration-fast);
+}
+.lui-input-slots > input { flex: 1; min-height: calc(var(--lui-control-h) - 2px); padding-inline: 0; border: 0; border-radius: 0; color: var(--lui-fg); }
+.lui-input-slots > input:focus-visible { outline: none; }
+.lui-input-slots:has(> input:focus-visible) { border-color: var(--lui-ring); outline: 3px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); }
+.lui-input-slots:has(> input[aria-invalid=true]) { border-color: var(--lui-danger); }
+.lui-input-slots:has(> input:user-invalid) { border-color: var(--lui-danger); }
+.lui-input-slots:has(> input:disabled) { background: var(--lui-gray-2); border-color: var(--lui-gray-6); cursor: not-allowed; }
+.lui-input-leading, .lui-input-trailing { display: inline-flex; flex: none; white-space: nowrap; }
 /* .gradient_border(): the page's fill on the padding box over the ring gradient on the border box. */
 @supports (background: linear-gradient(in oklch, currentColor, transparent)) {
   :is(input, textarea).lui-input-gradient-border {
@@ -779,23 +931,48 @@ input::file-selector-button { font: inherit; font-weight: 500; color: var(--lui-
     background: linear-gradient(var(--lui-bg), var(--lui-bg)) padding-box, var(--lui-gradient-ring) border-box;
   }
 }
-.lui-radio-group { margin: 0; padding: 0; border: 0; gap: 0.75rem; }
+.lui-radio-group { container: lui-radio-group / inline-size; margin: 0; padding: 0; border: 0; gap: 0.75rem; }
 .lui-radio-group legend { padding: 0; margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 500; }
 .lui-radio-group[aria-invalid=true] legend { color: var(--lui-danger); }
-/* shadcn Switch: a 2rem by 1.15rem pill in --lui-input, the primary colour when on, a
-   thumb in the page background (on-primary when on) that slides across. */
+.lui-radio-group-options { display: grid; gap: 0.75rem; }
+.lui-radio-group-option { cursor: pointer; }
+.lui-radio-group-option:has(.lui-radio-group-description) { align-items: flex-start; }
+.lui-radio-group-option:has(.lui-radio-group-description) > input { margin-top: 0.125rem; }
+.lui-radio-group-text { display: grid; gap: 0.125rem; min-width: 0; }
+.lui-radio-group-description { color: var(--lui-muted); font-weight: 400; font-size: 0.8125rem; line-height: 1.25rem; }
+/* .cards(): Radix RadioCards. Each choice a --lui-gray-7 bordered card, ringed in the primary
+   colour when picked, 1, 2 or 3 across as the group's own width allows. The radio covers
+   the card, invisible, so the whole card is its hit area. */
+.lui-radio-cards .lui-radio-group-options { grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-3); }
+@container lui-radio-group (width >= 30rem) { .lui-radio-cards .lui-radio-group-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container lui-radio-group (width >= 48rem) { .lui-radio-cards .lui-radio-group-options { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.lui-radio-cards .lui-radio-group-option {
+  position: relative; padding: var(--lui-space-3) var(--lui-space-4); border: 1px solid var(--lui-input);
+  border-radius: var(--lui-radius); background: var(--lui-bg);
+  transition: border-color var(--lui-duration-fast), box-shadow var(--lui-duration-fast);
+}
+.lui-radio-cards .lui-radio-group-option:hover { border-color: var(--lui-gray-8); }
+.lui-radio-cards .lui-radio-group-option > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; }
+.lui-radio-cards .lui-radio-group-option:has(> input:checked) { border-color: var(--lui-primary); box-shadow: inset 0 0 0 1px var(--lui-primary); }
+.lui-radio-cards .lui-radio-group-option:has(> input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); }
+.lui-radio-cards .lui-radio-group-option:has(> input:disabled) { background: var(--lui-gray-2); color: var(--lui-gray-11); cursor: not-allowed; }
+/* Radix Switch, size 2: a 2.1875 by 1.25rem pill (35 by 20px) in --lui-gray-5, the primary colour
+   when on, an --lui-on-primary thumb with a small shadow that slides on the spring curve. */
 input.lui-switch {
-  appearance: none; position: relative; flex: none; width: 2rem; height: 1.15rem; margin: 0;
-  border: 1px solid transparent; border-radius: 9999px; background: var(--lui-input);
-  box-shadow: var(--lui-shadow-xs); cursor: pointer; transition: background-color 0.15s;
+  appearance: none; position: relative; flex: none; width: 2.1875rem; height: 1.25rem; margin: 0;
+  border: 0; border-radius: 9999px; background: var(--lui-gray-5);
+  box-shadow: inset 0 0 0 1px var(--lui-gray-6); cursor: pointer; transition: background-color var(--lui-duration-fast);
 }
 input.lui-switch::before {
-  content: ""; position: absolute; top: 50%; left: 1px; width: 1rem; height: 1rem;
-  border-radius: 50%; background: var(--lui-bg); translate: 0 -50%; transition: translate 0.15s;
+  content: ""; position: absolute; top: 1px; left: 1px; width: 1.125rem; height: 1.125rem;
+  border-radius: 50%; background: var(--lui-on-primary); box-shadow: var(--lui-shadow-xs);
+  transition: translate var(--lui-duration) var(--lui-ease-spring);
 }
-input.lui-switch:checked { background: var(--lui-primary); }
-input.lui-switch:checked::before { translate: calc(2rem - 1rem - 4px) -50%; background: var(--lui-on-primary); }
-@media (prefers-reduced-motion: reduce) { input.lui-switch, input.lui-switch::before { transition: none; } }
+input.lui-switch:checked { background: var(--lui-primary); box-shadow: none; }
+input.lui-switch:checked::before { translate: calc(2.1875rem - 1.125rem - 2px) 0; }
+input.lui-switch:disabled { background: var(--lui-gray-4); }
+/* Touch: a whole row (label and control) is at least 44px tall. */
+@media (pointer: coarse) { .lui-field-check label, .lui-radio-group-option { min-height: var(--lui-hit); } }
 "#;
 
 #[cfg(test)]
@@ -844,7 +1021,7 @@ mod tests {
         );
         assert!(
             g.contains(
-                r#"<label for="f-size-1"><input id="f-size-1" type="radio" name="size" value="m">"#
+                r#"<label for="f-size-1" class="lui-radio-group-option"><input id="f-size-1" type="radio" name="size" value="m">"#
             ),
             "{g}"
         );

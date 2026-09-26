@@ -340,7 +340,7 @@ impl Render for Select<'_> {
                         }
                     }
                 }
-                @if let Some(e) = error { p id=(error_id) class="lui-error" role="alert" { (e) } }
+                @if let Some(e) = error { (crate::input::error_line(&error_id, e)) }
             },
         )
     }

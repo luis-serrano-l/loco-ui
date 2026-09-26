@@ -857,3 +857,12 @@ is not drawn only because it sits behind the motion query.
   anyway, and the side-by-side assertions for `/card` and `/pricing` moved to the browser
   check. Taffy has no `calc()`/`min()` track sizes yet:
   [taffy#225](https://github.com/DioxusLabs/taffy/issues/225).
+- **Blitz has no `:has()`, and Chrome 109 no `:user-invalid`.** Stylo's Servo build answers
+  `parse_has() -> false` (`servo/selector_parser.rs`), tracked in
+  [servo#44902](https://github.com/servo/servo/issues/44902). So Blitz shots of `/field`
+  show neither a field's red label on a server error (the label comes before its input, so
+  only `:has()` can reach it) nor the ring on a picked radio card; the `aria-invalid` border
+  and the error line under it do show. The Input box also split every selector list that
+  mixed `:has()` or `:user-invalid` (Chrome 119) with plain selectors: in one list, a
+  browser that cannot parse one drops the whole rule. Before M34, Chrome 109 lost the
+  `aria-invalid` border that way (the calendar lesson in M23, one more time).

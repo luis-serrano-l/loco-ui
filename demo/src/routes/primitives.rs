@@ -70,12 +70,16 @@ fn fields(ui: &Ui) -> Markup {
             Input("name", "Name") placeholder="Ada Lovelace" help="As it should appear on invoices.";
             Input("email", "Email") email required value=(email)
                 error=(if bad { "An email address needs an @." } else { "" });
+            Input("site", "Website") leading="https://" placeholder="example.com";
+            Input("q", "Search") search leading=(Icon::Search) placeholder="Search the docs…";
+            Input("weight", "Weight") number=(0, 500) trailing="kg";
             Input("key", "API key") gradient_border placeholder="sk-live-...";
             Checkbox("terms", "I accept the terms") required;
             Switch("digest", "Weekly digest") checked=(ui.param("digest").is_some());
-            RadioGroup("plan", "Plan") value=(ui.param("plan").unwrap_or("free")) {
-                option "free" "Free";
-                option "pro" "Pro";
+            RadioGroup("plan", "Plan") cards value=(ui.param("plan").unwrap_or("free")) {
+                option "free" "Free" description="One project, community support.";
+                option "pro" "Pro" description="Unlimited projects and history.";
+                option "team" "Team" description="Everything in Pro, plus SSO.";
             }
         }
         // end code

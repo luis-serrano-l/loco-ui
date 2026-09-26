@@ -1520,7 +1520,7 @@ owner has seen them.
   gray-8 text, no opacity. Icon-only is square at every size. Kept different: no per-button
   colour prop (Radix's `color`), soft/surface are brand only. Page budgets now count markup
   without the stylesheet (README "What a page weighs").
-- [ ] Input, textarea, checkbox, switch, radio (`input.rs`; reference: Radix Themes TextField,
+- [x] Input, textarea, checkbox, switch, radio (`input.rs`; reference: Radix Themes TextField,
   TextArea, Checkbox, Switch, RadioGroup, RadioCards):
   - Slots for a leading and trailing icon or text inside the field, drawn inside the field's
     border: `.leading(..)`, `.trailing(..)` (a unit, `https://` or a search icon).
@@ -1531,6 +1531,21 @@ owner has seen them.
   - A `.cards()` variant for a radio group: each option is a selectable card with a title and
     description, laid out 1-, 2- or 3-up by container width.
   - Password and number fields keep their native affordances, styled to match.
+  Done: fields take Radix's surface look (gray-7 border, no shadow, placeholder gray-10;
+  disabled is a gray-2 fill with gray-11 text, not faded). `.leading(..)`/`.trailing(..)`
+  take an `Icon` (decorative) or text (in `aria-describedby`, so "https://" and "kg" are
+  read out) inside a `.lui-input-slots` border that takes the focus ring, invalid and
+  disabled looks by `:has()`; single-line fields only. Help is 13px gray-11; the error line
+  (shared with `ui.select`) leads with a warning icon. Checkbox and radio are drawn
+  (`appearance: none`, 1rem, a CSS tick and dot that scale in on the spring curve); the
+  switch is Radix size 2 (35 by 20px, white thumb). `RadioGroup` gains `.description(..)`
+  per option and `.cards()`: bordered cards ringed in the primary colour when picked, the
+  whole card the hit area, 1/2/3 across at the 30/48rem container breakpoints. Number
+  fields get tabular figures; password and date keep their native parts. Rows are 44px on
+  coarse pointers. Selector lists mixing `:has()`/`:user-invalid` split (FINDINGS M34).
+  Stylesheet test raised to 128 KB raw (91.9 KB, 15.9 KB gzipped; M34's limit is gzip).
+  Kept different: no size or variant setters on fields (Radix has 3 sizes, 3 variants); the
+  demo's form is narrower than 30rem, so its cards stack.
 - [ ] Form layout (`form.rs`; reference: the shadcn "Forms" examples and the Radix Themes
   settings layouts):
   - A section is a heading, a description and its fields. The `<fieldset>` and `<legend>`

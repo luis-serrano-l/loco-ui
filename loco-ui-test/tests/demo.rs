@@ -1090,7 +1090,15 @@ async fn fields_cards_and_layouts() {
     );
     assert!(page.html.contains(r#"aria-describedby="f-email-error""#));
     assert!(page.is_visible("input.lui-switch[role=switch]"));
-    assert_eq!(page.count(".lui-radio-group input[type=radio]"), 2);
+    assert_eq!(page.count(".lui-radio-group input[type=radio]"), 3);
+    let (slot, input) = (
+        page.bbox("#f-site-leading").unwrap(),
+        page.bbox("#f-site").unwrap(),
+    );
+    assert!(
+        slot.x + slot.width <= input.x && (slot.y - input.y).abs() < input.height,
+        "the leading slot sits inside the border, left of the text"
+    );
 
     let mut page = Page::render(demo::router(), "/card", MODERN).await;
     shot(&mut page, "card");

@@ -82,7 +82,7 @@ echo "$pages" | while IFS='|' read -r name path url; do
   [ -z "$only" ] || [ "$name" = "$only" ] || continue
   for scheme in light dark; do
     for width in 1280 768 420; do
-      shot "$scheme" "$width,1100" "$name-$scheme-$width" "http://127.0.0.1:3009$path"
+      shot "$scheme" "$width,1600" "$name-$scheme-$width" "http://127.0.0.1:3009$path"
     done
   done
   if [ -n "$url" ] && [ "$ref" = 1 ]; then

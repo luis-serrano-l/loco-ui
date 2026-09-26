@@ -1486,9 +1486,11 @@ mod tests {
     #[test]
     fn stylesheet_stays_under_its_budget() {
         // 64 KB until M29 added blocks, a chart and six components, 72 KB until M30's colour
-        // scales, depth tokens and motion (README: "What a page weighs").
+        // scales, depth tokens and motion, 88 KB until M34 restyled every component after its
+        // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
+        // (README: "What a page weighs").
         assert!(
-            stylesheet().len() < 88 * 1024,
+            stylesheet().len() < 128 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -1645,7 +1647,6 @@ mod tests {
         // Not responsive yet, each until its M34 box lands. The test fails once one passes,
         // so the entry leaves with the fix. Empty by the M34 wrap-up.
         const PENDING: &[(&str, &str)] = &[
-            ("input", "Input box"),
             ("card", "Card box"),
             ("upload", "Upload box"),
             ("kanban", "Kanban box"),
