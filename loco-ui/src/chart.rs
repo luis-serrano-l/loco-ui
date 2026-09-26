@@ -6,19 +6,25 @@
 //! script, where most kits need both.
 //!
 //! **Platform features:**
-//! - Inline `<svg>` in HTML (Chrome 7, Firefox 4, Safari 5.1) with `role="img"`, named by its
-//!   `<title>` and `<desc>` through `aria-labelledby`.
-//! - A `<title>` inside each bar and point: the browser shows the value as a tooltip on hover.
+//! - Inline `<svg>` in HTML (Chrome 7, Firefox 4, Safari 5.1), a `role="group"` named by its
+//!   `<title>` and `<desc>` through `aria-labelledby` (a sparkline is one `role="img"`).
+//! - Each bar and point is a focusable `<g tabindex="0" role="img">` named by its label and
+//!   value, whose value chip CSS shows on `:hover` and `:focus-visible`.
+//! - A container query (Chrome 105, Firefox 110, Safari 16) drops every other x label and
+//!   draws the text larger in a chart under 30rem wide.
 //! - CSS custom properties in SVG `fill` and `stroke` (Chrome 49, Firefox 31, Safari 9.1): the
 //!   colours are `--lui-*` tokens, so a chart follows the theme and dark mode.
 //!
-//! **Accessibility:** the SVG is `role="img"` named by the chart's title and description; the
-//! data is also a table (row headers are the labels) hidden visually but read by screen
+//! The look follows Tremor's charts: dashed gray gridlines, a legend swatch over the chart,
+//! the series in the primary colour, a dark value chip on each mark.
+//!
+//! **Accessibility:** the SVG is a group named by the chart's title and description, each
+//! mark an image named "label: value" that takes the focus; the data is also a table (row headers are the labels) hidden visually but read by screen
 //! readers; a sparkline, which sits in a sentence, lists its values as hidden text instead. Checked by axe-core in headless Firefox on every demo route, both capability
 //! variants, light and dark (no serious or critical violation).
 //!
 //! **What it does not do without script:** zoom, pan, or a crosshair that follows the pointer;
-//! the value of a bar or point shows as the browser's own tooltip.
+//! the value shows on the mark under the pointer or the focus.
 //!
 //! **Fallback:** none needed.
 //!
@@ -27,7 +33,7 @@
 //! let ui = Ui::default();
 //! let m = ui.chart("Signups").point("Mon", 12.0).point("Tue", 18.0).point("Wed", 9.0);
 //! let html = m.render().into_string();
-//! assert!(html.contains(r#"role="img""#) && html.contains("<title id=\"chart-signups-title\">Signups</title>"));
+//! assert!(html.contains(r#"role="group""#) && html.contains(r#"aria-label="Tue: 18""#) && html.contains("<title id=\"chart-signups-title\">Signups</title>"));
 //! assert!(html.contains(r#"<th scope="row">Tue</th><td>18</td>"#));
 //! // Values from data in one call:
 //! const SIGNUPS: [(&str, f64); 3] = [("Mon", 12.0), ("Tue", 18.0), ("Wed", 9.0)];
@@ -196,6 +202,19 @@ fn number(v: f64) -> String {
     s.trim_end_matches('0').trim_end_matches('.').to_string()
 }
 
+/// The value chip over a mark at `(x, top)`: a dark rounded rectangle sized to the text,
+/// shown by CSS while the mark is hovered or focused.
+fn tip(x: f64, top: f64, text: &str) -> String {
+    let w = text.chars().count() as f64 * 7.0 + 16.0;
+    let y = (top - 30.0).max(0.0);
+    format!(
+        r#"<g class="lui-chart-tip"><rect x="{:.1}" y="{y:.1}" width="{w:.1}" height="22" rx="4"/><text x="{x:.1}" y="{:.1}" text-anchor="middle" font-size="12">{}</text></g>"#,
+        x - w / 2.0,
+        y + 15.0,
+        escape(text),
+    )
+}
+
 /// Width and height of the drawing, in SVG units; the SVG scales to its box.
 const W: f64 = 600.0;
 const H: f64 = 240.0;
@@ -253,13 +272,14 @@ impl Render for Chart<'_> {
                 let width = (step * 0.6).min(48.0);
                 for (i, (label, v)) in self.points.iter().enumerate() {
                     let (a, b) = (y(v.max(0.0)), y(v.min(0.0)));
+                    let said = format!("{label}: {}", value(*v));
                     let _ = write!(
                         marks,
-                        r#"<rect class="lui-chart-bar" x="{:.1}" y="{a:.1}" width="{width:.1}" height="{:.1}" rx="3"><title>{}: {}</title></rect>"#,
+                        r#"<g class="lui-chart-mark" tabindex="0" role="img" aria-label="{}"><rect class="lui-chart-bar" x="{:.1}" y="{a:.1}" width="{width:.1}" height="{:.1}" rx="3"/>{}</g>"#,
+                        escape(&said),
                         x(i) - width / 2.0,
                         (b - a).max(0.5),
-                        escape(label),
-                        escape(&value(*v)),
+                        tip(x(i), a, &said),
                     );
                 }
             }
@@ -277,13 +297,14 @@ impl Render for Chart<'_> {
                 );
                 if !sparkline {
                     for (i, (label, v)) in self.points.iter().enumerate() {
+                        let said = format!("{label}: {}", value(*v));
                         let _ = write!(
                             marks,
-                            r#"<circle class="lui-chart-dot" fill="none" stroke="currentColor" stroke-width="2" cx="{:.1}" cy="{:.1}" r="4"><title>{}: {}</title></circle>"#,
+                            r#"<g class="lui-chart-mark" tabindex="0" role="img" aria-label="{}"><circle class="lui-chart-dot" fill="none" stroke="currentColor" stroke-width="2" cx="{:.1}" cy="{:.1}" r="4"/>{}</g>"#,
+                            escape(&said),
                             x(i),
                             y(*v),
-                            escape(label),
-                            escape(&value(*v)),
+                            tip(x(i), y(*v) - 4.0, &said),
                         );
                     }
                 }
@@ -293,7 +314,12 @@ impl Render for Chart<'_> {
             for (i, (label, _)) in self.points.iter().enumerate() {
                 let _ = write!(
                     marks,
-                    r#"<text class="lui-chart-label" font-family="sans-serif" font-size="12" x="{:.1}" y="{:.1}" text-anchor="middle">{}</text>"#,
+                    r#"<text class="lui-chart-label{}" font-family="sans-serif" font-size="12" x="{:.1}" y="{:.1}" text-anchor="middle">{}</text>"#,
+                    if i % 2 == 1 {
+                        " lui-chart-label-odd"
+                    } else {
+                        ""
+                    },
                     x(i),
                     h - 8.0,
                     escape(label)
@@ -306,7 +332,7 @@ impl Render for Chart<'_> {
             Kind::Sparkline => "lui-chart lui-chart-sparkline",
         };
         let svg = html! {
-            svg viewBox={ "0 0 " (w) " " (h) } role="img" aria-labelledby=(labelled) {
+            svg viewBox={ "0 0 " (w) " " (h) } role=(if sparkline { "img" } else { "group" }) aria-labelledby=(labelled) {
                 title id=(title_id) { (self.title) }
                 @if let Some(d) = self.description { desc id=(desc_id) { (d) } }
                 (PreEscaped(marks))
@@ -322,7 +348,11 @@ impl Render for Chart<'_> {
         if sparkline {
             html! { span class=(kind) id=(id) { (svg) span class="lui-sr" { (self.points.iter().map(|(l, v)| format!("{l}: {}", value(*v))).collect::<Vec<_>>().join(", ")) } } }
         } else {
-            html! { figure class=(kind) id=(id) { (svg) div class="lui-sr" { (table) } } }
+            html! { figure class=(kind) id=(id) {
+                figcaption class="lui-chart-legend" aria-hidden="true" { span class="lui-chart-swatch" {} (self.title) }
+                (svg)
+                div class="lui-sr" { (table) }
+            } }
         }
     }
 }
@@ -339,15 +369,34 @@ fn escape(s: &str) -> String {
 /// (`fill="none"`, `currentColor`) for a renderer that draws the SVG without the page's CSS;
 /// author CSS wins over them in a browser.
 pub const CSS: &str = r#"
+/* After Tremor's AreaChart, BarChart and LineChart: dashed --lui-gray-5 gridlines with round
+   ticks, muted labels, a legend with a swatch, and the series in the primary colour (a chart
+   has one series; a second would take the Radix categorical order after the brand). Each
+   bar or point is focusable and shows its value in a dark chip on hover or focus, CSS only.
+   The SVG scales with its box; in a narrow chart (its own container) every other x label
+   goes and the text is drawn larger, so it stays readable after the scaling. */
 .lui-chart { margin: 0; }
-figure.lui-chart { margin-block: calc(var(--lui-space) * 3); }
+figure.lui-chart { container: lui-chart / inline-size; margin-block: var(--lui-space-6); }
 .lui-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.lui-chart-grid { stroke: var(--lui-line); stroke-width: 1; }
+.lui-chart-legend { display: flex; align-items: center; gap: var(--lui-space-2); margin-bottom: var(--lui-space-2); font-size: 0.8125rem; color: var(--lui-muted); }
+.lui-chart-swatch { width: 0.625rem; height: 0.625rem; border-radius: 2px; background: var(--lui-primary); }
+.lui-chart-grid { stroke: var(--lui-gray-5); stroke-opacity: 1; stroke-width: 1; stroke-dasharray: 3 3; }
 .lui-chart-tick, .lui-chart-label { fill: var(--lui-muted); font-size: 12px; font-family: inherit; }
-.lui-chart-bar { fill: var(--lui-primary); }
-.lui-chart-bar:hover { fill: color-mix(in srgb, var(--lui-primary) 80%, var(--lui-bg)); }
+.lui-chart-bar { fill: var(--lui-primary); transition: fill var(--lui-duration-fast); }
 .lui-chart-path { fill: none; stroke: var(--lui-primary); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .lui-chart-dot { fill: var(--lui-bg); stroke: var(--lui-primary); stroke-width: 2; }
+.lui-chart-mark { cursor: default; outline: none; }
+.lui-chart-mark:is(:hover, :focus-visible) .lui-chart-bar { fill: color-mix(in srgb, var(--lui-primary) 80%, var(--lui-fg)); }
+.lui-chart-mark:focus-visible .lui-chart-bar, .lui-chart-mark:focus-visible .lui-chart-dot { stroke: var(--lui-ring); stroke-width: 3; }
+.lui-chart-mark:is(:hover, :focus-visible) .lui-chart-dot { fill: var(--lui-primary); }
+.lui-chart-tip { opacity: 0; pointer-events: none; transition: opacity var(--lui-duration-fast); }
+.lui-chart-tip rect { fill: var(--lui-gray-12); }
+.lui-chart-tip text { fill: var(--lui-gray-1); font-family: inherit; font-weight: 500; }
+.lui-chart-mark:is(:hover, :focus-visible) .lui-chart-tip { opacity: 1; }
+@container lui-chart (width < 30rem) {
+  .lui-chart-label-odd { display: none; }
+  .lui-chart-tick, .lui-chart-label { font-size: 20px; }
+}
 .lui-chart-sparkline { display: inline-block; width: 7.5rem; vertical-align: middle; }
 .lui-chart-sparkline svg { height: 2rem; }
 "#;

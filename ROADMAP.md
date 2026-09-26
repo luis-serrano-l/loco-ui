@@ -1866,7 +1866,7 @@ owner has seen them.
   2 or 1 across by width (`.lui-stat-grid` is the caller's div, so no container query of
   its own; NO_BREAKPOINT). `/dashboard` shows a sparkline and a progress bar and lists its
   orders in a card with a description list. The side-by-side check moved to Firefox.
-- [ ] Chart (`chart.rs`; reference: Tremor AreaChart, BarChart and LineChart):
+- [x] Chart (`chart.rs`; reference: Tremor AreaChart, BarChart and LineChart):
   - A y axis with 3–5 rounded ticks and dashed gray-5 gridlines, x labels that thin out
     when narrow, and a legend with swatches.
   - Each mark or point is focusable, and on `:hover`/`:focus` shows its value in a small
@@ -1874,6 +1874,15 @@ owner has seen them.
   - The SVG uses `viewBox` and width 100%, so it scales with its container. In a narrow
     container, labels drop to every other one.
   - Colours use the brand scale and then the Radix categorical order.
+  Done: the axis already had ~5 rounded ticks; gridlines are now dashed gray-5, labels muted,
+  and a legend (swatch and title, `aria-hidden`: the SVG is named by the same title) sits
+  above. Each bar and point is a `<g tabindex="0" role="img" aria-label="Mon: 12">` with a
+  dark value chip (sized to its text) that CSS shows on `:hover` and `:focus-visible`,
+  replacing the browser's `<title>` tooltip; the SVG is now a `role="group"` so its marks
+  may take focus (a sparkline stays one image). The figure is its own container: under
+  30rem every other x label goes and axis text is drawn larger to survive the scaling.
+  The series is the primary colour; a chart has one series, so the categorical order
+  after it is only noted in the CSS. Demo text updated.
 - [ ] Table and paged table (`table.rs`, `paged_table.rs`; reference: the shadcn data-table
   and the Origin UI tables):
   - `.priority(n)` on a column: 1 is always shown, 2 hides in a narrow container, 3 hides

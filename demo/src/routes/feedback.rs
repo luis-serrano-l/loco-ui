@@ -26,7 +26,7 @@ pub(crate) const PAGES: &[super::Simple] = &[
     (
         "/chart",
         charts,
-        "Hover a bar or a point for its value (the browser's own tooltip). The numbers are also a table that screen readers read and that stays when the picture cannot load.",
+        "Point at or tab to a bar or a point for its value, shown by CSS alone. The numbers are also a table that screen readers read and that stays when the picture cannot load.",
     ),
     ("/description-list", description_list, ""),
 ];

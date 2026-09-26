@@ -284,7 +284,7 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 45] = [
         "/chart",
         "Charts",
         "Feedback",
-        "inline <svg>, <title> tooltips, a hidden data table, --lui-* colours",
+        "inline <svg>, focusable marks, :focus-visible chips, a hidden data table",
         "Bars, a line and a sparkline drawn on the server, no chart library.",
     ),
     (
