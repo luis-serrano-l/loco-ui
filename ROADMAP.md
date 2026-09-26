@@ -1857,7 +1857,9 @@ owner has seen them.
   - Row actions: in narrow containers the inline "Edit" collapses into the `…` row menu.
   - Header, row hover, selected rows (brand-3), the sticky header shadow when scrolled, and
     empty and loading rows are all styled.
-  - The pager takes the new pager look.
+  - The pager takes the shadcn Pagination look (moved here from the Breadcrumbs box): ghost
+    buttons for pages, an outline chip for the current one, previous and next with labels,
+    and in a narrow container previous, "page X of Y" and next.
 - [ ] Progress and meter (`progress.rs`, `meter.rs`; reference: Tremor ProgressBar and
   CategoryBar):
   - A label and value on one line above a rounded gray-4 track with a brand fill. The meter
