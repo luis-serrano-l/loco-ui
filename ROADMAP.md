@@ -1925,10 +1925,16 @@ owner has seen them.
   progress track was a primary tint, the meter's the secondary surface) and the fill eases
   on the motion tokens. Skipped: `.segments(..)`, since a category bar is several values
   and the meter is one native `<meter>` with one value; it would be a new component.
-- [ ] Description list (`description_list.rs`; reference: Radix Themes DataList):
+- [x] Description list (`description_list.rs`; reference: Radix Themes DataList):
   - In medium or wider containers, label (gray-11, fixed column) and value side by side,
     rows separated by space not borders. Stacked in narrow containers. `.stacked()` forces
     stacked.
+  Done: each `<dt>`/`<dd>` pair is now wrapped in a `<div>` (valid in a `<dl>`) laid out as a
+  wrapping flex row: the muted label in a fixed 10rem column, the value beside it with a
+  12rem floor, rows 12px apart with no rules. Where the value no longer fits beside the
+  label it moves under it, so the list stacks in a narrow box without a breakpoint (a `<dl>`
+  cannot query its own width); `.stacked()` stacks always. The record page's fields take the
+  same rows inside their card. Both joined NO_BREAKPOINT.
 - [ ] Card, avatar, badge, empty state, skeleton (`card.rs`, `avatar.rs`, `badge.rs`,
   `empty_state.rs`, `skeleton.rs`; reference: Radix Themes Card, Avatar, Badge and Skeleton;
   shadcn for the empty state):

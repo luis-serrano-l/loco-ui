@@ -3,7 +3,8 @@
 //! Terms and what they are: a record's fields, a summary before confirming, key facts. Terms
 //! sit in a column beside their details, or above them with `.stacked()`.
 //!
-//! **Platform features:** `<dl>` with `<dt>`/`<dd>` pairs (every browser); CSS grid for the
+//! **Platform features:** `<dl>` with `<dt>`/`<dd>` pairs, each pair in a `<div>` (allowed in a
+//! `<dl>`, every browser); a wrapping flex row per pair stacks it when narrow; CSS grid for the
 //! two columns.
 //!
 //! **Accessibility:** a real description list, so screen readers announce the pairs and their
@@ -79,7 +80,7 @@ impl Render for DescriptionList<'_> {
     fn render(&self) -> Markup {
         html! {
             dl class={ "lui-description-list" @if self.stacked { " lui-description-list-stacked" } } {
-                @for (term, detail) in &self.items { dt { (term) } dd { (detail) } }
+                @for (term, detail) in &self.items { div class="lui-description-list-item" { dt { (term) } dd { (detail) } } }
             }
         }
     }
@@ -87,9 +88,13 @@ impl Render for DescriptionList<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-description-list { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: calc(var(--lui-space) * 1.5) calc(var(--lui-space) * 3); margin: 0; }
-.lui-description-list dt { color: var(--lui-muted); font-size: 0.875rem; }
-.lui-description-list dd { margin: 0; }
-.lui-description-list-stacked { grid-template-columns: 1fr; gap: 0.25rem; }
-.lui-description-list-stacked dd + dt { margin-top: calc(var(--lui-space) * 1.5); }
+/* After Radix Themes DataList: rows separated by space, not rules; the label muted in a fixed
+   10rem column, the value beside it. Each row is a wrapping flex line (a <div> round its
+   <dt> and <dd>), so where the value no longer fits its 12rem it moves under the label:
+   stacked in a narrow box with no breakpoint. .stacked() stacks always. */
+.lui-description-list { display: grid; gap: var(--lui-space-3); margin: 0; }
+.lui-description-list-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--lui-space-1) var(--lui-space-4); }
+.lui-description-list dt { flex: 0 0 10rem; min-width: 0; color: var(--lui-muted); font-size: 0.875rem; line-height: 1.25rem; }
+.lui-description-list dd { flex: 1 1 12rem; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.lui-description-list-stacked dt, .lui-description-list-stacked dd { flex-basis: 100%; }
 "#;

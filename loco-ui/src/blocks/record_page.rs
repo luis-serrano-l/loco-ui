@@ -122,7 +122,7 @@ impl Render for RecordPage<'_> {
                     }
                 }
                 dl class="lui-record-fields" {
-                    @for (label, value) in &self.fields { dt { (label) } dd { (value) } }
+                    @for (label, value) in &self.fields { div class="lui-record-field" { dt { (label) } dd { (value) } } }
                 }
             }
         }
@@ -136,10 +136,13 @@ pub const CSS: &str = r#"
 .lui-record-head h1 { margin: 0; }
 .lui-record-actions { display: flex; gap: var(--lui-space); }
 .lui-record-actions form { margin: 0; }
+/* The fields take the description list's look (a DataList in a card): each label and value a
+   wrapping row, the value under its label once it does not fit beside it. */
 .lui-record-fields {
-  display: grid; grid-template-columns: minmax(min(8rem, 40%), max-content) minmax(0, 1fr); gap: calc(var(--lui-space) * 1.5) calc(var(--lui-space) * 3); margin: 0;
-  padding: calc(var(--lui-space) * 3); background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
+  display: grid; gap: var(--lui-space-3); margin: 0;
+  padding: var(--lui-space-6); background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
 }
-.lui-record-fields dt { color: var(--lui-muted); font-size: 0.875rem; }
-.lui-record-fields dd { margin: 0; overflow-wrap: anywhere; }
+.lui-record-field { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--lui-space-1) var(--lui-space-4); }
+.lui-record-fields dt { flex: 0 0 10rem; min-width: 0; color: var(--lui-muted); font-size: 0.875rem; }
+.lui-record-fields dd { flex: 1 1 12rem; min-width: 0; margin: 0; overflow-wrap: anywhere; }
 "#;

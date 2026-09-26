@@ -1641,6 +1641,14 @@ mod tests {
                 "one row of chips, search box and button that wraps",
             ),
             ("range", "one row: the slider and its value"),
+            (
+                "description_list",
+                "each pair a wrapping row: the value drops under its label",
+            ),
+            (
+                "record_page",
+                "a head row that wraps over fields laid out as the description list",
+            ),
             ("progress", "a label row over a full-width bar"),
             (
                 "stat",
@@ -1691,9 +1699,7 @@ mod tests {
             ("kanban", "Kanban box"),
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),
-            ("description_list", "Description list box"),
             ("marquee", "Marquee box"),
-            ("record_page", "Description list box"),
         ];
         let listed = |list: &[(&str, &str)], name: &str| list.iter().any(|(n, _)| *n == name);
         let mut wrong = Vec::new();
