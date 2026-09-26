@@ -1632,6 +1632,10 @@ mod tests {
                 "the page frame: its container is the viewport (the drawer decides)",
             ),
             ("stack", "one column"),
+            (
+                "marquee",
+                "one looping row, or at rest a row that wraps by its own content",
+            ),
             ("sortable", "one column of rows at every width"),
             ("cluster", "wraps by its own content"),
             ("split", "wraps by flex-basis, no breakpoint"),
@@ -1708,7 +1712,7 @@ mod tests {
         ];
         // Not responsive yet, each until its M34 box lands. The test fails once one passes,
         // so the entry leaves with the fix. Empty by the M34 wrap-up.
-        const PENDING: &[(&str, &str)] = &[("marquee", "Marquee box")];
+        const PENDING: &[(&str, &str)] = &[];
         let listed = |list: &[(&str, &str)], name: &str| list.iter().any(|(n, _)| *n == name);
         let mut wrong = Vec::new();
         for (name, css) in named {

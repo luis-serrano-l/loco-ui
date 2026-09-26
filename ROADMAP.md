@@ -2026,9 +2026,16 @@ owner has seen them.
   survives a reload, an up arrow moves it back one; Blitz: five rows, no dead buttons, the
   down buttons aligned. Kept different: no in-list keyboard dragging (the named buttons are
   the keyboard path, as the box says).
-- [ ] Marquee and the showpiece setters (`marquee.rs` and the setters on card, button, badge,
+- [x] Marquee and the showpiece setters (`marquee.rs` and the setters on card, button, badge,
   input and stat): keep Magic UI. Re-shoot them on the new surfaces, and fix only what the
   new card and button variants broke.
+  Done: re-shot `/marquee`, `/card`, `/button` and `/field` in both themes at three widths.
+  Shimmer on buttons and the soft and outline badges, beam and glow on the Pro card, the
+  gradient border on the Changelog card and the key field, and the marquee (at rest under
+  reduced motion: a row that wraps) all hold on the new surfaces; nothing in the library
+  needed a change. The one break was the demo's Team card, where the new avatar group sat
+  flush on the member list: its body is now a `Stack`. Marquee joined NO_BREAKPOINT (one
+  looping row, or at rest a row that wraps by its own content), so PENDING is empty.
 
 ### Close
 - [ ] Demo shell, light polish only. Keep the structure and simplicity the owner likes:

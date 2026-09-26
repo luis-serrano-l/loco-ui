@@ -99,10 +99,12 @@ fn cards(ui: &Ui) -> Markup {
             Card title="Team" description="3 people can edit this project."
                 header={ Badge("Pro") secondary; }
                 footer={ Button("Invite") primary; Button("Manage") ghost; } {
-                Avatars("Editors") max=2 { avatar "Ada Lovelace"; avatar "Grace Hopper"; avatar "Alan Turing"; }
-                Stack gap=3 { @for (name, role) in team {
-                    Cluster { Avatar(name); span { (name) } Badge(role) outline; }
-                } }
+                Stack gap=4 {
+                    Avatars("Editors") max=2 { avatar "Ada Lovelace"; avatar "Grace Hopper"; avatar "Alan Turing"; }
+                    Stack gap=3 { @for (name, role) in team {
+                        Cluster { Avatar(name); span { (name) } Badge(role) outline; }
+                    } }
+                }
             }
             Card title="Storage" description="Resets on the 1st." classic footer={ LinkButton("Upgrade", "/card"); } {
                 Cluster { Avatar("Acme Inc") square; p { "3.2 GB of 5 GB used." } }
