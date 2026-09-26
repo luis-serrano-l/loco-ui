@@ -100,10 +100,11 @@ fn stats(ui: &Ui) -> Markup {
     lui! {
         div class="lui-stat-grid" {
             // code: /dashboard
-            Stat("Visitors", "12,480") delta="+8.2%" description="last 7 days" reveal;
+            Stat("Visitors", "12,480") delta="+8.2%" description="last 7 days" reveal
+                sample=8.1 sample=9.4 sample=8.8 sample=10.2 sample=11.0 sample=10.6 sample=12.5;
             Stat("Orders", if none { "0" } else { "3" }) delta=(if none { "-3" } else { "0" });
             Stat("Error rate", "0.4%") delta="-0.2 pt" down_is_good href="/table";
-            Stat("p95 latency", "38 ms") delta="+6 ms" down_is_good;
+            Stat("p95 latency", "38 ms") delta="+6 ms" down_is_good progress=(38, 50) description="of a 50 ms budget";
             // end code
         }
     }
@@ -123,7 +124,11 @@ async fn dashboard_page(ui: Ui) -> Page {
             }
             // end code
         } @else {
-            ul { li { "#1042, Ada Lovelace, 3 items" } li { "#1041, Grace Hopper, 1 item" } li { "#1040, Alan Turing, 2 items" } }
+            Card {
+                DescriptionList {
+                    item "#1042" "Ada Lovelace, 3 items"; item "#1041" "Grace Hopper, 1 item"; item "#1040" "Alan Turing, 2 items";
+                }
+            }
             p class="lui-note" { a href="/dashboard?orders=none" { "See the empty state" } }
         }
     };

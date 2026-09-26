@@ -40,6 +40,10 @@
 //! let up = ui.stat("Visitors", "12,480").reveal().render().into_string();
 //! assert!(up.starts_with(r#"<div class="lui-stat lui-stat-reveal">"#));
 //! assert_eq!(lui! { Stat("Visitors", "12,480") reveal; }.into_string(), up);
+//! // A sparkline along the bottom and a progress bar towards a target.
+//! let kpi = ui.stat("Revenue", "$48,210").sample(30.0).sample(34.0).sample(31.0).sample(38.0).progress(62, 100).render().into_string();
+//! assert!(kpi.contains(r#"<progress class="lui-stat-progress" value="62" max="100""#) && kpi.contains("lui-stat-spark"));
+//! assert_eq!(lui! { Stat("Revenue", "$48,210") sample=30.0 sample=34.0 sample=31.0 sample=38.0 progress=(62, 100); }.into_string(), kpi);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -61,8 +65,8 @@ pub enum Trend {
 
 /// A stat card, `label` above `value`, made by [`Ui::stat`].
 ///
-/// **Setters.** Values and items: `.delta(..)`, `.trend(..)`, `.description(..)`, `.href(..)`;
-/// switches: `.down_is_good()`, `.reveal()`.
+/// **Setters.** Values and items: `.delta(..)`, `.trend(..)`, `.description(..)`, `.href(..)`,
+/// `.sample(..)`, `.progress(..)`; switches: `.down_is_good()`, `.reveal()`.
 #[derive(Clone, Debug, Default)]
 pub struct Stat<'a> {
     label: &'a str,
@@ -73,6 +77,8 @@ pub struct Stat<'a> {
     note: Option<&'a str>,
     href: Option<&'a str>,
     reveal: bool,
+    sparkline: Vec<f64>,
+    progress: Option<(u64, u64)>,
 }
 
 impl Stat<'_> {
@@ -90,6 +96,10 @@ impl Stat<'_> {
             .attr("href")
             .doc("Make the whole card a link to the details."),
         Prop::new("reveal", PropKind::Switch, "").doc("Fades and rises as it scrolls into view."),
+        Prop::new("sample", PropKind::Item, "value: f64")
+            .doc("A recent value for the sparkline along the card's bottom edge (oldest first)."),
+        Prop::new("progress", PropKind::Value, "value: u64, max: u64")
+            .doc("A bar under the value: how far towards a target."),
     ];
 }
 
@@ -141,6 +151,23 @@ impl<'a> Stat<'a> {
         self
     }
 
+    /// A recent value (oldest first) for the sparkline along the card's bottom edge: inline
+    /// SVG, drawn from two samples up and hidden from assistive tech (the value and delta
+    /// already say it).
+    pub fn sample(mut self, value: f64) -> Self {
+        if value.is_finite() {
+            self.sparkline.push(value);
+        }
+        self
+    }
+
+    /// A bar under the value, `value` of `max` (a `<progress>`, named by the label): how far
+    /// towards a target.
+    pub fn progress(mut self, value: u64, max: u64) -> Self {
+        self.progress = Some((value.min(max), max.max(1)));
+        self
+    }
+
     /// Fades and rises as it scrolls into view, with `animation-timeline: view()`; shown in
     /// place where that is missing or under `prefers-reduced-motion: reduce`.
     pub fn reveal(mut self) -> Self {
@@ -177,11 +204,17 @@ impl Render for Stat<'_> {
                     Trend::Flat => ("\u{25b6}", "unchanged", true),
                 };
                 @let tone = if trend == Trend::Flat { "lui-stat-flat" } else if good { "lui-stat-good" } else { "lui-stat-bad" };
-                p class={ "lui-stat-delta " (tone) } {
-                    span aria-hidden="true" { (arrow) " " } span class="lui-sr" { (word) " " } (text)
+                p class="lui-stat-delta-row" {
+                    span class={ "lui-stat-delta " (tone) } {
+                        span aria-hidden="true" { (arrow) } span class="lui-sr" { (word) " " } (text)
+                    }
                 }
             }
+            @if let Some((v, m)) = self.progress {
+                progress class="lui-stat-progress" value=(v) max=(m) aria-label=(self.label) { (v) " / " (m) }
+            }
             @if let Some(n) = self.note { p class="lui-stat-note" { (n) } }
+            @if self.sparkline.len() > 1 { (spark(&self.sparkline)) }
         };
         let reveal = if self.reveal { " lui-stat-reveal" } else { "" };
         html! {
@@ -193,23 +226,69 @@ impl Render for Stat<'_> {
         }
     }
 }
+/// The sparkline: a 100 by 32 view box stretched to the card's width, a line over a faint
+/// area, drawn with `vector-effect` so the stroke keeps its width.
+fn spark(values: &[f64]) -> Markup {
+    let (lo, hi) = values
+        .iter()
+        .fold((f64::MAX, f64::MIN), |(l, h), v| (l.min(*v), h.max(*v)));
+    let span = if hi > lo { hi - lo } else { 1.0 };
+    let step = 100.0 / (values.len() - 1) as f64;
+    let points: Vec<String> = values
+        .iter()
+        .enumerate()
+        .map(|(i, v)| {
+            format!(
+                "{:.1},{:.1}",
+                i as f64 * step,
+                30.0 - (v - lo) / span * 28.0
+            )
+        })
+        .collect();
+    let line = points.join(" ");
+    let area = format!("0,32 {line} 100,32");
+    html! {
+        svg class="lui-stat-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true" focusable="false" {
+            polygon class="lui-stat-spark-area" points=(area) {}
+            polyline class="lui-stat-spark-line" points=(line) vector-effect="non-scaling-stroke" {}
+        }
+    }
+}
+
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: calc(var(--lui-space) * 2); margin-block: calc(var(--lui-space) * 2); }
+/* After the Tremor KPI cards: the label in muted medium, a large semibold tabular value, the
+   delta as a soft badge in its tone with an arrow, an optional progress bar and a sparkline
+   along the bottom edge. Tiles fill a grid of min(12rem, 100%) columns. */
+.lui-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: var(--lui-space-4); margin-block: var(--lui-space-4); }
 .lui-stat {
-  display: block; padding: calc(var(--lui-space) * 3); color: var(--lui-fg); text-decoration: none;
+  position: relative; display: flex; flex-direction: column; gap: var(--lui-space-1); overflow: hidden;
+  padding: var(--lui-space-4) 1.25rem; color: var(--lui-fg); text-decoration: none;
   background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); box-shadow: var(--lui-shadow-sm), var(--lui-highlight);
-  transition: background-color 0.15s;
+  transition: background-color var(--lui-duration-fast);
 }
 .lui-stat p { margin: 0; max-width: none; }
 .lui-stat-link:hover { background: color-mix(in srgb, var(--lui-accent) 50%, var(--lui-card)); }
 .lui-stat-label { color: var(--lui-muted); font-size: 0.875rem; font-weight: 500; }
-.lui-stat-value { font-size: 1.5rem; font-weight: 600; line-height: 2rem; margin-block: 0.25rem; font-variant-numeric: tabular-nums; }
-.lui-stat-delta { font-size: 0.75rem; font-weight: 500; }
-.lui-stat-good { color: var(--lui-ok); }
-.lui-stat-bad { color: var(--lui-danger); }
-.lui-stat-flat { color: var(--lui-muted); }
-.lui-stat-note { color: var(--lui-muted); font-size: 0.75rem; margin-top: 0.25rem; }
+.lui-stat-value { font-size: 1.875rem; font-weight: 600; line-height: 2.25rem; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.lui-stat-delta {
+  --lui-stat-tone: var(--lui-muted);
+  display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.375rem; border-radius: var(--lui-radius-sm);
+  font-size: 0.75rem; line-height: 1rem; font-weight: 500; font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--lui-stat-tone) 85%, var(--lui-fg)); background: color-mix(in srgb, var(--lui-stat-tone) 14%, var(--lui-bg));
+}
+.lui-stat-delta > [aria-hidden] { font-size: 0.625rem; }
+.lui-stat-good { --lui-stat-tone: var(--lui-ok); }
+.lui-stat-bad { --lui-stat-tone: var(--lui-danger); }
+.lui-stat-flat { --lui-stat-tone: var(--lui-muted); }
+.lui-stat-note { color: var(--lui-muted); font-size: 0.75rem; }
+.lui-stat-progress { appearance: none; width: 100%; height: 0.375rem; margin-top: var(--lui-space-2); border: 0; border-radius: 9999px; background: var(--lui-gray-4); overflow: hidden; }
+.lui-stat-progress::-webkit-progress-bar { background: var(--lui-gray-4); border-radius: 9999px; }
+.lui-stat-progress::-webkit-progress-value { background: var(--lui-primary); border-radius: 9999px; }
+.lui-stat-progress::-moz-progress-bar { background: var(--lui-primary); border-radius: 9999px; }
+.lui-stat-spark { display: block; width: calc(100% + 2.5rem); height: 2.5rem; margin: var(--lui-space-2) -1.25rem calc(var(--lui-space-4) * -1); }
+.lui-stat-spark-line { fill: none; stroke: var(--lui-primary); stroke-width: 1.5; stroke-linejoin: round; }
+.lui-stat-spark-area { fill: color-mix(in srgb, var(--lui-primary) 12%, transparent); stroke: none; }
 /* .reveal(): @keyframes lui-reveal is the card's (card.rs). */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {

@@ -1848,7 +1848,7 @@ owner has seen them.
   icons and key hints.
 
 ### Data
-- [ ] Stat (`stat.rs`; reference: the Tremor KPI cards):
+- [x] Stat (`stat.rs`; reference: the Tremor KPI cards):
   - The label is gray-11. The value is large, semibold and tabular.
   - The delta is a soft badge (green up, red down, flipped by `.down_is_good()`) with an
     arrow, not bare coloured text.
@@ -1856,6 +1856,16 @@ owner has seen them.
     `.progress(value, max)` draws a Tremor-style bar under the value.
   - A group of stats reflows from 4 to 2 to 1 by container width.
   - The `/dashboard` demo replaces its bullet list with a small table or list card.
+  Done: muted medium label, a 1.875rem semibold tabular value, and the delta as a soft badge
+  in its tone (ok, danger or muted, `color-mix` tints) with its arrow; `.down_is_good()`
+  flips the tone as before. `.trend(..)` already meant the direction, so the sparkline is
+  new `.sample(value)` (one per value, oldest first; the conventions test forbids a list
+  setter): an inline SVG line over a faint area across the card's bottom edge,
+  `aria-hidden` since the value says it. New `.progress(value, max)`: a Tremor-style
+  `<progress>` bar named by the label. The grid is `auto-fit` of `min(12rem, 100%)`: 4, 3,
+  2 or 1 across by width (`.lui-stat-grid` is the caller's div, so no container query of
+  its own; NO_BREAKPOINT). `/dashboard` shows a sparkline and a progress bar and lists its
+  orders in a card with a description list. The side-by-side check moved to Firefox.
 - [ ] Chart (`chart.rs`; reference: Tremor AreaChart, BarChart and LineChart):
   - A y axis with 3–5 rounded ticks and dashed gray-5 gridlines, x labels that thin out
     when narrow, and a legend with swatches.

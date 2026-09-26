@@ -1254,7 +1254,9 @@
             { "name": "down_is_good", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A fall is good news (error rates, latency)." },
             { "name": "description", "kind": "value", "args": "note: &'a str", "default": "", "attr": "", "doc": "Small print under the value." },
             { "name": "href", "kind": "value", "args": "href: &'a str", "default": "", "attr": "href", "doc": "Make the whole card a link to the details." },
-            { "name": "reveal", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fades and rises as it scrolls into view." }
+            { "name": "reveal", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fades and rises as it scrolls into view." },
+            { "name": "sample", "kind": "item", "args": "value: f64", "default": "", "attr": "", "doc": "A recent value for the sparkline along the card's bottom edge (oldest first)." },
+            { "name": "progress", "kind": "value", "args": "value: u64, max: u64", "default": "", "attr": "", "doc": "A bar under the value: how far towards a target." }
           ]
         }
       ]

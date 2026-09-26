@@ -1642,6 +1642,10 @@ mod tests {
             ),
             ("range", "one row: the slider and its value"),
             (
+                "stat",
+                "auto-fit tiles of min(12rem, 100%): 4, 3, 2 or 1 across by width",
+            ),
+            (
                 "sidebar",
                 "one column; the icon rail is a toggle, not a width",
             ),
@@ -1689,7 +1693,6 @@ mod tests {
             ("paged_table", "Table box"),
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),
-            ("stat", "Stat box"),
             ("description_list", "Description list box"),
             ("marquee", "Marquee box"),
             ("record_page", "Description list box"),

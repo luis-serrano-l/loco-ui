@@ -967,10 +967,9 @@ async fn stats_and_empty_state() {
         page.bbox(".lui-stat-grid > :nth-child(1)").unwrap(),
         page.bbox(".lui-stat-grid > :nth-child(2)").unwrap(),
     );
-    assert!(
-        (a.y - b.y).abs() < 1.0 && b.x > a.x,
-        "cards sit side by side when there is room"
-    );
+    // Side by side is checked in Firefox (`scripts/browser-check.mjs`): Blitz puts `auto-fit`
+    // tracks of `minmax(min(12rem, 100%), 1fr)` in one column (FINDINGS, M34).
+    assert!(b.y > a.y, "Blitz: the stat cards stack");
     assert!(
         page.exists(".lui-stat-good") && page.exists(".lui-stat-bad"),
         "down_is_good flips the colour"
