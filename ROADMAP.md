@@ -1676,11 +1676,21 @@ owner has seen them.
   `<progress>` element is visually hidden but still read; `.hide_progress()` drops it. Done
   steps stay links, the current one keeps `aria-current="step"`. The Blitz test asserts the
   column; the row is checked in Firefox.
-- [ ] Toggle group (`toggle_group.rs`; reference: Radix Themes SegmentedControl):
+- [x] Toggle group (`toggle_group.rs`; reference: Radix Themes SegmentedControl):
   - A gray-3 track, and the current item as a raised surface chip with a shadow and
     highlight.
   - Where `Cap::ViewTransitions` is present, the chip slides like the tabs mark.
   - Items share the width evenly. A narrow container wraps or scrolls, never overflows.
+  Done: a gray-3 track (2px inset) of equal-width items (`grid-auto-columns: 1fr`), gray-11
+  text turning fg on hover and when picked; the picked item is a card-coloured chip with
+  the small shadow, highlight and a faint line-coloured edge (without it the chip vanishes
+  in dark, where card is barely lighter than the track). With one pick the chip is a single
+  `::before` that slides (spring curve) to the checked item: `:has()` rules give its index
+  among up to 8 items, the server sets `--lui-toggle-n`. That needs no script or view
+  transition, so `Cap::ViewTransitions` plays no part (the tabs slide on navigation; a
+  toggle group does not navigate). Without `:has()`, and in multiple mode, the checked face
+  takes the chip look itself. A narrow container scrolls the row inside itself
+  (NO_BREAKPOINT).
 - [ ] Callout for error summary, alert and flash (`error_summary.rs`, `alert.rs`, `flash.rs`;
   reference: Radix Themes Callout):
   - One look for all three: an icon, a title, then a body and links. Soft (tinted with steps

@@ -1642,6 +1642,10 @@ mod tests {
             ),
             ("range", "one row: the slider and its value"),
             (
+                "toggle_group",
+                "one row of equal items that scrolls inside itself when narrow",
+            ),
+            (
                 "calendar",
                 "width min(100%, 17.5rem): fills a narrow box with square cells",
             ),

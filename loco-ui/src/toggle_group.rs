@@ -16,7 +16,12 @@
 //! **What it does not do without script:** apply a choice the moment it is pressed; the
 //! surrounding form sends it (a submit button, or the enhancement script's in-place post).
 //!
-//! **Fallback:** none needed.
+//! The look follows Radix Themes SegmentedControl: a gray track, items of one width, the
+//! picked one a raised chip; with one pick the chip slides between items (CSS only, `:has()`
+//! and a transition). A narrow container scrolls the row inside itself.
+//!
+//! **Fallback:** without `:has()` (Chrome < 105, Firefox < 121) the checked item takes the
+//! chip look itself and nothing slides.
 //!
 //! ```rust
 //! use loco_ui::prelude::*;
@@ -137,7 +142,8 @@ impl Render for ToggleGroup<'_> {
     fn render(&self) -> Markup {
         let kind = if self.multi { "checkbox" } else { "radio" };
         html! {
-            fieldset class="lui-toggle-group" {
+            fieldset class={ "lui-toggle-group" @if !self.multi { " lui-toggle-group-one" } }
+                style={ "--lui-toggle-n: " (self.items.len().max(1)) } {
                 legend class="lui-sr" { (self.label) }
                 @for (value, text, icon) in &self.items {
                     label class="lui-toggle-group-item" {
@@ -153,15 +159,46 @@ impl Render for ToggleGroup<'_> {
     }
 }
 
-/// Styles for this component; included in [`crate::stylesheet`]. shadcn ToggleGroup: outline
-/// segments, the pressed one on the accent.
+/// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-toggle-group { display: inline-flex; justify-self: start; align-self: start; width: fit-content; margin: 0; padding: 0; border: 1px solid var(--lui-input); border-radius: var(--lui-radius); overflow: hidden; box-shadow: var(--lui-shadow-xs); }
-.lui-toggle-group-item { position: relative; display: inline-flex; }
-.lui-toggle-group-item + .lui-toggle-group-item { border-left: 1px solid var(--lui-input); }
+/* After Radix Themes SegmentedControl: a --lui-gray-3 track, items of one width, the picked one a
+   raised card-coloured chip with a small shadow, highlight and a faint line-coloured edge
+   (which keeps it visible in dark, where the card is barely lighter than the track). With one pick and :has(), the
+   chip is one element that slides to the checked item (--lui-toggle-at, from its position
+   among up to 8 items, over --lui-toggle-n set by the server), no script or view transition
+   needed; otherwise the checked face takes the chip look itself. A narrow container
+   scrolls the row inside itself. */
+.lui-toggle-group {
+  position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  justify-self: start; align-self: start; max-width: 100%; box-sizing: border-box; overflow-x: auto;
+  margin: 0; padding: 2px; border: 0; border-radius: var(--lui-radius); background: var(--lui-gray-3);
+}
+.lui-toggle-group-item { position: relative; z-index: 1; display: flex; }
 .lui-toggle-group-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
-.lui-toggle-group-face { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; min-width: var(--lui-control-h); height: var(--lui-control-h); padding: 0 0.75rem; font-size: 0.875rem; font-weight: 500; color: var(--lui-fg); background: var(--lui-bg); cursor: pointer; }
-.lui-toggle-group-face:hover { background: var(--lui-secondary); }
-.lui-toggle-group-input:checked + .lui-toggle-group-face { background: var(--lui-accent); color: var(--lui-on-accent); }
+.lui-toggle-group-face {
+  display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 0.375rem; white-space: nowrap;
+  min-width: calc(var(--lui-control-h) - 4px); height: calc(var(--lui-control-h) - 4px); padding: 0 0.75rem; box-sizing: border-box;
+  border-radius: calc(var(--lui-radius) - 2px); font-size: 0.875rem; font-weight: 500; color: var(--lui-gray-11); cursor: pointer;
+  transition: color var(--lui-duration-fast), background-color var(--lui-duration-fast);
+}
+.lui-toggle-group-face:hover { color: var(--lui-fg); }
+.lui-toggle-group-input:checked + .lui-toggle-group-face { color: var(--lui-fg); background: var(--lui-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lui-line) 70%, transparent), var(--lui-shadow-xs), var(--lui-highlight); }
 .lui-toggle-group-input:focus-visible + .lui-toggle-group-face { outline: 2px solid var(--lui-ring); outline-offset: -2px; }
+@supports selector(:has(*)) {
+  .lui-toggle-group-one .lui-toggle-group-input:checked + .lui-toggle-group-face { background: transparent; box-shadow: none; }
+  .lui-toggle-group-one::before {
+    content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--lui-toggle-n, 1));
+    translate: calc(100% * var(--lui-toggle-at, 0)) 0; border-radius: calc(var(--lui-radius) - 2px);
+    background: var(--lui-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lui-line) 70%, transparent), var(--lui-shadow-xs), var(--lui-highlight);
+    transition: translate var(--lui-duration) var(--lui-ease-spring);
+  }
+  .lui-toggle-group-one:not(:has(.lui-toggle-group-input:checked))::before { opacity: 0; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(2) > .lui-toggle-group-input:checked) { --lui-toggle-at: 1; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(3) > .lui-toggle-group-input:checked) { --lui-toggle-at: 2; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(4) > .lui-toggle-group-input:checked) { --lui-toggle-at: 3; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(5) > .lui-toggle-group-input:checked) { --lui-toggle-at: 4; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(6) > .lui-toggle-group-input:checked) { --lui-toggle-at: 5; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(7) > .lui-toggle-group-input:checked) { --lui-toggle-at: 6; }
+  .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(8) > .lui-toggle-group-input:checked) { --lui-toggle-at: 7; }
+}
 "#;
