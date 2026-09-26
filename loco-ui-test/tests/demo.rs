@@ -1527,8 +1527,8 @@ async fn motion_leaves_the_final_layout_unchanged() {
             html("/dialog?dialog=confirm", MODERN.to_string()).await,
             "dialog[open]",
         ),
-        (toast.clone(), ".lui-toast-ok"),
-        (toast, ".lui-toast-danger"),
+        // The front toast; those behind it are offset and scaled on purpose (the depth stack).
+        (toast, ".lui-toast:last-child"),
         (menu, ".lui-popover-details[open] > nav"),
         (html("/nav", MODERN.to_string()).await, ".lui-drawer-panel"),
     ];

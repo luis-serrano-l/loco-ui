@@ -1757,13 +1757,23 @@ owner has seen them.
   axis). The sidebar mode above 60rem keeps its look with the new radius. Demo adds a
   description and a footer link. The drawer keeps viewport `@media` (it is on the VIEWPORT
   list: a top-layer sheet).
-- [ ] Toasts (`toast.rs`; reference: shadcn Sonner):
+- [x] Toasts (`toast.rs`; reference: shadcn Sonner):
   - Toasts stack in depth: only the front one is full, and those behind are scaled and
     peeking. Hover or `:focus-within` on the stack fans them out, in CSS only.
   - Each toast has an icon by level, a title, a description, an optional action button and
     a close.
   - Bottom-right on desktop, full width at the bottom (16 px gutter) on narrow viewports.
   - Under reduced motion the stack is shown fanned out with no animation.
+  Done: all toasts share one grid cell: the newest in front, the two before it 14px and 28px
+  higher at 95% and 90% scale (explicit z-index keeps the front on top: a transformed
+  toast paints over an untransformed one otherwise), older ones hidden; `:hover` or
+  `:focus-within` on the stack puts each back in its own row, and reduced motion always
+  shows them so. Each toast: the level's icon (info, check, warning) in its colour, the
+  message, a × close with a 44px hit area; large radius, popover surface. Bottom-right with
+  24px margins; under a 30rem viewport full width at the bottom, 16px from the edges (it
+  used to move to the top). Kept different: no separate description or action button,
+  since a toast is a flash message (level and text) and the redirect API carries nothing
+  more; the Blitz motion test now checks the front toast only.
 - [ ] Tabs (`tabs.rs`; reference: Radix Themes Tabs and TabNav):
   - An `.underline()` variant: a hairline under the list, with the current tab marked by a
     2 px brand bar that slides with view transitions where available. Keep the existing
