@@ -20,6 +20,15 @@
 //! as a `<style>` after the stylesheet, so a different palette is a struct, not a CSS file.
 //! `docs/theming.md` lists each token and what it affects.
 //!
+//! **Responsive (M34):** components respond to the box they sit in, not the viewport. Every
+//! component root that changes layout sets `container: lui-<component> / inline-size`, and
+//! its CSS writes the narrow layout as the base, then adds wider layouts with
+//! `@container lui-<component> (width >= …)`. Three breakpoints, used everywhere and never
+//! others: *narrow* below `30rem`, *medium* from `30rem`, *wide* from `48rem`. Custom
+//! properties cannot appear in an `@container` condition, so the numbers are written
+//! literally. Viewport `@media` is kept for `prefers-*` and `pointer` only. Blitz does not
+//! support `@container` (FINDINGS, M34), so its shots show the narrow base.
+//!
 //! ```rust
 //! use loco_ui::{prelude::*, layout::{Palette, Tokens}};
 //! let ui = Ui::from(Caps::all());

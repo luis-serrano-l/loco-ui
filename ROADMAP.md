@@ -1429,7 +1429,7 @@ owner has seen them.
   Done: `--only`, `--tag`, `--no-ref` (`--no-shadcn` kept as an alias); 36 pages, each with
   the reference named in its box below (Radix Themes, shadcn, Origin UI, Tremor, Dice UI,
   Magic UI), shot as `<name>-ref.png`; the warm-up shots are deleted.
-- [ ] Container convention in `layout.rs`, written in the file's header comment:
+- [x] Container convention in `layout.rs`, written in the file's header comment:
   - Every component root sets `container: lui-<component> / inline-size`.
   - Three shared breakpoints, used everywhere and never others: narrow below 30 rem, medium
     from 30 rem, wide from 48 rem.
@@ -1438,6 +1438,9 @@ owner has seen them.
   - Also check whether Blitz supports `@container`. If it doesn't, the narrow base layout is
     what Blitz shots show. Write that in FINDINGS with an issue link, and move any Blitz
     assertion that needs the wide layout to the browser check.
+  Done: written in `layout.rs`'s header. Blitz ignores `@container` (Stylo parses it only in
+  Gecko builds; servo#43346), recorded in FINDINGS; no current Blitz assertion needs a wide
+  layout.
 - [ ] Touch sizing in `layout.rs`:
   - Add `--lui-control-h` (2.25 rem) and `--lui-hit` (2.25 rem). Under
     `@media (pointer: coarse)` both become 2.75 rem (44 px).

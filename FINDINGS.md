@@ -835,3 +835,13 @@ stat tiles; `ui.marquee(..)`) are proved at rest in Blitz by
 Blitz paints `.gradient_border()` (the padding-box over border-box layers and the
 `in oklch` gradient) as a browser does. `@supports (mask-composite: exclude)` matches; the beam
 is not drawn only because it sits behind the motion query.
+
+### M34 · Components that respond to their container
+
+- **Blitz ignores `@container`.** Stylo 0.20 parses the rule only in Gecko builds
+  (`stylesheets/rule_parser.rs`, `"container" if cfg!(feature = "gecko")`) and ships
+  `layout.container-queries.enabled = false`; Servo tracks the work in
+  [servo#43346](https://github.com/servo/servo/issues/43346). So Blitz shots show each
+  component's narrow base layout at every width, which is why the base is written narrow.
+  An assertion that needs a wide layout belongs in `scripts/browser-check.mjs`, not in
+  `loco-ui-test`.
