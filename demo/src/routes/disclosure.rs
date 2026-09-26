@@ -37,7 +37,13 @@ fn tabs(ui: &Ui) -> Markup {
 async fn tabs_page(ui: Ui) -> Page {
     let body = lui! {
         (tabs(&ui))
-        p class="lui-note" { "Deep link: " a href="/tabs?tab.demo=2" { "?tab.demo=2" } ". Leave and come back: the tab is remembered. The third tab is lazy; under 40rem the strip becomes a select." }
+        p class="lui-note" { "Deep link: " a href="/tabs?tab.demo=2" { "?tab.demo=2" } ". Leave and come back: the tab is remembered. The third tab is lazy; when the tabs are under 30rem wide the strip becomes a select." }
+        h2 { "Underline" }
+        Tabs("line") underline {
+            tab "Overview" { p { "A hairline under the titles, the open one marked by a bar that slides." } }
+            tab "Activity" badge=5 { p { "Five events." } }
+            tab "Settings" { p { "Nothing to set." } }
+        }
         h2 { "Vertical" }
         Tabs("side") vertical {
             tab "General" { p { "Titles stack on the left; the open panel sits beside them." } }

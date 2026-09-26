@@ -2,7 +2,8 @@
 //!
 //! Tab strip where exactly one panel is open at a time, no script. Tabs can carry a badge
 //! count, be lazy (their body rendered only when open), run vertically, and collapse to a
-//! `<select>` on narrow screens; the open tab morphs to the next one on switch.
+//! `<select>` when the tabs are narrow (a container query), take an `.underline()` look after Radix
+//! TabNav instead of the pill; the open tab morphs to the next one on switch.
 //!
 //! **Platform features:**
 //! - `<details name="group">` exclusive accordion (baseline 2024): opening one closes the rest.
@@ -17,7 +18,7 @@
 //!   Firefox 144, Safari 18.2) gives the slide the `--lui-ease-spring` curve.
 //!
 //! **Accessibility:** each tab is a `<summary>` holding a link (one tab stop, Enter follows
-//! it); the narrow-screen select is named "Tab"; not the ARIA tablist pattern, which needs
+//! it); the narrow select is named "Tab"; not the ARIA tablist pattern, which needs
 //! script (FINDINGS). Checked by axe-core in headless Firefox on every demo route, both
 //! capability variants, light and dark (no serious or critical violation).
 //!
@@ -38,7 +39,7 @@
 //! Because every switch is a request, a lazy tab ([`Tabs::lazy`]) costs nothing until
 //! opened: the component calls its closure only when it is the open tab.
 //!
-//! **Without script:** the narrow-screen `<select>` needs its "Go" button; the script submits
+//! **Without script:** the narrow `<select>` needs its "Go" button; the script submits
 //! it on change.
 //!
 //! ```rust
@@ -63,6 +64,10 @@
 //!     lazy "Changelog" || { p { "(long)" } }
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // Radix's underline look instead of the pill.
+//! let line = ui.tabs("line").tab("One", html! {}).tab("Two", html! {}).underline().render().into_string();
+//! assert!(line.contains("lui-tabs lui-tabs-underline"));
+//! assert_eq!(lui! { Tabs("line") underline { tab "One" {} tab "Two" {} } }.into_string(), line);
 //! ```
 
 use std::fmt::Display;
@@ -103,7 +108,7 @@ impl std::fmt::Debug for Body<'_> {
 /// memory of it), and each title links to its own. Horizontal unless told otherwise.
 ///
 /// **Setters.** Values and items: `.lazy(..)`, `.tab(..)`, `.badge(..)`; switches:
-/// `.vertical()`, `.select_below()`.
+/// `.vertical()`, `.select_below()`, `.underline()`.
 #[derive(Clone, Debug)]
 pub struct Tabs<'a> {
     ui: &'a Ui,
@@ -111,6 +116,7 @@ pub struct Tabs<'a> {
     tabs: Vec<Tab<'a>>,
     vertical: bool,
     select_below: bool,
+    underline: bool,
 }
 
 impl Tabs<'_> {
@@ -130,7 +136,9 @@ impl Tabs<'_> {
         Prop::new("vertical", PropKind::Switch, "")
             .doc("Titles in a column on the left, the open panel beside them."),
         Prop::new("select_below", PropKind::Switch, "")
-            .doc("On screens under 40rem the titles give way to a `<select>`."),
+            .doc("Under 30rem of its own width the titles give way to a `<select>`."),
+        Prop::new("underline", PropKind::Switch, "")
+            .doc("Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)."),
     ];
 }
 
@@ -143,6 +151,7 @@ impl Ui {
             tabs: Vec::new(),
             vertical: false,
             select_below: false,
+            underline: false,
         }
     }
 }
@@ -183,9 +192,16 @@ impl<'a> Tabs<'a> {
         self
     }
 
-    /// On screens under 40rem the titles give way to a `<select>`.
+    /// Under 30rem of its own width (a container query) the titles give way to a `<select>`.
     pub fn select_below(mut self) -> Self {
         self.select_below = true;
+        self
+    }
+
+    /// Titles on a hairline, the open one marked by a 2px bar in the primary colour that
+    /// slides with view transitions (Radix Tabs and TabNav), instead of the pill.
+    pub fn underline(mut self) -> Self {
+        self.underline = true;
         self
     }
 }
@@ -198,16 +214,18 @@ impl Render for Tabs<'_> {
             ref tabs,
             vertical,
             select_below,
+            underline,
         } = *self;
         let s = &ui.state;
         let strip = ui.has(Cap::DetailsContent);
         let vt = ui.has(Cap::ViewTransitions);
         let active = s.tab(name);
         let key = format!("tab.{name}");
-        let class = match (strip, vertical) {
-            (false, _) => "lui-tabs lui-accordion",
-            (true, false) => "lui-tabs",
-            (true, true) => "lui-tabs lui-tabs-vertical",
+        let class = match (strip, vertical, underline) {
+            (false, ..) => "lui-tabs lui-accordion",
+            (true, false, false) => "lui-tabs",
+            (true, false, true) => "lui-tabs lui-tabs-underline",
+            (true, true, _) => "lui-tabs lui-tabs-vertical",
         };
         html! {
             div id={ "lui-tabs-" (name) } data-lui="swap"
@@ -250,6 +268,9 @@ fn badge(t: &Tab) -> Markup {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
+/* The tabs are their own container: .select_below() swaps the titles for a select when the
+   tabs are narrow, not the viewport. Titles that do not fit wrap onto another row. */
+.lui-tabs { container: lui-tabs / inline-size; }
 .lui-tabs:not(.lui-accordion) { display: flex; flex-wrap: wrap; }
 /* Fills the rest of the titles' row so the panels start on the next one. */
 .lui-tabs:not(.lui-accordion):not(.lui-tabs-vertical)::after { content: ""; order: 0; flex: 1; }
@@ -306,11 +327,20 @@ pub const CSS: &str = r#"
   grid-column: 2; grid-row: 1 / span var(--lui-tabs-n, 1); padding: 0 0 0 calc(var(--lui-space) * 3);
 }
 .lui-tabs.lui-tabs-vertical .lui-tabs-select { grid-column: 1 / -1; }
-/* Narrow screens: the titles give way to the select (needs the enhancement script for
+/* .underline() (Radix Tabs/TabNav): no pill; every title and the row's filler carry the
+   hairline, so it runs the full width; the open title is marked by a 2px primary bar on it,
+   the chip element restyled, so it slides the same way. Titles are muted, fg when open. */
+.lui-tabs.lui-tabs-underline summary { padding: 0; background: none; border-radius: 0 !important; border-bottom: 1px solid var(--lui-line); }
+.lui-tabs.lui-tabs-underline::after { border-bottom: 1px solid var(--lui-line); }
+.lui-tabs.lui-tabs-underline summary a { padding: 0.625rem 0.75rem; color: var(--lui-muted); }
+.lui-tabs.lui-tabs-underline summary a:hover { color: var(--lui-fg); }
+.lui-tabs.lui-tabs-underline details[open] summary a { color: var(--lui-fg); }
+.lui-tabs.lui-tabs-underline .lui-tabs-mark { inset: auto 0.5rem -1px; height: 2px; border-radius: 1px; background: var(--lui-primary); box-shadow: none; }
+/* Narrow tabs: the titles give way to the select (needs the enhancement script for
    submit-on-change; the Go button is always there). */
-.lui-tabs-select { display: none; gap: var(--lui-space); flex-basis: 100%; margin-bottom: var(--lui-space); }
-@media (max-width: 40rem) {
-  .lui-tabs:not(.lui-accordion):has(.lui-tabs-select) summary, .lui-tabs:has(.lui-tabs-select)::after { display: none; }
+.lui-tabs-select { display: none; gap: var(--lui-space-2); flex-basis: 100%; margin-bottom: var(--lui-space-2); }
+@container lui-tabs (width < 30rem) {
+  .lui-tabs:not(.lui-accordion) .lui-tabs-select ~ details > summary { display: none; }
   .lui-tabs:not(.lui-accordion) .lui-tabs-select { display: flex; }
 }
 "#;

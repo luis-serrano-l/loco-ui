@@ -514,7 +514,8 @@
             { "name": "lazy", "kind": "item", "args": "title: &'a str, body: impl Fn() -> Markup + 'a", "default": "", "attr": "", "doc": "A tab whose panel is rendered only when it is the open one." },
             { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the title of the tab added last." },
             { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles in a column on the left, the open panel beside them." },
-            { "name": "select_below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "On screens under 40rem the titles give way to a `<select>`." }
+            { "name": "select_below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Under 30rem of its own width the titles give way to a `<select>`." },
+            { "name": "underline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)." }
           ]
         }
       ]

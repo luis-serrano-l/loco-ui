@@ -1774,7 +1774,7 @@ owner has seen them.
   used to move to the top). Kept different: no separate description or action button,
   since a toast is a flash message (level and text) and the redirect API carries nothing
   more; the Blitz motion test now checks the front toast only.
-- [ ] Tabs (`tabs.rs`; reference: Radix Themes Tabs and TabNav):
+- [x] Tabs (`tabs.rs`; reference: Radix Themes Tabs and TabNav):
   - An `.underline()` variant: a hairline under the list, with the current tab marked by a
     2 px brand bar that slides with view transitions where available. Keep the existing
     pill as the default.
@@ -1782,6 +1782,16 @@ owner has seen them.
   - In a narrow container the tab list scrolls inside itself (`overflow-x: auto`, hidden
     scrollbar, scroll-snap) with edge fades from a mask gradient. `.select_below()` stays as
     the alternative.
+  Done: new `.underline()`: every title and the row's filler carry a hairline, so it runs the
+  full width, and the open title is marked by a 2px primary bar (the same mark element
+  restyled, so it slides with view transitions as the pill's chip does); titles muted, fg
+  when open. The pill stays the default; badges keep their place after the title. The tabs
+  are now their own container: `.select_below()` swaps titles for the select under 30rem of
+  the tabs' width (was a 40rem viewport query). Kept different: no scrolling strip with
+  edge fades. The titles are `<summary>`s whose panels are their siblings (the `<details>`
+  are `display: contents` in one flex row), so there is no strip element to scroll without
+  scrolling the panel; titles that do not fit wrap onto another row, which never overflows,
+  and `.select_below()` remains the compact option.
 - [ ] Accordion (`accordion.rs`; reference: shadcn Accordion):
   - Items separated by hairlines, with no box. The summary is medium weight with a chevron
     on the right that rotates on `[open]`, and the content opens with the height transition
