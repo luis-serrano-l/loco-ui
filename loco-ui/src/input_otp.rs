@@ -144,9 +144,10 @@ pub const CSS: &str = r#"
      the caret there) need that room, or a full code scrolls the field sideways inside
      itself and the digits leave their cells. The extra cell is clipped away, the negative
      margin gives its width back to the layout, and the last cell's divider is the right
-     edge (the real right border would sit in the clipped part). */
+     edge (the real right border sits in the clipped part, and still draws where the cell
+     size cannot resolve). */
   box-sizing: content-box; width: calc(var(--lui-otp-cell) * (var(--lui-otp-cells) + 1)); height: var(--lui-otp-cell); padding: 0;
-  margin-right: calc(var(--lui-otp-cell) * -1); border-right: 0;
+  margin-right: calc(var(--lui-otp-cell) * -1);
   clip-path: inset(0 var(--lui-otp-cell) 0 0 round var(--lui-radius));
   border-radius: var(--lui-radius); caret-color: var(--lui-primary);
   font-family: var(--lui-font-mono); font-size: min(1.25rem, var(--lui-otp-cell) / 2); font-variant-numeric: tabular-nums;
