@@ -237,7 +237,7 @@ pub const CSS: &str = r#"
 .lui-accordion summary::after {
   content: ""; flex: none; order: 2; width: 0.45rem; height: 0.45rem; margin: 0.3rem 0.25rem 0 auto;
   border-right: 1.5px solid var(--lui-muted); border-bottom: 1.5px solid var(--lui-muted);
-  rotate: 45deg; transition: rotate 0.2s;
+  rotate: 45deg; transition: rotate var(--lui-duration) var(--lui-ease-out);
 }
 .lui-accordion details[open] > summary::after { rotate: 225deg; margin-top: 0.5rem; }
 /* The link fills the rest of the summary so a click never toggles natively without the server. */
@@ -247,7 +247,7 @@ pub const CSS: &str = r#"
 .lui-accordion-summary { display: block; font-weight: 400; font-size: 0.875rem; color: var(--lui-muted); margin-top: 0.15rem; }
 .lui-accordion details[open] > summary .lui-accordion-summary { display: none; }
 .lui-accordion-body { padding: 0 0 1rem; font-size: 0.875rem; }
-.lui-accordion details::details-content { transition: height 0.2s, content-visibility 0.2s allow-discrete; height: 0; overflow: hidden; }
+.lui-accordion details::details-content { transition: height var(--lui-duration) var(--lui-ease-out), content-visibility var(--lui-duration) allow-discrete; height: 0; overflow: hidden; }
 .lui-accordion details[open]::details-content { height: auto; }
 .lui-accordion-controls { display: flex; gap: calc(var(--lui-space) * 2); margin: 0; max-width: none; padding: 0 0 0.5rem; font-size: 0.875rem; border-bottom: 1px solid var(--lui-line); }
 /* A nested accordion sits inside a body, indented. */

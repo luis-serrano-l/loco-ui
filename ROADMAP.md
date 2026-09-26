@@ -1792,10 +1792,13 @@ owner has seen them.
   are `display: contents` in one flex row), so there is no strip element to scroll without
   scrolling the panel; titles that do not fit wrap onto another row, which never overflows,
   and `.select_below()` remains the compact option.
-- [ ] Accordion (`accordion.rs`; reference: shadcn Accordion):
+- [x] Accordion (`accordion.rs`; reference: shadcn Accordion):
   - Items separated by hairlines, with no box. The summary is medium weight with a chevron
     on the right that rotates on `[open]`, and the content opens with the height transition
     where `interpolate-size` exists.
+  Done: it already matched shadcn (hairline items, no box, medium summary, a rotating chevron,
+  height to `auto` under `interpolate-size`); the chevron and height transitions now use the
+  motion tokens, so reduced motion (which zeroes the durations) turns them off.
 - [ ] Breadcrumbs and pager (`breadcrumbs.rs`, `pager.rs`; reference: shadcn Breadcrumb and
   Pagination):
   - Breadcrumbs: gray-11 links, chevron separators and the current page in gray-12. In a
