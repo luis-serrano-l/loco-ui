@@ -1489,10 +1489,17 @@ owner has seen them.
   reproduced, no code copied". Link it from README.
   Done: also credits Radix Colors (the M30 scales) and Magic UI's effects; README's License
   section links it. Add it to the crate's `include` if packaging ever filters files.
-- [ ] Check Dioxus components (https://dioxuslabs.com/components; asked by the owner on
+- [x] Check Dioxus components (https://dioxuslabs.com/components; asked by the owner on
   2026-09-26) against each remaining box's reference. Where a Dioxus component looks better,
   switch that box's reference to it and say why in the box; otherwise note "checked, kept".
   Only the look is copied (as for every reference), and NOTICE credits it if any is used.
+  Done: Dioxus Components (MIT or Apache-2.0) is itself a shadcn-style set (neutral black and
+  white, shadcn radii and spacing over Radix-like primitives), so for most boxes it repeats a
+  reference we already have: checked, kept. One switch: the sortable list box takes its
+  "drag and drop list" (grip, title, meta line, trailing avatar, raised row per item) as the
+  reference, since Dice UI's Sortable is a headless behaviour demo. Its stat tile (delta badge,
+  thin progress bar) matches what the stat box already asks. One idea added to the calendar
+  box: month and year pickers in the caption. NOTICE credits it.
 
 ### Forms and inputs
 - [x] Button (`button.rs`, the primitive everything uses; reference: Radix Themes Button and
@@ -1573,6 +1580,9 @@ owner has seen them.
   - In a narrow container the grid fills the width with square cells.
   - The date picker trigger looks like the Select trigger with a calendar icon, and its
     popover takes the calendar.
+  - Optional, from the Dioxus Components calendar: the caption's month and year as two small
+    `<select>`s in a GET form (a Go button without script, submitted on change by the
+    enhancement script), for jumping far without paging month by month.
 - [ ] Wizard (`wizard.rs`; reference: the Origin UI Stepper):
   - Each step is a numbered dot (a check when done) with the title and "optional" under it,
     joined by connector lines. Done connectors are brand, the rest gray-6.
@@ -1721,7 +1731,7 @@ owner has seen them.
   - Columns are side by side in wide containers. When narrow, the board scrolls sideways
     inside itself with scroll-snap per column, at 85% of the width so the next column peeks.
 - [ ] Sortable list, a new component (`sortable.rs`; asked by the owner on 2026-09-26;
-  reference: Dice UI Sortable):
+  reference: the Dioxus Components drag and drop list):
   - A vertical list of items, each with a grip handle, whose order the server keeps. One
     form posts `item=<key>&to=<index>`; the route saves the order and redirects back.
   - Without script, each item has "Move up" and "Move down" buttons (named, like kanban's

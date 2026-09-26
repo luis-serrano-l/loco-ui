@@ -28,6 +28,9 @@ Tremor (Apache-2.0), https://tremor.so
 Dice UI (MIT), https://www.diceui.com
   Kanban board. Look reproduced, no code copied.
 
+Dioxus Components (MIT or Apache-2.0), https://dioxuslabs.com/components
+  Sortable (drag and drop) list. Look reproduced, no code copied.
+
 Magic UI (MIT), https://magicui.design
   The opt-in showpiece effects: shimmer, border beam, marquee (M30). Look reproduced, no
   code copied.
