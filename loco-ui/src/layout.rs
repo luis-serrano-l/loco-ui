@@ -360,7 +360,7 @@ pub struct Tokens {
     /// are emitted per scheme beside the colours: see [`DEPTH_LIGHT`].
     pub radius: &'static str,
     /// The spacing unit every gap and padding is a multiple of (`--lui-space`). The scale
-    /// `--lui-space-{1,2,3,4,6,8}` is derived from it: step n is n/2 units (4px each by
+    /// `--lui-space-{1,2,3,4,6,8,10,12,16}` is derived from it: step n is n/2 units (4px each by
     /// default, as Tailwind's `gap-n`), and the layout primitives' `.gap(n)` uses it.
     pub space: &'static str,
 }
@@ -433,7 +433,7 @@ impl Tokens {
         };
         let (light, dark) = (scheme(&self.light, false), scheme(&self.dark, true));
         format!(
-            ":root {{\n  color-scheme: light dark;\n{light}  --lui-radius: {}; --lui-space: {};\n  --lui-space-1: calc(var(--lui-space) * 0.5); --lui-space-2: var(--lui-space); --lui-space-3: calc(var(--lui-space) * 1.5);\n  --lui-space-4: calc(var(--lui-space) * 2); --lui-space-6: calc(var(--lui-space) * 3); --lui-space-8: calc(var(--lui-space) * 4);\n  --lui-radius-sm: max(0px, var(--lui-radius) - 2px); --lui-radius-lg: calc(var(--lui-radius) + 4px);\n  --lui-overlay: rgb(0 0 0 / 0.5);\n}}\n\
+            ":root {{\n  color-scheme: light dark;\n{light}  --lui-radius: {}; --lui-space: {};\n  --lui-space-1: calc(var(--lui-space) * 0.5); --lui-space-2: var(--lui-space); --lui-space-3: calc(var(--lui-space) * 1.5);\n  --lui-space-4: calc(var(--lui-space) * 2); --lui-space-6: calc(var(--lui-space) * 3); --lui-space-8: calc(var(--lui-space) * 4);\n  --lui-space-10: calc(var(--lui-space) * 5); --lui-space-12: calc(var(--lui-space) * 6); --lui-space-16: calc(var(--lui-space) * 8);\n  --lui-radius-sm: max(0px, var(--lui-radius) - 2px); --lui-radius-lg: calc(var(--lui-radius) + 4px);\n  --lui-overlay: rgb(0 0 0 / 0.5);\n}}\n\
              @media (prefers-color-scheme: dark) {{\n  :root:not([data-theme=\"light\"]) {{\n{dark}  }}\n}}\n\
              :root[data-theme=\"dark\"] {{\n  color-scheme: dark;\n{dark}}}\n\
              :root[data-theme=\"light\"] {{ color-scheme: light; }}\n",

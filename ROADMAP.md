@@ -1450,9 +1450,12 @@ owner has seen them.
   (incl. icon-only and the dialog/drawer close), fields, toggle-group faces, nav-menu links,
   colour inputs and swatches; menu items reach `--lui-hit` on coarse pointers; the toast × keeps
   its 1.25 rem look with an `::after` hit area. Listed in `docs/theming.md`.
-- [ ] Spacing: if the reworks keep needing values outside the current scale, add
+- [x] Spacing: if the reworks keep needing values outside the current scale, add
   `--lui-space-1…9` (Radix's 4, 8, 12, 16, 24, 32, 40, 48, 64 px). Decide this on the first
   form component and use it from then on.
+  Done: decided up front instead: the existing half-unit scale (`--lui-space-N` is N × 4 px)
+  already holds Radix's 4–32 px, so it gains `-10`, `-12`, `-16` (40, 48, 64 px) rather than a
+  second, renumbered scale. Component reworks use these steps, never literals.
 - [ ] Test that no page scrolls sideways. In `loco-ui-test` or the browser check, render
   every path in `PATHS` at 320 px wide and fail when the document's scroll width exceeds
   its client width. Inner scrollers (the table body, tabs, kanban) are fine; only the page
