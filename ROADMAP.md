@@ -1659,7 +1659,7 @@ owner has seen them.
   `min(15rem, 100%)` wide. The `/calendar` page stacks its note, so nothing sits flush under
   the calendar. Not done: the optional month and year selects (kept for later; paging by
   month covers the demo).
-- [ ] Wizard (`wizard.rs`; reference: the Origin UI Stepper):
+- [x] Wizard (`wizard.rs`; reference: the Origin UI Stepper):
   - Each step is a numbered dot (a check when done) with the title and "optional" under it,
     joined by connector lines. Done connectors are brand, the rest gray-6.
   - The progress bar merges into the connectors; `.hide_progress()` still hides the bar
@@ -1668,6 +1668,14 @@ owner has seen them.
     them) in a narrow one.
   - Steps stay links to the ones you may revisit, and the current step keeps
     `aria-current="step"`.
+  Done: each step is a 2rem dot (gray-3 with its number; primary with a check when done;
+  primary with a soft halo when current; danger with "!" when the server sent it back)
+  beside its title and "optional", joined by 2px connectors, primary after a done step and
+  gray-6 after the rest. A column by default, a row from 30rem (`container: lui-wizard`;
+  dots on a line, titles under them). The connectors are the on-screen progress, so the
+  `<progress>` element is visually hidden but still read; `.hide_progress()` drops it. Done
+  steps stay links, the current one keeps `aria-current="step"`. The Blitz test asserts the
+  column; the row is checked in Firefox.
 - [ ] Toggle group (`toggle_group.rs`; reference: Radix Themes SegmentedControl):
   - A gray-3 track, and the current item as a raised surface chip with a shadow and
     highlight.

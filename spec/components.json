@@ -692,7 +692,7 @@
             { "name": "at", "kind": "number", "args": "n: usize", "default": "", "attr": "", "doc": "Show step `n` whatever the request says." },
             { "name": "errors", "kind": "value", "args": "errors: &'a [(&'a str, &'a str)]", "default": "", "attr": "", "doc": "Server messages `(field name, message)` for the posted step." },
             { "name": "finish", "kind": "value", "args": "label: &'a str", "default": "Finish", "attr": "", "doc": "Label of the last step's submit button." },
-            { "name": "hide_progress", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No `<progress>` bar above the steps." }
+            { "name": "hide_progress", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No `<progress>` element (the connectors still show progress on screen)." }
           ]
         }
       ]

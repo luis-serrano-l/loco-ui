@@ -1673,7 +1673,6 @@ mod tests {
             ("flash", "Callout box"),
             ("table", "Table box"),
             ("paged_table", "Table box"),
-            ("wizard", "Wizard box"),
             ("breadcrumbs", "Breadcrumbs box"),
             ("skeleton", "Card box"),
             ("empty_state", "Card box"),

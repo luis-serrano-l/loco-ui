@@ -6,6 +6,10 @@
 //! along the visitor is, the last step is a review whose every value links back to its step,
 //! and a visitor who closes the tab comes back to the step they left.
 //!
+//! The look follows the Origin UI Stepper: numbered dots (a check when done) with the title
+//! and "optional" beside them, joined by connectors that are the progress on screen (primary
+//! after a done step). A column in a narrow container, a row from 30rem.
+//!
 //! **Platform features:**
 //! - Post/Redirect/Get per step: a redirect after each valid POST, so refresh never
 //!   re-submits. An invalid POST answers with the same step, the values kept and the
@@ -17,7 +21,9 @@
 //! - `<ol>` step list with `aria-current="step"` on the current one; done steps are links.
 //! - `<fieldset>` + `<legend>` for the step's fields, `<button name="skip" formnovalidate>`
 //!   (baseline 2015) to skip an optional step without the browser checking its fields.
-//! - `<progress>` (baseline 2015) for the steps done out of the total.
+//! - `<progress>` (baseline 2015) for the steps done out of the total, read by assistive tech
+//!   (visually hidden: the connectors show it); a container query (Chrome 105, Firefox 110,
+//!   Safari 16) turns the step column into a row.
 //! - [`Wizard::review`] renders the review as a `<dl>` with an "Edit" link per value.
 //!
 //! **Accessibility:** an ordered list of steps with `aria-current="step"`, a labelled
@@ -62,7 +68,7 @@ use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
-use crate::{Ui, enhance, form::Form};
+use crate::{Icon, Ui, enhance, form::Form};
 
 /// What a step shows: fields (listed by the review) or any markup.
 #[derive(Clone, Debug)]
@@ -136,7 +142,7 @@ impl Wizard<'_> {
         Prop::new("finish", PropKind::Value, "label: &'a str").default("Finish")
             .doc("Label of the last step's submit button."),
         Prop::new("hide_progress", PropKind::Switch, "")
-            .doc("No `<progress>` bar above the steps."),
+            .doc("No `<progress>` element (the connectors still show progress on screen)."),
     ];
 }
 
@@ -238,7 +244,8 @@ impl<'a> Wizard<'a> {
         self
     }
 
-    /// No `<progress>` bar above the steps.
+    /// No `<progress>` element: it is read by assistive tech only, since the connectors between
+    /// the steps show progress on screen.
     pub fn hide_progress(mut self) -> Self {
         self.progress = false;
         self
@@ -341,9 +348,14 @@ impl Render for Wizard<'_> {
                             (false, false, _) => "",
                         };
                         li class=[(!class.is_empty()).then_some(class)] aria-current=[(i == current).then_some("step")] {
-                            @if i < current { a href=(self.link(i)) { (s.title) } } @else { span { (s.title) } }
-                            @if s.optional { " " small { (ui.text(Text::Optional)) } }
-                            @if failed(i) { span class="lui-sr" { (ui.text(Text::HasErrors)) } }
+                            span class="lui-wizard-dot" aria-hidden="true" {
+                                @if failed(i) { "!" } @else if i < current { (Icon::Check) } @else { (i + 1) }
+                            }
+                            span class="lui-wizard-label" {
+                                @if i < current { a href=(self.link(i)) { (s.title) } } @else { span { (s.title) } }
+                                @if s.optional { " " small { (ui.text(Text::Optional)) } }
+                                @if failed(i) { span class="lui-sr" { (ui.text(Text::HasErrors)) } }
+                            }
                         }
                     }
                 }
@@ -377,29 +389,59 @@ impl Render for Wizard<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-wizard-steps { display: flex; flex-wrap: wrap; gap: var(--lui-space); list-style: none; counter-reset: lui-step; margin: 0 0 calc(var(--lui-space) * 2); padding: 0; }
-.lui-wizard-steps li { counter-increment: lui-step; color: var(--lui-muted); padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 500; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-sm); }
-.lui-wizard-steps li::before { content: counter(lui-step) ". "; }
-.lui-wizard-steps li a { color: var(--lui-fg); text-decoration: none; }
-.lui-wizard-steps li a:hover { text-decoration: underline; }
-.lui-wizard-steps small { font-size: 0.8em; }
-.lui-wizard-current { color: var(--lui-on-primary) !important; background: var(--lui-primary); border-color: transparent !important; }
-.lui-wizard-steps .lui-wizard-error { border-color: var(--lui-danger) !important; }
-.lui-wizard-steps .lui-wizard-error::before { content: "! " counter(lui-step) ". "; color: var(--lui-danger); font-weight: 600; }
-.lui-wizard-steps .lui-wizard-current.lui-wizard-error { background: var(--lui-danger); color: var(--lui-on-danger) !important; }
-.lui-wizard-steps .lui-wizard-current.lui-wizard-error::before { color: inherit; }
-.lui-wizard-progress { display: block; width: 100%; max-width: 32rem; height: 0.5rem; border-radius: 1rem; margin: 0 0 calc(var(--lui-space) * 2); accent-color: var(--lui-primary); }
+/* After the Origin UI Stepper: each step a 2rem dot (its number; a check when done; "!" when
+   the server sent it back) with the title and "optional" beside or under it, joined by
+   2px connectors that are the progress: primary after a done step, --lui-gray-6 after the rest.
+   A column in a narrow container, a row from 30rem (dots on a line, titles under them).
+   The <progress> element stays for assistive tech only; .hide_progress() drops it. */
+.lui-wizard { container: lui-wizard / inline-size; }
+.lui-wizard-steps { display: grid; list-style: none; margin: 0 0 var(--lui-space-6); padding: 0; --lui-wizard-dot: 2rem; }
+.lui-wizard-steps li {
+  position: relative; display: grid; grid-template-columns: var(--lui-wizard-dot) minmax(0, 1fr); align-items: start;
+  column-gap: var(--lui-space-3); padding-bottom: var(--lui-space-6); max-width: none; color: var(--lui-muted); font-size: 0.875rem;
+}
+.lui-wizard-steps li:last-child { padding-bottom: 0; }
+.lui-wizard-dot {
+  display: grid; place-items: center; width: var(--lui-wizard-dot); height: var(--lui-wizard-dot); border-radius: 50%;
+  background: var(--lui-gray-3); color: var(--lui-gray-11); font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.lui-wizard-dot > .lui-icon { width: 0.875rem; height: 0.875rem; }
+.lui-wizard-done .lui-wizard-dot, .lui-wizard-current .lui-wizard-dot { background: var(--lui-primary); color: var(--lui-on-primary); }
+.lui-wizard-current .lui-wizard-dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--lui-primary) 25%, transparent); }
+.lui-wizard-error .lui-wizard-dot { background: var(--lui-danger); color: var(--lui-on-danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lui-danger) 25%, transparent); }
+.lui-wizard-label { display: grid; align-content: center; min-height: var(--lui-wizard-dot); font-weight: 500; }
+.lui-wizard-label small { font-size: 0.75rem; font-weight: 400; color: var(--lui-muted); }
+.lui-wizard-current .lui-wizard-label, .lui-wizard-done .lui-wizard-label { color: var(--lui-fg); }
+.lui-wizard-error .lui-wizard-label { color: var(--lui-danger); }
+.lui-wizard-label a { color: inherit; text-decoration: none; }
+.lui-wizard-label a:hover { text-decoration: underline; }
+/* Connectors: down from each dot to the next (narrow), across (wide). */
+.lui-wizard-steps li:not(:last-child)::after {
+  content: ""; position: absolute; left: calc(var(--lui-wizard-dot) / 2 - 1px); top: calc(var(--lui-wizard-dot) + var(--lui-space-1));
+  bottom: var(--lui-space-1); width: 2px; border-radius: 1px; background: var(--lui-gray-6);
+}
+.lui-wizard-steps .lui-wizard-done::after { background: var(--lui-primary); }
+@container lui-wizard (width >= 30rem) {
+  .lui-wizard-steps { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .lui-wizard-steps li { grid-template-columns: none; align-content: start; justify-items: center; row-gap: var(--lui-space-2); padding-bottom: 0; text-align: center; }
+  .lui-wizard-label { min-height: 0; align-content: start; padding-inline: var(--lui-space-2); }
+  .lui-wizard-steps li:not(:last-child)::after {
+    top: calc(var(--lui-wizard-dot) / 2 - 1px); bottom: auto; width: auto; height: 2px;
+    left: calc(50% + var(--lui-wizard-dot) / 2 + var(--lui-space-2)); right: calc(-50% + var(--lui-wizard-dot) / 2 + var(--lui-space-2));
+  }
+}
+.lui-wizard-progress { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .lui-wizard-resume { padding: 0.75rem 1rem; font-size: 0.875rem; border: 1px solid var(--lui-line); border-radius: var(--lui-radius); background: var(--lui-card); max-width: none; }
-.lui-wizard-form fieldset { border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); padding: 1.5rem; }
+.lui-wizard-form fieldset { min-width: 0; margin: 0; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); padding: var(--lui-space-6); }
 .lui-wizard-form fieldset[aria-invalid=true] { border-color: var(--lui-danger); }
 .lui-wizard-form legend { padding: 0 0.5rem; font-weight: 600; }
 .lui-wizard-form label { display: block; margin: 0.75rem 0; font-size: 0.875rem; }
 .lui-wizard-form .lui-field { max-width: 24rem; }
-.lui-wizard-actions { display: flex; align-items: center; gap: calc(var(--lui-space) * 2); margin-top: 1rem; }
+.lui-wizard-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); margin-top: var(--lui-space-4); }
 .lui-wizard-review { margin: 0; }
 .lui-wizard-review dt { color: var(--lui-muted); }
 .lui-wizard-review dd { margin: 0 0 0.5rem; }
-.lui-wizard-edit { margin-left: var(--lui-space); font-size: 0.875rem; }
+.lui-wizard-edit { margin-left: var(--lui-space-2); font-size: 0.875rem; }
 "#;
 
 #[cfg(test)]
@@ -420,10 +462,12 @@ mod tests {
         let ui = Ui::from_request("/w", "step.x=1", "");
         let m = three(&ui).finish("Done").render().into_string();
         assert!(
-            m.contains("class=\"lui-wizard-done\"><a href=\"/w?step.x=0\">A</a>"),
+            m.contains("<a href=\"/w?step.x=0\">A</a>") && m.contains("class=\"lui-wizard-done\""),
             "{m}"
         );
-        assert!(m.contains("aria-current=\"step\"><span>B</span>"));
+        assert!(m.contains(
+            "aria-current=\"step\"><span class=\"lui-wizard-dot\" aria-hidden=\"true\">2</span>"
+        ));
         assert!(m.contains("value=\"1\"") && m.contains(">Next<") && !m.contains(">Done<"));
         assert!(
             !m.contains("lui-wizard-resume"),

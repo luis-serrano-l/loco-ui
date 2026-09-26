@@ -817,7 +817,8 @@ async fn wizard_marks_steps() {
     let page = Page::render(demo::router(), "/wizard?step.signup=1", MODERN).await;
     assert_eq!(page.count(".lui-wizard-steps li"), 3);
     assert_eq!(
-        page.text("li[aria-current=step]").as_deref(),
+        page.text("li[aria-current=step] .lui-wizard-label")
+            .as_deref(),
         Some("Newsletter (optional)")
     );
     assert!(
@@ -839,13 +840,17 @@ async fn wizard_marks_steps() {
                 .unwrap()
         })
         .collect();
+    // A row from 30rem is a container query, which Blitz lacks (FINDINGS, M34): here the
+    // narrow base, a column; `scripts/browser-check.mjs` checks the row in Firefox.
     assert!(
-        steps[0].x < steps[1].x && steps[1].x < steps[2].x,
-        "steps lay out in a row"
+        steps[0].y < steps[1].y && steps[1].y < steps[2].y,
+        "Blitz: steps stack in a column"
     );
     let first = Page::render(demo::router(), "/wizard", MODERN).await;
     assert_eq!(
-        first.text("li[aria-current=step]").as_deref(),
+        first
+            .text("li[aria-current=step] .lui-wizard-label")
+            .as_deref(),
         Some("Account")
     );
     assert!(
@@ -876,7 +881,8 @@ async fn wizard_marks_steps() {
     )
     .await;
     assert_eq!(
-        back.text("li[aria-current=step]").as_deref(),
+        back.text("li[aria-current=step] .lui-wizard-label")
+            .as_deref(),
         Some("Review")
     );
     assert!(
