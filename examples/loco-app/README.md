@@ -13,6 +13,7 @@ A notes app on [Loco](https://loco.rs) and loco-ui, every page working with scri
 cd examples/loco-app
 cargo loco start          # http://localhost:5150, the sqlite file created and migrated
 cargo dev-app             # the same, rebuilt and restarted on every change (needs cargo-watch)
+cargo loco start -d       # the same in the background (log in target/debug/loco-app.log); `cargo loco stop` ends it
 cargo test -p loco-app    # every page through Loco's router and Blitz
 ```
 
