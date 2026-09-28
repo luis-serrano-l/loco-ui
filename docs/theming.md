@@ -173,6 +173,29 @@ To change one value, spread the default: `Tokens { radius: "0px", ..Default::def
 same three rule blocks the default palette uses, so it wins by source order and nothing else
 changes. The demo shows the pair: `/` is the default, `/?palette=linen` is this one.
 
+## One look for every page
+
+`.tokens(..)` themes one page. An app wants every page themed, including those it does not
+write: the account pages `cargo lui auth` writes and the 404 fallback. `layout::Look` holds
+the tokens and any extra stylesheets; `Ui::look(&LOOK)` makes every `ui.page(..)` of that
+request apply them, and with the `axum` feature one layer does it for every route, since the
+`Ui` extractor reads the look from the request extensions:
+
+```rust,ignore
+use loco_ui::layout::{Look, Tokens};
+
+static LOOK: Look = Look {
+    tokens: Tokens { radius: "0.75rem", ..Tokens::DEFAULT },
+    css: &[".notes-article { max-width: 68ch; }"],
+};
+
+let router = router.fallback(loco_ui::blocks::not_found).layer(LOOK.layer());
+```
+
+`Tokens::DEFAULT` is `Tokens::default()` as a constant, so a look can be a `static`. A page
+that calls `.tokens(..)` itself still wins: it replaces the look's tokens for that page.
+`examples/loco-app` installs its look this way in `after_routes`.
+
 ## Beyond the tokens
 
 Motion is the three duration tokens and two curves above. Dialogs, sheets, menus and toasts

@@ -1443,6 +1443,8 @@ async fn blocks_lay_out() {
             "/blocks/shell",
             &[
                 ".lui-app-shell-links a[aria-current=page]",
+                ".lui-app-shell-links .lui-sidebar-heading",
+                ".lui-app-shell-links .lui-sidebar-badge",
                 ".lui-app-shell-user",
             ],
         ),

@@ -81,6 +81,8 @@ pub struct Sidebar<'a> {
     id: Option<&'a str>,
     collapsible: bool,
     caps: Caps,
+    /// Inside another `<nav>` (the app shell's drawer): a `<div>`, not a second landmark.
+    inner: bool,
 }
 
 impl Sidebar<'_> {
@@ -114,6 +116,7 @@ impl Ui {
             id: None,
             collapsible: false,
             caps: self.caps,
+            inner: false,
         }
     }
 }
@@ -168,6 +171,12 @@ impl<'a> Sidebar<'a> {
         self.collapsible = true;
         self
     }
+
+    /// Rendered inside another `<nav>`: the same column in a `<div>`.
+    pub(crate) fn inner(mut self) -> Self {
+        self.inner = true;
+        self
+    }
 }
 
 impl Render for Sidebar<'_> {
@@ -176,8 +185,7 @@ impl Render for Sidebar<'_> {
             || format!("lui-sidebar-{}", slug(self.label)),
             str::to_string,
         );
-        let nav = html! {
-            nav class="lui-sidebar" aria-label=(self.label) {
+        let groups = html! {
                 @for (i, (heading, links)) in self.groups.iter().enumerate().filter(|(_, g)| g.0.is_some() || !g.1.is_empty()) {
                     @let heading_id = format!("{root}-{i}");
                     div class="lui-sidebar-group" {
@@ -197,7 +205,11 @@ impl Render for Sidebar<'_> {
                         }
                     }
                 }
-            }
+        };
+        let nav = if self.inner {
+            html! { div class="lui-sidebar" { (groups) } }
+        } else {
+            html! { nav class="lui-sidebar" aria-label=(self.label) { (groups) } }
         };
         if self.collapsible && self.caps.has(Cap::DetailsContent) {
             return html! {

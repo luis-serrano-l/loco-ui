@@ -28,7 +28,11 @@ fn app_shell(ui: &Ui) -> Markup {
     lui! {
         // code: /blocks/shell
         AppShell("Acme") user=("Ada Lovelace", "/app/signout") {
-            link "Dashboard" "/blocks/dashboard"; link "App shell" "/blocks/shell"; link "Settings" "/blocks/settings";
+            link "Dashboard" "/blocks/dashboard" icon=(Icon::House);
+            link "App shell" "/blocks/shell" icon=(Icon::Menu);
+            link "Settings" "/blocks/settings" icon=(Icon::User);
+            group "Records";
+            link "Invoices" "/blocks/record" badge=42; link "Reports" "/chart" badge=7;
             body { h2 { "Welcome back" } p { "The sidebar turns into a drawer on narrow screens." } }
         }
         // end code

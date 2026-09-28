@@ -1,7 +1,7 @@
 //! # App shell
 //!
 //! The frame of a signed-in app: its name and navigation in a sidebar (a drawer on narrow
-//! screens), who is signed in with a sign-out button at the foot, and the page's content
+//! screens), in groups with icons and counts as a [`crate::sidebar`], who is signed in with a sign-out button at the foot, and the page's content
 //! beside it. The link to the current path is marked `aria-current="page"`.
 //!
 //! **Platform features:** those of [`crate::drawer`] (a modal `<dialog>` on narrow screens, a
@@ -22,25 +22,43 @@
 //! let m = ui.app_shell("Acme").link("Dashboard", "/").user("Ada Lovelace", "/signout")
 //!     .body(html! { h1 { "Hello" } }).render().into_string();
 //! assert!(m.contains("Ada Lovelace") && m.contains(r#"action="/signout""#));
+//!
+//! // Groups under small headings, an icon and a count on a link, as in [`crate::sidebar`]:
+//! let m = ui.app_shell("Acme")
+//!     .link("Inbox", "/").icon(Icon::Mail).badge(3)
+//!     .group("Projects").link("Apollo", "/p/apollo").badge(12)
+//!     .user("Ada Lovelace", "/signout").body(html! { h1 { "Hello" } });
+//! let html = m.render().into_string();
+//! assert!(html.contains(">Projects</p>") && html.contains("lui-sidebar-badge\">12<"));
 //! // The same in `lui!`:
-//! let same = lui! { AppShell("Acme") user=("Ada Lovelace", "/signout") { link "Dashboard" "/"; body (html! { h1 { "Hello" } }); } };
-//! assert_eq!(same.into_string(), m);
+//! let same = lui! { AppShell("Acme") user=("Ada Lovelace", "/signout") {
+//!     link "Inbox" "/" icon=(Icon::Mail) badge=3;
+//!     group "Projects";
+//!     link "Apollo" "/p/apollo" badge=12;
+//!     body (html! { h1 { "Hello" } });
+//! } };
+//! assert_eq!(same.into_string(), html);
 //! ```
+
+use std::fmt::Display;
 
 use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::i18n::Text;
+use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
+use crate::sidebar::Sidebar;
 
 /// A sidebar and content, made by [`Ui::app_shell`].
 ///
-/// **Setters.** Values and items: `.link(..)`, `.user(..)`, `.body(..)`.
+/// **Setters.** Values and items: `.group(..)`, `.link(..)`, `.icon(..)`, `.badge(..)`,
+/// `.user(..)`, `.body(..)`.
 #[derive(Clone, Debug)]
 pub struct AppShell<'a> {
     ui: &'a Ui,
     name: &'a str,
-    links: Vec<(&'a str, &'a str)>,
+    nav: Sidebar<'a>,
     user: Option<(&'a str, &'a str)>,
     body: Markup,
 }
@@ -48,8 +66,14 @@ pub struct AppShell<'a> {
 impl AppShell<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[
+        Prop::new("group", PropKind::Item, "heading: &'a str")
+            .doc("Start a group of links under a small heading."),
         Prop::new("link", PropKind::Item, "label: &'a str, href: &'a str")
             .doc("A link in the sidebar; the one to the current path is marked current."),
+        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .doc("An icon before the link added last."),
+        Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .doc("A count after the link added last."),
         Prop::new("user", PropKind::Value, "name: &'a str, signout: &'a str")
             .doc("Who is signed in, and where the sign-out button posts."),
         Prop::new("body", PropKind::Value, "body: Markup").doc("The page's content."),
@@ -62,7 +86,7 @@ impl Ui {
         AppShell {
             ui: self,
             name,
-            links: Vec::new(),
+            nav: self.sidebar(name).id("app-nav").inner(),
             user: None,
             body: Markup::default(),
         }
@@ -70,9 +94,27 @@ impl Ui {
 }
 
 impl<'a> AppShell<'a> {
+    /// Start a group of links under a small heading.
+    pub fn group(mut self, heading: &'a str) -> Self {
+        self.nav = self.nav.group(heading);
+        self
+    }
+
     /// A link in the sidebar; the one to the current path is marked current.
     pub fn link(mut self, label: &'a str, href: &'a str) -> Self {
-        self.links.push((label, href));
+        self.nav = self.nav.link(label, href);
+        self
+    }
+
+    /// An icon before the link added last.
+    pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        self.nav = self.nav.icon(icon);
+        self
+    }
+
+    /// A count after the link added last.
+    pub fn badge(mut self, text: impl Display) -> Self {
+        self.nav = self.nav.badge(text);
         self
     }
 
@@ -92,13 +134,8 @@ impl<'a> AppShell<'a> {
 impl Render for AppShell<'_> {
     fn render(&self) -> Markup {
         let ui = self.ui;
-        let here = ui.state.path();
         let nav = html! {
-            ul class="lui-app-shell-links" {
-                @for (label, href) in &self.links {
-                    li { a href=(href) aria-current=[(*href == here).then_some("page")] { (label) } }
-                }
-            }
+            div class="lui-app-shell-links" { (self.nav) }
             @if let Some((name, signout)) = self.user {
                 form method="post" action=(signout) class="lui-app-shell-user" {
                     (ui.avatar(name).small())
@@ -117,10 +154,7 @@ impl Render for AppShell<'_> {
 
 /// Styles for this block; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-app-shell-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.125rem; }
-.lui-app-shell-links a { display: block; padding: 0.375rem 0.5rem; border-radius: var(--lui-radius-sm); color: var(--lui-fg); text-decoration: none; font-size: 0.875rem; }
-.lui-app-shell-links a:hover, .lui-app-shell-links a[aria-current="page"] { background: var(--lui-accent); color: var(--lui-on-accent); }
-.lui-app-shell-links a[aria-current="page"] { font-weight: 500; }
+/* The links are a sidebar (its groups, icons and counts); the user sits at the foot. */
 .lui-app-shell-user { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; margin-top: calc(var(--lui-space) * 3); padding-top: calc(var(--lui-space) * 2); border-top: 1px solid var(--lui-line); font-size: 0.875rem; }
 .lui-app-shell-user > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lui-app-shell-user > .lui-button { grid-column: 1 / -1; justify-self: start; }

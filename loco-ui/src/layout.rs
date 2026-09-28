@@ -340,6 +340,27 @@ impl DerivedScale {
     }
 }
 
+/// An app's own look: [`Tokens`] and extra CSS that every [`Ui::page`](crate::Ui::page)
+/// applies, so pages an app does not write (the account pages `cargo lui auth` writes, the
+/// 404 fallback) look like the rest. Give it to a request with [`Ui::look`](crate::Ui::look);
+/// the Axum extractor reads it from the request extensions, so one layer covers every route:
+///
+/// ```rust
+/// use loco_ui::layout::{Look, Tokens};
+/// use loco_ui::prelude::*;
+/// static LOOK: Look = Look { tokens: Tokens { radius: "0.75rem", ..Tokens::DEFAULT }, css: &["main{max-width:70rem}"] };
+/// let html = Ui::default().look(&LOOK).page("Notes", html! { h1 { "Notes" } }).into_string();
+/// assert!(html.contains("--lui-radius: 0.75rem") && html.contains("main{max-width:70rem}"));
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Look {
+    /// The palette, scales and shape every page renders under ([`Page::tokens`](crate::Page::tokens)).
+    pub tokens: Tokens,
+    /// Stylesheets added after the library's ([`Page::css`](crate::Page::css)); `--lui-*`
+    /// tokens only, like a component's.
+    pub css: &'static [&'static str],
+}
+
 /// Every `--lui-*` token: the two scales, a light and a dark palette of roles over them, and
 /// the two shape tokens. `Default` is a Linear-like theme: Radix slate for the grays and
 /// indigo for the brand, with status colours from Radix Colors step 11 (the step made for
@@ -367,58 +388,62 @@ pub struct Tokens {
 
 impl Default for Tokens {
     fn default() -> Self {
-        Tokens {
-            gray: Scale::SLATE,
-            brand: Scale::INDIGO,
-            light: Palette {
-                bg: "var(--lui-gray-1)",
-                fg: "var(--lui-gray-12)",
-                muted: "var(--lui-gray-11)",
-                line: "var(--lui-gray-6)",
-                surface: "var(--lui-gray-2)",
-                card: "var(--lui-gray-1)",
-                popover: "var(--lui-gray-1)",
-                secondary: "var(--lui-gray-3)",
-                accent: "var(--lui-gray-3)",
-                on_accent: "var(--lui-gray-12)",
-                primary: "var(--lui-brand-9)",
-                on_primary: "#ffffff",
-                input: "var(--lui-gray-7)",
-                ring: "var(--lui-brand-8)",
-                link: "var(--lui-brand-11)",
-                danger: "#ce2c31",
-                on_danger: "var(--lui-gray-1)",
-                ok: "#1f7d53",
-                warn: "#9c5b00",
-            },
-            dark: Palette {
-                bg: "var(--lui-gray-1)",
-                fg: "var(--lui-gray-12)",
-                muted: "var(--lui-gray-11)",
-                line: "var(--lui-gray-6)",
-                surface: "var(--lui-gray-2)",
-                card: "var(--lui-gray-2)",
-                popover: "var(--lui-gray-2)",
-                secondary: "var(--lui-gray-3)",
-                accent: "var(--lui-gray-4)",
-                on_accent: "var(--lui-gray-12)",
-                primary: "var(--lui-brand-9)",
-                on_primary: "#ffffff",
-                input: "var(--lui-gray-7)",
-                ring: "var(--lui-brand-8)",
-                link: "var(--lui-brand-11)",
-                danger: "#ff9592",
-                on_danger: "var(--lui-gray-1)",
-                ok: "#3dd68c",
-                warn: "#ffca16",
-            },
-            radius: "0.5rem",
-            space: "8px",
-        }
+        Tokens::DEFAULT
     }
 }
 
 impl Tokens {
+    /// [`Tokens::default`] as a constant, to build a `static` or `const` theme from with
+    /// `Tokens { brand: .., ..Tokens::DEFAULT }`.
+    pub const DEFAULT: Tokens = Tokens {
+        gray: Scale::SLATE,
+        brand: Scale::INDIGO,
+        light: Palette {
+            bg: "var(--lui-gray-1)",
+            fg: "var(--lui-gray-12)",
+            muted: "var(--lui-gray-11)",
+            line: "var(--lui-gray-6)",
+            surface: "var(--lui-gray-2)",
+            card: "var(--lui-gray-1)",
+            popover: "var(--lui-gray-1)",
+            secondary: "var(--lui-gray-3)",
+            accent: "var(--lui-gray-3)",
+            on_accent: "var(--lui-gray-12)",
+            primary: "var(--lui-brand-9)",
+            on_primary: "#ffffff",
+            input: "var(--lui-gray-7)",
+            ring: "var(--lui-brand-8)",
+            link: "var(--lui-brand-11)",
+            danger: "#ce2c31",
+            on_danger: "var(--lui-gray-1)",
+            ok: "#1f7d53",
+            warn: "#9c5b00",
+        },
+        dark: Palette {
+            bg: "var(--lui-gray-1)",
+            fg: "var(--lui-gray-12)",
+            muted: "var(--lui-gray-11)",
+            line: "var(--lui-gray-6)",
+            surface: "var(--lui-gray-2)",
+            card: "var(--lui-gray-2)",
+            popover: "var(--lui-gray-2)",
+            secondary: "var(--lui-gray-3)",
+            accent: "var(--lui-gray-4)",
+            on_accent: "var(--lui-gray-12)",
+            primary: "var(--lui-brand-9)",
+            on_primary: "#ffffff",
+            input: "var(--lui-gray-7)",
+            ring: "var(--lui-brand-8)",
+            link: "var(--lui-brand-11)",
+            danger: "#ff9592",
+            on_danger: "var(--lui-gray-1)",
+            ok: "#3dd68c",
+            warn: "#ffca16",
+        },
+        radius: "0.5rem",
+        space: "8px",
+    };
+
     /// The CSS that sets these tokens: `:root` for light, the dark palette under
     /// `prefers-color-scheme: dark` unless `data-theme="light"`, and again under
     /// `data-theme="dark"`. [`crate::stylesheet`] starts with `Tokens::default().css()`.

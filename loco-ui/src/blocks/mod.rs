@@ -14,7 +14,7 @@
 //!     .link("Reports", "/reports")
 //!     .body(html! { h1 { "Reports" } });
 //! let m = shell.render().into_string();
-//! assert!(m.contains(r#"<a href="/reports" aria-current="page">Reports</a>"#));
+//! assert!(m.contains(r#"<a href="/reports" aria-current="page">"#) && m.contains(">Reports</span>"));
 //! // The same in `lui!`:
 //! let same = lui! { AppShell("Acme") { link "Dashboard" "/"; link "Reports" "/reports"; body (html! { h1 { "Reports" } }); } };
 //! assert_eq!(same.into_string(), m);

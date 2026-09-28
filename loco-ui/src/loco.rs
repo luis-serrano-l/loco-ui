@@ -711,6 +711,37 @@ mod tests {
         }
     }
 
+    static LOOK: crate::layout::Look = crate::layout::Look {
+        tokens: crate::layout::Tokens {
+            radius: "0.75rem",
+            ..crate::layout::Tokens::DEFAULT
+        },
+        css: &[".app{gap:1rem}"],
+    };
+
+    /// One layer gives every page its look, the 404 fallback included: pages an app does not
+    /// write look like the ones it does.
+    #[tokio::test]
+    async fn a_look_layer_reaches_every_page() {
+        let app = Router::new()
+            .route("/notes/{id}", get(show))
+            .fallback(crate::blocks::not_found)
+            .layer(LOOK.layer());
+        for (path, status) in [("/notes/1", 200), ("/nowhere", 404)] {
+            let req = Request::get(path).body(Body::empty()).unwrap();
+            let res = app.clone().oneshot(req).await.unwrap();
+            assert_eq!(res.status(), status, "{path}");
+            let body = axum::body::to_bytes(res.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            let html = String::from_utf8(body.to_vec()).unwrap();
+            assert!(
+                html.contains("--lui-radius: 0.75rem") && html.contains(".app{gap:1rem}"),
+                "{path}"
+            );
+        }
+    }
+
     #[derive(Debug, serde::Deserialize, Validate)]
     struct Signup {
         #[validate(length(min = 2, message = "At least 2 characters."))]

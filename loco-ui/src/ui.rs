@@ -44,7 +44,7 @@ use crate::{
     cookie::SetCookie,
     flash::{Level, stack},
     i18n::{self, Strings, Text},
-    layout::{self, Tokens},
+    layout::{self, Look, Tokens},
     state::{FLASH_COOKIE, decode, encode},
     theme::THEME_COOKIE,
 };
@@ -64,6 +64,8 @@ pub struct Ui {
     lang_from_cookie: bool,
     /// Every query parameter, decoded, in order: what components read their own input from.
     params: Vec<(String, String)>,
+    /// The app's own look, applied by [`Ui::page`].
+    look: Option<&'static Look>,
 }
 
 /// A request with no state: only what the browser supports.
@@ -104,6 +106,7 @@ impl Ui {
                 .map(|p| p.split_once('=').unwrap_or((p, "")))
                 .map(|(k, v)| (decode(k).into_owned(), decode(v).into_owned()))
                 .collect(),
+            look: None,
         }
     }
 
@@ -120,6 +123,13 @@ impl Ui {
     /// extractor does it from the request ([`crate::caps::is_https`]); other servers call it.
     pub fn secure(mut self, secure: bool) -> Ui {
         self.state = self.state.secure(secure);
+        self
+    }
+
+    /// Render every page of this request under the app's [`Look`]: its tokens and CSS. The Axum
+    /// extractor does it when the request carries one ([`Look::layer`]); other servers call it.
+    pub fn look(mut self, look: &'static Look) -> Ui {
+        self.look = Some(look);
         self
     }
 
@@ -212,7 +222,7 @@ impl Ui {
         } else {
             body
         };
-        Page {
+        let page = Page {
             caps: self.caps,
             theme: self.theme,
             lang: self.strings.lang(),
@@ -223,6 +233,10 @@ impl Ui {
             css: Vec::new(),
             script: true,
             status: 200,
+        };
+        match self.look {
+            Some(look) => (look.css.iter()).fold(page.tokens(&look.tokens), |p, css| p.css(css)),
+            None => page,
         }
     }
 
@@ -440,7 +454,7 @@ pub(crate) use axum_glue::is_https;
 
 #[cfg(feature = "axum")]
 mod axum_glue {
-    use super::{Page, Redirect, Ui};
+    use super::{Look, Page, Redirect, Ui};
     use axum::{
         extract::FromRequestParts,
         http::{HeaderValue, header, request::Parts},
@@ -480,11 +494,21 @@ mod axum_glue {
                 .get(header::ACCEPT_LANGUAGE)
                 .and_then(|v| v.to_str().ok())
                 .unwrap_or("");
-            Ok(
-                Ui::from_request(parts.uri.path(), parts.uri.query().unwrap_or(""), &cookies)
-                    .accept_language(accept)
-                    .secure(is_https(parts)),
-            )
+            let ui = Ui::from_request(parts.uri.path(), parts.uri.query().unwrap_or(""), &cookies)
+                .accept_language(accept)
+                .secure(is_https(parts));
+            Ok(match parts.extensions.get::<&'static Look>() {
+                Some(look) => ui.look(look),
+                None => ui,
+            })
+        }
+    }
+
+    impl Look {
+        /// The layer that gives every request this look, read by the [`Ui`] extractor:
+        /// `router.layer(LOOK.layer())` with `LOOK` a `static`.
+        pub fn layer(&'static self) -> axum::Extension<&'static Look> {
+            axum::Extension(self)
         }
     }
 
