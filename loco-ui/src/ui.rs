@@ -230,7 +230,7 @@ impl Ui {
             tokens: None,
             header: None,
             body,
-            cookies: self.state.set_cookies(),
+            cookies: self.state.set_cookies().into(),
             css: Vec::new(),
             script: true,
             status: 200,
@@ -278,9 +278,11 @@ pub struct Page {
     theme: Theme,
     title: Box<str>,
     tokens: Option<Box<Tokens>>,
-    header: Option<Markup>,
+    // Boxed where rarely set so `Result<Redirect, Page>` stays under clippy's
+    // `result_large_err` limit (128 bytes).
+    header: Option<Box<Markup>>,
     body: Markup,
-    cookies: Vec<String>,
+    cookies: Box<[String]>,
     css: Vec<&'static str>,
     script: bool,
     status: u16,
@@ -333,7 +335,7 @@ impl Page {
 
     /// Show `header` above `<main>` instead of loco-ui's own header; empty markup shows none.
     pub fn header(mut self, header: Markup) -> Self {
-        self.header = Some(header);
+        self.header = Some(Box::new(header));
         self
     }
 
@@ -363,7 +365,7 @@ impl Render for Page {
             self.theme,
             self.tokens.as_deref(),
             &self.css,
-            self.header.as_ref(),
+            self.header.as_deref(),
             self.script,
             self.body.clone(),
         )
@@ -576,6 +578,16 @@ mod axum_glue {
 mod tests {
     use super::*;
     use crate::Cap;
+
+    #[test]
+    fn page_fits_in_a_result_err_under_clippys_limit() {
+        // A newer clippy than the one run locally fails `Result<Redirect, Page>` past 128 bytes.
+        assert!(
+            std::mem::size_of::<Page>() < 128,
+            "{}",
+            std::mem::size_of::<Page>()
+        );
+    }
 
     #[test]
     fn one_value_carries_caps_theme_state_and_flash() {
