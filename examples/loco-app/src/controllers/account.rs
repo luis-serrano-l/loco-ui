@@ -31,10 +31,23 @@ fn session(ui: &Ui, ctx: &AppContext, user: &users::Model) -> Result<String> {
     Ok(cookie.secure(ui.is_secure()).to_string())
 }
 
-/// Sign `user` in and go home with a greeting.
+/// Where signing in goes: the page `?next=` names (set when a signed-out visit was sent to
+/// the sign-in form), else home. Only a path on this site, so the link cannot send anyone
+/// elsewhere.
+pub fn landing(ui: &Ui) -> &str {
+    ui.param("next")
+        .filter(|p| p.starts_with('/') && !p.starts_with("//") && !p.contains('\\'))
+        .unwrap_or(HOME)
+}
+
+/// Sign `user` in and go to [`landing`] with a greeting.
 fn welcome(ui: &Ui, ctx: &AppContext, user: &users::Model, message: &str) -> Result<Response> {
     let cookie = session(ui, ctx, user)?;
-    Ok(ui.redirect(HOME).cookie(cookie).ok(message).into_response())
+    Ok(ui
+        .redirect(landing(ui))
+        .cookie(cookie)
+        .ok(message)
+        .into_response())
 }
 
 #[debug_handler]

@@ -75,9 +75,17 @@ async fn every_page_works_without_script() {
     let router = boot.router.unwrap();
     let tag = loco_ui::enhance::script_tag().into_string();
 
-    // Signed out, the scaffold's routes are Loco's 401.
-    let res = send(&router, "GET", "/notes", "", "").await;
-    assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+    // Signed out, a signed-in page (Loco's 401) goes to the sign-in form, not a JSON error.
+    // `?next=` names the page, and the form posts back to the same URL.
+    let res = send(&router, "GET", "/notes/1?tab=edit", "", "").await;
+    assert_eq!(res.status(), StatusCode::SEE_OTHER);
+    let signin = location(&res).to_string();
+    assert_eq!(signin, "/signin?next=%2Fnotes%2F1%3Ftab%3Dedit");
+    let html = text(send(&router, "GET", &signin, "", "").await).await;
+    assert!(
+        html.contains(r#"action="/signin?next=%2Fnotes%2F1%3Ftab%3Dedit""#),
+        "{html}"
+    );
 
     // A blank sign-up comes back with a message on each field, not a JSON error.
     let res = send(&router, "POST", "/signup", "", "name=&email=&password=").await;
@@ -131,6 +139,33 @@ async fn every_page_works_without_script() {
     )
     .await;
     assert_eq!(location(&res), "/");
+    // Sent to sign in from a page, signing in goes back to it; a `next` off this site is
+    // ignored.
+    let ada_signin = "email=ada%40example.com&password=secret";
+    let res = send(
+        &router,
+        "POST",
+        "/signin?next=%2Fnotes%3Ftab%3D1",
+        "",
+        ada_signin,
+    )
+    .await;
+    assert_eq!(location(&res), "/notes?tab=1");
+    for elsewhere in [
+        "https%3A%2F%2Fevil.example",
+        "%2F%2Fevil.example",
+        "%2F%5Cevil.example",
+    ] {
+        let res = send(
+            &router,
+            "POST",
+            &format!("/signin?next={elsewhere}"),
+            "",
+            ada_signin,
+        )
+        .await;
+        assert_eq!(location(&res), "/", "{elsewhere}");
+    }
 
     // Forgot password: the same answer for any email; the mailed link sets a new password
     // once, and the old one stops working.
@@ -365,7 +400,7 @@ async fn every_page_works_without_script() {
     assert!(html.contains(r#"<option value="done" selected>"#), "{html}");
 
     // A session whose user is gone (a database reset since the cookie was set) is signed out:
-    // the landing page at `/`, a 401 elsewhere, never a server error.
+    // the landing page at `/`, the sign-in form elsewhere, never a server error.
     let res = send(
         &router,
         "POST",
@@ -384,7 +419,7 @@ async fn every_page_works_without_script() {
     assert_eq!(res.status(), StatusCode::OK);
     assert!(text(res).await.contains("Notes that live on your server."));
     let res = send(&router, "GET", "/notes", &gone, "").await;
-    assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(location(&res), "/signin?next=%2Fnotes");
 
     // Signed out, the front page is the landing page.
     let html = text(send(&router, "GET", "/", "", "").await).await;

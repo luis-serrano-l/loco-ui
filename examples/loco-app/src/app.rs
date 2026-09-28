@@ -1,4 +1,10 @@
 use async_trait::async_trait;
+use axum::{
+    extract::Request,
+    http::{Method, StatusCode},
+    middleware::Next,
+    response::{IntoResponse, Response},
+};
 use loco_rs::{
     Result,
     app::{AppContext, Hooks, Initializer},
@@ -10,6 +16,7 @@ use loco_rs::{
     environment::Environment,
     task::Tasks,
 };
+use loco_ui::prelude::Ui;
 use migration::Migrator;
 use sea_orm::{EntityTrait, PaginatorTrait};
 use std::path::Path;
@@ -21,6 +28,25 @@ use crate::{
 };
 
 pub struct App;
+
+/// Loco answers a missing or stale session with a JSON 401; a browser gets the sign-in form
+/// and a line saying why instead, with `?next=` naming the page asked for when it was a GET.
+async fn signin_on_401(ui: Ui, req: Request, next: Next) -> Response {
+    let asked = (req.method() == Method::GET)
+        .then(|| req.uri().path_and_query().map(ToString::to_string))
+        .flatten();
+    let res = next.run(req).await;
+    if res.status() != StatusCode::UNAUTHORIZED {
+        return res;
+    }
+    let signin = match asked {
+        Some(asked) => Ui::from_request("/signin", "", "").link_with("next", &asked),
+        None => "/signin".into(),
+    };
+    (ui.redirect(&signin))
+        .warn("Sign in to see that page.")
+        .into_response()
+}
 
 #[async_trait]
 impl Hooks for App {
@@ -46,9 +72,12 @@ impl Hooks for App {
         Ok(axum::Router::new().fallback(loco_ui::blocks::not_found))
     }
 
-    /// Every page, the account pages and the 404 included, in the app's look.
+    /// Every page, the account pages and the 404 included, in the app's look; a signed-out
+    /// visit to a signed-in page goes to the sign-in form.
     async fn after_routes(router: axum::Router, _ctx: &AppContext) -> Result<axum::Router> {
-        Ok(router.layer(views::look::LOOK.layer()))
+        Ok(router
+            .layer(axum::middleware::from_fn(signin_on_401))
+            .layer(views::look::LOOK.layer()))
     }
 
     /// The first start in development seeds the demo account (see `seed`), so a fresh

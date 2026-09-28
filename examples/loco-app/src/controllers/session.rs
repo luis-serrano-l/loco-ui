@@ -15,7 +15,7 @@ use crate::{
 
 /// The signed-in user, whose rows every handler reads and writes. A session whose user is
 /// gone (deleted, or a database reset since the cookie was set) is treated as signed out: 401,
-/// as with no cookie at all.
+/// as with no cookie at all, which `app::signin_on_401` turns into the sign-in form.
 pub async fn owner(ctx: &AppContext, auth: &auth::JWT) -> Result<users::Model> {
     match users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await {
         Ok(user) => Ok(user),
