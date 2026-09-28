@@ -205,12 +205,13 @@ async fn every_page_works_without_script() {
     assert_eq!(res.status(), StatusCode::SEE_OTHER);
     assert_eq!(location(&res), "/notes/1");
 
-    // Every field kind the scaffold knows, on `tasks`: the reference is a select of users by
-    // name, date-times are `datetime-local` (posted without seconds), the decimal a pattern.
+    // Every field kind the scaffold knows, on `tasks`: date-times are `datetime-local`
+    // (posted without seconds), the decimal a pattern. The owner is the signed-in user, so
+    // the form has no `user_id` field.
     let html = text(send(&router, "GET", "/tasks/new", &auth, "").await).await;
     assert!(
-        html.contains(r#"<option value="1">Ada</option>"#),
-        "user select: {html}"
+        !html.contains(r#"name="user_id""#),
+        "no owner field: {html}"
     );
     assert!(html.contains(r#"type="datetime-local""#) && html.contains(r#"type="number""#));
     let res = send(
@@ -229,7 +230,7 @@ async fn every_page_works_without_script() {
     ] {
         assert!(html.contains(message), "no {message} in {html}");
     }
-    let task = "title=Ship&user_id=1&done=true&due_on=2026-10-01&starts_at=2026-10-01T09%3A30\
+    let task = "title=Ship&user_id=2&done=true&due_on=2026-10-01&starts_at=2026-10-01T09%3A30\
                 &remind_at=2026-09-30T18%3A00&price=12.50&status=doing&size=3";
     let res = send(&router, "POST", "/tasks", &auth, task).await;
     assert_eq!(location(&res), "/tasks/1");
@@ -238,7 +239,6 @@ async fn every_page_works_without_script() {
         r#"value="2026-10-01T09:30""#,
         r#"value="2026-09-30T18:00""#,
         r#"value="12.5""#, // SQLite keeps a decimal as a real
-        r#"<option value="1" selected>Ada</option>"#,
         r#"<option value="doing" selected>"#,
     ] {
         assert!(
@@ -246,6 +246,35 @@ async fn every_page_works_without_script() {
             "task edit form: no {filled} in {html}"
         );
     }
+
+    // A posted `user_id` is ignored: the task is Ada's. Another user cannot see, list, change
+    // or delete it.
+    let res = send(
+        &router,
+        "POST",
+        "/signup",
+        "",
+        "name=Grace&email=grace%40example.com&password=secret",
+    )
+    .await;
+    let grace = auth_cookie(&res);
+    let list = text(send(&router, "GET", "/tasks", &grace, "").await).await;
+    assert!(!list.contains("Ship"), "Grace lists Ada's task: {list}");
+    for (method, path, form) in [
+        ("GET", "/tasks/1", ""),
+        ("GET", "/tasks/1/edit", ""),
+        ("POST", "/tasks/1", task),
+        ("POST", "/tasks/1/delete", ""),
+    ] {
+        let res = send(&router, method, path, &grace, form).await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND, "{method} {path}");
+    }
+    assert!(
+        text(send(&router, "GET", "/tasks", &auth, "").await)
+            .await
+            .contains("Ship"),
+        "still Ada's"
+    );
 
     let pages = [
         ("/", "index"),

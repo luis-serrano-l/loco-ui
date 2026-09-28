@@ -10,7 +10,6 @@ use crate::models::_entities::tasks::Model;
 pub fn values(m: &Model) -> Vec<(String, String)> {
     vec![
         ("title".into(), m.title.to_string()),
-        ("user_id".into(), m.user_id.to_string()),
         ("done".into(), m.done.to_string()),
         (
             "due_on".into(),
@@ -52,7 +51,6 @@ pub fn list(ui: &Ui, rows: &[Model], meta: &PagerMeta) -> Markup {
         .table("tasks", "/tasks")
         .column("id", "Id")
         .column("title", "Title")
-        .column("user_id", "User id")
         .column("done", "Done")
         .column("due_on", "Due on")
         .column("starts_at", "Starts at")
@@ -79,7 +77,6 @@ pub fn list(ui: &Ui, rows: &[Model], meta: &PagerMeta) -> Markup {
 pub fn show(ui: &Ui, m: &Model) -> Markup {
     let labels = [
         "Title",
-        "User id",
         "Done",
         "Due on",
         "Starts at",
@@ -109,12 +106,11 @@ pub fn show(ui: &Ui, m: &Model) -> Markup {
 
 /// The rows each reference field can point at, as `(id, label)`, loaded by the controller.
 #[derive(Debug, Default)]
-pub struct Refs {
-    pub user_id: Vec<(String, String)>,
-}
+pub struct Refs {}
 
 /// The form for new (`action` = the list) and edit (`action` = the item), with what was
 /// posted and the messages when it comes back.
+#[allow(unused_variables)] // `refs` when the model has no references
 pub fn form(
     ui: &Ui,
     title: &str,
@@ -126,14 +122,6 @@ pub fn form(
     let form = ui
         .form(action)
         .text("title", "Title")
-        .required()
-        .select(
-            "user_id",
-            "User",
-            refs.user_id
-                .iter()
-                .map(|(id, label)| (id.as_str(), label.as_str())),
-        )
         .required()
         .checkbox("done", "Done")
         .date("due_on", "Due on", "1900-01-01", "2100-12-31")

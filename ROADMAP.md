@@ -2147,8 +2147,22 @@ Decisions, asked and answered on 2026-09-28:
   `T: DeserializeOwned`; every caller already had it. The header now spells out what
   "unsigned" means. The demo's `Session` says it is forgeable on purpose and points to the
   Loco example's JWT.
-- [ ] Scaffolds with auth and a `user_id` field scope every query to the signed-in user and
+- [x] Scaffolds with auth and a `user_id` field scope every query to the signed-in user and
   take the owner from the session, never from the form; `examples/loco-app` regenerated.
+  Done: `controller.t` computes `owned` (auth on and a `user_id` field). When it is set, the
+  controller changes in four ways:
+  - `Params`, `set`, `refs` and the views leave `user_id` out.
+  - `owner()` finds the user by `auth.claims.pid`.
+  - `load(ctx, id, owner)` and `list` filter on `Column::UserId`.
+  - `create` sets the owner from the session.
+  Without it, the generated header says every signed-in user sees every row. Both kinds were
+  generated into `examples/loco-app` as throwaway models, passed clippy and were reverted.
+  That needed `sea-orm-cli` 2, installed under the scratchpad; the machine's own is 1.1.20.
+  Kept different: `tasks` and `notes` were edited to match the templates, not regenerated.
+  A second run would add a duplicate migration and drop M29's hand edits (the status
+  select). The page test posts a forged `user_id`, then shows a second user getting 404 on
+  show, edit, update and delete, and not finding the task in the list. `loco-tasks-new.png`
+  and `loco-tasks-edit.png` lose the owner select, on purpose.
 - [ ] Docs match the code: a README section on cookies and cross-site requests, caching and
   `Vary: cookie`, the caps header and M9's beacon line corrected, FINDINGS and CHANGELOG;
   clippy, `cargo test` and `scripts/verify.sh` green.

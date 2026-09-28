@@ -216,7 +216,7 @@ entities step. Field kinds map to controls:
 
 | Field | Control | Read by |
 |---|---|---|
-| `references` (`user:references`) | select of the parent's rows, labelled by `loco::label` (name, title or email) | `i64` |
+| `references` (`user:references`, except the owner above) | select of the parent's rows, labelled by `loco::label` (name, title or email) | `i64` |
 | `bool` | checkbox | `loco::checkbox` |
 | `date` | `type=date` | serde |
 | `date_time`, `tstz` | `type=datetime-local` (a `tstz` without offset is UTC) | `loco::local` |
@@ -232,6 +232,13 @@ being the plural (`user_id` → `users`). A plain integer column with such a nam
 one too; rename it or edit `refs()` in the controller. The select lists every parent row; past
 a few hundred, swap it for `ui.combobox(..)` with a search route. Array columns are not
 supported. `examples/loco-app` scaffolds `task` with one field of each kind.
+
+**Owned rows.** With auth on, a `user:references` field is the owner, not a choice. The form
+has no `user_id` field. `create` sets it from the session (`auth.claims.pid`), and `list`,
+`show`, `edit`, `update` and `delete` filter on it, so another user's row answers 404. Without
+such a field, every signed-in user sees and changes every row, and the generated header says
+so. `examples/loco-app`'s `tasks` are owned, and its page test checks that a second user gets
+404 on the first user's task.
 
 ## Loco settings that affect pages
 
