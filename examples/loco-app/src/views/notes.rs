@@ -135,7 +135,7 @@ fn table(ui: &Ui, path: &str, items: &[Listed]) -> Markup {
         .render()
 }
 
-/// One note to read: the text in a serif column, its details in a card beside it, and edit,
+/// One note to read: the text in a reading column, its details in a card beside it, and edit,
 /// delete (behind a confirm dialog), pin and archive.
 pub fn show(ui: &Ui, it: &Listed) -> Markup {
     let m = &it.note;

@@ -59,11 +59,11 @@ main { max-width: 76rem; padding-top: var(--lui-space-6); }
 .notes-excerpt { margin: 0; color: var(--lui-muted); font-size: 0.875rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .notes-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); color: var(--lui-muted); font-size: 0.8125rem; }
 .notes-card .notes-meta .lui-badge { position: relative; z-index: 1; }
-/* The reading view: a serif column about 68 characters wide. */
+/* The reading view: the UI's own sans face in a column about 65 characters wide. */
 .notes-article { min-width: 0; }
 .notes-article h1 { margin: 0 0 var(--lui-space-2); font-size: 2.25rem; line-height: 1.15; letter-spacing: -0.02em; }
-.notes-prose { max-width: 68ch; margin-top: var(--lui-space-8); font-family: "Iowan Old Style", "Palatino Linotype", Charter, Georgia, serif; font-size: 1.125rem; line-height: 1.7; }
-.notes-prose p { max-width: none; margin: 0 0 1.1em; }
+.notes-prose { max-width: 65ch; margin-top: var(--lui-space-6); font-size: 1.0625rem; line-height: 1.65; letter-spacing: -0.005em; color: var(--lui-fg); text-wrap: pretty; }
+.notes-prose p { max-width: none; margin: 0 0 1em; }
 .notes-actions { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); align-items: center; }
 .notes-side { position: sticky; top: var(--lui-space-6); }
 .notes-landing { max-width: 44rem; margin: 10vh auto 0; text-align: center; }

@@ -3,7 +3,7 @@
 A notes app on [Loco](https://loco.rs) and loco-ui, every page working with script off:
 
 - **Notes** in notebooks, with tags, pinned or archived, each user's own. The list is cards
-  or a table, filtered by tag or searched; a note reads in a serif column with its details
+  or a table, filtered by tag or searched; a note reads in a narrow column with its details
   beside it.
 - **An overview**: counts, notes written per week, what is due, the latest notes.
 - **Tasks** on a board (move a card to change its status) or in a table.
