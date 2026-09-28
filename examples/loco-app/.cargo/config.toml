@@ -1,3 +1,7 @@
 [alias]
 loco = "run -p loco-app --"
 loco-tool = "run -p loco-app --"
+# `cargo dev-app`: `cargo loco start`, rebuilt and restarted whenever the app, its migrations or
+# config, or a loco-ui crate changes. Needs cargo-watch. Not `dev`: cargo joins array
+# aliases of one name, and the workspace's `dev` runs the demo.
+dev-app = ["watch", "-w", "src", "-w", "migration", "-w", "config", "-w", "Cargo.toml", "-w", "../../loco-ui/src", "-w", "../../loco-ui/loco-templates", "-w", "../../loco-ui-caps/src", "-w", "../../loco-ui-macros/src", "-x", "loco start"]

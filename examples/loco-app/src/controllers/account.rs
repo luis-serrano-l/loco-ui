@@ -63,8 +63,9 @@ async fn signin(
     }
     let errors = form.errors();
     let mut pairs = errors.pairs();
+    // Keyed to no field, so the message does not say which of the two was wrong.
     if pairs.is_empty() {
-        pairs.push(("password", "Wrong email or password."));
+        pairs.push(("", "Wrong email or password."));
     }
     let body = views::account::signin(&ui, form.values(), &pairs);
     Ok(ui.page("Sign in", body).into_response())

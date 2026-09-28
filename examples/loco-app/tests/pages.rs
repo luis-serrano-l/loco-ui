@@ -116,7 +116,12 @@ async fn every_page_works_without_script() {
         "email=ada%40example.com&password=nope",
     )
     .await;
-    assert!(text(res).await.contains("Wrong email or password."));
+    let body = text(res).await;
+    assert!(body.contains("<li>Wrong email or password.</li>"), "{body}");
+    assert!(
+        !body.contains(r#"aria-invalid="true""#),
+        "no field is marked wrong"
+    );
     let res = send(
         &router,
         "POST",

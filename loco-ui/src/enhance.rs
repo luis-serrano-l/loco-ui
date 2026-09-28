@@ -228,8 +228,8 @@ function submit(form, submitter) {
   var req = init();
   var params = new URLSearchParams(data);
   if ((at("method") || "get").toLowerCase() === "post") { req.method = "POST"; req.body = form.enctype === "multipart/form-data" ? data : params; }
-  if (req.body === data) req.progress = form.querySelector("progress[data-lui-progress]");
   else url.search = params.toString();
+  if (req.body === data) req.progress = form.querySelector("progress[data-lui-progress]");
   request(t, form, url.href, req, function () { HTMLFormElement.prototype.submit.call(form); });
   return true;
 }

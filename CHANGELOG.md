@@ -8,6 +8,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+- Fix: the enhancement script no longer copies a urlencoded POST's fields into the URL
+  (a sign-up put the password in the request line and the server log).
 - M36, a description list that lines up, and one look per app:
   - The description list puts every term in one shared column (subgrid) from 30rem, both
     tops on one line, rows split by hairlines; narrower, each term sits above its detail.

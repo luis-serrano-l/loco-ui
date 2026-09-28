@@ -165,8 +165,8 @@ starter's mail links at the pages (`/verify/<token>`, `/reset/<token>`,
 `/magic-link/<token>`) and does the cookie setting below in each `config/*.yaml`. The
 forgot and magic-link forms give the same answer whether or not an account exists, and each
 mailed link works once. `examples/loco-app` runs exactly these files, through Loco's router
-and Blitz. Mail needs a `mailer:` section (`smtp` on 1025 with Mailpit in development,
-`stub: true` in tests).
+and Blitz. Mail needs a `mailer:` section (`stub: true` drops every message, as the
+example does in development and tests; `smtp` on 1025 with Mailpit shows the links).
 
 Loco's `auth::JWT` extractor reads the token from a header by default, which a plain form
 cannot send. Point it at a cookie and have the sign-in form set that cookie on its redirect:

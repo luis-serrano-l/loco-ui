@@ -12,6 +12,7 @@ A notes app on [Loco](https://loco.rs) and loco-ui, every page working with scri
 ```sh
 cd examples/loco-app
 cargo loco start          # http://localhost:5150, the sqlite file created and migrated
+cargo dev-app             # the same, rebuilt and restarted on every change (needs cargo-watch)
 cargo test -p loco-app    # every page through Loco's router and Blitz
 ```
 
@@ -37,8 +38,8 @@ What wrote what:
   (`src/views/look.rs`, one layer in `App::after_routes`) and the seed.
 - **`cargo lui auth`**: `src/controllers/account.rs` and `src/views/account.rs`, on the
   starter's `users` model and `AuthMailer` (`src/mailers/`); a test in `loco-ui` fails if they
-  drift from the templates. Mails go to SMTP on 1025 in development (Mailpit shows them) and
-  stay in memory in tests.
+  drift from the templates. Development and tests send no mail (`mailer.stub`); set
+  `stub: false` in `config/development.yaml` and run Mailpit on 1025 to read the links.
 
 The notes migration drops and recreates the `notes` table (SQLite cannot add a NOT NULL
 `user_id` to a table with rows), so notes written before it are gone.
