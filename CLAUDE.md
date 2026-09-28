@@ -30,7 +30,10 @@ cargo bench -p loco-ui           # criterion: stylesheet, layout, table with 1 0
 scripts/bench.sh                   # latency baseline: curl p50/p95 TTFB and Firefox navigation timing on 3001
 node scripts/bench-swap.mjs [runs] # click-to-paint of in-place updates: the script beside htmx 2 on the same answers
 scripts/look.sh [--only <name>] [--tag <tag>] [--no-ref]  # Firefox shots of every page (light/dark, 1280/768/420) beside its M34 reference, into target/look/[<tag>/]
-scripts/verify.sh                  # everything above plus a <script> grep and the browser check; run before committing
+cargo run -p demo -- spec write    # regenerate spec/components.json and the README feature matrix from loco_ui::spec::SPECS
+scripts/snapshot.sh [dir]          # static GitHub Pages snapshot of every GET page into target/site/
+cargo run -p loco-ui -- install <app> --dep-path "$PWD/loco-ui"   # the cargo-lui installer on a Loco app (also `auth`); tests/install.rs runs it on tests/fresh-loco-app
+scripts/verify.sh                  # fmt check, build, clippy at every feature level, tests, rustdoc, <script> grep, browser check; run before committing
 ```
 
 Never format Rust by hand: write the code in any layout, then run `cargo fmt --all` (verify.sh
@@ -52,15 +55,25 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
   rules are tested in `loco-ui/tests/lui.rs` and its errors pinned with `trybuild` in `tests/ui/`.
 - `loco-ui/` – the library crate. Depends only on `maud`, `loco-ui-caps` and `loco-ui-macros`. Feature `http` adds
   `Redirect::into_http` and `Streamed` (a chunk stream); feature `axum` adds the `Ui` extractor,
-  `IntoResponse` for `Page`/`Redirect`/`Streamed`, the `/lui/caps` beacon route, and
-  `Saved<T>` (the only use of serde); feature `loco` adds `loco::Initializer`, which mounts
-  the script and beacon routes in a Loco app. Everything else is plain functions over strings
+  `IntoResponse` for `Page`/`Redirect`/`Streamed`, the `/lui/caps` beacon route, `Posted`
+  (urlencoded or multipart posts by name) and `Saved<T>` (serde in a cookie); feature `loco`
+  adds `loco::Initializer`, which mounts the script and beacon routes in a Loco app, `Valid<T>`
+  and `Table::paged_from`. Everything else is plain functions over strings
   (`Ui::from_request`, `Page::into_string`, `Redirect::set_cookies`, `caps::beacon_cookie`).
+  `src/blocks/` holds whole pages built from the components (app shell, auth, settings,
+  record, dashboard, error pages), each a builder reached from `ui` like a component.
+  `src/i18n.rs` holds the components' own words (`Text`, `Strings`); an app adds a language
+  with `i18n::languages` (the demo's `spanish.rs` is the example). `src/bin/cargo-lui.rs` is
+  the `cargo lui install` / `cargo lui auth` installer, fed by `loco-templates/`.
 - `demo/` – Axum lib + binary, one route per component, one `use loco_ui::prelude::*`.
   Routes live in `demo/src/routes/<group>.rs`, one file per index group, each with a
-  `routes()` that `router()` in `lib.rs` merges; the shell and index are in `site.rs`, the
-  snippet machinery in `code.rs`, the tests in `tests.rs`. A new route file must also be
-  added to `SOURCES` in `code.rs`. Each component page shows the code between its `// code: <href>` and `// end code`
+  `routes()` that `router()` in `lib.rs` merges, plus `PAGES` (component-and-note pages) and
+  `PREVIEWS` (the live component the index shows); the shell and index are in `site.rs`, the
+  snippet machinery in `code.rs`, the props playground in `playground.rs`, the static Pages
+  export in `snapshot.rs`, the Spanish strings in `spanish.rs`, a component written outside
+  the library in `pricing.rs`, the tests in `tests.rs`. A new route file must also be
+  added to `SOURCES` in `code.rs`. The binary also takes `-- spec [write]` and
+  `-- snapshot <dir>`. Each component page shows the code between its `// code: <href>` and `// end code`
   markers (a test fails if a component page has none), so keep the markers around the
   component call when editing a route.
   Handlers take `ui: Ui` (plus `Saved<T>` / `Form<T>` when they need them) and return `Page`
@@ -109,8 +122,10 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
    `props::COMPONENTS`, so `loco_ui::props()`, the spec JSON and the demo's props tables
    list it; the doc header's main doctest ends with the same call in `lui!` and an
    `assert_eq!` on the HTML. Tests fail when a setter is missing from `PROPS`, a builder or
-   constructor from `props()`, or a header lacks its `lui!` twin. Demo snippets use
-   `lui!` unless the route keeps the builder in a variable.
+   constructor from `props()`, or a header lacks its `lui!` twin. Demo snippets write the
+   component's markup in `lui!`; the builder chain stays only where the route calls a
+   method on it afterwards, and then the `lui!` render block sits beside it. Handler logic
+   in a snippet (a redirect, a toast, `ui.stream`) stays Rust.
 6. Server-held state (theme, counter, active tab) travels via cookie or `?query=`; mutations use
    `<form method="post">` + redirect (Post/Redirect/Get), never GET side effects.
 7. Update the README feature matrix and Findings when a component or its fallback changes.
@@ -121,9 +136,26 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
    component's CSS styles its parts by class (`.lui-<component>-<part>`), and a test
    (`only_the_primitives_select_bare_buttons_and_inputs`) fails if it selects a bare `button`
    or `input`. Hidden inputs, `<select>`, range sliders and menu items are the exceptions.
+9. Responsive means container queries (M34). A root that changes layout sets
+   `container: lui-<component> / inline-size`; the CSS writes the narrow layout as the base
+   and adds wider layouts with `@container lui-<component> (width >= …)` at the three
+   breakpoints in `layout.rs` only (narrow below 30rem, medium from 30rem, wide from 48rem;
+   literal numbers, since custom properties cannot appear in a container condition).
+   Viewport `@media` is for `prefers-*` and `pointer` only; under `pointer: coarse` every
+   clickable part is at least 44px tall. Nothing may overflow sideways in a 320px container
+   or viewport: text wraps or truncates, tables hide low-priority columns and scroll inside
+   themselves. Each component copies the look of one named free library (Radix Themes by
+   default, else Origin UI, shadcn/ui, Tremor or Dice UI) rebuilt with `--lui-*` tokens,
+   never pasted; `no_colour_literal_outside_tokens` fails on a literal colour. Blitz does
+   not support `@container`, so `tests/shots/` show the narrow base.
 
 ## Roadmap
 
-`ROADMAP.md` is the work queue: work top to bottom (M1 capability beacons → M2 streaming → M3
-state model → M4 Blitz tests → M5 machine-readable spec → M6 release polish). A milestone is
-done only when every box is ticked, clippy is clean, tests pass, and README is updated.
+`ROADMAP.md` is the work queue: work top to bottom; M1 to M34 are ticked except boxes that
+wait on the owner. A milestone is done only when every box is ticked, clippy is clean, tests
+pass, and README is updated. Each ticked box carries a "Done:" note (what changed, new setters,
+what was kept different from the reference and why); write one when ticking. `BLOCKED.md`
+holds the questions only the owner can answer (the crates.io publish, posting the launch, the
+`lui!` builder mode for the `/wizard` and `/palette` snippets): never run `cargo publish`,
+push, or post anywhere without an explicit yes. `CHANGELOG.md` gets an Unreleased entry per
+milestone; `FINDINGS.md` gets every platform or Blitz gap with an issue link.
