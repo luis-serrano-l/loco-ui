@@ -14,10 +14,14 @@ use crate::{
 
 #[debug_handler]
 async fn index(auth: Option<auth::JWT>, ui: Ui, State(ctx): State<AppContext>) -> Result<Page> {
-    let Some(auth) = auth else {
+    // No session, or one whose user is gone: the landing page.
+    let me = match auth {
+        Some(auth) => owner(&ctx, &auth).await.ok(),
+        None => None,
+    };
+    let Some(me) = me else {
         return Ok(ui.page("Notes", views::home::landing(&ui)));
     };
-    let me = owner(&ctx, &auth).await?;
     let notes = Entity::listed(&ctx.db, me.id, |s| s).await?;
     // Notes written in each of the last eight weeks, oldest first, labelled by the Monday.
     let monday = Utc::now().date_naive()

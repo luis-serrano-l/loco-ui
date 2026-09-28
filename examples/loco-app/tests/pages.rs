@@ -10,9 +10,13 @@ use axum::{
     body::Body,
     http::{Request, Response, StatusCode, header},
 };
-use loco_app::{app::App, models::users};
+use loco_app::{
+    app::App,
+    models::{_entities::users as user_rows, users},
+};
 use loco_rs::testing::prelude::*;
 use loco_ui_test::Page;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serial_test::serial;
 use tower::ServiceExt;
 
@@ -354,6 +358,28 @@ async fn every_page_works_without_script() {
     assert_eq!(location(&res), "/tasks");
     let html = text(send(&router, "GET", "/tasks/1/edit", &auth, "").await).await;
     assert!(html.contains(r#"<option value="done" selected>"#), "{html}");
+
+    // A session whose user is gone (a database reset since the cookie was set) is signed out:
+    // the landing page at `/`, a 401 elsewhere, never a server error.
+    let res = send(
+        &router,
+        "POST",
+        "/signup",
+        "",
+        "name=Gone&email=gone%40example.com&password=secret",
+    )
+    .await;
+    let gone = auth_cookie(&res);
+    user_rows::Entity::delete_many()
+        .filter(user_rows::Column::Email.eq("gone@example.com"))
+        .exec(&db)
+        .await
+        .unwrap();
+    let res = send(&router, "GET", "/", &gone, "").await;
+    assert_eq!(res.status(), StatusCode::OK);
+    assert!(text(res).await.contains("Notes that live on your server."));
+    let res = send(&router, "GET", "/notes", &gone, "").await;
+    assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
 
     // Signed out, the front page is the landing page.
     let html = text(send(&router, "GET", "/", "", "").await).await;

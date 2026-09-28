@@ -13,9 +13,15 @@ use crate::{
     views::shell::Nav,
 };
 
-/// The signed-in user, whose rows every handler reads and writes.
+/// The signed-in user, whose rows every handler reads and writes. A session whose user is
+/// gone (deleted, or a database reset since the cookie was set) is treated as signed out: 401,
+/// as with no cookie at all.
 pub async fn owner(ctx: &AppContext, auth: &auth::JWT) -> Result<users::Model> {
-    Ok(users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?)
+    match users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await {
+        Ok(user) => Ok(user),
+        Err(ModelError::EntityNotFound) => Err(Error::Unauthorized("no such user".into())),
+        Err(e) => Err(e.into()),
+    }
 }
 
 /// The counts and notebooks the sidebar shows to `me`.
