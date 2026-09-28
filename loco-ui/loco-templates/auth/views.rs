@@ -3,8 +3,12 @@
 use loco_ui::prelude::*;
 
 pub fn signin(ui: &Ui, values: &[(String, String)], errors: &[(&str, &str)]) -> Markup {
+    // The form posts to its own URL, so a `?next=` survives a wrong password.
+    let action = ui
+        .param("next")
+        .map_or("/signin".into(), |next| ui.link_with("next", next));
     let form = ui
-        .form("/signin")
+        .form(&action)
         .email("email", "Email")
         .required()
         .password("password", "Password")

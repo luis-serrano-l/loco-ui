@@ -18,7 +18,7 @@ use crate::{
 
 /// The cookie `config/*.yaml` tells `auth::JWT` to read.
 pub const COOKIE: &str = "auth";
-/// Where signing in lands.
+/// Where signing in lands, unless the sign-in form's `?next=` names a page (see `welcome`).
 pub const HOME: &str = "/";
 /// What the forgot-password and magic-link forms say, whether or not the email has an account.
 const SENT: &str = "If an account uses that email, a link is on its way. It works once.";
@@ -31,10 +31,12 @@ fn session(ui: &Ui, ctx: &AppContext, user: &users::Model) -> Result<String> {
     Ok(cookie.secure(ui.is_secure()).to_string())
 }
 
-/// Sign `user` in and go home with a greeting.
+/// Sign `user` in and go, with a greeting, to the page a signed-out visit was sent to the
+/// sign-in form from (`loco_ui::loco::SignIn` adds `?next=`), else home.
 fn welcome(ui: &Ui, ctx: &AppContext, user: &users::Model, message: &str) -> Result<Response> {
     let cookie = session(ui, ctx, user)?;
-    Ok(ui.redirect(HOME).cookie(cookie).ok(message).into_response())
+    let to = loco_ui::loco::landing(ui, HOME);
+    Ok(ui.redirect(to).cookie(cookie).ok(message).into_response())
 }
 
 #[debug_handler]

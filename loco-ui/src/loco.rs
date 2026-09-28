@@ -245,6 +245,20 @@
 //! The strict [`csp`](crate::enhance::csp) layer is not added: an app states its own policy
 //! (add `axum::middleware::from_fn(loco_ui::enhance::csp)` in `after_routes` to use ours).
 //!
+//! Loco answers a signed-out request to a handler that takes `auth::JWT` with a JSON 401.
+//! [`SignIn`] (which `cargo lui auth` adds beside [`Initializer`]) turns that into a
+//! redirect to the sign-in form with a flash ("Sign in to see that page."), and a GET
+//! carries `?next=` with the page asked for; the sign-in handler redirects to [`landing`]
+//! afterwards, so the visitor ends on that page. A request that asks for JSON only
+//! (`Accept: application/json`) keeps its 401.
+//!
+//! ```rust
+//! # use loco_rs::{app::{AppContext, Initializer}, Result};
+//! async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
+//!     Ok(vec![Box::new(loco_ui::loco::Initializer), Box::new(loco_ui::loco::SignIn("/signin"))])
+//! }
+//! ```
+//!
 //! **Platform features:** none of its own; it serves what the components rely on.
 //!
 //! **What it does not do without script:** nothing is missing; the script is optional.
@@ -676,6 +690,89 @@ pub fn label<T: serde::Serialize>(row: &T) -> String {
         .unwrap_or_else(|| format!("#{}", value["id"]))
 }
 
+/// Signed-out visits go to the sign-in form at this path: `Box::new(loco_ui::loco::SignIn("/signin"))`
+/// in `App::initializers`. See the module docs.
+#[derive(Clone, Copy, Debug)]
+pub struct SignIn(pub &'static str);
+
+#[async_trait]
+impl loco_rs::app::Initializer for SignIn {
+    fn name(&self) -> String {
+        "loco-ui-sign-in".to_string()
+    }
+
+    async fn after_routes(&self, router: Router, _ctx: &AppContext) -> Result<Router> {
+        Ok(sign_in(router, self.0))
+    }
+}
+
+/// What [`SignIn`] does, for a test or an app that builds its router by hand: a 401 becomes a
+/// redirect to `path` with a flash, and `?next=` names the page when the request was a GET.
+pub fn sign_in(router: Router, path: &'static str) -> Router {
+    router.layer(axum::middleware::from_fn(
+        move |req: Request, next: axum::middleware::Next| sign_in_on_401(path, req, next),
+    ))
+}
+
+async fn sign_in_on_401(
+    path: &'static str,
+    req: Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    use axum::{
+        extract::FromRequestParts,
+        http::{Method, StatusCode, header},
+        response::IntoResponse,
+    };
+    let (method, uri, headers) = (
+        req.method().clone(),
+        req.uri().clone(),
+        req.headers().clone(),
+    );
+    let res = next.run(req).await;
+    let accept = headers
+        .get(header::ACCEPT)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    let wants_json = accept.contains("json") && !accept.contains("html");
+    if res.status() != StatusCode::UNAUTHORIZED || wants_json {
+        return res;
+    }
+    let (mut parts, ()) = Request::new(()).into_parts();
+    (parts.method, parts.uri, parts.headers) = (method, uri, headers);
+    let ui = match crate::Ui::from_request_parts(&mut parts, &()).await {
+        Ok(ui) => ui,
+        Err(refused) => return refused,
+    };
+    let asked = (parts.method == Method::GET)
+        .then(|| parts.uri.path_and_query())
+        .flatten();
+    let to = match asked {
+        Some(asked) => crate::Ui::from_request(path, "", "").link_with("next", asked.as_str()),
+        None => path.to_string(),
+    };
+    let flash = ui.text(crate::i18n::Text::SignInToSee);
+    ui.redirect(&to).warn(flash).into_response()
+}
+
+/// Where signing in goes: the page `?next=` names (set by [`SignIn`]), else `home`. Only a path
+/// on this site counts, so a crafted link cannot send the visitor elsewhere.
+///
+/// ```rust
+/// use loco_ui::{loco::landing, prelude::*};
+/// let ui = Ui::from_request("/signin", "next=%2Fnotes%2F1%3Ftab%3D2", "");
+/// assert_eq!(landing(&ui, "/"), "/notes/1?tab=2");
+/// for elsewhere in ["https%3A%2F%2Fevil.example", "%2F%2Fevil.example", "%2F%5Cevil.example"] {
+///     let ui = Ui::from_request("/signin", &format!("next={elsewhere}"), "");
+///     assert_eq!(landing(&ui, "/"), "/");
+/// }
+/// ```
+pub fn landing<'a>(ui: &'a crate::Ui, home: &'a str) -> &'a str {
+    ui.param("next")
+        .filter(|p| p.starts_with('/') && !p.starts_with("//") && !p.contains('\\'))
+        .unwrap_or(home)
+}
+
 /// What [`Initializer`] does, for a test or an app that builds its router by hand.
 pub fn mount(router: Router) -> Router {
     router
@@ -741,6 +838,41 @@ mod tests {
                 "{path}"
             );
         }
+    }
+
+    async fn private() -> axum::http::StatusCode {
+        axum::http::StatusCode::UNAUTHORIZED
+    }
+
+    /// A signed-out page visit goes to the sign-in form, naming the page; a post goes there
+    /// without it; a JSON client keeps its 401; other answers pass through.
+    #[tokio::test]
+    async fn sign_in_turns_a_401_into_the_sign_in_form() {
+        let app = sign_in(
+            Router::new()
+                .route("/notes/{id}", get(show).post(private))
+                .route("/private", get(private)),
+            "/signin",
+        );
+        let send = |method: &str, path: &str, accept: &str| {
+            let req = Request::builder().method(method).uri(path);
+            let req = req.header("accept", accept).body(Body::empty()).unwrap();
+            app.clone().oneshot(req)
+        };
+        let res = send("GET", "/private?tab=2", "text/html").await.unwrap();
+        assert_eq!(res.status(), 303);
+        assert_eq!(
+            res.headers()["location"],
+            "/signin?next=%2Fprivate%3Ftab%3D2"
+        );
+        let flash = res.headers()["set-cookie"].to_str().unwrap();
+        assert!(flash.starts_with("lui-flash=warn%3ASign%20in"), "{flash}");
+        let res = send("POST", "/notes/1", "*/*").await.unwrap();
+        assert_eq!(res.headers()["location"], "/signin");
+        let res = send("GET", "/private", "application/json").await.unwrap();
+        assert_eq!(res.status(), 401);
+        let res = send("GET", "/notes/1", "text/html").await.unwrap();
+        assert_eq!(res.status(), 200);
     }
 
     #[derive(Debug, serde::Deserialize, Validate)]

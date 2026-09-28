@@ -106,6 +106,10 @@ fn auth_writes_the_account_pages_once() {
         routes.contains("below\n            .add_route(controllers::account::routes())\n"),
         "{routes}"
     );
+    assert!(
+        routes.contains(r#"vec![Box::new(loco_ui::loco::Initializer), Box::new(loco_ui::loco::SignIn("/signin"))]"#),
+        "{routes}"
+    );
     let welcome = read(&app, "src/mailers/auth/welcome/text.t");
     assert!(
         welcome.contains("{{host}}/verify/{{verifyToken}}"),

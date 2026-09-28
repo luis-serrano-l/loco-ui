@@ -23,6 +23,9 @@
 //! - `src/controllers/account.rs` and `src/views/account.rs` (from `loco-templates/auth/`),
 //!   their `pub mod account;` lines, and `.add_route(controllers::account::routes())` in
 //!   `src/app.rs`;
+//! - `Box::new(loco_ui::loco::SignIn("/signin"))` after loco-ui's initializer in `src/app.rs`,
+//!   so a signed-out visit to a signed-in page goes to the sign-in form (not Loco's JSON 401)
+//!   and back to that page after signing in;
 //! - the links in the starter's mails (`src/mailers/auth/*/{html,text}.t`) pointed at those
 //!   pages (`/verify/<token>`, `/reset/<token>`, `/magic-link/<token>`);
 //! - `location: { from: Cookie, name: auth }` under `auth.jwt` in each `config/*.yaml`, so
@@ -55,6 +58,8 @@ const JWT_LOCATION: &str = "    # loco-ui's account pages keep the token in this
       name: auth
 ";
 const INITIALIZER: &str = "Box::new(loco_ui::loco::Initializer)";
+/// Signed-out visits to signed-in pages go to the sign-in form (`auth`).
+const SIGN_IN: &str = "Box::new(loco_ui::loco::SignIn(\"/signin\"))";
 const GIT: &str = "https://github.com/luis-serrano-l/loco-ui";
 
 const LAYOUT: &str = r#"//! The page every view renders into: a header with a home link (add yours), then the view.
@@ -153,7 +158,7 @@ fn install(o: &Options) -> Result<(), String> {
     edit(&app.join("src/views/mod.rs"), |s| {
         add_line(s, "pub mod layout;")
     })?;
-    edit(&app.join("src/app.rs"), add_initializer)?;
+    edit(&app.join("src/app.rs"), |s| add_initializer(s, INITIALIZER))?;
     let dep = match &o.dep_path {
         Some(p) => format!(r#"loco-ui = {{ path = "{p}", features = ["loco"] }}"#),
         None => format!(r#"loco-ui = {{ git = "{GIT}", features = ["loco"] }}"#),
@@ -191,7 +196,9 @@ fn auth(o: &Options) -> Result<(), String> {
     edit(&app.join("src/views/mod.rs"), |s| {
         add_line(s, "pub mod account;")
     })?;
-    edit(&app.join("src/app.rs"), add_account_route)?;
+    edit(&app.join("src/app.rs"), |s| {
+        add_initializer(&add_account_route(s)?, SIGN_IN)
+    })?;
     for mail in ["welcome", "forgot", "magic_link"] {
         for part in ["html.t", "text.t"] {
             let path = app.join("src/mailers/auth").join(mail).join(part);
@@ -309,19 +316,24 @@ fn add_line(s: &str, line: &str) -> Result<String, String> {
     Ok(out)
 }
 
-/// Put the initializer first in the `vec![..]` that `fn initializers` returns.
-fn add_initializer(s: &str) -> Result<String, String> {
-    if s.contains(INITIALIZER) {
+/// Put `init` in the `vec![..]` that `fn initializers` returns: right after loco-ui's own
+/// initializer when that is there, else first.
+fn add_initializer(s: &str, init: &str) -> Result<String, String> {
+    if s.contains(init) {
         return Ok(s.to_string());
     }
-    let missing = || format!("no `vec![` in `fn initializers`; add `{INITIALIZER}` to it by hand");
+    if let Some(at) = s.find(INITIALIZER) {
+        let at = at + INITIALIZER.len();
+        return Ok(format!("{}, {init}{}", &s[..at], &s[at..]));
+    }
+    let missing = || format!("no `vec![` in `fn initializers`; add `{init}` to it by hand");
     let at = s.find("fn initializers").ok_or_else(missing)?;
     let open = at + s[at..].find("vec![").ok_or_else(missing)? + "vec![".len();
     let empty = s[open..].trim_start().starts_with(']');
     let insert = if empty {
-        INITIALIZER.to_string()
+        init.to_string()
     } else {
-        format!("{INITIALIZER}, ")
+        format!("{init}, ")
     };
     Ok(format!("{}{insert}{}", &s[..open], &s[open..]))
 }
@@ -351,13 +363,17 @@ mod tests {
     #[test]
     fn the_initializer_goes_first_once() {
         let fresh = "async fn initializers(_ctx: &AppContext) -> Result<..> {\n    Ok(vec![])\n}";
-        let once = add_initializer(fresh).unwrap();
+        let once = add_initializer(fresh, INITIALIZER).unwrap();
         assert!(once.contains("Ok(vec![Box::new(loco_ui::loco::Initializer)])"));
-        assert_eq!(add_initializer(&once).unwrap(), once);
+        assert_eq!(add_initializer(&once, INITIALIZER).unwrap(), once);
         let other = "fn initializers() { Ok(vec![Box::new(Mine)]) }";
-        let added = add_initializer(other).unwrap();
+        let added = add_initializer(other, INITIALIZER).unwrap();
         assert!(added.contains("vec![Box::new(loco_ui::loco::Initializer), Box::new(Mine)]"));
-        assert!(add_initializer("fn routes() {}").is_err());
+        assert!(add_initializer("fn routes() {}", INITIALIZER).is_err());
+        // `auth`'s sign-in initializer goes right after it.
+        let signed = add_initializer(&added, SIGN_IN).unwrap();
+        assert!(signed.contains(r#"vec![Box::new(loco_ui::loco::Initializer), Box::new(loco_ui::loco::SignIn("/signin")), Box::new(Mine)]"#));
+        assert_eq!(add_initializer(&signed, SIGN_IN).unwrap(), signed);
     }
 
     #[test]

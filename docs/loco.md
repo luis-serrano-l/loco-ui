@@ -191,9 +191,15 @@ Ok(ui.redirect("/").cookie(cookie).ok("Signed in."))
 
 `SetCookie` is `loco_ui::cookie::SetCookie`. Signing out posts to a route that sends
 `SetCookie::clear("auth")` with the same attributes.
-`examples/loco-app/src/controllers/account.rs` has every account page in full. A
-route with `auth::JWT` answers Loco's JSON 401 to a signed-out visitor; link to the sign-in
-page from anywhere a visitor may arrive signed out.
+`examples/loco-app/src/controllers/account.rs` has every account page in full.
+
+A route with `auth::JWT` answers a signed-out visitor (no cookie, an expired token, a user
+since deleted) with Loco's JSON 401. `cargo lui auth` also adds
+`Box::new(loco_ui::loco::SignIn("/signin"))` to `App::initializers`, which turns that 401
+into a redirect to the sign-in form with the flash "Sign in to see that page." A GET adds
+`?next=` with the page asked for; the form posts back to its own URL, and the sign-in
+handler redirects to `loco_ui::loco::landing(ui, HOME)`: that page when it is a path on
+this site, else home. A request that accepts only JSON keeps its 401.
 
 ## The generator
 

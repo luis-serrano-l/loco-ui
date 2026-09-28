@@ -206,6 +206,8 @@ pub enum Text {
     ServerErrorMessage,
     /// "Go home": error pages.
     GoHome,
+    /// "Sign in to see that page.": `loco::SignIn`, the flash on the sign-in form.
+    SignInToSee,
     /// "(skipped)": wizard review.
     Skipped,
     /// "Edit {}": wizard review: the edit link's name.
@@ -295,7 +297,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 124] = [
+    pub const ALL: [Text; 125] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -379,6 +381,7 @@ impl Text {
         Text::ServerError,
         Text::ServerErrorMessage,
         Text::GoHome,
+        Text::SignInToSee,
         Text::Skipped,
         Text::EditValue,
         Text::StepOf,
@@ -531,6 +534,7 @@ const ENGLISH: [&str; N] = [
     "Something went wrong",
     "The server could not answer this time. Try again in a moment.",
     "Go home",
+    "Sign in to see that page.",
     "(skipped)",
     "Edit {}",
     "Step {} of {}",

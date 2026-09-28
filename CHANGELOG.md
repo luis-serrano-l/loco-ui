@@ -8,6 +8,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+- `loco::SignIn("/signin")`, a Loco initializer (and `loco::sign_in` for a hand-built
+  router): a 401 becomes a redirect to the sign-in form with a flash
+  (`Text::SignInToSee`), naming the page asked for in `?next=` on a GET; a JSON-only
+  request keeps its 401. `loco::landing(ui, home)` reads `next`, same-site paths only.
+  `cargo lui auth` adds the initializer, and its sign-in form and handler carry `next`, so a
+  signed-out visitor lands on the page they wanted after signing in.
 - Fix: the enhancement script no longer copies a urlencoded POST's fields into the URL
   (a sign-up put the password in the request line and the server log).
 - M36, a description list that lines up, and one look per app:
