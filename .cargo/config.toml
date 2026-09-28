@@ -2,3 +2,11 @@
 # `cargo dev`: rebuild and restart the demo whenever a crate's source or manifest changes.
 # Only what the demo compiles is watched, so docs, screenshots and spec/ edits do not restart it.
 dev = ["watch", "-w", "loco-ui/src", "-w", "loco-ui/Cargo.toml", "-w", "loco-ui-caps/src", "-w", "loco-ui-caps/Cargo.toml", "-w", "demo/src", "-w", "demo/Cargo.toml", "-w", "Cargo.toml", "-x", "run -p demo"]
+
+# Full debug info for this workspace's crates so a debugger can inspect variables;
+# dependencies keep only line tables (enough for backtraces), which keeps target/ small.
+[profile.dev]
+debug = true
+
+[profile.dev.package."*"]
+debug = "line-tables-only"

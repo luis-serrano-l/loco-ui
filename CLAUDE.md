@@ -20,11 +20,11 @@ second file; when something needs more, extend `enhance.rs` and keep the no-scri
 ```sh
 cargo run -p demo                  # demo server at http://127.0.0.1:3000
 cargo dev                          # same, rebuilt and restarted when crate source or a manifest changes (needs cargo-watch)
-cargo test                         # all tests, including the only-one-script test and doctests
+cargo test --workspace             # all tests, including the only-one-script test and doctests
 cargo test -p demo pages_ship_only_the_enhancement_script   # the single enforcement test
 node scripts/browser-check.mjs     # headless Firefox via geckodriver: the script works (needs a built demo)
 cargo test -p loco-ui --doc      # component doc examples
-cargo clippy --all-targets         # must be clean before a roadmap milestone counts as done
+cargo clippy --workspace --all-targets  # must be clean before a roadmap milestone counts as done
 cargo test -p loco-ui-test       # Blitz layout assertions + screenshots into tests/shots/
 cargo bench -p loco-ui           # criterion: stylesheet, layout, table with 1 000 rows, paged table, UiState
 scripts/bench.sh                   # latency baseline: curl p50/p95 TTFB and Firefox navigation timing on 3001
