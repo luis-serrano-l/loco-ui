@@ -2138,8 +2138,15 @@ Decisions, asked and answered on 2026-09-28:
   starts from 200 remembered tab groups and checks that the new choice survives and the
   value fits. The `state.rs` header and `docs/state.md` say keys are site-wide, all browser
   tabs share one cookie, and the cap exists.
-- [ ] `Saved<T>` reads its cookie name from serde's container name, so `#[serde(rename)]`
+- [x] `Saved<T>` reads its cookie name from serde's container name, so `#[serde(rename)]`
   separates two types with one short name.
+  Done: `saved::cookie_name` runs `T::deserialize` against a probe that records the name
+  serde passes for a struct, newtype, tuple struct or enum. Unrenamed types keep today's
+  name, so existing cookies survive. A type serde does not name falls back to the Rust name
+  (`Vec<..>` is still `lui-vec`). **Breaking:** `Redirect::save` and `forget` need
+  `T: DeserializeOwned`; every caller already had it. The header now spells out what
+  "unsigned" means. The demo's `Session` says it is forgeable on purpose and points to the
+  Loco example's JWT.
 - [ ] Scaffolds with auth and a `user_id` field scope every query to the signed-in user and
   take the owner from the session, never from the form; `examples/loco-app` regenerated.
 - [ ] Docs match the code: a README section on cookies and cross-site requests, caching and

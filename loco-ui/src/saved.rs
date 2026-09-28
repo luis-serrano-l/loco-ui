@@ -4,7 +4,8 @@
 //! the counter's number, the settings a form saved, what a wizard has collected so far.
 //!
 //! `Saved<T>` is an extractor: it reads the cookie named after the type (`Settings` lives in
-//! `lui-settings`) and falls back to `T::default()` when the cookie is missing or no longer
+//! `lui-settings`; two types with one name share a cookie until one takes
+//! `#[serde(rename = "AdminSettings")]`, see [`cookie_name`]) and falls back to `T::default()` when the cookie is missing or no longer
 //! parses. [`Redirect::save`] writes it back with the answer to a form post, and
 //! [`Redirect::forget`] removes it. The value is form-encoded, so it holds plain fields
 //! (strings, numbers, booleans, options), or a newtype over a list of `(key, value)` pairs
@@ -30,9 +31,10 @@
 //! **Platform features:** a cookie, `Path=/`, kept for a year, `SameSite=Lax`, `HttpOnly`
 //! (only the server reads it), and `Secure` when the request was HTTPS.
 //!
-//! **Not for secrets:** the visitor can read and change the cookie. Keep ids and preferences
-//! here, check them like any other input, and keep anything that must not be forged on the
-//! server.
+//! **Not for secrets:** the cookie is not signed. The visitor cannot read it from page
+//! script, but can read and change it in the browser. Keep ids and preferences here, check
+//! them like any other input, and keep anything that must not be forged (who is signed in,
+//! a price, a role) on the server or in a signed token.
 
 use axum::{
     extract::FromRequestParts,
@@ -51,17 +53,22 @@ use crate::ui::Redirect;
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Saved<T>(pub T);
 
-/// `lui-` and the type's name in kebab case: `Settings` is `lui-settings`, `WizardData`
-/// is `lui-wizard-data`.
-pub fn cookie_name<T>() -> String {
+/// `lui-` and the type's serde name in kebab case: `Settings` is `lui-settings`, `WizardData`
+/// is `lui-wizard-data`, and `#[serde(rename = "AdminSettings")]` makes it
+/// `lui-admin-settings`. A type serde does not name (a list, a `#[serde(transparent)]`
+/// wrapper) goes by its Rust name, generics and path dropped (`Vec<..>` is `lui-vec`).
+pub fn cookie_name<T: DeserializeOwned>() -> String {
+    let mut named = None;
+    let _ = T::deserialize(NameProbe(&mut named));
     let full = std::any::type_name::<T>();
-    let name = full
-        .split('<')
-        .next()
-        .unwrap_or(full)
-        .rsplit("::")
-        .next()
-        .unwrap_or(full);
+    let name = named.unwrap_or_else(|| {
+        full.split('<')
+            .next()
+            .unwrap_or(full)
+            .rsplit("::")
+            .next()
+            .unwrap_or(full)
+    });
     let mut out = String::from("lui");
     for c in name.chars() {
         if c.is_ascii_uppercase() || !out.ends_with(|p: char| p.is_ascii_alphanumeric()) {
@@ -70,6 +77,68 @@ pub fn cookie_name<T>() -> String {
         out.push(c.to_ascii_lowercase());
     }
     out
+}
+
+/// A deserializer that reads nothing: it records the name serde passes for a struct, a
+/// newtype, a tuple struct or an enum, then stops with an error.
+struct NameProbe<'a>(&'a mut Option<&'static str>);
+
+impl NameProbe<'_> {
+    fn stop<V>(self, name: &'static str) -> Result<V, serde::de::value::Error> {
+        *self.0 = Some(name);
+        Err(serde::de::Error::custom("name-probe"))
+    }
+}
+
+impl<'de> Deserializer<'de> for NameProbe<'_> {
+    type Error = serde::de::value::Error;
+
+    fn deserialize_any<V: Visitor<'de>>(self, _: V) -> Result<V::Value, Self::Error> {
+        Err(serde::de::Error::custom("name-probe"))
+    }
+    fn deserialize_struct<V: Visitor<'de>>(
+        self,
+        name: &'static str,
+        _: &'static [&'static str],
+        _: V,
+    ) -> Result<V::Value, Self::Error> {
+        self.stop(name)
+    }
+    fn deserialize_newtype_struct<V: Visitor<'de>>(
+        self,
+        name: &'static str,
+        _: V,
+    ) -> Result<V::Value, Self::Error> {
+        self.stop(name)
+    }
+    fn deserialize_tuple_struct<V: Visitor<'de>>(
+        self,
+        name: &'static str,
+        _: usize,
+        _: V,
+    ) -> Result<V::Value, Self::Error> {
+        self.stop(name)
+    }
+    fn deserialize_unit_struct<V: Visitor<'de>>(
+        self,
+        name: &'static str,
+        _: V,
+    ) -> Result<V::Value, Self::Error> {
+        self.stop(name)
+    }
+    fn deserialize_enum<V: Visitor<'de>>(
+        self,
+        name: &'static str,
+        _: &'static [&'static str],
+        _: V,
+    ) -> Result<V::Value, Self::Error> {
+        self.stop(name)
+    }
+
+    serde::forward_to_deserialize_any! {
+        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string bytes byte_buf
+        option unit seq tuple map identifier ignored_any
+    }
 }
 
 impl<S: Send + Sync, T: DeserializeOwned + Default> FromRequestParts<S> for Saved<T> {
@@ -127,7 +196,7 @@ impl<'de> Deserializer<'de> for Form<'de> {
 impl Redirect {
     /// Keep `value` for this visitor; the next `Saved<T>` reads it. A value that cannot be
     /// form-encoded (a nested struct, a list inside a field) is not saved.
-    pub fn save<T: Serialize>(self, value: &T) -> Self {
+    pub fn save<T: Serialize + DeserializeOwned>(self, value: &T) -> Self {
         let Ok(v) = serde_urlencoded::to_string(value) else {
             return self;
         };
@@ -138,7 +207,7 @@ impl Redirect {
     }
 
     /// Remove what [`Redirect::save`] kept for `T`.
-    pub fn forget<T>(self) -> Self {
+    pub fn forget<T: DeserializeOwned>(self) -> Self {
         let name = cookie_name::<T>();
         let cookie = self
             .set_cookie(SetCookie::clear(&name).http_only())
@@ -164,6 +233,29 @@ mod tests {
     #[tokio::test]
     async fn a_saved_value_comes_back_on_the_next_request() {
         assert_eq!(cookie_name::<WizardData>(), "lui-wizard-data");
+        #[derive(Default, Deserialize, Serialize)]
+        #[serde(rename = "AdminWizardData")]
+        struct Renamed {
+            name: String,
+        }
+        assert_eq!(cookie_name::<Renamed>(), "lui-admin-wizard-data");
+        let set = Ui::default()
+            .redirect("/")
+            .save(&Renamed { name: "Ada".into() })
+            .set_cookies()
+            .remove(0);
+        let (mut parts, ()) = Request::builder()
+            .header("cookie", set.split(';').next().unwrap())
+            .body(())
+            .unwrap()
+            .into_parts();
+        let Saved(back) = Saved::<Renamed>::from_request_parts(&mut parts, &())
+            .await
+            .unwrap();
+        assert_eq!(
+            back.name, "Ada",
+            "a renamed type round-trips under its own cookie"
+        );
         let value = WizardData {
             name: "Ada L".into(),
             notify: true,

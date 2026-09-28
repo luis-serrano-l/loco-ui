@@ -19,7 +19,9 @@ pub(crate) fn routes() -> Router {
         .route("/app/notes/delete", post(note_delete))
 }
 
-/// Who is signed in to the demo app (`/app`), in the saved cookie.
+/// Who is signed in to the demo app (`/app`), in the saved cookie. The cookie is not signed,
+/// so anyone can claim any email: fine for a demo with no accounts, never for a real app,
+/// which keeps sign-in on the server or in a signed token (`examples/loco-app` uses a JWT).
 #[derive(Default, Deserialize, Serialize)]
 struct Session {
     email: String,
