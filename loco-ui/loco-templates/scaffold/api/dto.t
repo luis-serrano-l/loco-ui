@@ -61,25 +61,22 @@ pub fn list(ui: &Ui, rows: &[Model], meta: &PagerMeta) -> Markup {
     }
 }
 
-/// One {{ snake_singular }}: its fields, an edit link and a delete button.
+/// One {{ snake_singular }}: its fields in a card, with back, edit and delete beside the title.
 pub fn show(ui: &Ui, m: &Model) -> Markup {
     let labels = [{% for f in fields %}{% if owned and f.field_name == "user_id" %}{% continue %}{% endif %}"{{ f.label }}", {% endfor %}];
+    let title = format!("{{ pascal_singular | replace(from="_", to=" ") }} {}", m.id);
     let action = format!("/{{ snake_plural }}/{}/delete", m.id);
     let edit = format!("/{{ snake_plural }}/{}/edit", m.id);
+    let page = ui
+        .record_page(&title)
+        .back("/{{ snake_plural }}")
+        .edit(&edit)
+        .delete(&action);
+    let page =
+        (labels.iter().zip(values(m))).fold(page, |p, (label, (_, value))| p.field(label, value));
     html! {
         (ui.flash())
-        h1 { "{{ pascal_singular }} " (m.id) }
-        dl {
-            @for (label, (_, value)) in labels.iter().zip(values(m)) {
-                dt { (label) }
-                dd { (value) }
-            }
-        }
-        form method="post" action=(action) {
-            (ui.link_button("Edit", &edit))
-            " "
-            (ui.button("Delete").danger().submit())
-        }
+        (page)
     }
 }
 

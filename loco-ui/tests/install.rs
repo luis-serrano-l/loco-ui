@@ -177,6 +177,32 @@ fn the_installed_app_compiles() {
     );
 }
 
+/// `examples/loco-app` generates its scaffolds from its own copy of the templates; that copy
+/// is the library's, byte for byte, so what the example shows is what `cargo lui install` writes.
+#[test]
+fn the_example_app_scaffolds_from_the_library_templates() {
+    let copy = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../examples/loco-app/.loco-templates/scaffold/api"
+    );
+    for (file, template) in [
+        (
+            "controller.t",
+            include_str!("../loco-templates/scaffold/api/controller.t"),
+        ),
+        (
+            "dto.t",
+            include_str!("../loco-templates/scaffold/api/dto.t"),
+        ),
+    ] {
+        let written = fs::read_to_string(Path::new(copy).join(file)).unwrap();
+        assert!(
+            written == template,
+            "examples/loco-app/.loco-templates/scaffold/api/{file} differs from the library's"
+        );
+    }
+}
+
 /// `examples/loco-app`'s account pages are the templates as written, so its tests (every page
 /// through Loco's router and Blitz) test what `cargo lui auth` writes.
 #[test]

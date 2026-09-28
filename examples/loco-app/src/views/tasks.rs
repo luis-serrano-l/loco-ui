@@ -73,7 +73,7 @@ pub fn list(ui: &Ui, rows: &[Model], meta: &PagerMeta) -> Markup {
     }
 }
 
-/// One task: its fields, an edit link and a delete button.
+/// One task: its fields in a card, with back, edit and delete beside the title.
 pub fn show(ui: &Ui, m: &Model) -> Markup {
     let labels = [
         "Title",
@@ -85,22 +85,19 @@ pub fn show(ui: &Ui, m: &Model) -> Markup {
         "Status",
         "Size",
     ];
+    let title = format!("Task {}", m.id);
     let action = format!("/tasks/{}/delete", m.id);
     let edit = format!("/tasks/{}/edit", m.id);
+    let page = ui
+        .record_page(&title)
+        .back("/tasks")
+        .edit(&edit)
+        .delete(&action);
+    let page =
+        (labels.iter().zip(values(m))).fold(page, |p, (label, (_, value))| p.field(label, value));
     html! {
         (ui.flash())
-        h1 { "Task " (m.id) }
-        dl {
-            @for (label, (_, value)) in labels.iter().zip(values(m)) {
-                dt { (label) }
-                dd { (value) }
-            }
-        }
-        form method="post" action=(action) {
-            (ui.link_button("Edit", &edit))
-            " "
-            (ui.button("Delete").danger().submit())
-        }
+        (page)
     }
 }
 
