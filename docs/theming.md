@@ -195,7 +195,10 @@ let router = router.fallback(loco_ui::blocks::not_found).layer(LOOK.layer());
 
 `Tokens::DEFAULT` is `Tokens::default()` as a constant, so a look can be a `static`. A page
 that calls `.tokens(..)` itself still wins: it replaces the look's tokens for that page.
-`examples/loco-app` installs its look this way in `after_routes`.
+`header` replaces loco-ui's own site header above `<main>` (`None` keeps it); a function
+returning empty markup drops it, which suits an app whose shell names the app.
+`Page::header(markup)` does the same for one page. `examples/loco-app` installs its look this
+way in `after_routes`.
 
 ## Beyond the tokens
 

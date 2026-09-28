@@ -8,6 +8,18 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+- M36, a description list that lines up, and one look per app:
+  - The description list puts every term in one shared column (subgrid) from 30rem, both
+    tops on one line, rows split by hairlines; narrower, each term sits above its detail.
+    An empty detail shows a dash. **Visual change.**
+  - `ui.record_page` renders a description list; its `.lui-record-field` class is gone.
+  - `layout::Look { tokens, css, header }`, `Ui::look` and `Look::layer()`: one layer themes
+    every page of an app. `Tokens::DEFAULT` is the default tokens as a constant.
+  - `Page::header(markup)` replaces loco-ui's site header on a page.
+  - `ui.app_shell` takes `.group`, `.icon` and `.badge` like `ui.sidebar`; its links are
+    now a sidebar's markup.
+  - Templates: the scaffold's show page is `ui.record_page`; the account pages are
+    `ui.auth_page` cards.
 - M35, cookies and cross-site posts:
   - `cookie::SetCookie` writes every cookie (`Path=/`, `SameSite=Lax`, optional `HttpOnly`),
     adding `Secure` when the request was HTTPS. The extractors decide that with

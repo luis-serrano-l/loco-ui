@@ -2175,3 +2175,67 @@ Decisions, asked and answered on 2026-09-28:
   and CHANGELOG has entries for both crates with the breaking changes marked. `scripts/verify.sh`
   is green: fmt, clippy at every feature level, tests, rustdoc, the script grep and the browser
   check (axe on 50 routes, 320px).
+
+## M36 · A description list that lines up, and a notes app worth copying
+The owner found `examples/loco-app` plain: few components, no look of its own, and a note's
+page whose fields did not line up. That page was a bare `<dl>` from the scaffold template,
+and the library's own description list had a quieter version of the same fault: one flex
+row per pair, `align-items: baseline`, a fixed 10rem label, so a badge, a button or an empty
+value moved its label off the line.
+
+Decisions, asked and answered on 2026-09-28:
+- **Keep notes and grow them** (notebooks, tags, pinned, archive, a reading view, an
+  overview, a task board) rather than switch to another kind of app.
+- **Fix the view in the library and in the app**: the description list itself, the record
+  page on top of it, the scaffold's show page on top of that.
+- **Seed a demo account on first start** in development (asked for mid-milestone).
+
+- [x] The description list lines up: one shared term column, tops aligned, hairlines.
+  Done: from 30rem (`@container lui-description-list`) each pair sits side by side with both
+  tops on one 1.25rem line; with subgrid every row shares the list's term column, sized to
+  the longest term up to 16rem; without subgrid the term column is a fixed 10rem. Narrow (and
+  in Blitz) each term sits above its detail. Rows are split by hairlines (Radix DataList), a
+  badge or button gives back its extra height, and an empty detail shows a dash. The record
+  page renders a description list in its card instead of its own copy of the CSS. A Blitz
+  test checks the stacked base; `browser-check.mjs` checks the shared column and the badge
+  row's alignment at 1000px. Kept different from Radix: no `size` or `orientation` props,
+  the layout follows the container instead.
+- [x] The scaffold's show page is `ui.record_page`.
+  Done: `dto.t` folds the fields into `record_page(title).back().edit().delete()`; the copy in
+  `examples/loco-app/.loco-templates` is kept identical by a new `install.rs` test. The
+  notebooks scaffold in the app is fresh output of it; `tasks.rs` was edited to match.
+- [x] One look for every page of an app.
+  Done: `layout::Look { tokens, css, header }` and `Ui::look(&LOOK)`; the Axum extractor
+  reads it from the request extensions, so `router.layer(LOOK.layer())` themes every route,
+  the account pages and the 404 fallback included. `Tokens::DEFAULT` makes a look a
+  `static`. `Page::header(markup)` (and `Look.header`) replaces loco-ui's site header, which
+  every app page used to show. Documented in `docs/theming.md`.
+- [x] The app shell's links take groups, icons and counts.
+  Done: `AppShell` builds its links on the sidebar (`.group`, `.icon`, `.badge`, as
+  `Sidebar`'s), rendered in a `<div>` inside the drawer's `<nav>` so there is one landmark.
+  `/blocks/shell` shows a group with counts.
+- [x] The account pages are `ui.auth_page` cards.
+  Done: `loco-templates/auth/views.rs` wraps each form in `auth_page` with a line under the
+  title and the links in its footer; the app's copy is regenerated (`install.rs` keeps them
+  equal).
+- [x] `examples/loco-app` is a notes app.
+  Done: notebooks (generated scaffold, `user:references`), tags (generated model) and a
+  `note_tags` join; notes recreated by a hand-written migration with `user_id`, an optional
+  `notebook_id` (`ON DELETE SET NULL`), `pinned` and `archived` (SQLite cannot add a NOT
+  NULL reference to a table with rows). Pages: the app shell with counts per list and
+  notebook, a search box and the theme toggle; the overview (`dashboard_page`: stats, a
+  chart of notes per week, due tasks, recent notes as cards); notes as cards or a table
+  (`toggle_group`), filtered by tag (`combobox`) or text; the reading view (a serif column,
+  breadcrumbs, tag badges, a details card with the description list, edit, delete behind a
+  `dialog`, pin and archive in a `menu`); the note form (notebook `select`, tags as text, a
+  pinned `switch`); tasks as `tabs` of a `kanban` board and a table; a notebook's page lists
+  its notes. The look is a teal brand derived from one seed (a test checks the constant). A
+  notebook from the form is kept only if it is the user's. `src/seed.rs` writes the demo
+  account (`ada@example.com` / `analytical-engine`) with dates relative to today;
+  `App::before_run` loads it when development starts with no users. The page test covers
+  tags, the filter, pin, archive, the board, a second user's 404s and the look on the auth
+  pages and the 404.
+- [x] Docs, FINDINGS, CHANGELOG; clippy and tests green.
+  Done: this entry, CHANGELOG, FINDINGS (Blitz paints a `position: relative; z-index`
+  element at the page origin), the app's README and CLAUDE.md.
+

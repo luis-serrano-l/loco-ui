@@ -911,3 +911,19 @@ is not drawn only because it sits behind the motion query.
   models (one with `user:references`, one without) prove the templates compile. The entities
   step needs `sea-orm-cli` 2 (`cargo install sea-orm-cli --root <dir>` keeps a 1.x install
   untouched).
+
+### M36 · A description list that lines up, and the notes app
+
+- **Blitz draws only the stacked description list.** It has no `@container`, so the
+  side-by-side layout and the subgrid rules (both inside the container query) never apply
+  there; `browser-check.mjs` checks them in Firefox instead. Keeping subgrid inside the
+  query also keeps it from Taffy, since Stylo reports `@supports (grid-template-columns:
+  subgrid)` as true.
+- **Blitz paints a `position: relative` element with a `z-index` at the page origin**, not in
+  its place: the toggle group's items (in `toggle-group-*.png`) and the tag badges
+  on the app's note cards (`loco-notes.png`), which sit above the card's stretched link. A
+  browser draws them in place. (no upstream issue yet; the owner files it)
+- **SQLite cannot add a NOT NULL reference column to a table with rows**, so Loco's
+  `AddUserRefToNotes` migration fails there. The app's notes table is recreated instead,
+  which drops the notes written before it (development data only).
+
