@@ -1,7 +1,9 @@
 //! Every page of the app as a browser without script sees it: the account pages (sign up,
-//! verify, sign in, forgot and reset password, magic link), then the scaffolded notes pages, through the router Loco boots (its middleware, `auth::JWT`, the loco-ui
-//! initializer). Each GET page ships only the enhancement script, and Blitz (no script
-//! engine) renders it into `tests/shots/loco-*.png`.
+//! verify, sign in, forgot and reset password, magic link), then notebooks, notes (tags, the
+//! tag filter, pin, archive) and the task board, through the router Loco boots (its
+//! middleware, `auth::JWT`, the loco-ui initializer, the app's look). Each GET page ships
+//! only the enhancement script, and Blitz (no script engine) renders it into
+//! `tests/shots/loco-*.png`.
 
 use axum::{
     Router,
@@ -186,24 +188,56 @@ async fn every_page_works_without_script() {
     send(&router, "POST", "/forgot", "", "email=ada%40example.com").await;
     let reset = format!("/reset/{}", ada(&db).await.reset_token.unwrap());
 
-    // The generated create: a missing title re-renders the form with what was typed.
+    // A notebook (generated scaffold, its show page a record page), then a note in it with
+    // two tags. A missing title re-renders the form with what was typed.
+    let res = send(&router, "POST", "/notebooks", &auth, "name=Ideas").await;
+    assert_eq!(location(&res), "/notebooks/1");
     let res = send(&router, "POST", "/notes", &auth, "title=&body=kept").await;
-    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(res.status(), StatusCode::UNPROCESSABLE_ENTITY);
     let html = text(res).await;
     assert!(
         html.contains("This field is required.") && html.contains("kept"),
         "{html}"
     );
-    let res = send(
-        &router,
-        "POST",
-        "/notes",
-        &auth,
-        "title=First&body=Hello&done=on&due=2026-10-01",
-    )
-    .await;
+    let note = "title=First&body=Hello%0D%0A%0D%0AAgain&notebook_id=1&tags=Rust%2C+ideas%2C+rust\
+                &pinned=on&due=2026-10-01";
+    let res = send(&router, "POST", "/notes", &auth, note).await;
     assert_eq!(res.status(), StatusCode::SEE_OTHER);
     assert_eq!(location(&res), "/notes/1");
+    let html = text(send(&router, "GET", "/notes/1", &auth, "").await).await;
+    for shown in [
+        "<p>Hello</p><p>Again</p>",
+        r#"href="/notes?sel=ideas""#,
+        r#"href="/notes?sel=rust""#,
+        r#"<a href="/notebooks/1">Ideas</a>"#,
+        "lui-description-list",
+    ] {
+        assert!(html.contains(shown), "reading view: no {shown} in {html}");
+    }
+    // The tag filter keeps the notes with every chosen tag; the sidebar counts them.
+    let html = text(send(&router, "GET", "/notes?sel=rust", &auth, "").await).await;
+    assert!(html.contains(">First</a>"), "{html}");
+    let html = text(send(&router, "GET", "/notes?sel=rust&sel=web", &auth, "").await).await;
+    assert!(!html.contains(">First</a>") && html.contains("No notes here"));
+    let html = text(send(&router, "GET", "/notes?view=list", &auth, "").await).await;
+    assert!(html.contains("<table") && html.contains(r#"action="/notes/1/pin""#));
+    // Pin and archive toggle, each Post/Redirect/Get.
+    let res = send(&router, "POST", "/notes/1/pin", &auth, "").await;
+    assert_eq!(location(&res), "/notes/1");
+    assert!(
+        !text(send(&router, "GET", "/notes/pinned", &auth, "").await)
+            .await
+            .contains(">First</a>")
+    );
+    let res = send(&router, "POST", "/notes/1/archive", &auth, "").await;
+    assert_eq!(location(&res), "/notes/1");
+    assert!(
+        text(send(&router, "GET", "/notes/archive", &auth, "").await)
+            .await
+            .contains(">First</a>")
+    );
+    send(&router, "POST", "/notes/1/archive", &auth, "").await;
+    send(&router, "POST", "/notes/1/pin", &auth, "").await;
 
     // Every field kind the scaffold knows, on `tasks`: date-times are `datetime-local`
     // (posted without seconds), the decimal a pattern. The owner is the signed-in user, so
@@ -276,6 +310,59 @@ async fn every_page_works_without_script() {
         "still Ada's"
     );
 
+    // Notes, notebooks and the board are Ada's too: Grace gets 404, and a note she writes
+    // cannot be put in Ada's notebook.
+    for (method, path, form) in [
+        ("GET", "/notes/1", ""),
+        ("GET", "/notes/1/edit", ""),
+        ("POST", "/notes/1", "title=Mine"),
+        ("POST", "/notes/1/pin", ""),
+        ("POST", "/notes/1/archive", ""),
+        ("POST", "/notes/1/delete", ""),
+        ("GET", "/notebooks/1", ""),
+        ("POST", "/tasks/move", "card=1&to=done"),
+    ] {
+        let res = send(&router, method, path, &grace, form).await;
+        assert_eq!(
+            res.status(),
+            StatusCode::NOT_FOUND,
+            "Grace: {method} {path}"
+        );
+    }
+    assert!(
+        !text(send(&router, "GET", "/notes", &grace, "").await)
+            .await
+            .contains(">First</a>")
+    );
+    let res = send(
+        &router,
+        "POST",
+        "/notes",
+        &grace,
+        "title=Hers&notebook_id=1",
+    )
+    .await;
+    let hers = location(&res).to_string();
+    let html = text(send(&router, "GET", &hers, &grace, "").await).await;
+    assert!(
+        !html.contains("/notebooks/1"),
+        "Grace's note is in no notebook: {html}"
+    );
+
+    // The board moves a card between columns: its status changes.
+    let res = send(&router, "POST", "/tasks/move", &auth, "card=1&to=done").await;
+    assert_eq!(location(&res), "/tasks");
+    let html = text(send(&router, "GET", "/tasks/1/edit", &auth, "").await).await;
+    assert!(html.contains(r#"<option value="done" selected>"#), "{html}");
+
+    // Signed out, the front page is the landing page.
+    let html = text(send(&router, "GET", "/", "", "").await).await;
+    assert!(html.contains("Notes that live on your server."), "{html}");
+    let mut page = Page::render(router.clone(), "/", "").await;
+    assert!(page.is_visible("h1"));
+    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/shots");
+    page.screenshot(format!("{dir}/loco-landing.png")).unwrap();
+
     let pages = [
         ("/", "index"),
         ("/signin", "signin"),
@@ -285,10 +372,19 @@ async fn every_page_works_without_script() {
         ("/reset/made-up", "link-expired"),
         ("/magic-link", "magic-link"),
         ("/notes", "notes"),
+        ("/notes?view=list", "notes-table"),
+        ("/notes?sel=rust", "notes-tagged"),
+        ("/notes/pinned", "notes-pinned"),
+        ("/notes/archive", "notes-archive"),
         ("/notes/new", "notes-new"),
         ("/notes/1", "notes-show"),
         ("/notes/1/edit", "notes-edit"),
+        ("/notebooks", "notebooks"),
+        ("/notebooks/new", "notebooks-new"),
+        ("/notebooks/1", "notebooks-show"),
+        ("/tasks", "tasks"),
         ("/tasks/new", "tasks-new"),
+        ("/tasks/1", "tasks-show"),
         ("/tasks/1/edit", "tasks-edit"),
     ];
     for (path, name) in pages {
@@ -299,8 +395,10 @@ async fn every_page_works_without_script() {
             // The edit form starts from the saved note, every field filled in.
             for filled in [
                 r#"value="First""#,
-                ">Hello</textarea>",
+                ">Hello\n\nAgain</textarea>",
                 r#"value="2026-10-01""#,
+                r#"value="ideas, rust""#,
+                r#"<option value="1" selected>"#,
                 "checked",
             ] {
                 assert!(html.contains(filled), "edit form: no {filled} in {html}");
@@ -308,13 +406,16 @@ async fn every_page_works_without_script() {
         }
         assert_eq!(html.matches("<script").count(), 1, "{path}: one script");
         assert!(
+            html.contains("--lui-brand-9: #0f766e"),
+            "{path}: in the app's look"
+        );
+        assert!(
             html.contains(&tag),
             "{path}: and it is the enhancement script"
         );
 
         let mut page = Page::render(router.clone(), path, &auth).await;
         assert!(page.is_visible("h1"), "{path}: Blitz lays the page out");
-        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/shots");
         page.screenshot(format!("{dir}/loco-{name}.png")).unwrap();
     }
 
@@ -323,13 +424,24 @@ async fn every_page_works_without_script() {
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     let html = text(res).await;
     assert!(html.contains("Page not found"), "{html}");
+    assert!(
+        html.contains("--lui-brand-9: #0f766e"),
+        "the 404 is in the app's look too"
+    );
 
     // The script and the beacon the pages ask for are mounted.
     let res = send(&router, "GET", loco_ui::enhance::SCRIPT_PATH, "", "").await;
     assert_eq!(res.status(), StatusCode::OK);
 
     // Update and delete, each Post/Redirect/Get.
-    let res = send(&router, "POST", "/notes/1", &auth, "title=Renamed").await;
+    let res = send(
+        &router,
+        "POST",
+        "/notes/1",
+        &auth,
+        "title=Renamed&tags=rust",
+    )
+    .await;
     assert_eq!(location(&res), "/notes/1");
     assert!(
         text(send(&router, "GET", "/notes/1", &auth, "").await)

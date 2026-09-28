@@ -13,9 +13,58 @@ pub struct Model {
     pub title: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub body: Option<String>,
-    pub done: bool,
+    pub pinned: bool,
+    pub archived: bool,
     pub due: Option<Date>,
+    pub user_id: i64,
+    pub notebook_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::note_tags::Entity")]
+    NoteTags,
+    #[sea_orm(
+        belongs_to = "super::notebooks::Entity",
+        from = "Column::NotebookId",
+        to = "super::notebooks::Column::Id",
+        on_update = "Cascade",
+        on_delete = "SetNull"
+    )]
+    Notebooks,
+    #[sea_orm(
+        belongs_to = "super::users::Entity",
+        from = "Column::UserId",
+        to = "super::users::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    Users,
+}
+
+impl Related<super::note_tags::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::NoteTags.def()
+    }
+}
+
+impl Related<super::notebooks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Notebooks.def()
+    }
+}
+
+impl Related<super::users::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Users.def()
+    }
+}
+
+impl Related<super::tags::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::note_tags::Relation::Tags.def()
+    }
+    fn via() -> Option<RelationDef> {
+        Some(super::note_tags::Relation::Notes.def().rev())
+    }
+}

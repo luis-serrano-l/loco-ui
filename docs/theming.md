@@ -187,6 +187,7 @@ use loco_ui::layout::{Look, Tokens};
 static LOOK: Look = Look {
     tokens: Tokens { radius: "0.75rem", ..Tokens::DEFAULT },
     css: &[".notes-article { max-width: 68ch; }"],
+    header: None,
 };
 
 let router = router.fallback(loco_ui::blocks::not_found).layer(LOOK.layer());

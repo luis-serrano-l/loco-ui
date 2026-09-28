@@ -717,6 +717,7 @@ mod tests {
             ..crate::layout::Tokens::DEFAULT
         },
         css: &[".app{gap:1rem}"],
+        header: None,
     };
 
     /// One layer gives every page its look, the 404 fallback included: pages an app does not

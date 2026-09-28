@@ -12,8 +12,9 @@ use sea_orm::prelude::{Date, DateTime, DateTimeWithTimeZone, Decimal};
 use serde::Deserialize;
 
 use crate::{
+    controllers::session::{nav, owner},
     models::_entities::tasks::{ActiveModel, Column, Entity, Model},
-    views,
+    views::{self, shell},
 };
 
 /// The posted fields. `Valid<Params>` reads them, or gives back a message for every field in
@@ -52,11 +53,6 @@ async fn refs(ctx: &AppContext) -> Result<views::tasks::Refs> {
     Ok(views::tasks::Refs {})
 }
 
-/// The signed-in user, whose rows every handler below reads and writes.
-async fn owner(ctx: &AppContext, auth: &auth::JWT) -> Result<crate::models::users::Model> {
-    Ok(crate::models::users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?)
-}
-
 /// Row `id` if it belongs to `owner`, else 404.
 async fn load(ctx: &AppContext, id: i64, owner: i64) -> Result<Model> {
     Entity::find_by_id(id)
@@ -69,20 +65,43 @@ async fn load(ctx: &AppContext, id: i64, owner: i64) -> Result<Model> {
 #[debug_handler]
 async fn list(auth: auth::JWT, ui: Ui, State(ctx): State<AppContext>) -> Result<Page> {
     let me = owner(&ctx, &auth).await?;
-    let table = ui.table("tasks", "");
-    let wanted = query::PaginationQuery {
-        page: table.page() as u64,
-        page_size: table.per_page() as u64,
-    };
-    let found = query::fetch_page(
-        &ctx.db,
-        Entity::find()
-            .filter(Column::UserId.eq(me.id))
-            .order_by_asc(Column::Id),
-        &wanted,
-    )
-    .await?;
-    Ok(ui.page("Tasks", views::tasks::list(&ui, &found.page, &found.meta)))
+    let mut found = Entity::find()
+        .filter(Column::UserId.eq(me.id))
+        .all(&ctx.db)
+        .await?;
+    found.sort_by_key(|t| (t.due_on.is_none(), t.due_on));
+    Ok(shell::page(
+        &ui,
+        &nav(&ctx, &me).await?,
+        "Tasks",
+        views::tasks::list(&ui, &found),
+    ))
+}
+
+/// What the board posts when a card moves: the task and its new column.
+#[derive(Deserialize)]
+struct Move {
+    card: i64,
+    to: String,
+}
+
+/// Move a task to another column of the board: its status (and whether it is done).
+#[debug_handler]
+async fn move_card(
+    auth: auth::JWT,
+    ui: Ui,
+    State(ctx): State<AppContext>,
+    Form(m): Form<Move>,
+) -> Result<Redirect> {
+    let me = owner(&ctx, &auth).await?;
+    if !["todo", "doing", "done"].contains(&m.to.as_str()) {
+        return Err(Error::BadRequest("no such column".into()));
+    }
+    let mut item = load(&ctx, m.card, me.id).await?.into_active_model();
+    item.done = Set(m.to == "done");
+    item.status = Set(m.to);
+    item.update(&ctx.db).await?;
+    Ok(ui.redirect("/tasks"))
 }
 
 #[debug_handler]
@@ -94,14 +113,20 @@ async fn show(
 ) -> Result<Page> {
     let me = owner(&ctx, &auth).await?;
     let item = load(&ctx, id, me.id).await?;
-    Ok(ui.page("Task", views::tasks::show(&ui, &item)))
+    Ok(shell::page(
+        &ui,
+        &nav(&ctx, &me).await?,
+        "Task",
+        views::tasks::show(&ui, &item),
+    ))
 }
 
 #[debug_handler]
-async fn new(_auth: auth::JWT, ui: Ui, State(ctx): State<AppContext>) -> Result<Page> {
+async fn new(auth: auth::JWT, ui: Ui, State(ctx): State<AppContext>) -> Result<Page> {
+    let me = owner(&ctx, &auth).await?;
     let title = "New task";
     let form = views::tasks::form(&ui, title, "/tasks", &[], &[], &refs(&ctx).await?);
-    Ok(ui.page(title, form))
+    Ok(shell::page(&ui, &nav(&ctx, &me).await?, title, form))
 }
 
 #[debug_handler]
@@ -124,7 +149,7 @@ async fn create(
                 &bad.errors.pairs(),
                 &refs(&ctx).await?,
             );
-            return Ok(ui.page(title, body).into_response());
+            return Ok(shell::page(&ui, &nav(&ctx, &me).await?, title, body).into_response());
         }
     };
     let mut item = ActiveModel {
@@ -156,7 +181,7 @@ async fn edit(
         &[],
         &refs(&ctx).await?,
     );
-    Ok(ui.page(title, form))
+    Ok(shell::page(&ui, &nav(&ctx, &me).await?, title, form))
 }
 
 #[debug_handler]
@@ -182,7 +207,7 @@ async fn update(
                 &bad.errors.pairs(),
                 &refs(&ctx).await?,
             );
-            return Ok(ui.page(title, body).into_response());
+            return Ok(shell::page(&ui, &nav(&ctx, &me).await?, title, body).into_response());
         }
     };
     let mut item = item.into_active_model();
@@ -212,6 +237,7 @@ pub fn routes() -> Routes {
         .prefix("/tasks")
         .add("/", get(list).post(create))
         .add("/new", get(new))
+        .add("/move", post(move_card))
         .add("/{id}", get(show).post(update))
         .add("/{id}/edit", get(edit))
         .add("/{id}/delete", post(remove))

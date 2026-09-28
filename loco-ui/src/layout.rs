@@ -340,7 +340,7 @@ impl DerivedScale {
     }
 }
 
-/// An app's own look: [`Tokens`] and extra CSS that every [`Ui::page`](crate::Ui::page)
+/// An app's own look: [`Tokens`], extra CSS and its own header, that every [`Ui::page`](crate::Ui::page)
 /// applies, so pages an app does not write (the account pages `cargo lui auth` writes, the
 /// 404 fallback) look like the rest. Give it to a request with [`Ui::look`](crate::Ui::look);
 /// the Axum extractor reads it from the request extensions, so one layer covers every route:
@@ -348,17 +348,27 @@ impl DerivedScale {
 /// ```rust
 /// use loco_ui::layout::{Look, Tokens};
 /// use loco_ui::prelude::*;
-/// static LOOK: Look = Look { tokens: Tokens { radius: "0.75rem", ..Tokens::DEFAULT }, css: &["main{max-width:70rem}"] };
+/// fn header() -> Markup { html! { header class="notes-top" { a href="/" { "Notes" } } } }
+/// static LOOK: Look = Look {
+///     tokens: Tokens { radius: "0.75rem", ..Tokens::DEFAULT },
+///     css: &["main{max-width:70rem}"],
+///     header: Some(header),
+/// };
 /// let html = Ui::default().look(&LOOK).page("Notes", html! { h1 { "Notes" } }).into_string();
 /// assert!(html.contains("--lui-radius: 0.75rem") && html.contains("main{max-width:70rem}"));
+/// assert!(html.contains(r#"<header class="notes-top">"#) && !html.contains(r#"<header class="lui-header""#));
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub struct Look {
     /// The palette, scales and shape every page renders under ([`Page::tokens`](crate::Page::tokens)).
     pub tokens: Tokens,
     /// Stylesheets added after the library's ([`Page::css`](crate::Page::css)); `--lui-*`
     /// tokens only, like a component's.
     pub css: &'static [&'static str],
+    /// What every page shows above `<main>` instead of loco-ui's own header
+    /// ([`Page::header`](crate::Page::header)); `None` keeps it. A function that returns empty
+    /// markup shows none (an app shell brings its own).
+    pub header: Option<fn() -> Markup>,
 }
 
 /// Every `--lui-*` token: the two scales, a light and a dark palette of roles over them, and
@@ -489,7 +499,7 @@ impl Tokens {
 /// Wrap `body` in a full page with the default [`Tokens`]. Beacons are added while the
 /// browser is still unknown.
 pub fn layout(caps: &Caps, title: &str, theme: Theme, body: Markup) -> Markup {
-    page(caps, "en", title, theme, None, &[], true, body)
+    page(caps, "en", title, theme, None, &[], None, true, body)
 }
 
 /// [`layout`] under a different set of [`Tokens`]: the overrides are emitted once, in a
@@ -502,7 +512,17 @@ pub fn layout_with(
     tokens: &Tokens,
     body: Markup,
 ) -> Markup {
-    page(caps, "en", title, theme, Some(tokens), &[], true, body)
+    page(
+        caps,
+        "en",
+        title,
+        theme,
+        Some(tokens),
+        &[],
+        None,
+        true,
+        body,
+    )
 }
 
 /// The whole document: `tokens` overrides and then `css` (a user component's styles, see
@@ -515,6 +535,7 @@ pub(crate) fn page(
     theme: Theme,
     tokens: Option<&Tokens>,
     css: &[&str],
+    top: Option<&Markup>,
     script: bool,
     body: Markup,
 ) -> Markup {
@@ -534,7 +555,7 @@ pub(crate) fn page(
                 @if !css.is_empty() { style class="lui-user" { @for c in css { (PreEscaped(crate::minify_css(c))) } } }
             }
             body {
-                (header())
+                @if let Some(top) = top { (top) } @else { (header()) }
                 main id="main" { (body) }
                 (caps::beacons(caps))
                 @if script { (enhance::script_tag()) }

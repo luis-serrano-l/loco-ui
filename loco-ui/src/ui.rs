@@ -228,14 +228,17 @@ impl Ui {
             lang: self.strings.lang(),
             title: title.into(),
             tokens: None,
+            header: None,
             body,
             cookies: self.state.set_cookies(),
             css: Vec::new(),
             script: true,
             status: 200,
         };
-        match self.look {
-            Some(look) => (look.css.iter()).fold(page.tokens(&look.tokens), |p, css| p.css(css)),
+        let Some(look) = self.look else { return page };
+        let page = (look.css.iter()).fold(page.tokens(&look.tokens), |p, css| p.css(css));
+        match look.header {
+            Some(header) => page.header(header()),
             None => page,
         }
     }
@@ -275,6 +278,7 @@ pub struct Page {
     theme: Theme,
     title: Box<str>,
     tokens: Option<Box<Tokens>>,
+    header: Option<Markup>,
     body: Markup,
     cookies: Vec<String>,
     css: Vec<&'static str>,
@@ -327,6 +331,12 @@ impl Page {
         self
     }
 
+    /// Show `header` above `<main>` instead of loco-ui's own header; empty markup shows none.
+    pub fn header(mut self, header: Markup) -> Self {
+        self.header = Some(header);
+        self
+    }
+
     /// Render under other [`Tokens`] (a palette is a value, see `docs/theming.md`).
     pub fn tokens(mut self, tokens: &Tokens) -> Self {
         self.tokens = Some(Box::new(*tokens));
@@ -353,6 +363,7 @@ impl Render for Page {
             self.theme,
             self.tokens.as_deref(),
             &self.css,
+            self.header.as_ref(),
             self.script,
             self.body.clone(),
         )
