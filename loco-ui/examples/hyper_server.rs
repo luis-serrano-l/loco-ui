@@ -2,7 +2,8 @@
 //! then open http://127.0.0.1:3002.
 //!
 //! Everything the Axum glue does is wired here by hand, in a few lines each: `Ui` (caps, theme
-//! and state) from path + query + the `Cookie:` header, the beacon route from
+//! and state) from path + query + the `Cookie:` header, `Secure` cookies from `caps::is_https`,
+//! the beacon route from
 //! `caps::beacon_cookie`, Post/Redirect/Get from `ui.redirect`, the enhancement script from
 //! `enhance::served()`. Three components: a dialog, tabs, and a counter kept in a cookie.
 //!
@@ -22,7 +23,7 @@ use hyper::service::service_fn;
 use hyper::{Method, Request, Response, StatusCode, header};
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server::conn::auto;
-use loco_ui::{Ui, caps, enhance};
+use loco_ui::{Ui, caps, cookie::SetCookie, enhance};
 use maud::html;
 use tokio::net::TcpListener;
 
@@ -56,8 +57,15 @@ async fn handle(req: Request<Incoming>) -> Result<Reply, Infallible> {
         req.uri().path().to_string(),
         req.uri().query().unwrap_or("").to_string(),
     );
-    // Caps (`?caps=` first, then the cookies), theme and UI state: the whole of the Axum extractor.
-    let ui = Ui::from_request(&path, &query, &cookies);
+    // Caps (`?caps=` first, then the cookies), theme and UI state: the whole of the Axum
+    // extractor. Behind a TLS proxy, `X-Forwarded-Proto: https` makes every cookie `Secure`.
+    let header = |name: &str| req.headers().get(name).and_then(|v| v.to_str().ok());
+    let https = caps::is_https(
+        req.uri().scheme_str(),
+        header("x-forwarded-proto"),
+        header("forwarded"),
+    );
+    let ui = Ui::from_request(&path, &query, &cookies).secure(https);
     let count: i64 = cookie(&cookies, "count")
         .and_then(|v| v.parse().ok())
         .unwrap_or(0);
@@ -91,13 +99,17 @@ async fn handle(req: Request<Incoming>) -> Result<Reply, Infallible> {
             let next = ui.counter("/counter", count).apply(&op, None);
             ui.redirect("/")
                 .flash("Counted.")
-                .cookie(format!("count={next}; Path=/; SameSite=Lax"))
+                .cookie(
+                    SetCookie::new("count", &next.to_string(), 31_536_000)
+                        .secure(ui.is_secure())
+                        .to_string(),
+                )
                 .into_http()
         }
         (&Method::GET, caps::BEACON_PATH) => {
             // The beacon route: 204 + Set-Cookie for a known flag, 404 otherwise, never cached.
             let mut res = Response::builder().header(header::CACHE_CONTROL, "no-store");
-            res = match caps::beacon_cookie(&query) {
+            res = match caps::beacon_cookie(&query, ui.is_secure()) {
                 Some(c) => res
                     .status(StatusCode::NO_CONTENT)
                     .header(header::SET_COOKIE, c),

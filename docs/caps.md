@@ -40,8 +40,9 @@ elements are not emitted any more, so a known browser pays nothing.
 Set-Cookie: lui-cap-<name>=1; Path=/; Max-Age=2592000; SameSite=Lax
 ```
 
-An unknown flag answers `404`. `caps::beacon_cookie(query)` is that logic as a function of the
-raw query string; the `axum` feature wraps it in `caps::router()`, and
+Over HTTPS the cookie also carries `Secure`. `caps::is_https(scheme, x_forwarded_proto,
+forwarded)` decides that from the request. An unknown flag answers `404`.
+`caps::beacon_cookie(query, secure)` is that logic as a function of the raw query string; the `axum` feature wraps it in `caps::router()`, and
 `loco-ui/examples/hyper_server.rs` wires it by hand in six lines.
 
 ## 3. The cookie format

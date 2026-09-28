@@ -38,12 +38,13 @@ assert!(caps.has(Cap::Popover) && !caps.has(Cap::Anchor));
 let css = beacon_css();
 let html = beacons(&caps).into_string();
 
-// The beacon route, `GET /lui/caps?flag=<name>`: 204 with this cookie, or 404.
-assert!(beacon_cookie("flag=anchor").unwrap().starts_with("lui-cap-anchor=1"));
-assert_eq!(beacon_cookie("flag=nope"), None);
+// The beacon route, `GET /lui/caps?flag=<name>`: 204 with this cookie, or 404. The second
+// argument adds `Secure`: pass `is_https(..)` of the request.
+assert!(beacon_cookie("flag=anchor", false).unwrap().starts_with("lui-cap-anchor=1"));
+assert_eq!(beacon_cookie("flag=nope", false), None);
 ```
 
-That is the whole protocol: three functions on strings, plus two that render. Any server can
+That is the whole protocol: four functions on strings, plus two that render. Any server can
 use it; `examples/hyper.rs` does it on raw hyper in forty lines. With the `axum` feature,
 `Caps` is an extractor and `loco_ui_caps::router()` serves the beacon route.
 

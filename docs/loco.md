@@ -184,11 +184,13 @@ auth:
 
 ```rust
 let token = user.generate_jwt(&jwt.secret, jwt.expiration)?;
-let cookie = format!("auth={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age={}", jwt.expiration);
+let cookie = SetCookie::new("auth", &token, jwt.expiration).http_only().secure(ui.is_secure());
+let cookie = cookie.to_string(); // `Secure` when the request came over HTTPS
 Ok(ui.redirect("/").cookie(cookie).ok("Signed in."))
 ```
 
-Signing out posts to a route that sets the same cookie with `Max-Age=0`.
+`SetCookie` is `loco_ui::cookie::SetCookie`. Signing out posts to a route that sends
+`SetCookie::clear("auth")` with the same attributes.
 `examples/loco-app/src/controllers/account.rs` has every account page in full. A
 route with `auth::JWT` answers Loco's JSON 401 to a signed-out visitor; link to the sign-in
 page from anywhere a visitor may arrive signed out.

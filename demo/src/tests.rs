@@ -374,6 +374,48 @@ async fn caps_beacon_sets_one_cookie_per_flag() {
     assert_eq!(router().oneshot(req).await.unwrap().status(), 404);
 }
 
+/// Behind a TLS proxy (`X-Forwarded-Proto: https`) every cookie is `Secure`: the saved
+/// values, the flash, the UI state and the beacons. Plain HTTP keeps them without it.
+#[tokio::test]
+async fn cookies_are_secure_over_https() {
+    let cookies = |req: Request<Body>| async move {
+        let res = router().oneshot(req).await.unwrap();
+        res.headers()
+            .get_all("set-cookie")
+            .iter()
+            .map(|v| v.to_str().unwrap().to_string())
+            .collect::<Vec<_>>()
+    };
+    let post = |proto: &str| {
+        Request::post("/settings")
+            .header("content-type", "application/x-www-form-urlencoded")
+            .header("x-forwarded-proto", proto)
+            .body(Body::from("name=Ada&notify=true"))
+            .unwrap()
+    };
+    let get = |path: &str, proto: &str| {
+        Request::get(path)
+            .header("x-forwarded-proto", proto)
+            .header("cookie", "lui-flash=Hi")
+            .body(Body::empty())
+            .unwrap()
+    };
+    for req in [
+        post("https"),
+        get("/tabs?tab.demo=1", "https"),
+        get("/lui/caps?flag=popover", "https"),
+    ] {
+        let set = cookies(req).await;
+        assert!(!set.is_empty());
+        assert!(set.iter().all(|c| c.ends_with("; Secure")), "{set:?}");
+    }
+    for req in [post("http"), get("/tabs?tab.demo=1", "http")] {
+        let set = cookies(req).await;
+        assert!(!set.is_empty());
+        assert!(set.iter().all(|c| !c.contains("Secure")), "{set:?}");
+    }
+}
+
 /// Collect the body frames of `path` as they arrive.
 async fn frames(path: &str, cookie: &str) -> Vec<String> {
     use http_body_util::BodyExt;

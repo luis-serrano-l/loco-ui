@@ -38,8 +38,11 @@
 //! // A query string overrides the cookies, so any URL can be viewed as any browser.
 //! assert!(Caps::from_query("caps=invokers,anchor").unwrap().has(Cap::Invokers));
 //! // The beacon route, by hand: `GET /lui/caps?flag=popover` answers 204 with this cookie.
-//! assert!(caps::beacon_cookie("flag=popover").unwrap().starts_with("lui-cap-popover=1"));
-//! assert_eq!(caps::beacon_cookie("flag=nope"), None);
+//! assert!(caps::beacon_cookie("flag=popover", false).unwrap().starts_with("lui-cap-popover=1"));
+//! assert_eq!(caps::beacon_cookie("flag=nope", false), None);
+//! // Over HTTPS (here, behind a proxy that says so) the cookie is `Secure`.
+//! let https = caps::is_https(None, Some("https"), None);
+//! assert!(caps::beacon_cookie("flag=popover", https).unwrap().ends_with("; Secure"));
 //! ```
 
 // docs.rs builds with nightly and `--cfg docsrs`: feature-gated items get a "requires feature" badge.
@@ -248,11 +251,52 @@ fn query_param<'a>(query: &'a str, name: &str) -> Option<&'a str> {
 /// The beacon route without a framework: given the raw query string of
 /// `GET /lui/caps?flag=<name>`, the `Set-Cookie` value to answer with, or `None` for an unknown
 /// flag (answer 404). Either way answer without a body and with `Cache-Control: no-store`, so
-/// every page view re-fires the beacons until the cookie exists.
-pub fn beacon_cookie(query: &str) -> Option<String> {
+/// every page view re-fires the beacons until the cookie exists. `secure` adds `Secure`: pass
+/// [`is_https`] of the request.
+pub fn beacon_cookie(query: &str, secure: bool) -> Option<String> {
     query_param(query, "flag")
         .and_then(Cap::parse)
-        .map(cookie_for)
+        .map(|cap| cookie_for(cap, secure))
+}
+
+/// Whether the request came over HTTPS, so its cookies can be `Secure`: the request URI's
+/// scheme when the server sees one, else the first `X-Forwarded-Proto` value, else
+/// `proto=https` in a `Forwarded` header (RFC 7239). A proxy that terminates TLS must send one
+/// of the two headers; without them a plain-HTTP hop reads as plain HTTP.
+///
+/// ```rust
+/// use loco_ui_caps::is_https;
+/// assert!(is_https(Some("https"), None, None));
+/// assert!(is_https(None, Some("https, http"), None));
+/// assert!(is_https(None, None, Some("for=10.0.0.1;proto=https;by=10.0.0.2")));
+/// assert!(!is_https(None, None, None));
+/// assert!(!is_https(Some("http"), Some("https"), None), "the server's own scheme wins");
+/// ```
+pub fn is_https(
+    scheme: Option<&str>,
+    x_forwarded_proto: Option<&str>,
+    forwarded: Option<&str>,
+) -> bool {
+    if let Some(scheme) = scheme {
+        return scheme.eq_ignore_ascii_case("https");
+    }
+    if let Some(proto) = x_forwarded_proto {
+        return proto
+            .split(',')
+            .next()
+            .is_some_and(|p| p.trim().eq_ignore_ascii_case("https"));
+    }
+    forwarded.is_some_and(|f| {
+        f.split(',')
+            .next()
+            .unwrap_or("")
+            .split(';')
+            .filter_map(|pair| pair.split_once('='))
+            .any(|(k, v)| {
+                k.trim().eq_ignore_ascii_case("proto")
+                    && v.trim().trim_matches('"').eq_ignore_ascii_case("https")
+            })
+    })
 }
 
 /// The `@supports` rules. Each one gives a beacon element a background image whose URL is the
@@ -291,17 +335,18 @@ pub fn beacons(caps: &Caps) -> Markup {
     }
 }
 
-/// `Set-Cookie` value that records `cap` for 30 days.
-pub fn cookie_for(cap: Cap) -> String {
+/// `Set-Cookie` value that records `cap` for 30 days; `secure` adds `Secure`.
+pub fn cookie_for(cap: Cap, secure: bool) -> String {
     format!(
-        "{COOKIE_PREFIX}{}=1; Path=/; Max-Age={COOKIE_MAX_AGE}; SameSite=Lax",
-        cap.name()
+        "{COOKIE_PREFIX}{}=1; Path=/; Max-Age={COOKIE_MAX_AGE}; SameSite=Lax{}",
+        cap.name(),
+        if secure { "; Secure" } else { "" }
     )
 }
 
 #[cfg(feature = "axum")]
 mod axum_glue {
-    use super::{BEACON_PATH, Caps, beacon_cookie};
+    use super::{BEACON_PATH, Caps, beacon_cookie, is_https};
     use axum::{
         Router,
         extract::FromRequestParts,
@@ -336,10 +381,16 @@ mod axum_glue {
         Router::new().route(BEACON_PATH, get(beacon))
     }
 
-    async fn beacon(uri: Uri) -> (StatusCode, HeaderMap) {
+    async fn beacon(uri: Uri, request: HeaderMap) -> (StatusCode, HeaderMap) {
+        let header = |name: &str| request.get(name).and_then(|v| v.to_str().ok());
+        let secure = is_https(
+            uri.scheme_str(),
+            header("x-forwarded-proto"),
+            header("forwarded"),
+        );
         let mut headers = HeaderMap::new();
         headers.insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
-        match beacon_cookie(uri.query().unwrap_or("")) {
+        match beacon_cookie(uri.query().unwrap_or(""), secure) {
             Some(cookie) => {
                 headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
                 (StatusCode::NO_CONTENT, headers)
@@ -359,7 +410,7 @@ mod tests {
     #[test]
     fn cookie_round_trip() {
         let header = Cap::ALL
-            .map(|c| cookie_for(c).split(';').next().unwrap().to_string())
+            .map(|c| cookie_for(c, false).split(';').next().unwrap().to_string())
             .join("; ");
         assert_eq!(Caps::from_cookie_header(&header), Caps::all());
         // Not probed yet: the assumed set, whatever else the header says.
@@ -392,9 +443,14 @@ mod tests {
             Caps::from_query("caps="),
             Some(Caps::NONE.with(Cap::Probed))
         );
-        assert_eq!(beacon_cookie("flag=anchor"), Some(cookie_for(Cap::Anchor)));
-        assert_eq!(beacon_cookie("flag=nope"), None);
-        assert_eq!(beacon_cookie(""), None);
+        assert_eq!(
+            beacon_cookie("flag=anchor", false),
+            Some(cookie_for(Cap::Anchor, false))
+        );
+        assert_eq!(beacon_cookie("flag=nope", false), None);
+        assert_eq!(beacon_cookie("", false), None);
+        let secure = beacon_cookie("flag=anchor", true).unwrap();
+        assert!(secure.ends_with("; SameSite=Lax; Secure"), "{secure}");
     }
 
     #[test]

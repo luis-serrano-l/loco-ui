@@ -707,9 +707,10 @@ impl crate::Redirect {
             .chars()
             .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
             .collect();
-        self.cookie(format!(
-            "{LANG_COOKIE}={tag}; Path=/; Max-Age=31536000; SameSite=Lax"
-        ))
+        let cookie = self
+            .set_cookie(crate::cookie::SetCookie::new(LANG_COOKIE, &tag, 31_536_000))
+            .to_string();
+        self.cookie(cookie)
     }
 }
 

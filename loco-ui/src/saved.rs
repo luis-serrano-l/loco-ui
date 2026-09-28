@@ -28,7 +28,7 @@
 //! ```
 //!
 //! **Platform features:** a cookie, `Path=/`, kept for a year, `SameSite=Lax`, `HttpOnly`
-//! (only the server reads it).
+//! (only the server reads it), and `Secure` when the request was HTTPS.
 //!
 //! **Not for secrets:** the visitor can read and change the cookie. Keep ids and preferences
 //! here, check them like any other input, and keep anything that must not be forged on the
@@ -43,6 +43,7 @@ use serde::{
     de::{DeserializeOwned, Visitor},
 };
 
+use crate::cookie::SetCookie;
 use crate::state::{decode, encode};
 use crate::ui::Redirect;
 
@@ -127,22 +128,22 @@ impl Redirect {
     /// Keep `value` for this visitor; the next `Saved<T>` reads it. A value that cannot be
     /// form-encoded (a nested struct, a list inside a field) is not saved.
     pub fn save<T: Serialize>(self, value: &T) -> Self {
-        match serde_urlencoded::to_string(value) {
-            Ok(v) => self.cookie(format!(
-                "{}={}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly",
-                cookie_name::<T>(),
-                encode(&v)
-            )),
-            Err(_) => self,
-        }
+        let Ok(v) = serde_urlencoded::to_string(value) else {
+            return self;
+        };
+        let (name, v) = (cookie_name::<T>(), encode(&v));
+        let cookie = self.set_cookie(SetCookie::new(&name, &v, 31_536_000).http_only());
+        let cookie = cookie.to_string();
+        self.cookie(cookie)
     }
 
     /// Remove what [`Redirect::save`] kept for `T`.
     pub fn forget<T>(self) -> Self {
-        self.cookie(format!(
-            "{}=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly",
-            cookie_name::<T>()
-        ))
+        let name = cookie_name::<T>();
+        let cookie = self
+            .set_cookie(SetCookie::clear(&name).http_only())
+            .to_string();
+        self.cookie(cookie)
     }
 }
 

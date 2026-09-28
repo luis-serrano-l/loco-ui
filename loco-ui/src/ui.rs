@@ -41,6 +41,7 @@ use maud::{Markup, Render};
 
 use crate::{
     Caps, Theme, UiState,
+    cookie::SetCookie,
     flash::{Level, stack},
     i18n::{self, Strings, Text},
     layout::{self, Tokens},
@@ -113,6 +114,18 @@ impl Ui {
             self.strings = i18n::choose(None, header);
         }
         self
+    }
+
+    /// Mark the request as HTTPS, so every cookie this request writes is `Secure`. The Axum
+    /// extractor does it from the request ([`crate::caps::is_https`]); other servers call it.
+    pub fn secure(mut self, secure: bool) -> Ui {
+        self.state = self.state.secure(secure);
+        self
+    }
+
+    /// Whether the request was HTTPS: an app adds `; Secure` to its own cookies when it is.
+    pub fn is_secure(&self) -> bool {
+        self.state.is_secure()
     }
 
     /// The visitor's language tag, as `<html lang>` says it.
@@ -220,6 +233,7 @@ impl Ui {
             to: to.to_string(),
             messages: Vec::new(),
             cookies: Vec::new(),
+            secure: self.is_secure(),
         }
     }
 
@@ -338,6 +352,7 @@ pub struct Redirect {
     to: String,
     messages: Vec<(Level, String)>,
     cookies: Vec<String>,
+    secure: bool,
 }
 
 impl Redirect {
@@ -377,6 +392,12 @@ impl Redirect {
         &self.to
     }
 
+    /// A cookie for this answer, `Secure` when the request was HTTPS: what `save`, `theme`
+    /// and `lang` write through.
+    pub(crate) fn set_cookie<'a>(&self, cookie: SetCookie<'a>) -> SetCookie<'a> {
+        cookie.secure(self.secure)
+    }
+
     /// Every `Set-Cookie` value: the flash first, then the rest in call order.
     pub fn set_cookies(&self) -> Vec<String> {
         let flash = (!self.messages.is_empty()).then(|| {
@@ -390,10 +411,9 @@ impl Redirect {
                 [(Level::Info, m)] => m.to_string(),
                 _ => stack(&pairs),
             };
-            format!(
-                "{FLASH_COOKIE}={}; Path=/; Max-Age=60; SameSite=Lax",
-                encode(&text)
-            )
+            let text = encode(&text);
+            self.set_cookie(SetCookie::new(FLASH_COOKIE, &text, 60))
+                .to_string()
         });
         flash
             .into_iter()
@@ -414,6 +434,9 @@ impl Redirect {
             .expect("valid redirect headers")
     }
 }
+
+#[cfg(feature = "axum")]
+pub(crate) use axum_glue::is_https;
 
 #[cfg(feature = "axum")]
 mod axum_glue {
@@ -444,9 +467,20 @@ mod axum_glue {
                 .unwrap_or("");
             Ok(
                 Ui::from_request(parts.uri.path(), parts.uri.query().unwrap_or(""), &cookies)
-                    .accept_language(accept),
+                    .accept_language(accept)
+                    .secure(is_https(parts)),
             )
         }
+    }
+
+    /// [`crate::caps::is_https`] of a request: its URI scheme, `X-Forwarded-Proto`, `Forwarded`.
+    pub(crate) fn is_https(parts: &Parts) -> bool {
+        let header = |name: &str| parts.headers.get(name).and_then(|v| v.to_str().ok());
+        crate::caps::is_https(
+            parts.uri.scheme_str(),
+            header("x-forwarded-proto"),
+            header("forwarded"),
+        )
     }
 
     /// Returning `(ui, response)` persists changed state and clears the flash.

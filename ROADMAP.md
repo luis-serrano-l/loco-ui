@@ -2094,3 +2094,41 @@ owner has seen them.
   form-encoded; it is kept as pairs), and two browser checks raced the swap or ran at the
   wrong width. Clippy, `cargo test`, `verify.sh` and the browser check (axe on 50 routes x
   2 caps x 2 themes, 320px with nothing pending) are green.
+
+## M35 · Cookies, cross-site posts and scaffold ownership
+An outside review on 2026-09-28 listed concerns about cookies, cross-site posts, scaffolds,
+the UI-state cookie, `Saved<T>` and caching. Each was checked against the code: no cookie had
+`Secure`, nothing but `SameSite=Lax` stood against a cross-site post, generated controllers
+loaded any row by id for any signed-in user, `lui-ui` had no size cap, and two `Saved` types
+with one short name shared a cookie. The inline stylesheet and unsigned cookies are recorded
+choices (FINDINGS, M27) and stay; the docs now say what they cost.
+
+Decisions, asked and answered on 2026-09-28:
+- **Cross-site posts.** The `Ui` extractor refuses a non-GET request whose `Origin` names
+  another host, or whose `Sec-Fetch-Site` is `same-site` or `cross-site`. No tokens.
+- **`Secure`.** Every cookie gets it when the request is HTTPS (the URI scheme,
+  `X-Forwarded-Proto` or `Forwarded`), so plain-HTTP development keeps working.
+- **`lui-ui`.** Keys stay site-wide; the cookie is capped and the docs say so.
+- **`Saved<T>`.** The cookie keeps its `lui-<type>` name; `#[serde(rename)]` overrides it.
+
+- [x] One cookie writer (`loco_ui::cookie::SetCookie`), `Secure` on HTTPS for every cookie
+  loco-ui and its templates write, beacon included.
+  Done: `SetCookie::new(name, value, max_age)` / `clear(name)` with `.http_only()` and
+  `.secure(bool)` writes every cookie in one attribute order. `caps::is_https(scheme,
+  x_forwarded_proto, forwarded)` decides HTTPS; the `Ui` and `UiState` extractors and the
+  beacon route call it, other servers call `Ui::secure(bool)`. `Redirect` takes the flag from
+  `ui.redirect`, so the flash, `theme`, `lang` and `Saved` cookies follow it. **Breaking:**
+  `caps::beacon_cookie(query, secure)` and `caps::cookie_for(cap, secure)` take the flag. The
+  auth template signs in and out through `SetCookie` with `ui.is_secure()`; the hyper
+  examples, `docs/caps.md` and `docs/loco.md` show the same. A demo test checks that every
+  `Set-Cookie` ends in `; Secure` behind `X-Forwarded-Proto: https` and none does over HTTP.
+- [ ] Refuse cross-site posts in the `Ui` extractor (403), with `cookie::same_origin` for
+  other servers.
+- [ ] Cap `lui-ui` at 3 KB, dropping remembered keys before the ones this request set.
+- [ ] `Saved<T>` reads its cookie name from serde's container name, so `#[serde(rename)]`
+  separates two types with one short name.
+- [ ] Scaffolds with auth and a `user_id` field scope every query to the signed-in user and
+  take the owner from the session, never from the form; `examples/loco-app` regenerated.
+- [ ] Docs match the code: a README section on cookies and cross-site requests, caching and
+  `Vary: cookie`, the caps header and M9's beacon line corrected, FINDINGS and CHANGELOG;
+  clippy, `cargo test` and `scripts/verify.sh` green.

@@ -11,7 +11,7 @@ use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Method, Request, Response, StatusCode, header};
 use hyper_util::rt::TokioIo;
-use loco_ui_caps::{BEACON_PATH, Cap, Caps, beacon_cookie, beacon_css, beacons};
+use loco_ui_caps::{BEACON_PATH, Cap, Caps, beacon_cookie, beacon_css, beacons, is_https};
 use tokio::net::TcpListener;
 
 async fn handle(req: Request<Incoming>) -> Result<Response<Full<Bytes>>, Infallible> {
@@ -20,7 +20,13 @@ async fn handle(req: Request<Incoming>) -> Result<Response<Full<Bytes>>, Infalli
         // The beacon route: 204 + the flag's cookie, or 404, never cached.
         (&Method::GET, BEACON_PATH) => {
             let res = Response::builder().header(header::CACHE_CONTROL, "no-store");
-            match beacon_cookie(query) {
+            let proxy = |name: &str| req.headers().get(name).and_then(|v| v.to_str().ok());
+            let https = is_https(
+                req.uri().scheme_str(),
+                proxy("x-forwarded-proto"),
+                proxy("forwarded"),
+            );
+            match beacon_cookie(query, https) {
                 Some(c) => res
                     .status(StatusCode::NO_CONTENT)
                     .header(header::SET_COOKIE, c),

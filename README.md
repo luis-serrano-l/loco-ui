@@ -196,7 +196,7 @@ thin wrapper over plain functions on strings, so any server can do the same in a
 | You need | Without a framework | With `--features http` | With `--features axum` |
 |---|---|---|---|
 | What the browser supports | `Caps::from_query(query)` then `Caps::from_cookie_header(cookies)` | same | `caps: Caps` extractor |
-| The beacon route `GET /lui/caps?flag=x` | `caps::beacon_cookie(query)` → 204 + `Set-Cookie`, or 404 | same | `caps::router()` |
+| The beacon route `GET /lui/caps?flag=x` | `caps::beacon_cookie(query, secure)` → 204 + `Set-Cookie`, or 404 | same | `caps::router()` |
 | Caps, theme, tab/accordion/dialog state, query | `Ui::from_request(path, query, cookies)` | same | `ui: Ui` extractor |
 | A whole page | `ui.page(title, body).into_string()`, `page.set_cookies()` | same | return the `Page` |
 | Post/Redirect/Get with a flash | `ui.redirect(to).ok(msg)`: `.location()`, `.set_cookies()` | `.into_http()` → `http::Response<B>` | return the `Redirect` |

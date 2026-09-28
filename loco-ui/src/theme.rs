@@ -36,7 +36,7 @@
 use maud::{Markup, Render, html};
 
 use crate::button::Button;
-use crate::{Caps, Redirect, Ui};
+use crate::{Caps, Redirect, Ui, cookie::SetCookie};
 
 /// Name of the cookie that remembers the chosen theme.
 pub const THEME_COOKIE: &str = "theme";
@@ -93,10 +93,9 @@ impl Ui {
 impl Redirect {
     /// Remember `theme` for this visitor: what the handler behind [`Ui::theme_toggle`] sends.
     pub fn theme(self, theme: Theme) -> Self {
-        self.cookie(format!(
-            "{THEME_COOKIE}={}; Path=/; Max-Age=31536000; SameSite=Lax",
-            theme.as_str()
-        ))
+        let cookie = self.set_cookie(SetCookie::new(THEME_COOKIE, theme.as_str(), 31_536_000));
+        let cookie = cookie.to_string();
+        self.cookie(cookie)
     }
 }
 

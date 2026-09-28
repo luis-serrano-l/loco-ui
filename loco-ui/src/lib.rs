@@ -64,6 +64,7 @@ pub mod cluster;
 pub mod color;
 pub mod combobox;
 pub mod context_menu;
+pub mod cookie;
 pub mod counter;
 pub mod date_picker;
 pub mod description_list;

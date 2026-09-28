@@ -44,6 +44,8 @@
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
+use crate::cookie::SetCookie;
+
 /// Name of the cookie that remembers UI state between page views.
 pub const UI_COOKIE: &str = "lui-ui";
 
@@ -57,6 +59,7 @@ pub struct UiState {
     from_query: BTreeMap<String, String>,
     from_cookie: BTreeMap<String, String>,
     flash: Option<String>,
+    secure: bool,
 }
 
 fn is_state_key(key: &str) -> bool {
@@ -127,6 +130,7 @@ impl UiState {
             from_query: parse_pairs(query),
             from_cookie: parse_pairs(cookie),
             flash: None,
+            secure: false,
         }
     }
 
@@ -146,17 +150,36 @@ impl UiState {
 
     /// The `Set-Cookie` values a response should carry: the merged state when the query
     /// changed something, and a deletion of the flash cookie once it has been read.
+    /// Both are `Secure` when the request was HTTPS ([`UiState::secure`]).
     pub fn set_cookies(&self) -> Vec<String> {
         let mut out = Vec::new();
         if let Some(value) = self.cookie_value() {
-            out.push(format!(
-                "{UI_COOKIE}={value}; Path=/; Max-Age=2592000; SameSite=Lax"
-            ));
+            out.push(
+                SetCookie::new(UI_COOKIE, &value, 2_592_000)
+                    .secure(self.secure)
+                    .to_string(),
+            );
         }
         if self.flash.is_some() {
-            out.push(format!("{FLASH_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax"));
+            out.push(
+                SetCookie::clear(FLASH_COOKIE)
+                    .secure(self.secure)
+                    .to_string(),
+            );
         }
         out
+    }
+
+    /// Mark the request as HTTPS, so the cookies this state writes are `Secure`
+    /// ([`crate::caps::is_https`] decides it from the request).
+    pub fn secure(mut self, secure: bool) -> UiState {
+        self.secure = secure;
+        self
+    }
+
+    /// Whether the request was HTTPS; see [`UiState::secure`].
+    pub fn is_secure(&self) -> bool {
+        self.secure
     }
 
     /// Attach the flash message read from the `lui-flash` cookie.
@@ -294,11 +317,10 @@ mod axum_glue {
                 .filter_map(|v| v.to_str().ok())
                 .collect::<Vec<_>>()
                 .join("; ");
-            Ok(UiState::from_request(
-                parts.uri.path(),
-                parts.uri.query().unwrap_or(""),
-                &cookies,
-            ))
+            Ok(
+                UiState::from_request(parts.uri.path(), parts.uri.query().unwrap_or(""), &cookies)
+                    .secure(crate::ui::is_https(parts)),
+            )
         }
     }
 

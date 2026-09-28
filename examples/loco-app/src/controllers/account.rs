@@ -1,10 +1,11 @@
 //! Accounts as plain forms: sign up, sign in, sign out, forgot and reset password, email
 //! verification and magic link, on the starter's `users` model and `AuthMailer`. The token
-//! Loco's `auth::JWT` checks travels in the `HttpOnly` `auth` cookie (`auth.jwt.location`
+//! Loco's `auth::JWT` checks travels in the `HttpOnly` `auth` cookie (`Secure` over HTTPS) (`auth.jwt.location`
 //! in `config/*.yaml`), so no page needs script to send it. Every change is a form post and
 //! a redirect with a flash (Post/Redirect/Get). Written by `cargo lui auth`; edit freely.
 use loco_rs::prelude::*;
 use loco_ui::{
+    cookie::SetCookie,
     loco::{FieldErrors, Submitted},
     prelude::*,
 };
@@ -22,19 +23,17 @@ pub const HOME: &str = "/";
 /// What the forgot-password and magic-link forms say, whether or not the email has an account.
 const SENT: &str = "If an account uses that email, a link is on its way. It works once.";
 
-/// The `Set-Cookie` value that signs `user` in.
-fn session(ctx: &AppContext, user: &users::Model) -> Result<String> {
+/// The `Set-Cookie` value that signs `user` in: `HttpOnly`, and `Secure` over HTTPS.
+fn session(ui: &Ui, ctx: &AppContext, user: &users::Model) -> Result<String> {
     let jwt = ctx.config.get_jwt_config()?;
     let token = user.generate_jwt(&jwt.secret, jwt.expiration)?;
-    Ok(format!(
-        "{COOKIE}={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age={}",
-        jwt.expiration
-    ))
+    let cookie = SetCookie::new(COOKIE, &token, jwt.expiration).http_only();
+    Ok(cookie.secure(ui.is_secure()).to_string())
 }
 
 /// Sign `user` in and go home with a greeting.
 fn welcome(ui: &Ui, ctx: &AppContext, user: &users::Model, message: &str) -> Result<Response> {
-    let cookie = session(ctx, user)?;
+    let cookie = session(ui, ctx, user)?;
     Ok(ui.redirect(HOME).cookie(cookie).ok(message).into_response())
 }
 
@@ -125,7 +124,10 @@ async fn signup(
 
 #[debug_handler]
 async fn signout(ui: Ui) -> Result<Redirect> {
-    let gone = format!("{COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
+    let gone = SetCookie::clear(COOKIE)
+        .http_only()
+        .secure(ui.is_secure())
+        .to_string();
     Ok(ui.redirect("/").cookie(gone).ok("Signed out."))
 }
 
