@@ -8,6 +8,22 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+- M35, cookies and cross-site posts:
+  - `cookie::SetCookie` writes every cookie (`Path=/`, `SameSite=Lax`, optional `HttpOnly`),
+    adding `Secure` when the request was HTTPS. The extractors decide that with
+    `caps::is_https`; other servers call `Ui::secure(bool)`, and `Ui::is_secure()` reads it.
+  - The `Ui` extractor refuses a cross-site non-GET request with `403`
+    (`cookie::same_origin`: `Origin`, then `Sec-Fetch-Site`). **Breaking:** its `Rejection`
+    is `Response`, no longer `Infallible`.
+  - `lui-ui` is capped at `state::MAX_COOKIE` (3 KB). Remembered keys this request did not
+    set are dropped first.
+  - `Saved<T>` names its cookie after serde's container name, so `#[serde(rename = "..")]`
+    separates two types with one short name; unrenamed types keep their cookie. **Breaking:**
+    `Redirect::save` and `forget` need `T: DeserializeOwned`.
+  - Scaffold templates: with auth and a `user_id` field, the owner comes from the session and
+    every query is scoped to it (another user's row is a 404). Without one, the generated
+    header says every signed-in user sees every row. The auth template's `auth` cookie is
+    `Secure` over HTTPS.
 - M33: a table's query keys carry its id, `<key>.<id>` like `per.<id>` and `edit.<id>`:
   `q.files`, `sort.files`, `dir.files`, `page.files`, `cols.files`, so two tables on one page
   sort, filter and page on their own. `table::Keys::new(id)` spells them. The bare `q`, `sort`,
@@ -119,6 +135,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   counts with thousands separators (`paged_table::thousands`), and `PagedTableOptions::state`
   to remember the page size per table as `per.<id>` (`UiState::per_page`). The whole block is
   now the swap root, so the page links follow an in-place sort.
+
+### `loco-ui-caps`
+
+- M35: `is_https(scheme, x_forwarded_proto, forwarded)`; the beacon cookie is `Secure` over
+  HTTPS. **Breaking:** `beacon_cookie(query, secure)` and `cookie_for(cap, secure)` take the
+  flag. The header now says the first view gets `Caps::ASSUMED`, not the bare fallback.
 
 ## [0.1.0] - 2026-09-23
 

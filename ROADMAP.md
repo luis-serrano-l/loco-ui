@@ -175,8 +175,9 @@ in FINDINGS.md (`hyperfine` against the demo, Firefox navigation timing from
   first byte and full response for `/`, `/table`, `/stream` cold and warm; Firefox
   `performance.getEntriesByType("navigation")` for the same routes; numbers in FINDINGS.md.
 - [x] Cheap wins, server: `stylesheet()` built once (`OnceLock`) instead of per page; the
-  `Tokens::css()` string cached; `Content-Length` on every response; `Cache-Control` with a
-  hash on `/lui/caps` beacon images and `/lui/enhance.js` verified; gzip/br on the demo through
+  `Tokens::css()` string cached; `Content-Length` on every response; `Cache-Control` verified
+  (`no-store` on the `/lui/caps` beacons, which set a cookie; a content hash and `immutable`
+  on `/lui/enhance.js`; corrected in M35, it said both were hashed); gzip/br on the demo through
   `tower-http` `CompressionLayer`; release profile with `lto = "fat"`, `codegen-units = 1`,
   `panic = "abort"` for the demo binary.
 - [x] Cheap wins, page: the inline stylesheet minified (whitespace and comments stripped at
@@ -2163,6 +2164,14 @@ Decisions, asked and answered on 2026-09-28:
   select). The page test posts a forged `user_id`, then shows a second user getting 404 on
   show, edit, update and delete, and not finding the task in the list. `loco-tasks-new.png`
   and `loco-tasks-edit.png` lose the owner select, on purpose.
-- [ ] Docs match the code: a README section on cookies and cross-site requests, caching and
-  `Vary: cookie`, the caps header and M9's beacon line corrected, FINDINGS and CHANGELOG;
+- [x] Docs match the code: a README section on cookies and cross-site requests, caching and
+  `Vary: cookie`, the caps header and M16's beacon line corrected, FINDINGS and CHANGELOG;
   clippy, `cargo test` and `scripts/verify.sh` green.
+  Done: README has a "Cookies and cross-site requests" section, with every cookie, its
+  lifetime and `HttpOnly`, why none is signed, and the Origin check. The CSP section says
+  why the stylesheet stays inline and what `Vary: lui-enhance, cookie` means for a CDN;
+  `docs/caps.md` repeats the latter. The caps crate's header says the first view gets
+  `Caps::ASSUMED`. M16's line no longer claims a hashed beacon. FINDINGS has an M35 section,
+  and CHANGELOG has entries for both crates with the breaking changes marked. `scripts/verify.sh`
+  is green: fmt, clippy at every feature level, tests, rustdoc, the script grep and the browser
+  check (axe on 50 routes, 320px).

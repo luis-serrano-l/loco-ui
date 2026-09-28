@@ -881,3 +881,33 @@ is not drawn only because it sits behind the motion query.
 - **The enhancement script grew past 11 KB.** Drag and drop for the sortable list took it
   from 11,222 to 12,578 bytes served (4.3 KB gzipped); the budget went to 13 KB served and
   16 KB of source, and the docs say 12 KB.
+
+### M35 · Cookies, cross-site posts and owned rows
+
+- **`Secure` depends on the proxy.** A server behind a TLS proxy sees plain HTTP. Cookies
+  get `Secure` only when the proxy sends `X-Forwarded-Proto: https` or `Forwarded:
+  proto=https`, which Caddy, nginx (with `proxy_set_header`) and most hosted platforms do.
+  A proxy that sends neither leaves every cookie without `Secure`. That is the old behaviour,
+  not a break.
+- **The cross-site check trusts requests with neither header.** Every engine sends `Origin`
+  on a POST form (Chrome 1, Firefox 70, Safari 3), and `Sec-Fetch-Site` has been at baseline
+  since Safari 16.4 (2023). A request with neither comes from curl, a test or an old
+  browser, and `SameSite=Lax` still keeps a browser's cookies off a cross-site POST. So it
+  passes. No token was added, because one would need a hidden field in every form and a
+  cookie to check it against. The header check refuses what a token would refuse, in every
+  browser we support.
+- **`X-Forwarded-Host` is trusted for the host.** A page cannot set that header on a
+  cross-site form post (a form sends no custom headers, and `fetch` with one needs a CORS
+  preflight the app never grants). So it cannot be used to fake a same-origin match.
+- **The `lui-ui` cap drops remembered keys in key order, not by age.** The cookie holds no
+  timestamps. Adding them would cost bytes on every key to handle a case a person reaches
+  only after opening a few hundred differently named tab groups.
+- **`Saved<T>` reads its name from serde.** A probe `Deserializer` records the name serde
+  passes to `deserialize_struct` (or the newtype, tuple, unit or enum form) and stops. A
+  `#[serde(transparent)]` type has no name there and falls back to its Rust name.
+- **Regenerating a scaffold is not repeatable.** `cargo loco generate scaffold` skips
+  existing controllers and views and always writes a new migration. So after a template
+  change, `examples/loco-app/src/controllers/tasks.rs` is edited to match, and throwaway
+  models (one with `user:references`, one without) prove the templates compile. The entities
+  step needs `sea-orm-cli` 2 (`cargo install sea-orm-cli --root <dir>` keeps a 1.x install
+  untouched).

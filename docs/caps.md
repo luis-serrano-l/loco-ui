@@ -84,7 +84,10 @@ stylesheet parses, at image priority, after the page's own resources. Each answe
   requests reuse the page's connection, send its cookies and set cookies the page can read.
   Mount the route on the same server (`caps::router()` in Axum, or match `caps::BEACON_PATH`
   by hand as `examples/hyper_server.rs` does). A CDN in front must pass `/lui/caps` through
-  uncached: the answers are `Cache-Control: no-store` because they set a cookie.
+  uncached: the answers are `Cache-Control: no-store` because they set a cookie. Pages
+  themselves carry `Vary: lui-enhance, cookie`, since their markup follows the caps cookies;
+  a CDN that caches HTML must key on those cookies or strip the `lui-*` ones for anonymous
+  pages, and most apps are simpler not caching HTML at the edge at all.
 - **Speak HTTP/2 or HTTP/3.** Over HTTP/1.1 a browser opens up to six connections per origin
   and queues the rest; over HTTP/2 or HTTP/3 every beacon is a stream on the one connection
   the page already opened. `examples/hyper_server.rs` serves HTTP/1.1 and HTTP/2 on one port

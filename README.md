@@ -320,6 +320,39 @@ object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
 grid's minimum width, a view-transition name) travel in `style` attributes. The Firefox check
 (`scripts/browser-check.mjs`) runs every enhanced interaction under this policy.
 
+The inline stylesheet is a choice, not an oversight (FINDINGS, M26): no second request
+blocks the first paint, at about 20 KB gzipped on every full navigation. Swapped updates skip
+it. Pages vary by the caps cookies (`Vary: lui-enhance, cookie`), so a CDN caches HTML per
+cookie set or not at all; `docs/caps.md` has the details.
+
+## Cookies and cross-site requests
+
+Every cookie loco-ui writes goes through `cookie::SetCookie`: `Path=/`, `SameSite=Lax`, and
+`Secure` when the request came over HTTPS. The Axum extractors read that from the URI
+scheme, `X-Forwarded-Proto` or `Forwarded`, so a TLS proxy must send one of the two headers.
+Other servers pass `caps::is_https(..)` to `Ui::secure`.
+
+| Cookie | Holds | Lifetime | `HttpOnly` |
+|---|---|---|---|
+| `lui-ui` | tabs, open sections, wizard steps, page sizes (capped at 3 KB) | 30 days | no |
+| `lui-flash` | the message after a redirect | 60 s | no |
+| `theme`, `lui-lang` | the visitor's theme and language | a year | no |
+| `lui-cap-<name>` | one detected browser feature each | 30 days | no |
+| `lui-<type>` | a `Saved<T>` value | a year | yes |
+| `auth` (the Loco templates) | the JWT | the JWT's expiry | yes |
+
+None is signed, on purpose: they hold view preferences and values a handler checks like any
+other input. What must not be forged, like who is signed in, lives in a signed token (the
+Loco app's JWT) or on the server.
+
+The `Ui` extractor refuses a cross-site form post before the handler runs: any method but
+GET, HEAD and OPTIONS answers `403` when `Origin` names another host, or when there is no
+`Origin` and `Sec-Fetch-Site` says `same-site` or `cross-site`. That backs up `SameSite=Lax`
+and also covers sibling subdomains, which `SameSite` counts as the same site. A request with
+neither header, such as curl or a test, passes. `cookie::same_origin(..)` is the same check
+for other servers. Generated Loco controllers scope rows to the signed-in user when the model
+has a `user_id` (`docs/loco.md`).
+
 ## How the script works
 
 `/lui/enhance.js` is one file, plain ES2020, served with a content hash so it caches forever

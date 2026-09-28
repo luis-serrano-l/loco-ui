@@ -9,9 +9,10 @@
 //! **Platform features:** `@supports` (Chrome 28, Firefox 22, Safari 9), `@supports
 //! selector()` (Chrome 83, Firefox 69, Safari 14.1), CSS background images, cookies.
 //!
-//! **Fallback:** an unknown browser has no cookie and gets the fallback markup everywhere. The
-//! first page view always renders as a fallback: the beacons fire while it loads, and the second
-//! view is tailored. Browsers that never load CSS images (`curl`, readers) stay on fallbacks.
+//! **Fallback:** a browser with no cookie yet gets [`Caps::ASSUMED`], the features at baseline
+//! in every engine for over two years, and the fallback markup for everything else. The
+//! beacons fire while that first view loads, and the second view is tailored. Browsers that
+//! never load CSS images (`curl`, readers) stay on `ASSUMED`.
 //!
 //! **Finding:** CSS cannot test HTML attributes, so `invokers` and `streaming_dsd` are proxies
 //! for CSS features that shipped in the same release. See `docs/caps.md` in the loco-ui repo.
