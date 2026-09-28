@@ -429,7 +429,8 @@ async fn cross_site_posts_are_refused() {
         }
         req.body(Body::from("op=inc")).unwrap()
     };
-    let status = |req: Request<Body>| async move { router().oneshot(req).await.unwrap().status().as_u16() };
+    let status =
+        |req: Request<Body>| async move { router().oneshot(req).await.unwrap().status().as_u16() };
     assert_eq!(
         status(post(&[("origin", "https://evil.example")])).await,
         403

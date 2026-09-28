@@ -15,6 +15,12 @@
 //! what a visitor would expect to find again on their next visit (a tab, an open section, a
 //! wizard step, a page size) is remembered.
 //!
+//! **One cookie for the site.** Keys are site-wide: two tab groups with one id share a
+//! memory, so give each its own id. Every browser tab writes the same cookie, and the last
+//! page view wins. The value stays under [`MAX_COOKIE`] bytes by dropping remembered keys this
+//! request did not set. It is `SameSite=Lax`, `Secure` over HTTPS, and readable by page
+//! script, since it holds nothing but view preferences.
+//!
 //! **Platform features:** links, cookies, `303 See Other`. Nothing newer than 1997.
 //!
 //! **Fallback:** none needed. Without cookies, state still travels in links on the same page.
@@ -48,6 +54,9 @@ use crate::cookie::SetCookie;
 
 /// Name of the cookie that remembers UI state between page views.
 pub const UI_COOKIE: &str = "lui-ui";
+
+/// Most bytes the `lui-ui` value may hold, well inside a browser's 4 KB per cookie.
+pub const MAX_COOKIE: usize = 3072;
 
 /// Name of the one-shot cookie carrying a flash message across a redirect.
 pub const FLASH_COOKIE: &str = "lui-flash";
@@ -285,14 +294,36 @@ impl UiState {
             .any(|(k, v)| k != "dialog" && self.from_cookie.get(k) != Some(v))
     }
 
-    /// Value for the `lui-ui` cookie: the merged state, or `None` when nothing changed.
+    /// Value for the `lui-ui` cookie: the merged state, or `None` when nothing changed. It
+    /// stays under [`MAX_COOKIE`] bytes: past that, remembered keys this request did not set
+    /// are dropped (in key order) until it fits, so the newest choice is always kept.
     pub fn cookie_value(&self) -> Option<String> {
-        self.changed().then(|| {
-            let kept = self.entries().into_iter().filter(|(k, _)| *k != "dialog");
-            kept.map(|(k, v)| format!("{}={}", encode(k), encode(v)))
+        if !self.changed() {
+            return None;
+        }
+        let pair = |k: &str, v: &str| format!("{}={}", encode(k), encode(v));
+        let mut kept: Vec<(&str, String)> = self
+            .entries()
+            .into_iter()
+            .filter(|(k, _)| *k != "dialog")
+            .map(|(k, v)| (k, pair(k, v)))
+            .collect();
+        let len = |kept: &[(&str, String)]| kept.iter().map(|(_, p)| p.len() + 1).sum::<usize>();
+        while len(&kept) > MAX_COOKIE {
+            let Some(i) = kept
+                .iter()
+                .position(|(k, _)| !self.from_query.contains_key(*k))
+            else {
+                break;
+            };
+            kept.remove(i);
+        }
+        Some(
+            kept.into_iter()
+                .map(|(_, p)| p)
                 .collect::<Vec<_>>()
-                .join("&")
-        })
+                .join("&"),
+        )
     }
 }
 
@@ -415,5 +446,24 @@ mod tests {
         let s = UiState::parse("/p", "dialog=a%20b+c", "");
         assert_eq!(s.dialog(), Some("a b c"));
         assert_eq!(s.link("dialog", "a b"), "/p?dialog=a%20b");
+    }
+
+    #[test]
+    fn the_cookie_stays_under_its_cap_and_keeps_the_new_choice() {
+        let old: Vec<String> = (0..200)
+            .map(|i| format!("tab.group-number-{i:03}=1"))
+            .collect();
+        let s = UiState::parse("/", "tab.zz=2", &old.join("&"));
+        let value = s.cookie_value().unwrap();
+        assert!(value.len() <= MAX_COOKIE, "{}", value.len());
+        assert!(value.ends_with("tab.zz=2"), "the new choice is kept");
+        assert!(
+            value.contains("tab.group-number-199=1"),
+            "the rest fills what is left"
+        );
+        assert!(
+            !value.contains("tab.group-number-000="),
+            "the first keys went first"
+        );
     }
 }

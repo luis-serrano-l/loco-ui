@@ -32,6 +32,15 @@ writes the merged state back into the cookie, but only if the query changed some
 Writing that cookie on a GET is deliberate. It is idempotent and preference-only, which is
 what HTTP means by a *safe* method. Application data still changes only through POST.
 
+Three things follow from one cookie for the whole site:
+- **Keys are site-wide.** `tab.settings` is the same key on every page, so two different
+  tab groups that share an id share a memory. Give each one its own id.
+- **Browser tabs share it.** Two open tabs write the same cookie, and the last page view
+  wins. The URL of each tab still shows what that tab is looking at.
+- **It is capped.** The value stays under 3 KB (`state::MAX_COOKIE`), inside a browser's 4 KB
+  per cookie. Past that, remembered keys the current request did not set are dropped first,
+  so the newest choice is always kept.
+
 ## 3. The server holds *the data*
 
 Form values, the counter, the theme. They change through `<form method="post">` and the

@@ -2132,7 +2132,12 @@ Decisions, asked and answered on 2026-09-28:
   (a 403 page), no longer `Infallible`. Every demo and generated handler takes `Ui`, so all
   are covered. The hyper example runs the same check, and a demo test posts to `/counter`
   from another origin, a sibling site and `null` (403), and from this site and curl (303).
-- [ ] Cap `lui-ui` at 3 KB, dropping remembered keys before the ones this request set.
+- [x] Cap `lui-ui` at 3 KB, dropping remembered keys before the ones this request set.
+  Done: `state::MAX_COOKIE` is 3072. When `cookie_value()` runs past it, remembered keys
+  this request's query did not set are dropped in key order until the value fits. A test
+  starts from 200 remembered tab groups and checks that the new choice survives and the
+  value fits. The `state.rs` header and `docs/state.md` say keys are site-wide, all browser
+  tabs share one cookie, and the cap exists.
 - [ ] `Saved<T>` reads its cookie name from serde's container name, so `#[serde(rename)]`
   separates two types with one short name.
 - [ ] Scaffolds with auth and a `user_id` field scope every query to the signed-in user and
