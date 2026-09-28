@@ -448,11 +448,26 @@ mod axum_glue {
     };
     use maud::Render;
 
-    /// A thin wrapper over [`Ui::from_request`].
+    /// A thin wrapper over [`Ui::from_request`] that first refuses a cross-site post
+    /// ([`crate::cookie::same_origin`]) with `403 Forbidden`, so no handler taking `Ui` runs
+    /// for a form another site submitted. A handler without `Ui` is not checked.
     impl<S: Send + Sync> FromRequestParts<S> for Ui {
-        type Rejection = std::convert::Infallible;
+        type Rejection = Response;
 
         async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Ui, Self::Rejection> {
+            let header = |name: &str| parts.headers.get(name).and_then(|v| v.to_str().ok());
+            let host = header("x-forwarded-host")
+                .or(header("host"))
+                .or(parts.uri.authority().map(|a| a.as_str()));
+            if !crate::cookie::same_origin(
+                parts.method.as_str(),
+                host,
+                header("origin"),
+                header("sec-fetch-site"),
+            ) {
+                let body = "<!doctype html><title>Refused</title><p>This form was sent from another site, so it was refused. Go back, reload the page and send it again.</p>";
+                return Err((axum::http::StatusCode::FORBIDDEN, Html(body)).into_response());
+            }
             let cookies = parts
                 .headers
                 .get_all(header::COOKIE)

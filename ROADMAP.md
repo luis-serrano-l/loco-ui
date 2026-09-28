@@ -2122,8 +2122,16 @@ Decisions, asked and answered on 2026-09-28:
   auth template signs in and out through `SetCookie` with `ui.is_secure()`; the hyper
   examples, `docs/caps.md` and `docs/loco.md` show the same. A demo test checks that every
   `Set-Cookie` ends in `; Secure` behind `X-Forwarded-Proto: https` and none does over HTTP.
-- [ ] Refuse cross-site posts in the `Ui` extractor (403), with `cookie::same_origin` for
+- [x] Refuse cross-site posts in the `Ui` extractor (403), with `cookie::same_origin` for
   other servers.
+  Done: `cookie::same_origin(method, host, origin, sec_fetch_site)`. Reads pass. A request
+  with `Origin` passes only when its host and port equal `X-Forwarded-Host`, `Host` or the URI
+  authority, and `Origin: null` fails. Without `Origin`, `Sec-Fetch-Site: same-site` or
+  `cross-site` fails, which covers sibling subdomains `SameSite=Lax` lets through. A request
+  with neither header passes. **Breaking:** the `Ui` extractor's rejection is now a `Response`
+  (a 403 page), no longer `Infallible`. Every demo and generated handler takes `Ui`, so all
+  are covered. The hyper example runs the same check, and a demo test posts to `/counter`
+  from another origin, a sibling site and `null` (403), and from this site and curl (303).
 - [ ] Cap `lui-ui` at 3 KB, dropping remembered keys before the ones this request set.
 - [ ] `Saved<T>` reads its cookie name from serde's container name, so `#[serde(rename)]`
   separates two types with one short name.

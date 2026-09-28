@@ -416,6 +416,43 @@ async fn cookies_are_secure_over_https() {
     }
 }
 
+/// A form another site submitted is refused before its handler runs; the same form from this
+/// site, or from a client that sends no browser headers, goes through.
+#[tokio::test]
+async fn cross_site_posts_are_refused() {
+    let post = |headers: &[(&'static str, &'static str)]| {
+        let mut req = Request::post("/counter")
+            .header("host", "demo.example")
+            .header("content-type", "application/x-www-form-urlencoded");
+        for (k, v) in headers {
+            req = req.header(*k, *v);
+        }
+        req.body(Body::from("op=inc")).unwrap()
+    };
+    let status = |req: Request<Body>| async move { router().oneshot(req).await.unwrap().status().as_u16() };
+    assert_eq!(
+        status(post(&[("origin", "https://evil.example")])).await,
+        403
+    );
+    assert_eq!(status(post(&[("sec-fetch-site", "same-site")])).await, 403);
+    assert_eq!(status(post(&[("origin", "null")])).await, 403);
+    assert_eq!(
+        status(post(&[
+            ("origin", "http://demo.example"),
+            ("sec-fetch-site", "same-origin")
+        ]))
+        .await,
+        303
+    );
+    assert_eq!(status(post(&[])).await, 303);
+    let get = Request::get("/counter")
+        .header("host", "demo.example")
+        .header("origin", "https://evil.example")
+        .body(Body::empty())
+        .unwrap();
+    assert_eq!(status(get).await, 200, "reads are never refused");
+}
+
 /// Collect the body frames of `path` as they arrive.
 async fn frames(path: &str, cookie: &str) -> Vec<String> {
     use http_body_util::BodyExt;

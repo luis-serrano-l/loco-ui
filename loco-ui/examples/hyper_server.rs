@@ -3,6 +3,7 @@
 //!
 //! Everything the Axum glue does is wired here by hand, in a few lines each: `Ui` (caps, theme
 //! and state) from path + query + the `Cookie:` header, `Secure` cookies from `caps::is_https`,
+//! cross-site posts refused by `cookie::same_origin`,
 //! the beacon route from
 //! `caps::beacon_cookie`, Post/Redirect/Get from `ui.redirect`, the enhancement script from
 //! `enhance::served()`. Three components: a dialog, tabs, and a counter kept in a cookie.
@@ -23,7 +24,11 @@ use hyper::service::service_fn;
 use hyper::{Method, Request, Response, StatusCode, header};
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::server::conn::auto;
-use loco_ui::{Ui, caps, cookie::SetCookie, enhance};
+use loco_ui::{
+    Ui, caps,
+    cookie::{SetCookie, same_origin},
+    enhance,
+};
 use maud::html;
 use tokio::net::TcpListener;
 
@@ -66,6 +71,18 @@ async fn handle(req: Request<Incoming>) -> Result<Reply, Infallible> {
         header("forwarded"),
     );
     let ui = Ui::from_request(&path, &query, &cookies).secure(https);
+    // A form another site submitted is refused, as the Axum extractor does.
+    if !same_origin(
+        req.method().as_str(),
+        header("host"),
+        header("origin"),
+        header("sec-fetch-site"),
+    ) {
+        return Ok(Response::builder()
+            .status(StatusCode::FORBIDDEN)
+            .body(Full::default())
+            .unwrap());
+    }
     let count: i64 = cookie(&cookies, "count")
         .and_then(|v| v.parse().ok())
         .unwrap_or(0);
