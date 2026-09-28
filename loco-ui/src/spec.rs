@@ -794,9 +794,13 @@ pub const SPECS: &[ComponentSpec] = &[
         name: "Description list",
         module: "description_list",
         look: "Radix Themes DataList",
-        responsive: Responsive::Content,
-        features: &[f("<dl>", ALWAYS), f("grid", b("57", "52", "10.1"))],
-        fallback: "without grid the terms stack above their details",
+        responsive: Responsive::Container,
+        features: &[
+            f("<dl>", ALWAYS),
+            f("@container", b("105", "110", "16")),
+            f("subgrid", b("117", "71", "16")),
+        ],
+        fallback: "without container queries the terms stay above their details; without subgrid the term column is a fixed 10rem",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {

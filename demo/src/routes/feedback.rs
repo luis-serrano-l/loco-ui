@@ -162,6 +162,8 @@ fn description_list(ui: &Ui) -> Markup {
         DescriptionList {
             item "Plan" "Team"; item "Seats" "12 of 20";
             item "Renews" "1 October 2026"; item "Status" (ui.badge("Active").ok());
+            item "Invoices" (ui.link_button("Download", "/description-list").small());
+            item "Billing contact for receipts" "ada@example.com"; item "Notes" "";
         }
         h3 { "Stacked" }
         DescriptionList stacked {

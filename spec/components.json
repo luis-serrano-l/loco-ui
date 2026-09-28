@@ -1492,12 +1492,13 @@
       "name": "Description list",
       "module": "description_list",
       "look": "Radix Themes DataList",
-      "responsive": "content",
+      "responsive": "container",
       "features": [
         { "name": "<dl>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
-        { "name": "grid", "baseline": { "chrome": "57", "firefox": "52", "safari": "10.1" } }
+        { "name": "@container", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } },
+        { "name": "subgrid", "baseline": { "chrome": "117", "firefox": "71", "safari": "16" } }
       ],
-      "fallback": "without grid the terms stack above their details",
+      "fallback": "without container queries the terms stay above their details; without subgrid the term column is a fixed 10rem",
       "needs_js": "no",
       "builders": [
         {

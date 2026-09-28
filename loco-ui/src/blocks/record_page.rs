@@ -3,7 +3,7 @@
 //! One record: its title, its fields as a description list in a card, and the actions on it
 //! (edit, delete) beside the title. The show page a scaffold writes, ready-made.
 //!
-//! **Platform features:** a `<dl>`; delete is a form that posts (Post/Redirect/Get).
+//! **Platform features:** a [`crate::description_list`] (its container query and subgrid); delete is a form that posts (Post/Redirect/Get).
 //!
 //! **Accessibility:** the title is the page's `<h1>`; labels and values are `<dt>`/`<dd>`
 //! pairs; edit is a link, delete a real button. Checked by axe-core with the demo routes.
@@ -109,6 +109,9 @@ impl<'a> RecordPage<'a> {
 impl Render for RecordPage<'_> {
     fn render(&self) -> Markup {
         let ui = self.ui;
+        let list = (self.fields.iter()).fold(ui.description_list(), |l, (label, value)| {
+            l.item(label, value)
+        });
         html! {
             div class="lui-record" {
                 div class="lui-record-head" {
@@ -121,9 +124,7 @@ impl Render for RecordPage<'_> {
                         }
                     }
                 }
-                dl class="lui-record-fields" {
-                    @for (label, value) in &self.fields { div class="lui-record-field" { dt { (label) } dd { (value) } } }
-                }
+                div class="lui-record-fields" { (list) }
             }
         }
     }
@@ -136,13 +137,6 @@ pub const CSS: &str = r#"
 .lui-record-head h1 { margin: 0; }
 .lui-record-actions { display: flex; gap: var(--lui-space); }
 .lui-record-actions form { margin: 0; }
-/* The fields take the description list's look (a DataList in a card): each label and value a
-   wrapping row, the value under its label once it does not fit beside it. */
-.lui-record-fields {
-  display: grid; gap: var(--lui-space-3); margin: 0;
-  padding: var(--lui-space-6); background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
-}
-.lui-record-field { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--lui-space-1) var(--lui-space-4); }
-.lui-record-fields dt { flex: 0 0 10rem; min-width: 0; color: var(--lui-muted); font-size: 0.875rem; }
-.lui-record-fields dd { flex: 1 1 12rem; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+/* The fields are a description list in a card. */
+.lui-record-fields { padding: var(--lui-space-6); background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); }
 "#;

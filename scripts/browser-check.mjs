@@ -429,6 +429,16 @@ try {
   await go("/wizard?step.signup=1");
   assert(await js("const [a, b] = ['.lui-wizard-steps li:nth-child(1)', '.lui-wizard-steps li:nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(a.top - b.top) < 1 && b.left > a.right - 1"), "wizard: the steps lie in a row in a wide container");
 
+  // The description list is its own container (M36): from 30rem every term sits in one shared
+  // column (subgrid) with its detail's top on the same line, even when the detail is a badge,
+  // a button or empty.
+  await go("/description-list");
+  assert(await js(`const rows = [...document.querySelector('.lui-description-list').children].map((r) => [r.querySelector('dt'), r.querySelector('dd')].map((e) => e.getBoundingClientRect()));
+    const [dt0, dd0] = rows[0];
+    return rows.every(([t, d]) => Math.abs(t.left - dt0.left) < 1 && Math.abs(t.right - dt0.right) < 1 && Math.abs(d.left - dd0.left) < 1 && Math.abs(t.top - d.top) < 1.5)`), "description list: one term column, each term level with its detail");
+  await go("/blocks/record");
+  assert(await js("const [t, d] = ['.lui-record-fields dt', '.lui-record-fields dd'].map((s) => document.querySelector(s).getBoundingClientRect()); return d.left > t.right && Math.abs(t.top - d.top) < 1"), "record page: fields side by side in the card");
+
   // Accessibility: axe-core on every route, as each visitor variant sees it.
   // Runs in the page: load axe, check, answer the violations. Two patterns are let through
   // (FINDINGS, M29): a link filling a <summary>, the no-script tab and accordion design; and

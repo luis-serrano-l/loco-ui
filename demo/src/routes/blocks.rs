@@ -62,7 +62,7 @@ fn record(ui: &Ui) -> Markup {
         // code: /blocks/record
         RecordPage("Invoice 42") back="/blocks/dashboard" edit="/form" delete="/blocks/record/delete" {
             field "Customer" "Ada Lovelace"; field "Issued" "24 September 2026"; field "Total" "€1,280.00";
-            field "Status" (ui.badge("Paid").ok());
+            field "Status" (ui.badge("Paid").ok()); field "Purchase order" "";
         }
         // end code
     }

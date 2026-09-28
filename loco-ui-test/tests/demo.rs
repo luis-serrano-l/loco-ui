@@ -1567,3 +1567,33 @@ async fn motion_leaves_the_final_layout_unchanged() {
         assert_eq!(moving.bbox(sel), still.bbox(sel), "{sel} at its final box");
     }
 }
+
+/// The narrow base Blitz draws (it has no `@container`): each term above its detail, rows
+/// split by space, and an empty detail shown as a dash rather than a collapsed row.
+#[tokio::test]
+async fn description_list_stacks_each_term_above_its_detail() {
+    let page = Page::render(demo::router(), "/description-list", MODERN).await;
+    let row = ".lui-description-list > .lui-description-list-item";
+    for n in 1..=4 {
+        let dt = page.bbox(&format!("{row}:nth-child({n}) dt")).unwrap();
+        let dd = page.bbox(&format!("{row}:nth-child({n}) dd")).unwrap();
+        assert!(
+            dd.y >= dt.y + dt.height - 0.5,
+            "row {n}: the detail sits under its term"
+        );
+        assert!(
+            (dd.x - dt.x).abs() < 1.0,
+            "row {n}: term and detail share a left edge"
+        );
+    }
+    let (a, b) = (
+        page.bbox(&format!("{row}:nth-child(1)")).unwrap(),
+        page.bbox(&format!("{row}:nth-child(2)")).unwrap(),
+    );
+    assert!(b.y >= a.y + a.height, "rows follow each other");
+    let empty = page.bbox(&format!("{row}:nth-child(7) dd")).unwrap();
+    assert!(
+        empty.height > 10.0,
+        "an empty detail keeps a line (its dash)"
+    );
+}

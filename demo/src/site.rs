@@ -312,7 +312,7 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 46] = [
         "/description-list",
         "Description list",
         "Feedback",
-        "<dl>, grid",
+        "<dl>, @container, subgrid",
         "Terms and their details, side by side or stacked.",
     ),
     (
