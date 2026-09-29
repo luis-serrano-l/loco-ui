@@ -14,9 +14,13 @@ use crate::{
 
 #[debug_handler]
 async fn index(auth: Option<auth::JWT>, ui: Ui, State(ctx): State<AppContext>) -> Result<Page> {
-    // No session, or one whose user is gone: the landing page.
+    // A session whose user is gone is signed out; a database error is still an error.
     let me = match auth {
-        Some(auth) => owner(&ctx, &auth).await.ok(),
+        Some(auth) => match owner(&ctx, &auth).await {
+            Ok(user) => Some(user),
+            Err(Error::Unauthorized(_)) => None,
+            Err(e) => return Err(e),
+        },
         None => None,
     };
     let Some(me) = me else {

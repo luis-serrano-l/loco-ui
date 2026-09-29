@@ -77,7 +77,7 @@ async fn save(
     item.due = Set(p.due);
     item.user_id = Set(me.id);
     let saved = item.save(&ctx.db).await?;
-    let id = saved.id.unwrap();
+    let id = sea_orm::TryIntoModel::try_into_model(saved)?.id;
     Entity::set_tags(&ctx.db, me.id, id, &p.tags).await?;
     Ok(id)
 }

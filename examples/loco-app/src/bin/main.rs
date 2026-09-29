@@ -1,9 +1,9 @@
 use std::{
-    fs,
+    fs, io,
     net::TcpStream,
     os::unix::process::CommandExt,
-    path::PathBuf,
-    process::{Command, ExitCode, Stdio},
+    path::{Path, PathBuf},
+    process::{Child, Command, ExitCode, Stdio},
     thread::sleep,
     time::Duration,
 };
@@ -54,11 +54,18 @@ fn running() -> Option<String> {
 }
 
 fn detached(args: Vec<String>) -> ExitCode {
-    let port = (args.iter().position(|a| a == "-p" || a == "--port"))
-        .and_then(|i| args.get(i + 1).cloned())
-        .unwrap_or_else(|| "5150".into());
+    let given =
+        (args.iter().position(|a| a == "-p" || a == "--port")).and_then(|i| args.get(i + 1));
+    let port: u16 = match given.map(|port| port.parse()) {
+        None => 5150,
+        Some(Ok(port)) => port,
+        Some(Err(_)) => {
+            eprintln!("not a port: {}", given.map_or("", String::as_str));
+            return ExitCode::FAILURE;
+        }
+    };
     let url = format!("http://localhost:{port}/");
-    let answers = || TcpStream::connect(("127.0.0.1", port.parse().unwrap_or(5150))).is_ok();
+    let answers = || TcpStream::connect(("127.0.0.1", port)).is_ok();
     if let Some(pid) = running() {
         println!("already running (pid {pid}) at {url}");
         return ExitCode::SUCCESS;
@@ -68,16 +75,13 @@ fn detached(args: Vec<String>) -> ExitCode {
         return ExitCode::FAILURE;
     }
     let log = file("log");
-    let out = fs::File::create(&log).expect("the log file");
-    let mut child = Command::new(std::env::current_exe().expect("the binary's path"))
-        .args(&args)
-        .stdin(Stdio::null())
-        .stdout(out.try_clone().expect("the log file"))
-        .stderr(out)
-        .process_group(0)
-        .spawn()
-        .expect("starting the server");
-    fs::write(file("pid"), child.id().to_string()).expect("the pid file");
+    let mut child = match spawn(&args, &log) {
+        Ok(child) => child,
+        Err(e) => {
+            eprintln!("could not start the server (log {}): {e}", log.display());
+            return ExitCode::FAILURE;
+        }
+    };
     for _ in 0..120 {
         if let Ok(Some(_)) = child.try_wait() {
             let text = fs::read_to_string(&log).unwrap_or_default();
@@ -102,14 +106,40 @@ fn detached(args: Vec<String>) -> ExitCode {
     ExitCode::SUCCESS
 }
 
+/// The server in its own process group, its output in `log` and its pid in the pid file.
+fn spawn(args: &[String], log: &Path) -> io::Result<Child> {
+    let out = fs::File::create(log)?;
+    let child = Command::new(std::env::current_exe()?)
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(out.try_clone()?)
+        .stderr(out)
+        .process_group(0)
+        .spawn()?;
+    fs::write(file("pid"), child.id().to_string())?;
+    Ok(child)
+}
+
 fn stop() -> ExitCode {
     match running() {
-        Some(pid) => {
-            let _ = Command::new("kill").arg(&pid).status();
-            println!("stopped (pid {pid})");
-        }
+        Some(pid) => match Command::new("kill").arg(&pid).status() {
+            Ok(status) if status.success() => println!("stopped (pid {pid})"),
+            Ok(status) => {
+                eprintln!("kill {pid} failed: {status}");
+                return ExitCode::FAILURE;
+            }
+            Err(e) => {
+                eprintln!("kill {pid}: {e}");
+                return ExitCode::FAILURE;
+            }
+        },
         None => println!("not running"),
     }
-    let _ = fs::remove_file(file("pid"));
-    ExitCode::SUCCESS
+    match fs::remove_file(file("pid")) {
+        Err(e) if e.kind() != io::ErrorKind::NotFound => {
+            eprintln!("{}: {e}", file("pid").display());
+            ExitCode::FAILURE
+        }
+        _ => ExitCode::SUCCESS,
+    }
 }

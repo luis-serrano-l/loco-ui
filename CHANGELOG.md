@@ -19,6 +19,10 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   `<!--lui-slot:` keeps the rest as text. `lui!` reports `rows=move` with nothing after it as
   an error instead of panicking. `cargo lui` stops with the path when it cannot read a file it
   edits, instead of writing it over as empty.
+- `cargo lui auth`'s controller tells a missing account or spent link apart from a database
+  error: an outage is an error page, not "Wrong email or password." or "Link expired".
+  examples/loco-app does the same on its home page, and its `start -d` / `stop` report a bad
+  port, a failed spawn or a failed `kill` instead of panicking or claiming success.
 - The generator templates write their markup in `lui!`, as the demo does: `cargo lui auth`'s
   account pages (`AuthPage` holding a `Form`) and the scaffold's list, show and form views
   (`Table` with a `column` per field, `RecordPage` with a `field` per value, `Form` with an

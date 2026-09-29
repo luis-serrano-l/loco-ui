@@ -31,6 +31,16 @@ fn session(ui: &Ui, ctx: &AppContext, user: &users::Model) -> Result<String> {
     Ok(cookie.secure(ui.is_secure()).to_string())
 }
 
+/// The user a lookup found, `None` when there is none (or its token expired), or the error:
+/// a database outage is not a wrong password or a spent link.
+fn found(lookup: ModelResult<users::Model>) -> Result<Option<users::Model>> {
+    match lookup {
+        Ok(user) => Ok(Some(user)),
+        Err(ModelError::EntityNotFound | ModelError::Message(_)) => Ok(None),
+        Err(e) => Err(e.into()),
+    }
+}
+
 /// Sign `user` in and go, with a greeting, to the page a signed-out visit was sent to the
 /// sign-in form from (`loco_ui::loco::SignIn` adds `?next=`), else home.
 fn welcome(ui: &Ui, ctx: &AppContext, user: &users::Model, message: &str) -> Result<Response> {
@@ -54,10 +64,8 @@ async fn signin(
     let email = form.required::<String>("email");
     let password = form.required::<String>("password");
     let user = match (email, password) {
-        (Some(email), Some(password)) => users::Model::find_by_email(&ctx.db, &email)
-            .await
-            .ok()
-            .filter(|u| u.verify_password(&password)),
+        (Some(email), Some(password)) => found(users::Model::find_by_email(&ctx.db, &email).await)?
+            .filter(|user| user.verify_password(&password)),
         _ => None,
     };
     if let Some(user) = user {
@@ -141,7 +149,7 @@ async fn verify(
     State(ctx): State<AppContext>,
     Path(token): Path<String>,
 ) -> Result<Redirect> {
-    let Ok(user) = users::Model::find_by_verification_token(&ctx.db, &token).await else {
+    let Some(user) = found(users::Model::find_by_verification_token(&ctx.db, &token).await)? else {
         return Ok(ui
             .redirect("/signin")
             .danger("That verification link is not valid."));
@@ -171,7 +179,7 @@ async fn forgot(
         let body = views::account::forgot(&ui, form.values(), &errors.pairs());
         return Ok(ui.page("Forgot password", body).into_response());
     };
-    if let Ok(user) = users::Model::find_by_email(&ctx.db, &email).await {
+    if let Some(user) = found(users::Model::find_by_email(&ctx.db, &email).await)? {
         let user = user
             .into_active_model()
             .set_forgot_password_sent(&ctx.db)
@@ -188,10 +196,7 @@ async fn reset_page(
     State(ctx): State<AppContext>,
     Path(token): Path<String>,
 ) -> Result<Response> {
-    if users::Model::find_by_reset_token(&ctx.db, &token)
-        .await
-        .is_err()
-    {
+    if found(users::Model::find_by_reset_token(&ctx.db, &token).await)?.is_none() {
         return Ok(expired(&ui, "/forgot").into_response());
     }
     let body = views::account::reset(&ui, &format!("/reset/{token}"), &[]);
@@ -205,7 +210,7 @@ async fn reset(
     Path(token): Path<String>,
     Form(posted): Form<Vec<(String, String)>>,
 ) -> Result<Response> {
-    let Ok(user) = users::Model::find_by_reset_token(&ctx.db, &token).await else {
+    let Some(user) = found(users::Model::find_by_reset_token(&ctx.db, &token).await)? else {
         return Ok(expired(&ui, "/forgot").into_response());
     };
     let mut form = Submitted::new(posted);
@@ -241,7 +246,7 @@ async fn magic(
         let body = views::account::magic(&ui, form.values(), &errors.pairs());
         return Ok(ui.page("Email me a link", body).into_response());
     };
-    if let Ok(user) = users::Model::find_by_email(&ctx.db, &email).await {
+    if let Some(user) = found(users::Model::find_by_email(&ctx.db, &email).await)? {
         let user = user.into_active_model().create_magic_link(&ctx.db).await?;
         AuthMailer::send_magic_link(&ctx, &user).await?;
     }
@@ -255,7 +260,7 @@ async fn magic_signin(
     State(ctx): State<AppContext>,
     Path(token): Path<String>,
 ) -> Result<Response> {
-    let Ok(user) = users::Model::find_by_magic_token(&ctx.db, &token).await else {
+    let Some(user) = found(users::Model::find_by_magic_token(&ctx.db, &token).await)? else {
         return Ok(expired(&ui, "/magic-link").into_response());
     };
     let user = user.into_active_model().clear_magic_link(&ctx.db).await?;

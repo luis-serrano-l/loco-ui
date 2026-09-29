@@ -162,8 +162,10 @@ const TASKS: &[(&str, &str, Option<i64>, Option<i64>)] = &[
 
 /// The demo account and everything in it; does nothing when the account exists.
 pub async fn demo(db: &DatabaseConnection) -> Result<()> {
-    if users::Model::find_by_email(db, EMAIL).await.is_ok() {
-        return Ok(());
+    match users::Model::find_by_email(db, EMAIL).await {
+        Ok(_) => return Ok(()),
+        Err(ModelError::EntityNotFound) => {}
+        Err(e) => return Err(e.into()),
     }
     let params = users::RegisterParams {
         email: EMAIL.into(),
