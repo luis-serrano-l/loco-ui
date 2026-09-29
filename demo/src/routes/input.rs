@@ -60,9 +60,9 @@ struct NewLang {
     sel: Vec<String>,
 }
 
-async fn combobox_new(ui: Ui, Form(f): Form<NewLang>) -> Redirect {
-    let name = f.name.trim();
-    let to: String = f
+async fn combobox_new(ui: Ui, Form(form): Form<NewLang>) -> Redirect {
+    let name = form.name.trim();
+    let to: String = form
         .sel
         .iter()
         .map(String::as_str)
@@ -79,15 +79,15 @@ async fn combobox_new(ui: Ui, Form(f): Form<NewLang>) -> Redirect {
 struct Signup(Vec<(String, String)>);
 
 impl Signup {
-    fn get(&self, k: &str) -> &str {
+    fn get(&self, name: &str) -> &str {
         self.0
             .iter()
-            .find(|(n, _)| n == k)
+            .find(|(n, _)| n == name)
             .map_or("", |(_, v)| v.trim())
     }
 }
 
-fn signup<'a>(ui: &'a Ui, s: &'a Signup, errors: &'a [(&'a str, &'a str)]) -> Wizard<'a> {
+fn signup<'a>(ui: &'a Ui, answers: &'a Signup, errors: &'a [(&'a str, &'a str)]) -> Wizard<'a> {
     // code: /wizard
     ui.wizard("signup", "/wizard")
         .step(
@@ -107,15 +107,15 @@ fn signup<'a>(ui: &'a Ui, s: &'a Signup, errors: &'a [(&'a str, &'a str)]) -> Wi
         )
         .optional()
         .review("Review")
-        .values(&s.0)
+        .values(&answers.0)
         .errors(errors)
         .finish("Create account")
     // end code
 }
 
 /// Server rules for a wizard step: `(field, message)` per problem.
-fn signup_errors(step: usize, s: &Signup) -> Vec<(&'static str, &'static str)> {
-    let (name, email) = (s.get("name"), s.get("email"));
+fn signup_errors(step: usize, answers: &Signup) -> Vec<(&'static str, &'static str)> {
+    let (name, email) = (answers.get("name"), answers.get("email"));
     match step {
         0 if name.is_empty() => vec![("name", "Enter your name.")],
         0 if !email.contains('@') => vec![("email", "Enter an email address with an @.")],
@@ -134,15 +134,15 @@ fn wizard_view(ui: &Ui, wizard: Wizard) -> Page {
     page(ui, "Wizard", body)
 }
 
-async fn wizard_page(ui: Ui, Saved(s): Saved<Signup>) -> Page {
-    wizard_view(&ui, signup(&ui, &s, &[]))
+async fn wizard_page(ui: Ui, Saved(answers): Saved<Signup>) -> Page {
+    wizard_view(&ui, signup(&ui, &answers, &[]))
 }
 
 /// Check the posted step: answer 422 with the same step and its messages, or keep the fields
 /// (a year, so closing the browser loses nothing) and redirect to the next step.
 async fn wizard_submit(
     ui: Ui,
-    Saved(mut s): Saved<Signup>,
+    Saved(mut answers): Saved<Signup>,
     posted: Posted,
 ) -> Result<Redirect, Page> {
     let (step, skip) = (posted.step(), posted.skip());
@@ -151,15 +151,15 @@ async fn wizard_submit(
         .iter()
         .filter(|(k, _)| !skip && k != "step" && k != "skip")
     {
-        s.0.retain(|(n, _)| n != k);
-        s.0.push((k.clone(), v.clone()));
+        answers.0.retain(|(n, _)| n != k);
+        answers.0.push((k.clone(), v.clone()));
     }
     let errors = if skip {
         Vec::new()
     } else {
-        signup_errors(step, &s)
+        signup_errors(step, &answers)
     };
-    let wizard = signup(&ui, &s, &errors).at(step);
+    let wizard = signup(&ui, &answers, &errors).at(step);
     if !errors.is_empty() {
         return Err(wizard_view(&ui, wizard).invalid());
     }
@@ -167,7 +167,7 @@ async fn wizard_submit(
         let done = "Account created (well, the cookie was cleared).";
         return Ok(ui.redirect(&wizard.link(0)).flash(done).forget::<Signup>());
     }
-    Ok(ui.redirect(&wizard.link(step + 1)).save(&s))
+    Ok(ui.redirect(&wizard.link(step + 1)).save(&answers))
 }
 
 /// The sign-up form, with the values and messages of a post the server refused.
@@ -333,49 +333,54 @@ async fn inputs_page(
     query: Result<Query<Inputs>, QueryRejection>,
     Saved(saved): Saved<Inputs>,
 ) -> Page {
-    let v = match query {
+    let values = match query {
         Ok(Query(query)) if ui.param("country-q").is_some() => query,
         _ => saved,
     };
     let body = lui! { Stack {
-        (inputs(&ui, &v))
+        (inputs(&ui, &values))
         p class="lui-note" { "Without the enhancement script the outputs and the swatch show the last saved values and update on submit, and the country filter needs its button." }
     } };
     page(&ui, "Select, range, colour", body)
 }
 
-/// The form of select, range and colour, showing `v`.
-fn inputs(ui: &Ui, v: &Inputs) -> Markup {
+/// The form of select, range and colour, showing `values`.
+fn inputs(ui: &Ui, values: &Inputs) -> Markup {
     lui! {
         // code: /inputs
         Form("/inputs") submit="Save" {
-            Select("size", "Size") value=(&v.size) options=(SIZES);
-            Select("country", "Country") value=(&v.country) groups=(COUNTRIES) search="/inputs";
-            Range("volume", "Volume") value=(v.volume) step=5 ticks;
-            RangePair("price", "Price") values=(v.price_min, v.price_max) step=5 ticks;
-            Color("accent", "Accent") value=(&v.accent) presets=(&ACCENTS) alpha=(v.alpha);
+            Select("size", "Size") value=(&values.size) options=(SIZES);
+            Select("country", "Country") value=(&values.country) groups=(COUNTRIES) search="/inputs";
+            Range("volume", "Volume") value=(values.volume) step=5 ticks;
+            RangePair("price", "Price") values=(values.price_min, values.price_max) step=5 ticks;
+            Color("accent", "Accent") value=(&values.accent) presets=(&ACCENTS) alpha=(values.alpha);
         }
         // end code
     }
 }
 
 /// Only known sizes, countries and `#rrggbb` colours are kept; numbers are clamped.
-async fn inputs_submit(ui: Ui, Form(f): Form<Inputs>) -> Redirect {
-    let d = Inputs::default();
+async fn inputs_submit(ui: Ui, Form(form): Form<Inputs>) -> Redirect {
+    let defaults = Inputs::default();
     let hex = |c: &String| c.len() == 7 && c.starts_with('#');
-    let size = SIZES.iter().any(|(v, ..)| *v == f.size);
+    let size = SIZES.iter().any(|(v, ..)| *v == form.size);
     let country = COUNTRIES
         .iter()
         .flat_map(|(_, cs)| cs)
-        .any(|(v, ..)| *v == f.country);
-    let accent = f.preset.filter(hex).or(Some(f.accent).filter(hex));
-    let (lo, hi) = loco_ui::range::order(f.price_min.clamp(0, 100), f.price_max.clamp(0, 100));
+        .any(|(v, ..)| *v == form.country);
+    let accent = form.preset.filter(hex).or(Some(form.accent).filter(hex));
+    let (lo, hi) =
+        loco_ui::range::order(form.price_min.clamp(0, 100), form.price_max.clamp(0, 100));
     let clean = Inputs {
-        size: if size { f.size } else { d.size },
-        country: if country { f.country } else { d.country },
-        accent: accent.unwrap_or(d.accent),
-        alpha: f.alpha.min(100),
-        volume: f.volume.clamp(0, 100),
+        size: if size { form.size } else { defaults.size },
+        country: if country {
+            form.country
+        } else {
+            defaults.country
+        },
+        accent: accent.unwrap_or(defaults.accent),
+        alpha: form.alpha.min(100),
+        volume: form.volume.clamp(0, 100),
         price_min: lo,
         price_max: hi,
         preset: None,

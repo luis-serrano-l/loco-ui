@@ -27,8 +27,8 @@ fn pricing(ui: &Ui) -> Markup {
         ui.link_with("billing", "yearly"),
     );
     let pick = |text, href, on| {
-        let b = ui.link_button(text, href).small().current(on);
-        if on { b } else { b.ghost() }
+        let button = ui.link_button(text, href).small().current(on);
+        if on { button } else { button.ghost() }
     };
     lui! { Stack gap=6 {
         Cluster gap=1 { (pick("Monthly", &by_month, !yearly)) (pick("Yearly", &by_year, yearly)) }

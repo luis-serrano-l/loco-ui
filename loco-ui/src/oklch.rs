@@ -7,25 +7,25 @@
 /// `#rrggbb` passed through. Colours outside sRGB are clipped per channel. `None` for
 /// anything else.
 pub(crate) fn hex(value: &str) -> Option<String> {
-    let v = value.trim();
-    if is_hex(v) {
-        return Some(v.to_ascii_lowercase());
+    let value = value.trim();
+    if is_hex(value) {
+        return Some(value.to_ascii_lowercase());
     }
-    parse(v).map(to_hex)
+    parse(value).map(to_hex)
 }
 
-fn is_hex(v: &str) -> bool {
-    v.len() == 7 && v.starts_with('#') && v[1..].chars().all(|c| c.is_ascii_hexdigit())
+fn is_hex(value: &str) -> bool {
+    value.len() == 7 && value.starts_with('#') && value[1..].chars().all(|c| c.is_ascii_hexdigit())
 }
 
 /// A colour as oklch lightness (0–1), chroma and hue (degrees), from `oklch(L C H)` or
 /// `#rrggbb`.
 pub(crate) fn parse(value: &str) -> Option<(f64, f64, f64)> {
-    let v = value.trim();
-    if is_hex(v) {
-        return Some(from_hex(v));
+    let value = value.trim();
+    if is_hex(value) {
+        return Some(from_hex(value));
     }
-    let inner = v.strip_prefix("oklch(")?.strip_suffix(')')?;
+    let inner = value.strip_prefix("oklch(")?.strip_suffix(')')?;
     let mut parts = inner.split_whitespace();
     let l = match parts.next()? {
         p if p.ends_with('%') => p.trim_end_matches('%').parse::<f64>().ok()? / 100.0,

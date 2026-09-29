@@ -170,16 +170,16 @@ impl<'a> Chart<'a> {
     }
 }
 
-/// A round step at or above `v`: 1, 2 or 5 times a power of ten.
-fn nice(v: f64) -> f64 {
-    if v <= 0.0 {
+/// A round step at or above `value`: 1, 2 or 5 times a power of ten.
+fn nice(value: f64) -> f64 {
+    if value <= 0.0 {
         return 1.0;
     }
-    let power = 10f64.powf(v.log10().floor());
+    let power = 10f64.powf(value.log10().floor());
     [1.0, 2.0, 5.0, 10.0]
         .iter()
         .map(|m| m * power)
-        .find(|n| *n >= v - 1e-9)
+        .find(|n| *n >= value - 1e-9)
         .unwrap_or(10.0 * power)
 }
 
@@ -197,9 +197,12 @@ fn axis(min: f64, max: f64) -> (f64, f64, f64) {
 }
 
 /// `12`, `12.5`, `0.25`: no trailing zeros.
-fn number(v: f64) -> String {
-    let s = format!("{v:.2}");
-    s.trim_end_matches('0').trim_end_matches('.').to_string()
+fn number(value: f64) -> String {
+    let fixed = format!("{value:.2}");
+    fixed
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_string()
 }
 
 /// The value chip over a mark at `(x, top)`: a dark rounded rectangle sized to the text,
@@ -238,48 +241,48 @@ impl Render for Chart<'_> {
         let hi_value = self.points.iter().map(|p| p.1).fold(0.0, f64::max);
         let (lo, hi, tick) = axis(lo_value, hi_value);
         let sparkline = self.kind == Kind::Sparkline;
-        let (w, h) = if sparkline { (120.0, 32.0) } else { (W, H) };
+        let (width, height) = if sparkline { (120.0, 32.0) } else { (W, H) };
         let (left, bottom, top) = if sparkline {
             (2.0, 2.0, 2.0)
         } else {
             (LEFT, BOTTOM, TOP)
         };
-        let plot = (w - left - 2.0, h - bottom - top);
-        let y = |v: f64| top + (hi - v) / (hi - lo) * plot.1;
-        let n = self.points.len().max(1) as f64;
-        let step = plot.0 / n;
-        let x = |i: usize| left + step * (i as f64 + 0.5);
+        let plot = (width - left - 2.0, height - bottom - top);
+        let y_of = |v: f64| top + (hi - v) / (hi - lo) * plot.1;
+        let count = self.points.len().max(1) as f64;
+        let step = plot.0 / count;
+        let x_of = |i: usize| left + step * (i as f64 + 0.5);
         let value = |v: f64| format!("{}{}", number(v), self.unit);
 
         let mut marks = String::new();
         if !sparkline {
             let ticks = ((hi - lo) / tick).round() as u32;
             for t in 0..=ticks {
-                let v = lo + tick * f64::from(t);
+                let tick_value = lo + tick * f64::from(t);
                 let _ = write!(
                     marks,
                     r#"<line class="lui-chart-grid" stroke="currentColor" stroke-opacity="0.15" x1="{left}" x2="{}" y1="{y:.1}" y2="{y:.1}"/><text class="lui-chart-tick" font-family="sans-serif" font-size="12" x="{}" y="{:.1}" text-anchor="end">{}</text>"#,
-                    w - 2.0,
+                    width - 2.0,
                     left - 6.0,
-                    y(v) + 4.0,
-                    number(v),
-                    y = y(v),
+                    y_of(tick_value) + 4.0,
+                    number(tick_value),
+                    y = y_of(tick_value),
                 );
             }
         }
         match self.kind {
             Kind::Bar => {
-                let width = (step * 0.6).min(48.0);
+                let bar_width = (step * 0.6).min(48.0);
                 for (i, (label, v)) in self.points.iter().enumerate() {
-                    let (a, b) = (y(v.max(0.0)), y(v.min(0.0)));
+                    let (a, b) = (y_of(v.max(0.0)), y_of(v.min(0.0)));
                     let said = format!("{label}: {}", value(*v));
                     let _ = write!(
                         marks,
-                        r#"<g class="lui-chart-mark" tabindex="0" role="img" aria-label="{}"><rect class="lui-chart-bar" x="{:.1}" y="{a:.1}" width="{width:.1}" height="{:.1}" rx="3"/>{}</g>"#,
+                        r#"<g class="lui-chart-mark" tabindex="0" role="img" aria-label="{}"><rect class="lui-chart-bar" x="{:.1}" y="{a:.1}" width="{bar_width:.1}" height="{:.1}" rx="3"/>{}</g>"#,
                         escape(&said),
-                        x(i) - width / 2.0,
+                        x_of(i) - bar_width / 2.0,
                         (b - a).max(0.5),
-                        tip(x(i), a, &said),
+                        tip(x_of(i), a, &said),
                     );
                 }
             }
@@ -288,7 +291,7 @@ impl Render for Chart<'_> {
                     .points
                     .iter()
                     .enumerate()
-                    .map(|(i, (_, v))| format!("{:.1},{:.1}", x(i), y(*v)))
+                    .map(|(i, (_, v))| format!("{:.1},{:.1}", x_of(i), y_of(*v)))
                     .collect();
                 let _ = write!(
                     marks,
@@ -302,9 +305,9 @@ impl Render for Chart<'_> {
                             marks,
                             r#"<g class="lui-chart-mark" tabindex="0" role="img" aria-label="{}"><circle class="lui-chart-dot" fill="none" stroke="currentColor" stroke-width="2" cx="{:.1}" cy="{:.1}" r="4"/>{}</g>"#,
                             escape(&said),
-                            x(i),
-                            y(*v),
-                            tip(x(i), y(*v) - 4.0, &said),
+                            x_of(i),
+                            y_of(*v),
+                            tip(x_of(i), y_of(*v) - 4.0, &said),
                         );
                     }
                 }
@@ -320,8 +323,8 @@ impl Render for Chart<'_> {
                     } else {
                         ""
                     },
-                    x(i),
-                    h - 8.0,
+                    x_of(i),
+                    height - 8.0,
                     escape(label)
                 );
             }
@@ -332,7 +335,7 @@ impl Render for Chart<'_> {
             Kind::Sparkline => "lui-chart lui-chart-sparkline",
         };
         let svg = html! {
-            svg viewBox={ "0 0 " (w) " " (h) } role=(if sparkline { "img" } else { "group" }) aria-labelledby=(labelled) {
+            svg viewBox={ "0 0 " (width) " " (height) } role=(if sparkline { "img" } else { "group" }) aria-labelledby=(labelled) {
                 title id=(title_id) { (self.title) }
                 @if let Some(d) = self.description { desc id=(desc_id) { (d) } }
                 (PreEscaped(marks))

@@ -142,7 +142,7 @@ fn upload(ui: &Ui, files: &[Held]) -> Markup {
         .map(|n| format!("/upload/file/{n}"))
         .collect();
     // code: /upload
-    let up = lui! {
+    let upload = lui! {
         Upload("/upload", "file") accept="image/*,.txt,.pdf" multiple
             help="Images, text or PDF, up to 200 KB each. The last three are kept." {
             @for ((name, bytes), href) in files.iter().zip(&links) {
@@ -153,7 +153,7 @@ fn upload(ui: &Ui, files: &[Held]) -> Markup {
         }
     };
     // end code
-    up
+    upload
 }
 
 async fn upload_page(ui: Ui, Saved(who): Saved<Uploader>) -> Page {
@@ -175,15 +175,15 @@ async fn upload_submit(ui: Ui, Saved(who): Saved<Uploader>, posted: Posted) -> R
         who
     };
     let (mut files, mut kept, mut refused) = (uploads(&who.id), 0, 0);
-    for f in posted.files() {
-        let name: String = f
+    for file in posted.files() {
+        let name: String = file
             .file_name
             .chars()
             .filter(|c| !c.is_control() && *c != '/' && *c != '\\')
             .take(80)
             .collect();
-        if !name.is_empty() && f.bytes.len() <= UPLOAD_MAX {
-            files.push((name, f.bytes.clone()));
+        if !name.is_empty() && file.bytes.len() <= UPLOAD_MAX {
+            files.push((name, file.bytes.clone()));
             kept += 1;
         } else {
             refused += 1;
@@ -192,12 +192,12 @@ async fn upload_submit(ui: Ui, Saved(who): Saved<Uploader>, posted: Posted) -> R
     let over = files.len().saturating_sub(3);
     files.drain(..over);
     keep_uploads(&who.id, files);
-    let msg = match (kept, refused) {
+    let message = match (kept, refused) {
         (0, 0) => "Choose a file first.".to_string(),
-        (k, 0) => format!("Uploaded {k} file(s)."),
-        (k, r) => format!("Uploaded {k}; {r} over 200 KB refused."),
+        (kept, 0) => format!("Uploaded {kept} file(s)."),
+        (kept, refused) => format!("Uploaded {kept}; {refused} over 200 KB refused."),
     };
-    ui.redirect("/upload").flash(&msg).save(&who)
+    ui.redirect("/upload").flash(&message).save(&who)
 }
 
 #[derive(Deserialize)]
@@ -205,23 +205,27 @@ struct Removed {
     file: String,
 }
 
-async fn upload_remove(ui: Ui, Saved(who): Saved<Uploader>, Form(r): Form<Removed>) -> Redirect {
+async fn upload_remove(
+    ui: Ui,
+    Saved(who): Saved<Uploader>,
+    Form(removed): Form<Removed>,
+) -> Redirect {
     let mut files = uploads(&who.id);
-    files.retain(|(n, _)| *n != r.file);
+    files.retain(|(n, _)| *n != removed.file);
     keep_uploads(&who.id, files);
     ui.redirect("/upload")
-        .flash(&format!("Removed {}.", r.file))
+        .flash(&format!("Removed {}.", removed.file))
 }
 
 async fn upload_file(
     Saved(who): Saved<Uploader>,
-    axum::extract::Path(n): axum::extract::Path<usize>,
+    axum::extract::Path(index): axum::extract::Path<usize>,
 ) -> Response {
-    let Some((name, bytes)) = uploads(&who.id).into_iter().nth(n) else {
+    let Some((name, bytes)) = uploads(&who.id).into_iter().nth(index) else {
         return axum::http::StatusCode::NOT_FOUND.into_response();
     };
     match upload_type(&name) {
-        Some(t) => ([("content-type", t.to_string())], bytes).into_response(),
+        Some(content_type) => ([("content-type", content_type.to_string())], bytes).into_response(),
         None => (
             [
                 ("content-type", "application/octet-stream".to_string()),
@@ -266,7 +270,7 @@ impl Default for Board {
 /// The board, each card where the visitor last put it.
 fn kanban(ui: &Ui, board: &Board) -> Markup {
     // code: /kanban
-    let k = lui! {
+    let kanban = lui! {
         Kanban("/kanban") {
             @for (lane, title) in LANES {
                 column (lane) (title) limit=[(lane == "doing").then_some(2)] {
@@ -280,15 +284,15 @@ fn kanban(ui: &Ui, board: &Board) -> Markup {
         }
     };
     // end code
-    k
+    kanban
 }
 
 async fn kanban_page(ui: Ui, Saved(board): Saved<Board>) -> Page {
-    let k = kanban(&ui, &board);
+    let view = kanban(&ui, &board);
     page(
         &ui,
         "Kanban",
-        html! { (k) p class="lui-note" { "Each arrow posts the card and its new column; the server moves it and redirects back. Doing has a limit of two: past it, its count turns red." } },
+        html! { (view) p class="lui-note" { "Each arrow posts the card and its new column; the server moves it and redirects back. Doing has a limit of two: past it, its count turns red." } },
     )
 }
 
@@ -299,11 +303,12 @@ struct Move {
 }
 
 /// A move: the card goes last in its new column (known cards and columns only), then PRG.
-async fn kanban_move(ui: Ui, Saved(mut board): Saved<Board>, Form(m): Form<Move>) -> Redirect {
-    let known = LANES.iter().any(|l| l.0 == m.to) && board.0.iter().any(|(c, _)| *c == m.card);
+async fn kanban_move(ui: Ui, Saved(mut board): Saved<Board>, Form(moved): Form<Move>) -> Redirect {
+    let known =
+        LANES.iter().any(|l| l.0 == moved.to) && board.0.iter().any(|(c, _)| *c == moved.card);
     if known {
-        board.0.retain(|(c, _)| *c != m.card);
-        board.0.push((m.card, m.to));
+        board.0.retain(|(c, _)| *c != moved.card);
+        board.0.push((moved.card, moved.to));
     }
     ui.redirect("/kanban").save(&board)
 }
@@ -358,10 +363,14 @@ struct Reorder {
 }
 
 /// A move: the item leaves its place and goes in at `to` (known items only), then PRG.
-async fn sortable_move(ui: Ui, Saved(mut order): Saved<Order>, Form(m): Form<Reorder>) -> Redirect {
-    if let Some(at) = order.0.iter().position(|(_, k)| *k == m.item) {
+async fn sortable_move(
+    ui: Ui,
+    Saved(mut order): Saved<Order>,
+    Form(moved): Form<Reorder>,
+) -> Redirect {
+    if let Some(at) = order.0.iter().position(|(_, k)| *k == moved.item) {
         let key = order.0.remove(at);
-        order.0.insert(m.to.min(order.0.len()), key);
+        order.0.insert(moved.to.min(order.0.len()), key);
     }
     ui.redirect("/sortable").save(&order)
 }

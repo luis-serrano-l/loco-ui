@@ -363,13 +363,16 @@ mod axum_glue {
     impl IntoResponseParts for UiState {
         type Error = std::convert::Infallible;
 
-        fn into_response_parts(self, mut res: ResponseParts) -> Result<ResponseParts, Self::Error> {
+        fn into_response_parts(
+            self,
+            mut parts: ResponseParts,
+        ) -> Result<ResponseParts, Self::Error> {
             for c in self.set_cookies() {
                 if let Ok(value) = HeaderValue::try_from(c) {
-                    res.headers_mut().append(header::SET_COOKIE, value);
+                    parts.headers_mut().append(header::SET_COOKIE, value);
                 }
             }
-            Ok(res)
+            Ok(parts)
         }
     }
 }

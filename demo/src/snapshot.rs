@@ -78,12 +78,12 @@ fn route(path: &str) -> &str {
 }
 
 async fn render(path: &str, cookie: &str) -> String {
-    let req = Request::get(path)
+    let request = Request::get(path)
         .header("cookie", cookie)
         .body(Body::empty())
         .unwrap();
-    let res = router().oneshot(req).await.unwrap();
-    let body = axum::body::to_bytes(res.into_body(), usize::MAX)
+    let response = router().oneshot(request).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
         .await
         .unwrap();
     let html = String::from_utf8(body.to_vec()).unwrap();
@@ -141,15 +141,19 @@ fn target(url: &str, names: &[String]) -> Option<String> {
         return None;
     }
     let url = url.replace("&amp;", "&");
-    let (no_frag, frag) = match url.split_once('#') {
-        Some((u, f)) => (u, format!("#{f}")),
+    let (without_fragment, fragment) = match url.split_once('#') {
+        Some((path, fragment)) => (path, format!("#{fragment}")),
         None => (url.as_str(), String::new()),
     };
-    let i = PATHS
+    let index = PATHS
         .iter()
-        .position(|p| *p == no_frag)
-        .or_else(|| PATHS.iter().position(|p| route(p) == route(no_frag)))?;
-    Some(format!("{}.html{frag}", names[i]))
+        .position(|p| *p == without_fragment)
+        .or_else(|| {
+            PATHS
+                .iter()
+                .position(|p| route(p) == route(without_fragment))
+        })?;
+    Some(format!("{}.html{fragment}", names[index]))
 }
 
 fn banner(other: Option<&str>, baseline: bool) -> Markup {
@@ -157,8 +161,8 @@ fn banner(other: Option<&str>, baseline: bool) -> Markup {
     let body = html! {
         p { "Forms, cookies and paging need the real server: clone the repository and run "
             code { "cargo run -p demo" } ". Dialogs, popovers, disclosures and tooltips work here." }
-        @if let Some(o) = other {
-            p { a href={ (o) ".html" } {
+        @if let Some(other) = other {
+            p { a href={ (other) ".html" } {
                 @if baseline { "See this page as a current browser gets it." }
                 @else { "See this page as a browser without the newer CSS features gets it." }
             } }

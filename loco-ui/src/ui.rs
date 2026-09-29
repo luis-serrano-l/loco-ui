@@ -200,9 +200,9 @@ impl Ui {
     /// shows at the top of `body` unless `body` already shows it (`ui.flash()` placed
     /// elsewhere, with its setters, or as [`Ui::toasts`]).
     pub fn page(&self, title: &str, body: Markup) -> Page {
-        let shown = |b: &Markup| {
-            let b = b.0.as_str();
-            b.contains(r#"class="lui-flash""#) || b.contains(r#"class="lui-toasts""#)
+        let shown = |body: &Markup| {
+            let html = body.0.as_str();
+            html.contains(r#"class="lui-flash""#) || html.contains(r#"class="lui-toasts""#)
         };
         let body = if self.state.flash().is_some() && !shown(&body) {
             maud::html! { (self.flash()) (body) }
@@ -420,7 +420,6 @@ impl Redirect {
                 .iter()
                 .map(|(l, m)| (*l, m.as_str()))
                 .collect();
-            // A lone info message stays plain text.
             let text = match pairs.as_slice() {
                 [(Level::Info, m)] => m.to_string(),
                 _ => stack(&pairs),
@@ -530,8 +529,8 @@ mod axum_glue {
     impl IntoResponseParts for Ui {
         type Error = std::convert::Infallible;
 
-        fn into_response_parts(self, res: ResponseParts) -> Result<ResponseParts, Self::Error> {
-            self.state.into_response_parts(res)
+        fn into_response_parts(self, parts: ResponseParts) -> Result<ResponseParts, Self::Error> {
+            self.state.into_response_parts(parts)
         }
     }
 
@@ -546,14 +545,14 @@ mod axum_glue {
 
     impl IntoResponse for Page {
         fn into_response(self) -> Response {
-            let mut res = Html(self.render().into_string()).into_response();
-            *res.status_mut() =
+            let mut response = Html(self.render().into_string()).into_response();
+            *response.status_mut() =
                 axum::http::StatusCode::from_u16(self.status).unwrap_or(axum::http::StatusCode::OK);
             if !self.script {
                 // For `enhance::csp`: this page may be served under `script-src 'none'`.
-                res.extensions_mut().insert(crate::enhance::NoScript);
+                response.extensions_mut().insert(crate::enhance::NoScript);
             }
-            with_cookies(res, self.cookies)
+            with_cookies(response, self.cookies)
         }
     }
 

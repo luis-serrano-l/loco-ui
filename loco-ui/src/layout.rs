@@ -222,16 +222,20 @@ impl Scale {
         let (l0, c0, h0) = crate::oklch::parse(seed)?;
         let seed_hex = crate::oklch::to_hex((l0, c0, h0));
         let steps = |profile: &[&str; 12]| -> Option<[String; 12]> {
-            let p: Vec<_> = profile
+            let profile_points: Vec<_> = profile
                 .iter()
                 .map(|v| crate::oklch::parse(v))
                 .collect::<Option<_>>()?;
-            let (l9, c9, _) = p[8];
+            let (l9, c9, _) = profile_points[8];
             let ratio = if c9 > 0.001 { c0 / c9 } else { 1.0 };
             Some(std::array::from_fn(|i| match i {
                 8 => seed_hex.clone(),
-                9 => crate::oklch::to_hex(((l0 + p[9].0 - l9).clamp(0.0, 1.0), p[9].1 * ratio, h0)),
-                _ => crate::oklch::to_hex((p[i].0, p[i].1 * ratio, h0)),
+                9 => crate::oklch::to_hex((
+                    (l0 + profile_points[9].0 - l9).clamp(0.0, 1.0),
+                    profile_points[9].1 * ratio,
+                    h0,
+                )),
+                _ => crate::oklch::to_hex((profile_points[i].0, profile_points[i].1 * ratio, h0)),
             }))
         };
         Some(DerivedScale {
@@ -243,9 +247,9 @@ impl Scale {
     /// `--lui-<name>-n: <colour>;` for one scheme's steps.
     fn declarations(steps: &[&str; 12], name: &str) -> String {
         let mut out = String::from("  ");
-        for (i, v) in steps.iter().enumerate() {
-            let v = crate::oklch::hex(v).unwrap_or_else(|| (*v).to_string());
-            out.push_str(&format!("--lui-{name}-{}: {v}; ", i + 1));
+        for (i, step) in steps.iter().enumerate() {
+            let value = crate::oklch::hex(step).unwrap_or_else(|| (*step).to_string());
+            out.push_str(&format!("--lui-{name}-{}: {value}; ", i + 1));
         }
         out.push('\n');
         out
@@ -480,19 +484,19 @@ impl Tokens {
     /// `var(--lui-gray-n)` / `var(--lui-brand-n)` alias resolved through the scales. `None`
     /// for anything else. The theme builder fills its colour inputs with it.
     pub fn color(&self, dark: bool, value: &str) -> Option<String> {
-        let step = |name: &str| {
+        let alias = |name: &str| {
             let rest = value.trim().strip_prefix("var(--lui-")?.strip_suffix(')')?;
-            let n: usize = rest.strip_prefix(name)?.strip_prefix('-')?.parse().ok()?;
-            let s = if name == "gray" {
+            let step: usize = rest.strip_prefix(name)?.strip_prefix('-')?.parse().ok()?;
+            let scale = if name == "gray" {
                 &self.gray
             } else {
                 &self.brand
             };
-            let steps = if dark { s.dark } else { s.light };
-            steps.get(n.checked_sub(1)?).copied()
+            let steps = if dark { scale.dark } else { scale.light };
+            steps.get(step.checked_sub(1)?).copied()
         };
-        let v = step("gray").or_else(|| step("brand")).unwrap_or(value);
-        crate::oklch::hex(v)
+        let value = alias("gray").or_else(|| alias("brand")).unwrap_or(value);
+        crate::oklch::hex(value)
     }
 }
 
@@ -711,7 +715,7 @@ tbody tr:hover { background: color-mix(in srgb, var(--lui-accent) 50%, transpare
    index spreads wider); narrower, it follows a closed <details> that hides it until opened,
    so it is a plain <nav> of links either way and needs no script. */
 /* Wider than <main> (52rem): the frame spreads to 84rem, centred, by negative margins (not
-   :has(), which Blitz lacks); the header follows where :has() works. */
+   :has(), which Blitz lacks: FINDINGS, M34); the header follows where :has() works. */
 .lui-site {
   display: grid; gap: calc(var(--lui-space) * 3); width: min(84rem, calc(100vw - 2rem));
   margin-inline: calc((100% - min(84rem, calc(100vw - 2rem))) / 2);

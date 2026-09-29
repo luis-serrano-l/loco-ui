@@ -177,8 +177,8 @@ impl Render for Accordion<'_> {
             multi,
             controls,
         } = *self;
-        let s = &ui.state;
-        let open: Vec<usize> = s.opens(group);
+        let state = &ui.state;
+        let open: Vec<usize> = state.opens(group);
         let key = format!("open.{group}");
         let list = |ix: &[usize]| {
             ix.iter()
@@ -201,15 +201,15 @@ impl Render for Accordion<'_> {
             div id={ "lui-accordion-" (group) } data-lui="swap" class="lui-accordion" {
                 @if multi && controls {
                     p class="lui-accordion-controls" {
-                        a href=(s.link(&key, &list(&(0..items.len()).collect::<Vec<_>>()))) { (ui.text(Text::ExpandAll)) }
-                        a href=(s.link(&key, "")) { (ui.text(Text::CollapseAll)) }
+                        a href=(state.link(&key, &list(&(0..items.len()).collect::<Vec<_>>()))) { (ui.text(Text::ExpandAll)) }
+                        a href=(state.link(&key, "")) { (ui.text(Text::CollapseAll)) }
                     }
                 }
                 @for (i, item) in items.iter().enumerate() {
                     details name=[(!multi).then_some(group)] open[open.contains(&i)] {
                         summary {
                             @if let Some(icon) = item.icon { span class="lui-accordion-icon" aria-hidden="true" { (icon) } }
-                            a href=(s.link(&key, &toggled(i))) {
+                            a href=(state.link(&key, &toggled(i))) {
                                 (item.title)
                                 @if let Some(line) = item.summary { span class="lui-accordion-summary" { (line) } }
                             }

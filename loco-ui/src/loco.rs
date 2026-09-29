@@ -596,8 +596,11 @@ fn failed_field(
 impl<S: Send + Sync, T: DeserializeOwned + Validate> FromRequest<S> for Valid<T> {
     type Rejection = BytesRejection;
 
-    async fn from_request(req: Request, state: &S) -> std::result::Result<Self, Self::Rejection> {
-        let body = Bytes::from_request(req, state).await?;
+    async fn from_request(
+        request: Request,
+        state: &S,
+    ) -> std::result::Result<Self, Self::Rejection> {
+        let body = Bytes::from_request(request, state).await?;
         Ok(Self::check(
             form_urlencoded::parse(&body).into_owned().collect(),
         ))
@@ -711,13 +714,13 @@ impl loco_rs::app::Initializer for SignIn {
 /// redirect to `path` with a flash, and `?next=` names the page when the request was a GET.
 pub fn sign_in(router: Router, path: &'static str) -> Router {
     router.layer(axum::middleware::from_fn(
-        move |req: Request, next: axum::middleware::Next| sign_in_on_401(path, req, next),
+        move |request: Request, next: axum::middleware::Next| sign_in_on_401(path, request, next),
     ))
 }
 
 async fn sign_in_on_401(
     path: &'static str,
-    req: Request,
+    request: Request,
     next: axum::middleware::Next,
 ) -> axum::response::Response {
     use axum::{
@@ -726,18 +729,18 @@ async fn sign_in_on_401(
         response::IntoResponse,
     };
     let (method, uri, headers) = (
-        req.method().clone(),
-        req.uri().clone(),
-        req.headers().clone(),
+        request.method().clone(),
+        request.uri().clone(),
+        request.headers().clone(),
     );
-    let res = next.run(req).await;
+    let response = next.run(request).await;
     let accept = headers
         .get(header::ACCEPT)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("");
     let wants_json = accept.contains("json") && !accept.contains("html");
-    if res.status() != StatusCode::UNAUTHORIZED || wants_json {
-        return res;
+    if response.status() != StatusCode::UNAUTHORIZED || wants_json {
+        return response;
     }
     let (mut parts, ()) = Request::new(()).into_parts();
     (parts.method, parts.uri, parts.headers) = (method, uri, headers);

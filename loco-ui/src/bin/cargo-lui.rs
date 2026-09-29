@@ -100,7 +100,7 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let mut opts = Options {
+    let mut options = Options {
         app: PathBuf::from("."),
         dep_path: None,
         force: false,
@@ -108,22 +108,22 @@ fn main() -> ExitCode {
     let mut rest = args.into_iter().skip(1);
     while let Some(arg) = rest.next() {
         match arg.as_str() {
-            "--force" => opts.force = true,
+            "--force" => options.force = true,
             "--dep-path" => match rest.next() {
-                Some(p) => opts.dep_path = Some(p),
+                Some(p) => options.dep_path = Some(p),
                 None => {
                     eprintln!("{USAGE}");
                     return ExitCode::from(2);
                 }
             },
-            s if s.starts_with('-') => {
-                eprintln!("unknown option {s}\n{USAGE}");
+            flag if flag.starts_with('-') => {
+                eprintln!("unknown option {flag}\n{USAGE}");
                 return ExitCode::from(2);
             }
-            _ => opts.app = PathBuf::from(arg),
+            _ => options.app = PathBuf::from(arg),
         }
     }
-    match command(&opts) {
+    match command(&options) {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("error: {e}");
@@ -148,18 +148,18 @@ fn loco_app(app: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn install(o: &Options) -> Result<(), String> {
-    let app = &o.app;
+fn install(options: &Options) -> Result<(), String> {
+    let app = &options.app;
     loco_app(app)?;
     let templates = app.join(".loco-templates/scaffold/api");
-    write_file(&templates.join("controller.t"), CONTROLLER, o.force)?;
-    write_file(&templates.join("dto.t"), DTO, o.force)?;
-    write_file(&app.join("src/views/layout.rs"), LAYOUT, o.force)?;
+    write_file(&templates.join("controller.t"), CONTROLLER, options.force)?;
+    write_file(&templates.join("dto.t"), DTO, options.force)?;
+    write_file(&app.join("src/views/layout.rs"), LAYOUT, options.force)?;
     edit(&app.join("src/views/mod.rs"), |s| {
         add_line(s, "pub mod layout;")
     })?;
     edit(&app.join("src/app.rs"), |s| add_initializer(s, INITIALIZER))?;
-    let dep = match &o.dep_path {
+    let dep = match &options.dep_path {
         Some(p) => format!(r#"loco-ui = {{ path = "{p}", features = ["loco"] }}"#),
         None => format!(r#"loco-ui = {{ git = "{GIT}", features = ["loco"] }}"#),
     };
@@ -171,8 +171,8 @@ fn install(o: &Options) -> Result<(), String> {
     Ok(())
 }
 
-fn auth(o: &Options) -> Result<(), String> {
-    let app = &o.app;
+fn auth(options: &Options) -> Result<(), String> {
+    let app = &options.app;
     loco_app(app)?;
     let manifest = fs::read_to_string(app.join("Cargo.toml")).unwrap_or_default();
     if !manifest.contains("loco-ui") {
@@ -187,9 +187,13 @@ fn auth(o: &Options) -> Result<(), String> {
     write_file(
         &app.join("src/controllers/account.rs"),
         ACCOUNT_CONTROLLER,
-        o.force,
+        options.force,
     )?;
-    write_file(&app.join("src/views/account.rs"), ACCOUNT_VIEWS, o.force)?;
+    write_file(
+        &app.join("src/views/account.rs"),
+        ACCOUNT_VIEWS,
+        options.force,
+    )?;
     edit(&app.join("src/controllers/mod.rs"), |s| {
         add_line(s, "pub mod account;")
     })?;
@@ -222,33 +226,35 @@ fn auth(o: &Options) -> Result<(), String> {
 }
 
 /// Register the account routes right after `AppRoutes::..` in `fn routes`.
-fn add_account_route(s: &str) -> Result<String, String> {
-    if s.contains(ACCOUNT_ROUTE) {
-        return Ok(s.to_string());
+fn add_account_route(contents: &str) -> Result<String, String> {
+    if contents.contains(ACCOUNT_ROUTE) {
+        return Ok(contents.to_string());
     }
     let missing = || format!("no `AppRoutes::` in `fn routes`; add `{ACCOUNT_ROUTE}` by hand");
-    let at = s.find("fn routes").ok_or_else(missing)?;
-    let at = at + s[at..].find("AppRoutes::").ok_or_else(missing)?;
-    let end = at + s[at..].find('\n').ok_or_else(missing)? + 1;
+    let at = contents.find("fn routes").ok_or_else(missing)?;
+    let at = at + contents[at..].find("AppRoutes::").ok_or_else(missing)?;
+    let end = at + contents[at..].find('\n').ok_or_else(missing)? + 1;
     Ok(format!(
         "{}            {ACCOUNT_ROUTE}\n{}",
-        &s[..end],
-        &s[end..]
+        &contents[..end],
+        &contents[end..]
     ))
 }
 
-/// Point the starter's mail links at the account pages.
-fn point_mail_links(s: &str) -> String {
+/// Point the starter'contents mail links at the account pages.
+fn point_mail_links(contents: &str) -> String {
     MAIL_LINKS
         .iter()
-        .fold(s.to_string(), |s, (from, to)| s.replace(from, to))
+        .fold(contents.to_string(), |text, (from, to)| {
+            text.replace(from, to)
+        })
 }
 
 /// Add the cookie location under `auth:` → `jwt:` unless that block names a location.
-fn add_jwt_location(s: &str) -> Result<String, String> {
-    let lines: Vec<&str> = s.split_inclusive('\n').collect();
+fn add_jwt_location(contents: &str) -> Result<String, String> {
+    let lines: Vec<&str> = contents.split_inclusive('\n').collect();
     let Some(auth) = lines.iter().position(|l| l.trim_end() == "auth:") else {
-        return Ok(s.to_string());
+        return Ok(contents.to_string());
     };
     // The block runs to the next line that starts in the first column (not a comment).
     let end = lines[auth + 1..]
@@ -260,10 +266,10 @@ fn add_jwt_location(s: &str) -> Result<String, String> {
         .iter()
         .any(|l| l.trim_start().starts_with("location:"))
     {
-        return Ok(s.to_string());
+        return Ok(contents.to_string());
     }
     let Some(jwt) = block.iter().position(|l| l.trim_end() == "  jwt:") else {
-        return Ok(s.to_string());
+        return Ok(contents.to_string());
     };
     let at = auth + jwt + 1;
     Ok(format!(
@@ -292,14 +298,14 @@ fn write_file(path: &Path, content: &str, force: bool) -> Result<(), String> {
     Ok(())
 }
 
-/// Apply `f` to the file (created empty when missing) and write it back only if it changed.
-fn edit(path: &Path, f: impl Fn(&str) -> Result<String, String>) -> Result<(), String> {
+/// Apply `change` to the file (created empty when missing) and write it back only if it changed.
+fn edit(path: &Path, change: impl Fn(&str) -> Result<String, String>) -> Result<(), String> {
     let old = match fs::read_to_string(path) {
         Ok(old) => old,
         Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
         Err(e) => return Err(format!("{}: {e}", path.display())),
     };
-    let new = f(&old).map_err(|e| format!("{}: {e}", path.display()))?;
+    let new = change(&old).map_err(|e| format!("{}: {e}", path.display()))?;
     if new == old {
         println!("unchanged {}", path.display());
     } else {
@@ -310,11 +316,11 @@ fn edit(path: &Path, f: impl Fn(&str) -> Result<String, String>) -> Result<(), S
 }
 
 /// Append `line` unless a line reads exactly that.
-fn add_line(s: &str, line: &str) -> Result<String, String> {
-    if s.lines().any(|l| l.trim() == line) {
-        return Ok(s.to_string());
+fn add_line(contents: &str, line: &str) -> Result<String, String> {
+    if contents.lines().any(|l| l.trim() == line) {
+        return Ok(contents.to_string());
     }
-    let mut out = s.to_string();
+    let mut out = contents.to_string();
     if !out.is_empty() && !out.ends_with('\n') {
         out.push('\n');
     }
@@ -323,44 +329,48 @@ fn add_line(s: &str, line: &str) -> Result<String, String> {
     Ok(out)
 }
 
-/// Put `init` in the `vec![..]` that `fn initializers` returns: right after loco-ui's own
+/// Put `init` in the `vec![..]` that `fn initializers` returns: right after loco-ui'contents own
 /// initializer when that is there, else first.
-fn add_initializer(s: &str, init: &str) -> Result<String, String> {
-    if s.contains(init) {
-        return Ok(s.to_string());
+fn add_initializer(contents: &str, init: &str) -> Result<String, String> {
+    if contents.contains(init) {
+        return Ok(contents.to_string());
     }
-    if let Some(at) = s.find(INITIALIZER) {
+    if let Some(at) = contents.find(INITIALIZER) {
         let at = at + INITIALIZER.len();
-        return Ok(format!("{}, {init}{}", &s[..at], &s[at..]));
+        return Ok(format!("{}, {init}{}", &contents[..at], &contents[at..]));
     }
     let missing = || format!("no `vec![` in `fn initializers`; add `{init}` to it by hand");
-    let at = s.find("fn initializers").ok_or_else(missing)?;
-    let open = at + s[at..].find("vec![").ok_or_else(missing)? + "vec![".len();
-    let empty = s[open..].trim_start().starts_with(']');
+    let at = contents.find("fn initializers").ok_or_else(missing)?;
+    let open = at + contents[at..].find("vec![").ok_or_else(missing)? + "vec![".len();
+    let empty = contents[open..].trim_start().starts_with(']');
     let insert = if empty {
         init.to_string()
     } else {
         format!("{init}, ")
     };
-    Ok(format!("{}{insert}{}", &s[..open], &s[open..]))
+    Ok(format!(
+        "{}{insert}{}",
+        &contents[..open],
+        &contents[open..]
+    ))
 }
 
 /// Add `line` as the first entry of `[dependencies]` unless `name` is already a dependency.
-fn add_dependency(s: &str, name: &str, line: &str) -> Result<String, String> {
+fn add_dependency(contents: &str, name: &str, line: &str) -> Result<String, String> {
     let mut section = "";
-    for l in s.lines() {
-        let t = l.trim();
-        if t.starts_with('[') {
-            section = t;
-        } else if section == "[dependencies]" && t.split(['=', ' ', '.']).next() == Some(name) {
-            return Ok(s.to_string());
+    for trimmed in contents.lines().map(str::trim) {
+        if trimmed.starts_with('[') {
+            section = trimmed;
+        } else if section == "[dependencies]" && trimmed.split(['=', ' ', '.']).next() == Some(name)
+        {
+            return Ok(contents.to_string());
         }
     }
-    let at = s
+    let at = contents
         .find("[dependencies]\n")
         .ok_or("no [dependencies] section")?;
     let at = at + "[dependencies]\n".len();
-    Ok(format!("{}{line}\n{}", &s[..at], &s[at..]))
+    Ok(format!("{}{line}\n{}", &contents[..at], &contents[at..]))
 }
 
 #[cfg(test)]

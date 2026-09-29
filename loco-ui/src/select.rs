@@ -297,11 +297,11 @@ impl Render for Select<'_> {
         let rich = ui.has(Cap::BaseSelect);
         let total: usize = groups.iter().map(|g| g.options.len()).sum();
         let search = search.filter(|_| total > search_over);
-        let q_name = format!("{name}-q");
-        let q_id = format!("{name}-filter");
-        let q = ui.param(&q_name).unwrap_or("");
+        let query_name = format!("{name}-q");
+        let query_id = format!("{name}-filter");
+        let raw_query = ui.param(&query_name).unwrap_or("");
         let query = if search.is_some() {
-            q.trim().to_lowercase()
+            raw_query.trim().to_lowercase()
         } else {
             String::new()
         };
@@ -323,7 +323,7 @@ impl Render for Select<'_> {
                 span class="lui-select" {
                     @if let Some(action) = search {
                         span class="lui-select-search" {
-                            (Input::search_box(&q_name, ui.text(Text::FilterOptions), q).id(&q_id).placeholder(ui.text(Text::Filter)).class("lui-select-filter"))
+                            (Input::search_box(&query_name, ui.text(Text::FilterOptions), raw_query).id(&query_id).placeholder(ui.text(Text::Filter)).class("lui-select-filter"))
                             (ui.button(ui.text(Text::Filter)).formmethod("get").formaction(action).formnovalidate())
                         }
                     }

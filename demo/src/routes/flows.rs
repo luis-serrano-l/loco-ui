@@ -75,8 +75,11 @@ async fn signin_submit(ui: Ui, posted: Posted) -> Result<Redirect, Page> {
         errors.push(("password", "The password needs at least 8 characters."));
     }
     if errors.is_empty() {
-        let msg = format!("Signed in as {email}.");
-        return Ok(ui.redirect("/app/notes").ok(&msg).save(&Session { email }));
+        let message = format!("Signed in as {email}.");
+        return Ok(ui
+            .redirect("/app/notes")
+            .ok(&message)
+            .save(&Session { email }));
     }
     Err(signin_view(&ui, &[("email".to_string(), email)], &errors).invalid())
 }
@@ -117,12 +120,13 @@ async fn notes_page(ui: Ui, Saved(session): Saved<Session>, Saved(saved): Saved<
 /// The form that adds a note over the table of notes: filter, sort, rename, delete, pages.
 fn notes(ui: &Ui, notes: &AppNotes) -> Markup {
     // code: /app/notes
-    let q = ui.table_query("notes", &["text"]);
-    let mut found: Vec<&(String, String)> = notes.0.iter().filter(|n| q.matches(&n.1)).collect();
-    q.sort_by(&mut found, |a, b, _| {
+    let query = ui.table_query("notes", &["text"]);
+    let mut found: Vec<&(String, String)> =
+        notes.0.iter().filter(|n| query.matches(&n.1)).collect();
+    query.sort_by(&mut found, |a, b, _| {
         a.1.to_lowercase().cmp(&b.1.to_lowercase())
     });
-    let (page, total) = q.page_of(&found);
+    let (page, total) = query.page_of(&found);
     let delete = |id| format!("/app/notes/delete?id={id}");
     let deletes: Vec<String> = page.iter().map(|n| delete(&n.0)).collect();
     lui! {
@@ -145,8 +149,12 @@ struct NewNote {
 }
 
 /// Add, then back to the list with a flash (Post/Redirect/Get). Twenty notes at most.
-async fn note_add(ui: Ui, Saved(mut notes): Saved<AppNotes>, Form(n): Form<NewNote>) -> Redirect {
-    let text: String = n.text.trim().chars().take(60).collect();
+async fn note_add(
+    ui: Ui,
+    Saved(mut notes): Saved<AppNotes>,
+    Form(note): Form<NewNote>,
+) -> Redirect {
+    let text: String = note.text.trim().chars().take(60).collect();
     if text.is_empty() {
         return ui.redirect("/app/notes").warn("A note needs some text.");
     }
@@ -173,19 +181,19 @@ struct EditedNote {
 async fn note_edit(
     ui: Ui,
     Saved(mut notes): Saved<AppNotes>,
-    Form(e): Form<EditedNote>,
+    Form(edited): Form<EditedNote>,
 ) -> Redirect {
-    let text: String = e.text.trim().chars().take(60).collect();
-    if let Some(n) = notes
+    let text: String = edited.text.trim().chars().take(60).collect();
+    if let Some(note) = notes
         .0
         .iter_mut()
-        .find(|(id, _)| *id == e.key)
+        .find(|(id, _)| *id == edited.key)
         .filter(|_| !text.is_empty())
     {
-        n.1 = text;
+        note.1 = text;
     }
-    let back = if e.returns_to.starts_with("/app/notes") {
-        &e.returns_to
+    let back = if edited.returns_to.starts_with("/app/notes") {
+        &edited.returns_to
     } else {
         "/app/notes"
     };
@@ -200,8 +208,8 @@ struct NoteId {
 async fn note_delete(
     ui: Ui,
     Saved(mut notes): Saved<AppNotes>,
-    Query(q): Query<NoteId>,
+    Query(query): Query<NoteId>,
 ) -> Redirect {
-    notes.0.retain(|(id, _)| *id != q.id);
+    notes.0.retain(|(id, _)| *id != query.id);
     ui.redirect("/app/notes").warn("Note deleted.").save(&notes)
 }

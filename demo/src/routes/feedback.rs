@@ -77,8 +77,8 @@ struct ToastForm {
 }
 
 /// Toasts come back from a post like a flash: the one-shot cookie, several at once.
-async fn toast_submit(ui: Ui, Form(f): Form<ToastForm>) -> Redirect {
-    let wants = |k: &str| f.kind == "all" || f.kind == k;
+async fn toast_submit(ui: Ui, Form(form): Form<ToastForm>) -> Redirect {
+    let wants = |k: &str| form.kind == "all" || form.kind == k;
     // code: /toast
     let mut back = ui.redirect("/toast");
     if wants("ok") {

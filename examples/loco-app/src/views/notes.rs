@@ -7,21 +7,21 @@ use loco_ui::prelude::*;
 use crate::models::notes::{Listed, Model};
 
 /// "3 hours ago", "yesterday", "12 Sep 2026".
-pub fn ago(t: &DateTime<FixedOffset>) -> String {
-    let secs = (Utc::now() - t.with_timezone(&Utc)).num_seconds().max(0);
+pub fn ago(time: &DateTime<FixedOffset>) -> String {
+    let secs = (Utc::now() - time.with_timezone(&Utc)).num_seconds().max(0);
     match secs {
         0..60 => "just now".into(),
         60..3_600 => format!("{} min ago", secs / 60),
         3_600..86_400 => format!("{} h ago", secs / 3_600),
         86_400..172_800 => "yesterday".into(),
         172_800..604_800 => format!("{} days ago", secs / 86_400),
-        _ => t.format("%-d %b %Y").to_string(),
+        _ => time.format("%-d %b %Y").to_string(),
     }
 }
 
 /// The first lines of a note's body.
-fn excerpt(m: &Model) -> String {
-    let body = m.body.as_deref().unwrap_or("");
+fn excerpt(note: &Model) -> String {
+    let body = note.body.as_deref().unwrap_or("");
     let mut text: String = body.split_whitespace().collect::<Vec<_>>().join(" ");
     if text.chars().count() > 180 {
         text = text.chars().take(180).collect::<String>() + "…";
@@ -29,25 +29,25 @@ fn excerpt(m: &Model) -> String {
     text
 }
 
-/// The list of the notes tagged `t`, the tag encoded (`c#`, `r&d`).
-fn tag_href(t: &str) -> String {
-    loco_ui::href("/notes", [("sel", t)])
+/// The list of the notes tagged `tag`, the tag encoded (`c#`, `r&d`).
+fn tag_href(tag: &str) -> String {
+    loco_ui::href("/notes", [("sel", tag)])
 }
 
 /// A note as a card: title (the card's link), a few lines, tags and when it changed.
-pub fn card(ui: &Ui, it: &Listed) -> Markup {
-    let m = &it.note;
+pub fn card(ui: &Ui, listed: &Listed) -> Markup {
+    let note = &listed.note;
     lui! {
         div class="notes-card" {
             Card {
                 div class="notes-card-body" {
-                    h3 { a href={ "/notes/" (m.id) } { (m.title) } }
-                    @let text = excerpt(m);
+                    h3 { a href={ "/notes/" (note.id) } { (note.title) } }
+                    @let text = excerpt(note);
                     @if !text.is_empty() { p class="notes-excerpt" { (text) } }
                     div class="notes-meta" {
-                        @if m.pinned { Badge("Pinned") solid; }
-                        @for t in &it.tags { @let href = tag_href(t); Badge(t) secondary href=(&href); }
-                        span { (ago(&m.updated_at)) }
+                        @if note.pinned { Badge("Pinned") solid; }
+                        @for tag in &listed.tags { @let href = tag_href(tag); Badge(tag) secondary href=(&href); }
+                        span { (ago(&note.updated_at)) }
                     }
                 }
             }
@@ -60,7 +60,7 @@ pub fn list(ui: &Ui, heading: &str, path: &str, items: &[Listed], tags: &[String
     let view = ui.param("view").unwrap_or("grid");
     let typed = ui.param("tag").unwrap_or("").to_lowercase();
     let results: Vec<&str> = (tags.iter().map(String::as_str))
-        .filter(|t| !typed.is_empty() && t.contains(&typed))
+        .filter(|tag| !typed.is_empty() && tag.contains(&typed))
         .collect();
     let chosen: Vec<&str> = ui.params("sel").collect();
     lui! {
@@ -73,8 +73,8 @@ pub fn list(ui: &Ui, heading: &str, path: &str, items: &[Listed], tags: &[String
                 multiple label="Tags" placeholder="Filter by tag" keep="q" keep="view";
             form class="notes-view" method="get" action=(path) {
                 // The switch keeps the search and the chosen tags.
-                @if let Some(q) = ui.param("q") { input type="hidden" name="q" value=(q); }
-                @for s in &chosen { input type="hidden" name="sel" value=(s); }
+                @if let Some(query) = ui.param("q") { input type="hidden" name="q" value=(query); }
+                @for tag in &chosen { input type="hidden" name="sel" value=(tag); }
                 ToggleGroup("view", "View") value=(view) {
                     option "grid" "Cards";
                     option "list" "Table";
@@ -90,7 +90,7 @@ pub fn list(ui: &Ui, heading: &str, path: &str, items: &[Listed], tags: &[String
         } @else if view == "list" {
             (table(ui, path, items))
         } @else {
-            Grid("17rem") { @for it in items { (card(ui, it)) } }
+            Grid("17rem") { @for listed in items { (card(ui, listed)) } }
         }
     }
 }
@@ -98,8 +98,8 @@ pub fn list(ui: &Ui, heading: &str, path: &str, items: &[Listed], tags: &[String
 /// The table view: title, notebook, tags, when it changed, and a menu per row.
 fn table(ui: &Ui, path: &str, items: &[Listed]) -> Markup {
     let links: Vec<[String; 5]> = (items.iter())
-        .map(|it| {
-            let id = it.note.id;
+        .map(|listed| {
+            let id = listed.note.id;
             [
                 id.to_string(),
                 format!("/notes/{id}"),
@@ -112,19 +112,26 @@ fn table(ui: &Ui, path: &str, items: &[Listed]) -> Markup {
     let rows = items
         .iter()
         .zip(&links)
-        .map(|(it, [key, show, edit, pin, archive])| {
-            let m = &it.note;
+        .map(|(listed, [key, show, edit, pin, archive])| {
+            let note = &listed.note;
             Row::new([
-                html! { a href=(show) { (m.title) } },
-                html! { @if let Some((_, name)) = &it.notebook { (name) } },
-                lui! { @for t in &it.tags { Badge(t) secondary; " " } },
-                html! { (ago(&m.updated_at)) },
+                html! { a href=(show) { (note.title) } },
+                html! { @if let Some((_, name)) = &listed.notebook { (name) } },
+                lui! { @for tag in &listed.tags { Badge(tag) secondary; " " } },
+                html! { (ago(&note.updated_at)) },
             ])
             .key(key)
             .menu([
                 MenuItem::link("Edit", edit),
-                MenuItem::action(if m.pinned { "Unpin" } else { "Pin" }, pin),
-                MenuItem::action(if m.archived { "Unarchive" } else { "Archive" }, archive),
+                MenuItem::action(if note.pinned { "Unpin" } else { "Pin" }, pin),
+                MenuItem::action(
+                    if note.archived {
+                        "Unarchive"
+                    } else {
+                        "Archive"
+                    },
+                    archive,
+                ),
             ])
         });
     lui! {
@@ -139,24 +146,24 @@ fn table(ui: &Ui, path: &str, items: &[Listed]) -> Markup {
 
 /// One note to read: the text in a reading column, its details in a card beside it, and edit,
 /// delete (behind a confirm dialog), pin and archive.
-pub fn show(ui: &Ui, it: &Listed) -> Markup {
-    let m = &it.note;
-    let id = m.id;
+pub fn show(ui: &Ui, listed: &Listed) -> Markup {
+    let note = &listed.note;
+    let id = note.id;
     let [edit, pin, archive, delete] =
         ["edit", "pin", "archive", "delete"].map(|a| format!("/notes/{id}/{a}"));
-    let book = it
+    let book = listed
         .notebook
         .as_ref()
         .map(|(bid, name)| (format!("/notebooks/{bid}"), name.as_str()));
-    let tags = lui! { @for t in &it.tags { @let href = tag_href(t); Badge(t) secondary href=(&href); " " } };
-    let body = m.body.as_deref().unwrap_or("");
+    let tags = lui! { @for tag in &listed.tags { @let href = tag_href(tag); Badge(tag) secondary href=(&href); " " } };
+    let body = note.body.as_deref().unwrap_or("");
     let words = body.split_whitespace().count().to_string();
     let article = lui! {
         article class="notes-article" {
-            h1 { (m.title) }
+            h1 { (note.title) }
             div class="notes-meta" {
-                span { "Edited " (ago(&m.updated_at)) }
-                @if m.archived { Badge("Archived") warn; }
+                span { "Edited " (ago(&note.updated_at)) }
+                @if note.archived { Badge("Archived") warn; }
                 (tags)
             }
             div class="notes-prose" {
@@ -167,9 +174,9 @@ pub fn show(ui: &Ui, it: &Listed) -> Markup {
             }
         }
     };
-    let due = m
+    let due = note
         .due
-        .map(|d| d.format("%-d %b %Y").to_string())
+        .map(|date| date.format("%-d %b %Y").to_string())
         .unwrap_or_default();
     let side = lui! {
         aside class="notes-side" {
@@ -177,29 +184,29 @@ pub fn show(ui: &Ui, it: &Listed) -> Markup {
                 DescriptionList {
                     item "Notebook" { @if let Some((href, name)) = &book { a href=(href) { (name) } } }
                     item "Tags" (&tags);
-                    item "Pinned" { @if m.pinned { Badge("Pinned") solid; } @else { "No" } }
+                    item "Pinned" { @if note.pinned { Badge("Pinned") solid; } @else { "No" } }
                     item "Due" (due);
                     item "Words" (words.as_str());
-                    item "Created" (m.created_at.format("%-d %b %Y").to_string());
-                    item "Updated" (ago(&m.updated_at));
+                    item "Created" (note.created_at.format("%-d %b %Y").to_string());
+                    item "Updated" (ago(&note.updated_at));
                 }
             }
         }
     };
     lui! {
         div class="notes-bar" {
-            Breadcrumbs here=(&m.title) {
+            Breadcrumbs here=(&note.title) {
                 link "Notes" "/notes";
                 @if let Some((href, name)) = &book { link (name) (href); }
             }
             div class="notes-actions" {
                 LinkButton("Edit", &edit);
                 Dialog("Delete") id="delete-note" title="Delete this note?" danger confirm=("Delete", &delete) {
-                    p { "“" (m.title) "” and its tags go for good." }
+                    p { "“" (note.title) "” and its tags go for good." }
                 }
                 Menu("More") align_end {
-                    action (if m.pinned { "Unpin" } else { "Pin to the top" }) (&pin);
-                    action (if m.archived { "Move out of the archive" } else { "Archive" }) (&archive);
+                    action (if note.pinned { "Unpin" } else { "Pin to the top" }) (&pin);
+                    action (if note.archived { "Move out of the archive" } else { "Archive" }) (&archive);
                 }
             }
         }
@@ -208,20 +215,22 @@ pub fn show(ui: &Ui, it: &Listed) -> Markup {
 }
 
 /// The note as the form's `(name, value)` pairs, for the edit page.
-pub fn values(it: &Listed) -> Vec<(String, String)> {
-    let m = &it.note;
+pub fn values(listed: &Listed) -> Vec<(String, String)> {
+    let note = &listed.note;
     vec![
-        ("title".into(), m.title.clone()),
-        ("body".into(), m.body.clone().unwrap_or_default()),
+        ("title".into(), note.title.clone()),
+        ("body".into(), note.body.clone().unwrap_or_default()),
         (
             "notebook_id".into(),
-            m.notebook_id.map(|id| id.to_string()).unwrap_or_default(),
+            note.notebook_id
+                .map(|id| id.to_string())
+                .unwrap_or_default(),
         ),
-        ("tags".into(), it.tags.join(", ")),
-        ("pinned".into(), m.pinned.to_string()),
+        ("tags".into(), listed.tags.join(", ")),
+        ("pinned".into(), note.pinned.to_string()),
         (
             "due".into(),
-            m.due.map(|d| d.to_string()).unwrap_or_default(),
+            note.due.map(|date| date.to_string()).unwrap_or_default(),
         ),
     ]
 }

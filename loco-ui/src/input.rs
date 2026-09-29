@@ -571,18 +571,19 @@ impl Render for Input<'_> {
 
 impl Render for Field<'_> {
     fn render(&self) -> Markup {
-        let f = self;
-        if let FieldKind::Markup(m) = &f.kind {
+        if let FieldKind::Markup(m) = &self.kind {
             return m.clone();
         }
-        let id = f.id.map_or_else(|| format!("f-{}", f.name), str::to_string);
-        let help = f.help.or(match f.kind {
+        let id = self
+            .id
+            .map_or_else(|| format!("f-{}", self.name), str::to_string);
+        let help = self.help.or(match self.kind {
             FieldKind::Pattern { hint, .. } => Some(hint),
             _ => None,
         });
-        let slotted = !matches!(f.kind, FieldKind::Textarea { .. } | FieldKind::Select(_));
+        let slotted = !matches!(self.kind, FieldKind::Textarea { .. } | FieldKind::Select(_));
         let (lead, trail) = if slotted {
-            (f.extra.leading, f.extra.trailing)
+            (self.extra.leading, self.extra.trailing)
         } else {
             (None, None)
         };
@@ -590,13 +591,13 @@ impl Render for Field<'_> {
             slot_id(&id, "leading", lead),
             slot_id(&id, "trailing", trail),
             help.map(|_| format!("{id}-help")),
-            f.maxlength.map(|_| format!("{id}-count")),
-            f.error.map(|_| format!("{id}-error")),
+            self.maxlength.map(|_| format!("{id}-count")),
+            self.error.map(|_| format!("{id}-error")),
         ];
         let described: Vec<&str> = ids.iter().flatten().map(String::as_str).collect();
         let described = (!described.is_empty()).then(|| described.join(" "));
         let bound = |s: &str| (!s.is_empty()).then(|| s.to_string());
-        let (kind, min, max, pattern, accept, multiple) = match f.kind {
+        let (kind, min, max, pattern, accept, multiple) = match self.kind {
             FieldKind::Text | FieldKind::Textarea { .. } | FieldKind::Select(_) => {
                 ("text", None, None, None, None, false)
             }
@@ -629,39 +630,39 @@ impl Render for Field<'_> {
                 ("", None, None, None, None, false)
             }
         };
-        let invalid = f.error.map(|_| "true");
-        if let FieldKind::Hidden = f.kind {
-            return html! { input type="hidden" name=(f.name) value=(f.value); };
+        let invalid = self.error.map(|_| "true");
+        if let FieldKind::Hidden = self.kind {
+            return html! { input type="hidden" name=(self.name) value=(self.value); };
         }
-        if let FieldKind::Checkbox | FieldKind::Switch = f.kind {
-            let checked = matches!(f.value, "true" | "on" | "1");
-            let switch = matches!(f.kind, FieldKind::Switch);
+        if let FieldKind::Checkbox | FieldKind::Switch = self.kind {
+            let checked = matches!(self.value, "true" | "on" | "1");
+            let switch = matches!(self.kind, FieldKind::Switch);
             return html! {
                 div class={ "lui-field lui-field-check" @if switch { " lui-field-switch" } } {
                     label for=(id) {
-                        input id=(id) name=(f.name) type="checkbox" value="true" checked[checked] required[f.required]
+                        input id=(id) name=(self.name) type="checkbox" value="true" checked[checked] required[self.required]
                             role=[switch.then_some("switch")] class=[switch.then_some("lui-switch")]
                             aria-invalid=[invalid] aria-describedby=[described.as_deref()];
-                        " " (f.label)
+                        " " (self.label)
                     }
                     @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                    @if let Some(e) = f.error { (error_line(&format!("{id}-error"), e)) }
+                    @if let Some(e) = self.error { (error_line(&format!("{id}-error"), e)) }
                 }
             };
         }
-        let echo = !matches!(f.kind, FieldKind::File { .. } | FieldKind::Password);
-        let x = &f.extra;
-        let gradient = x.gradient_border.then_some("lui-input-gradient-border");
-        let class = match (x.class, gradient) {
+        let echo = !matches!(self.kind, FieldKind::File { .. } | FieldKind::Password);
+        let extra = &self.extra;
+        let gradient = extra.gradient_border.then_some("lui-input-gradient-border");
+        let class = match (extra.class, gradient) {
             (Some(c), Some(g)) => Some(format!("{c} {g}")),
             (c, g) => c.or(g).map(str::to_string),
         };
         let control = html! {
-            input id=(id) class=[class.as_deref()] name=(f.name) type=(kind) value=[echo.then_some(f.value)]
-                required[f.required] min=[min] max=[max] step=[x.step] pattern=[pattern] title=[pattern.and(help)]
-                accept=[accept] multiple[multiple] maxlength=[f.maxlength] placeholder=[f.placeholder]
-                form=[x.form] list=[x.list] autocomplete=[x.autocomplete] autofocus[x.autofocus] inputmode=[x.inputmode]
-                aria-label=[x.hide_label.then_some(f.label)] aria-controls=[x.aria_controls]
+            input id=(id) class=[class.as_deref()] name=(self.name) type=(kind) value=[echo.then_some(self.value)]
+                required[self.required] min=[min] max=[max] step=[extra.step] pattern=[pattern] title=[pattern.and(help)]
+                accept=[accept] multiple[multiple] maxlength=[self.maxlength] placeholder=[self.placeholder]
+                form=[extra.form] list=[extra.list] autocomplete=[extra.autocomplete] autofocus[extra.autofocus] inputmode=[extra.inputmode]
+                aria-label=[extra.hide_label.then_some(self.label)] aria-controls=[extra.aria_controls]
                 aria-invalid=[invalid] aria-describedby=[described.as_deref()];
         };
         let slot = |side: &str, glyph: Option<Glyph>| {
@@ -674,27 +675,29 @@ impl Render for Field<'_> {
         } else {
             control
         };
-        if x.hide_label && !matches!(f.kind, FieldKind::Textarea { .. } | FieldKind::Select(_)) {
+        if extra.hide_label
+            && !matches!(self.kind, FieldKind::Textarea { .. } | FieldKind::Select(_))
+        {
             return control;
         }
         html! {
             div class="lui-field" {
-                label for=(id) { (f.label) @if f.required { " *" } }
-                @if let FieldKind::Textarea { rows } = f.kind {
-                    textarea id=(id) class=[gradient] name=(f.name) rows=(rows) required[f.required] maxlength=[f.maxlength] placeholder=[f.placeholder]
-                        aria-invalid=[invalid] aria-describedby=[described.as_deref()] { (f.value) }
-                } @else if let FieldKind::Select(options) = &f.kind {
-                    select id=(id) name=(f.name) required[f.required] aria-invalid=[invalid] aria-describedby=[described.as_deref()] {
-                        @for o in options { option value=(o.value) selected[o.value == f.value] { (o.label) } }
+                label for=(id) { (self.label) @if self.required { " *" } }
+                @if let FieldKind::Textarea { rows } = self.kind {
+                    textarea id=(id) class=[gradient] name=(self.name) rows=(rows) required[self.required] maxlength=[self.maxlength] placeholder=[self.placeholder]
+                        aria-invalid=[invalid] aria-describedby=[described.as_deref()] { (self.value) }
+                } @else if let FieldKind::Select(options) = &self.kind {
+                    select id=(id) name=(self.name) required[self.required] aria-invalid=[invalid] aria-describedby=[described.as_deref()] {
+                        @for o in options { option value=(o.value) selected[o.value == self.value] { (o.label) } }
                     }
                 } @else {
                     (control)
                 }
                 @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                @if let Some(max) = f.maxlength {
-                    output id={ (id) "-count" } for=(id) class="lui-field-count" { (f.value.chars().count()) " / " (max) }
+                @if let Some(max) = self.maxlength {
+                    output id={ (id) "-count" } for=(id) class="lui-field-count" { (self.value.chars().count()) " / " (max) }
                 }
-                @if let Some(e) = f.error { (error_line(&format!("{id}-error"), e)) }
+                @if let Some(e) = self.error { (error_line(&format!("{id}-error"), e)) }
             }
         }
     }

@@ -7,72 +7,74 @@ use loco_ui::{prelude::*, table::Row};
 use crate::models::_entities::tasks::Model;
 
 /// The model as the form's `(name, value)` pairs, for the edit page.
-pub fn values(m: &Model) -> Vec<(String, String)> {
+pub fn values(task: &Model) -> Vec<(String, String)> {
     vec![
-        ("title".into(), m.title.to_string()),
-        ("done".into(), m.done.to_string()),
+        ("title".into(), task.title.to_string()),
+        ("done".into(), task.done.to_string()),
         (
             "due_on".into(),
-            m.due_on
+            task.due_on
                 .as_ref()
                 .map(ToString::to_string)
                 .unwrap_or_default(),
         ),
         (
             "starts_at".into(),
-            m.starts_at
-                .map(|v| v.format("%Y-%m-%dT%H:%M").to_string())
+            task.starts_at
+                .map(|time| time.format("%Y-%m-%dT%H:%M").to_string())
                 .unwrap_or_default(),
         ),
         (
             "remind_at".into(),
-            m.remind_at
-                .map(|v| v.format("%Y-%m-%dT%H:%M").to_string())
+            task.remind_at
+                .map(|time| time.format("%Y-%m-%dT%H:%M").to_string())
                 .unwrap_or_default(),
         ),
         (
             "price".into(),
-            m.price
+            task.price
                 .as_ref()
                 .map(ToString::to_string)
                 .unwrap_or_default(),
         ),
-        ("status".into(), m.status.to_string()),
+        ("status".into(), task.status.to_string()),
         (
             "size".into(),
-            m.size.as_ref().map(ToString::to_string).unwrap_or_default(),
+            task.size
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
         ),
     ]
 }
 
 /// The tasks as a board (move a card to change its status) and as a table, in two tabs.
 pub fn list(ui: &Ui, rows: &[Model]) -> Markup {
-    let ids: Vec<String> = rows.iter().map(|m| m.id.to_string()).collect();
+    let ids: Vec<String> = rows.iter().map(|task| task.id.to_string()).collect();
     let dates: Vec<String> = (rows.iter())
-        .map(|m| {
-            m.due_on
-                .map(|d| format!("Due {}", d.format("%-d %b")))
+        .map(|task| {
+            task.due_on
+                .map(|date| format!("Due {}", date.format("%-d %b")))
                 .unwrap_or_default()
         })
         .collect();
-    // The board's columns, each with its cards, in one pass over the rows.
     let mut columns = [("todo", "To do"), ("doing", "Doing"), ("done", "Done")]
         .map(|(key, title)| (key, title, Vec::new()));
-    for ((m, id), date) in rows.iter().zip(&ids).zip(&dates) {
-        if let Some((_, _, cards)) = columns.iter_mut().find(|(key, _, _)| *key == m.status) {
-            cards.push((m, id.as_str(), date.as_str()));
+    for ((task, id), date) in rows.iter().zip(&ids).zip(&dates) {
+        if let Some((_, _, cards)) = columns.iter_mut().find(|(key, _, _)| *key == task.status) {
+            cards.push((task, id.as_str(), date.as_str()));
         }
     }
-    let cells = rows.iter().map(|m| {
+    let cells = rows.iter().map(|task| {
         Row::new([
-            html! { a href={ "/tasks/" (m.id) } { (m.title) } },
-            lui! { Badge(&m.status) secondary; },
-            html! { (m.due_on.map(|d| d.to_string()).unwrap_or_default()) },
-            html! { (m.price.map(|p| p.to_string()).unwrap_or_default()) },
-            html! { (m.size.map(|s| s.to_string()).unwrap_or_default()) },
+            html! { a href={ "/tasks/" (task.id) } { (task.title) } },
+            lui! { Badge(&task.status) secondary; },
+            html! { (task.due_on.map(|date| date.to_string()).unwrap_or_default()) },
+            html! { (task.price.map(|price| price.to_string()).unwrap_or_default()) },
+            html! { (task.size.map(|size| size.to_string()).unwrap_or_default()) },
         ])
     });
-    let open = rows.iter().filter(|m| m.status != "done").count();
+    let open = rows.iter().filter(|task| task.status != "done").count();
     lui! {
         div class="notes-bar" {
             h1 { "Tasks" }
@@ -83,8 +85,8 @@ pub fn list(ui: &Ui, rows: &[Model]) -> Markup {
                 Kanban("/tasks/move") {
                     @for (key, title, cards) in &columns {
                         column (*key) (*title) {
-                            @for &(m, id, date) in cards {
-                                card (id) (&m.title) description=[(!date.is_empty()).then_some(date)] badge=[m.size];
+                            @for &(task, id, date) in cards {
+                                card (id) (&task.title) description=[(!date.is_empty()).then_some(date)] badge=[task.size];
                             }
                         }
                     }
@@ -104,7 +106,7 @@ pub fn list(ui: &Ui, rows: &[Model]) -> Markup {
 }
 
 /// One task: its fields in a card, with back, edit and delete beside the title.
-pub fn show(ui: &Ui, m: &Model) -> Markup {
+pub fn show(ui: &Ui, task: &Model) -> Markup {
     let labels = [
         "Title",
         "Done",
@@ -115,12 +117,12 @@ pub fn show(ui: &Ui, m: &Model) -> Markup {
         "Status",
         "Size",
     ];
-    let title = format!("Task {}", m.id);
-    let action = format!("/tasks/{}/delete", m.id);
-    let edit = format!("/tasks/{}/edit", m.id);
+    let title = format!("Task {}", task.id);
+    let action = format!("/tasks/{}/delete", task.id);
+    let edit = format!("/tasks/{}/edit", task.id);
     lui! {
         RecordPage(&title) back="/tasks" edit=(&edit) delete=(&action) {
-            @for (label, (_, value)) in labels.iter().zip(values(m)) {
+            @for (label, (_, value)) in labels.iter().zip(values(task)) {
                 field (label) (value);
             }
         }

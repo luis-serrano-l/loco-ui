@@ -229,11 +229,11 @@ pub(crate) fn paged_table_with(
     for (k, v) in carried("") {
         let _ = write!(base, "{}={}&", Encoded(k), Encoded(v));
     }
-    let link = |n: usize| PageLink {
+    let link = |page: usize| PageLink {
         href,
         base: &base,
         key: &keys.page,
-        n,
+        page,
     };
     let mut keep = inner.keep.to_vec();
     keep.push((per_key.as_str(), per.as_str()));
@@ -351,12 +351,12 @@ impl fmt::Display for Thousands {
     }
 }
 
-/// `href?<carried pairs>page.<id>=n`, written into the attribute as it renders.
+/// `href?<carried pairs>page.<id>=<page>`, written into the attribute as it renders.
 struct PageLink<'a> {
     href: &'a str,
     base: &'a str,
     key: &'a str,
-    n: usize,
+    page: usize,
 }
 
 impl fmt::Display for PageLink<'_> {
@@ -367,7 +367,7 @@ impl fmt::Display for PageLink<'_> {
             self.href,
             self.base,
             Encoded(self.key),
-            self.n
+            self.page
         )
     }
 }

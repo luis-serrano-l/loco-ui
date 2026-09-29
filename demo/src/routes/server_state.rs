@@ -52,21 +52,21 @@ const MIN: i64 = 0;
 const MAX: i64 = 20;
 const STEP: i64 = 2;
 
-fn counter(ui: &Ui, n: i64) -> Markup {
+fn counter(ui: &Ui, count: i64) -> Markup {
     lui! {
         // code: /counter
-        Counter("/counter", n) min=(MIN) max=(MAX) step=(STEP) typed;
+        Counter("/counter", count) min=(MIN) max=(MAX) step=(STEP) typed;
         // end code
     }
 }
 
-async fn counter_page(ui: Ui, Saved(c): Saved<Count>) -> Page {
+async fn counter_page(ui: Ui, Saved(count): Saved<Count>) -> Page {
     page(
         &ui,
         "Counter",
         html! {
             p { "Steps of two between 0 and 20. The buttons switch off at the ends; a typed value off the step or the bounds is refused by the browser and clamped by the server." }
-            (counter(&ui, c.n))
+            (counter(&ui, count.n))
         },
     )
 }
@@ -77,11 +77,15 @@ struct CounterOp {
     value: Option<i64>,
 }
 
-async fn counter_submit(ui: Ui, Saved(c): Saved<Count>, Form(f): Form<CounterOp>) -> Redirect {
+async fn counter_submit(
+    ui: Ui,
+    Saved(count): Saved<Count>,
+    Form(form): Form<CounterOp>,
+) -> Redirect {
     // code: /counter
-    let rules = ui.counter("/counter", c.n).min(MIN).max(MAX).step(STEP);
-    let n = rules.apply(&f.op, f.value);
-    ui.redirect("/counter").save(&Count { n })
+    let rules = ui.counter("/counter", count.n).min(MIN).max(MAX).step(STEP);
+    let next = rules.apply(&form.op, form.value);
+    ui.redirect("/counter").save(&Count { n: next })
     // end code
 }
 
@@ -104,11 +108,14 @@ async fn swap_page(ui: Ui, Saved(notes): Saved<Notes>) -> Page {
 
 /// The count a link adds to and the notes a form appends to, each naming its target.
 fn swap(ui: &Ui, notes: &Notes) -> Markup {
-    let n: u32 = ui.param("n").and_then(|n| n.parse().ok()).unwrap_or(1);
+    let count: u32 = ui
+        .param("n")
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(1);
     lui! {
             // code: /swap
-            p { "Count: " span id="count" data-lui="swap" { (n) } " " a href={ "/swap?n=" (n + 1) } data-lui-target="#count" { "Add one" }
-                " · " a href={ "/swap?n=" (n + 10) } data-lui-target="#count" data-lui-push="false" { "Add ten, keep the URL" } }
+            p { "Count: " span id="count" data-lui="swap" { (count) } " " a href={ "/swap?n=" (count + 1) } data-lui-target="#count" { "Add one" }
+                " · " a href={ "/swap?n=" (count + 10) } data-lui-target="#count" data-lui-push="false" { "Add ten, keep the URL" } }
             // end code
             p { "Notes so far: " span id="note-count" { (notes.0.len()) } }
             // code: /swap
@@ -134,15 +141,15 @@ async fn swap_submit(
     ui: Ui,
     headers: HeaderMap,
     Saved(mut notes): Saved<Notes>,
-    Form(f): Form<SwapForm>,
+    Form(form): Form<SwapForm>,
 ) -> Response {
-    notes.0.push(("note".into(), f.note.clone()));
+    notes.0.push(("note".into(), form.note.clone()));
     if headers.contains_key("lui-enhance") {
         let cookies = ui.redirect("/swap").save(&notes).set_cookies();
         let set = cookies
             .into_iter()
             .map(|c| (axum::http::header::SET_COOKIE, c));
-        return (axum::response::AppendHeaders(set), html! { ol id="log" { li { (f.note) } } span id="note-count" data-lui-oob { (notes.0.len()) } }).into_response();
+        return (axum::response::AppendHeaders(set), html! { ol id="log" { li { (form.note) } } span id="note-count" data-lui-oob { (notes.0.len()) } }).into_response();
     }
     ui.redirect("/swap")
         .flash("Note added")
@@ -159,21 +166,21 @@ struct Settings {
 
 /// Tabs + form + flash. Everything survives a full navigation: the tab in the `lui-ui`
 /// cookie, the values in `lui-settings`, the flash in a one-shot cookie.
-fn settings(ui: &Ui, s: &Settings) -> Markup {
+fn settings(ui: &Ui, settings: &Settings) -> Markup {
     lui! {
             // code: /settings
             Flash dismiss auto_hide;
             Tabs("settings") {
                 tab "Profile" {
                     Form("/settings") id="profile" submit="Save" {
-                        text "name" "Display name" required value=(&s.name);
-                        hidden "notify" (if s.notify { "true" } else { "false" });
+                        text "name" "Display name" required value=(&settings.name);
+                        hidden "notify" (if settings.notify { "true" } else { "false" });
                     }
                 }
                 tab "Notifications" {
                     Form("/settings") id="notify" submit="Save" {
-                        hidden "name" (&s.name);
-                        checkbox "notify" "Email me about releases" checked=(s.notify);
+                        hidden "name" (&settings.name);
+                        checkbox "notify" "Email me about releases" checked=(settings.notify);
                     }
                 }
             }
@@ -181,31 +188,31 @@ fn settings(ui: &Ui, s: &Settings) -> Markup {
     }
 }
 
-async fn settings_page(ui: Ui, Saved(s): Saved<Settings>) -> Page {
+async fn settings_page(ui: Ui, Saved(saved): Saved<Settings>) -> Page {
     page(
         &ui,
         "Settings",
         lui! {
-            (settings(&ui, &s))
+            (settings(&ui, &saved))
             p class="lui-note" { "Go to " a href="/" { "the index" } " and come back: the open tab and the values are remembered. Saving with notifications off stacks a warning under the confirmation; the name " code { "admin" } " is refused with an alert. The confirmation fades after six seconds unless reduced motion is on." }
         },
     )
 }
 
 /// Saves and says so; a warning stacks when notifications go off; `admin` is refused.
-async fn settings_submit(ui: Ui, Form(s): Form<Settings>) -> Redirect {
+async fn settings_submit(ui: Ui, Form(settings): Form<Settings>) -> Redirect {
     let back = ui.redirect("/settings");
-    if s.name.trim().eq_ignore_ascii_case("admin") {
+    if settings.name.trim().eq_ignore_ascii_case("admin") {
         return back.danger("The name admin is reserved; nothing was saved.");
     }
     // code: /settings
     let back = back.ok("Settings saved.");
-    let back = if s.notify {
+    let back = if settings.notify {
         back
     } else {
         back.warn("You will not hear about releases.")
     };
-    back.save(&s)
+    back.save(&settings)
     // end code
 }
 

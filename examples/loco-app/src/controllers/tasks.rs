@@ -34,15 +34,15 @@ struct Params {
     size: Option<i64>,
 }
 
-fn set(item: &mut ActiveModel, p: Params) {
-    item.title = Set(p.title);
-    item.done = Set(p.done);
-    item.due_on = Set(p.due_on);
-    item.starts_at = Set(p.starts_at);
-    item.remind_at = Set(p.remind_at);
-    item.price = Set(p.price);
-    item.status = Set(p.status);
-    item.size = Set(p.size);
+fn set(item: &mut ActiveModel, params: Params) {
+    item.title = Set(params.title);
+    item.done = Set(params.done);
+    item.due_on = Set(params.due_on);
+    item.starts_at = Set(params.starts_at);
+    item.remind_at = Set(params.remind_at);
+    item.price = Set(params.price);
+    item.status = Set(params.status);
+    item.size = Set(params.size);
 }
 
 /// What each reference field can point at: every row of the parent table as `(id, label)`,
@@ -69,7 +69,7 @@ async fn list(auth: auth::JWT, ui: Ui, State(ctx): State<AppContext>) -> Result<
         .filter(Column::UserId.eq(me.id))
         .all(&ctx.db)
         .await?;
-    found.sort_by_key(|t| (t.due_on.is_none(), t.due_on));
+    found.sort_by_key(|task| (task.due_on.is_none(), task.due_on));
     Ok(shell::page(
         &ui,
         &nav(&ctx, &me).await?,
@@ -91,15 +91,15 @@ async fn move_card(
     auth: auth::JWT,
     ui: Ui,
     State(ctx): State<AppContext>,
-    Form(m): Form<Move>,
+    Form(moved): Form<Move>,
 ) -> Result<Redirect> {
     let me = owner(&ctx, &auth).await?;
-    if !["todo", "doing", "done"].contains(&m.to.as_str()) {
+    if !["todo", "doing", "done"].contains(&moved.to.as_str()) {
         return Err(Error::BadRequest("no such column".into()));
     }
-    let mut item = load(&ctx, m.card, me.id).await?.into_active_model();
-    item.done = Set(m.to == "done");
-    item.status = Set(m.to);
+    let mut item = load(&ctx, moved.card, me.id).await?.into_active_model();
+    item.done = Set(moved.to == "done");
+    item.status = Set(moved.to);
     item.update(&ctx.db).await?;
     Ok(ui.redirect("/tasks"))
 }
@@ -137,8 +137,8 @@ async fn create(
     Valid(form): Valid<Params>,
 ) -> Result<Response> {
     let me = owner(&ctx, &auth).await?;
-    let p = match form {
-        Ok(p) => p,
+    let params = match form {
+        Ok(params) => params,
         Err(bad) => {
             let title = "New task";
             let body = views::tasks::form(
@@ -155,7 +155,7 @@ async fn create(
     let mut item = ActiveModel {
         ..Default::default()
     };
-    set(&mut item, p);
+    set(&mut item, params);
     item.user_id = Set(me.id);
     let item = item.insert(&ctx.db).await?;
     let to = format!("/tasks/{}", item.id);
@@ -195,8 +195,8 @@ async fn update(
     let me = owner(&ctx, &auth).await?;
     let item = load(&ctx, id, me.id).await?;
     let action = format!("/tasks/{id}");
-    let p = match form {
-        Ok(p) => p,
+    let params = match form {
+        Ok(params) => params,
         Err(bad) => {
             let title = "Edit task";
             let body = views::tasks::form(
@@ -211,7 +211,7 @@ async fn update(
         }
     };
     let mut item = item.into_active_model();
-    set(&mut item, p);
+    set(&mut item, params);
     item.update(&ctx.db).await?;
     Ok(ui.redirect(&action).ok("Saved.").into_response())
 }

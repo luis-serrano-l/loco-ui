@@ -230,24 +230,24 @@ impl Render for Combobox<'_> {
         let kept: Vec<(&str, &str)> = (keep.iter())
             .filter_map(|&k| Some((k, ui.param(k).filter(|v| !v.is_empty())?)))
             .collect();
-        let link = |q: &str, sel: &[&str]| {
-            let sel = sel.iter().map(|&s| ("sel", s));
+        let link = |typed: &str, chosen: &[&str]| {
+            let chosen = chosen.iter().map(|&s| ("sel", s));
             crate::href(
                 action,
-                [(name, q)]
+                [(name, typed)]
                     .into_iter()
-                    .chain(sel)
+                    .chain(chosen)
                     .chain(kept.iter().copied()),
             )
         };
         let add = |v: &str| -> String {
-            let mut sel: Vec<&str> = if multi { selected.clone() } else { Vec::new() };
-            sel.push(v);
-            link(query, &sel)
+            let mut chosen: Vec<&str> = if multi { selected.clone() } else { Vec::new() };
+            chosen.push(v);
+            link(query, &chosen)
         };
         let remove = |v: &str| -> String {
-            let sel: Vec<&str> = selected.iter().copied().filter(|s| *s != v).collect();
-            link(query, &sel)
+            let chosen: Vec<&str> = selected.iter().copied().filter(|s| *s != v).collect();
+            link(query, &chosen)
         };
         let nothing = results.is_empty() && !query.is_empty();
         html! {

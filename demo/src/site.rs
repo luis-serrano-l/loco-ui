@@ -554,22 +554,21 @@ pub(crate) fn shell(ui: &Ui, title: &str, body: Markup) -> Markup {
 
 /// A component page: what it is for and built on, then the body on a stage with the code
 /// that drew it underneath, and the props of the builders that code calls.
-fn component_page(ui: &Ui, c: &(&str, &str, &str, &str, &str), body: Markup) -> Markup {
+fn component_page(ui: &Ui, component: &(&str, &str, &str, &str, &str), body: Markup) -> Markup {
     html! {
-        (title_bar(ui, true, html! { (c.1) @if beta(c.0) { " " (ui.badge("beta").warn()) } }))
-        p class="lui-lede" { (c.4) }
-        p class="lui-built" { "Built on " @for f in c.3.split(", ") { code { (f) } " " } }
-        // The live component and the code that drew it, joined as one plate.
+        (title_bar(ui, true, html! { (component.1) @if beta(component.0) { " " (ui.badge("beta").warn()) } }))
+        p class="lui-lede" { (component.4) }
+        p class="lui-built" { "Built on " @for feature in component.3.split(", ") { code { (feature) } " " } }
         div class="lui-plate" {
             div class="lui-stage" { (body) }
             figure class="lui-snippet" {
-                @if let Some((_, path, code, _)) = CODE.iter().find(|h| h.0 == c.0) {
+                @if let Some((_, path, code, _)) = CODE.iter().find(|h| h.0 == component.0) {
                     figcaption { span { (path) } span { "The code behind the component above" } }
                     pre tabindex="0" aria-label=(path) { code { (maud::PreEscaped(code)) } }
                 }
             }
         }
-        @if let Some((.., builders)) = CODE.iter().find(|h| h.0 == c.0).filter(|h| !h.3.is_empty()) {
+        @if let Some((.., builders)) = CODE.iter().find(|h| h.0 == component.0).filter(|h| !h.3.is_empty()) {
             (props(ui, builders))
         }
     }
@@ -695,9 +694,13 @@ pub(crate) struct ThemeForm {
 }
 
 /// Keep the picked theme and go back to the page the toggle was on.
-pub(crate) async fn theme_submit(ui: Ui, headers: HeaderMap, Form(f): Form<ThemeForm>) -> Redirect {
+pub(crate) async fn theme_submit(
+    ui: Ui,
+    headers: HeaderMap,
+    Form(form): Form<ThemeForm>,
+) -> Redirect {
     ui.redirect(&back_to(&headers))
-        .theme(Theme::parse(&f.theme))
+        .theme(Theme::parse(&form.theme))
 }
 
 #[derive(Deserialize)]
@@ -706,8 +709,8 @@ struct LangForm {
 }
 
 /// Keep the picked language and go back to the page the switch was on.
-async fn lang_submit(ui: Ui, headers: HeaderMap, Form(f): Form<LangForm>) -> Redirect {
-    ui.redirect(&back_to(&headers)).lang(&f.lang)
+async fn lang_submit(ui: Ui, headers: HeaderMap, Form(form): Form<LangForm>) -> Redirect {
+    ui.redirect(&back_to(&headers)).lang(&form.lang)
 }
 
 /// The path of the page a form was posted from (same-origin `Referer`), or `/`.

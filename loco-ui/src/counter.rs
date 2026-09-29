@@ -160,10 +160,9 @@ impl Render for Counter<'_> {
         let at_max = max.is_some_and(|m| value >= m);
         let value_text = value.to_string();
         let typed_id = format!("{}-value", enhance::swap_id("lui-counter", action));
-        // Every button posts `op`; `dec` and `inc` switch off at their bound.
         let op = |op: &'static str, off: bool| {
-            let b = Button::new(caps, "").name("op").value(op);
-            if off { b.disabled() } else { b }
+            let button = Button::new(caps, "").name("op").value(op);
+            if off { button.disabled() } else { button }
         };
         html! {
             form id=(enhance::swap_id("lui-counter", action)) data-lui="swap" class="lui-counter" method="post" action=(action) {

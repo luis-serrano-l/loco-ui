@@ -49,36 +49,36 @@ async fn books(ctx: &AppContext, me: &users::Model) -> Result<Vec<(i64, String)>
 
 /// Note `id` of `me`, with its tags and notebook, else 404.
 async fn load(ctx: &AppContext, me: &users::Model, id: i64) -> Result<Listed> {
-    Entity::listed(&ctx.db, me.id, |q| q.filter(Column::Id.eq(id)))
+    Entity::listed(&ctx.db, me.id, |query| query.filter(Column::Id.eq(id)))
         .await?
         .pop()
         .ok_or(Error::NotFound)
 }
 
-/// Save `p` into `item` for `me`; a notebook that is not theirs is dropped.
+/// Save `params` into `item` for `me`; a notebook that is not theirs is dropped.
 async fn save(
     ctx: &AppContext,
     me: &users::Model,
     mut item: ActiveModel,
-    p: Params,
+    params: Params,
 ) -> Result<i64> {
-    let book = p.notebook_id.parse::<i64>().ok();
+    let book = params.notebook_id.parse::<i64>().ok();
     let theirs = books(ctx, me)
         .await?
         .iter()
         .any(|(id, _)| Some(*id) == book);
-    item.title = Set(p.title);
-    item.body = Set(p
+    item.title = Set(params.title);
+    item.body = Set(params
         .body
         .filter(|b| !b.trim().is_empty())
         .map(|b| b.replace("\r\n", "\n")));
     item.notebook_id = Set(book.filter(|_| theirs));
-    item.pinned = Set(p.pinned);
-    item.due = Set(p.due);
+    item.pinned = Set(params.pinned);
+    item.due = Set(params.due);
     item.user_id = Set(me.id);
     let saved = item.save(&ctx.db).await?;
     let id = sea_orm::TryIntoModel::try_into_model(saved)?.id;
-    Entity::set_tags(&ctx.db, me.id, id, &p.tags).await?;
+    Entity::set_tags(&ctx.db, me.id, id, &params.tags).await?;
     Ok(id)
 }
 
@@ -92,22 +92,26 @@ async fn listing(
     which: impl FnOnce(Select<Entity>) -> Select<Entity>,
 ) -> Result<Page> {
     let me = owner(&ctx, &auth).await?;
-    let q = ui.param("q").unwrap_or("").trim().to_string();
-    let found = Entity::listed(&ctx.db, me.id, |s| {
-        let s = which(s);
-        if q.is_empty() {
-            return s;
+    let query = ui.param("q").unwrap_or("").trim().to_string();
+    let found = Entity::listed(&ctx.db, me.id, |select| {
+        let select = which(select);
+        if query.is_empty() {
+            return select;
         }
-        s.filter(
+        select.filter(
             Condition::any()
-                .add(Column::Title.contains(&q))
-                .add(Column::Body.contains(&q)),
+                .add(Column::Title.contains(&query))
+                .add(Column::Body.contains(&query)),
         )
     })
     .await?;
     let chosen: Vec<&str> = ui.params("sel").collect();
     let items: Vec<Listed> = (found.into_iter())
-        .filter(|it| chosen.iter().all(|t| it.tags.iter().any(|x| x == t)))
+        .filter(|listed| {
+            chosen
+                .iter()
+                .all(|wanted| listed.tags.iter().any(|tag| tag == wanted))
+        })
         .collect();
     let all_tags: Vec<String> = tags::Entity::find()
         .filter(tags::Column::UserId.eq(me.id))
@@ -117,10 +121,10 @@ async fn listing(
         .into_iter()
         .map(|t| t.name)
         .collect();
-    let heading = if q.is_empty() {
+    let heading = if query.is_empty() {
         heading.to_string()
     } else {
-        format!("“{q}”")
+        format!("“{query}”")
     };
     let body = views::notes::list(&ui, &heading, path, &items, &all_tags);
     Ok(shell::page(&ui, &nav(&ctx, &me).await?, &heading, body))
@@ -159,12 +163,12 @@ async fn show(
     Path(id): Path<i64>,
 ) -> Result<Page> {
     let me = owner(&ctx, &auth).await?;
-    let it = load(&ctx, &me, id).await?;
-    let body = views::notes::show(&ui, &it);
+    let listed = load(&ctx, &me, id).await?;
+    let body = views::notes::show(&ui, &listed);
     Ok(shell::page(
         &ui,
         &nav(&ctx, &me).await?,
-        &it.note.title,
+        &listed.note.title,
         body,
     ))
 }
@@ -193,8 +197,8 @@ async fn create(
     Valid(form): Valid<Params>,
 ) -> Result<Response> {
     let me = owner(&ctx, &auth).await?;
-    let p = match form {
-        Ok(p) => p,
+    let params = match form {
+        Ok(params) => params,
         Err(bad) => {
             let body = views::notes::form(
                 &ui,
@@ -209,7 +213,7 @@ async fn create(
                 .into_response());
         }
     };
-    let id = save(&ctx, &me, <ActiveModel as Default>::default(), p).await?;
+    let id = save(&ctx, &me, <ActiveModel as Default>::default(), params).await?;
     Ok(ui
         .redirect(&format!("/notes/{id}"))
         .ok("Note created.")
@@ -224,13 +228,13 @@ async fn edit(
     Path(id): Path<i64>,
 ) -> Result<Page> {
     let me = owner(&ctx, &auth).await?;
-    let it = load(&ctx, &me, id).await?;
+    let listed = load(&ctx, &me, id).await?;
     let action = format!("/notes/{id}");
     let form = views::notes::form(
         &ui,
         "Edit note",
         &action,
-        &views::notes::values(&it),
+        &views::notes::values(&listed),
         &[],
         &books(&ctx, &me).await?,
     );
@@ -246,10 +250,10 @@ async fn update(
     Valid(form): Valid<Params>,
 ) -> Result<Response> {
     let me = owner(&ctx, &auth).await?;
-    let it = load(&ctx, &me, id).await?;
+    let listed = load(&ctx, &me, id).await?;
     let action = format!("/notes/{id}");
-    let p = match form {
-        Ok(p) => p,
+    let params = match form {
+        Ok(params) => params,
         Err(bad) => {
             let body = views::notes::form(
                 &ui,
@@ -264,7 +268,7 @@ async fn update(
                 .into_response());
         }
     };
-    save(&ctx, &me, it.note.into_active_model(), p).await?;
+    save(&ctx, &me, listed.note.into_active_model(), params).await?;
     Ok(ui.redirect(&action).ok("Saved.").into_response())
 }
 

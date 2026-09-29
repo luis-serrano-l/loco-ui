@@ -182,7 +182,7 @@ impl Streamed {
                 .chain(stream::once(async { self.suffix }));
             return Box::pin(head.chain(chunks));
         }
-        // Fallback: walk the page in order, splicing each fill at its marker.
+        // No declarative shadow DOM to slot fills into: splice each at its marker, in page order.
         let mut fills: HashMap<String, Fill> = self.fills.into_iter().collect();
         let mut pieces: Vec<Piece> = Vec::new();
         let mut rest = self.prefix.as_str();

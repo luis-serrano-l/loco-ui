@@ -44,16 +44,16 @@ impl<'a> Try<'a> {
     }
 }
 
-/// Apply `$setter` when the switch is on.
-fn switch<B>(b: B, on: bool, f: impl FnOnce(B) -> B) -> B {
-    if on { f(b) } else { b }
+/// `builder` passed through `apply` when `on`, else unchanged.
+fn switch<B>(builder: B, on: bool, apply: impl FnOnce(B) -> B) -> B {
+    if on { apply(builder) } else { builder }
 }
 
-/// Apply `f` with the value when there is one.
-fn with<B, V>(b: B, v: Option<V>, f: impl FnOnce(B, V) -> B) -> B {
-    match v {
-        Some(v) => f(b, v),
-        None => b,
+/// `builder` passed through `apply` with `value` when there is one, else unchanged.
+fn with<B, V>(builder: B, value: Option<V>, apply: impl FnOnce(B, V) -> B) -> B {
+    match value {
+        Some(value) => apply(builder, value),
+        None => builder,
     }
 }
 
@@ -65,15 +65,15 @@ pub(crate) const ENTRIES: &[Entry] = &[
             "primary", "danger", "ghost", "small", "disabled", "loading", "shimmer",
         ],
         rest: ";",
-        build: |t| {
-            let b = t.ui.button("Save");
-            let b = switch(b, t.on("shimmer"), |b| b.shimmer());
-            let b = switch(b, t.on("primary"), |b| b.primary());
-            let b = switch(b, t.on("danger"), |b| b.danger());
-            let b = switch(b, t.on("ghost"), |b| b.ghost());
-            let b = switch(b, t.on("small"), |b| b.small());
-            let b = switch(b, t.on("disabled"), |b| b.disabled());
-            b.loading(t.on("loading")).render()
+        build: |query| {
+            let builder = query.ui.button("Save");
+            let builder = switch(builder, query.on("shimmer"), |b| b.shimmer());
+            let builder = switch(builder, query.on("primary"), |b| b.primary());
+            let builder = switch(builder, query.on("danger"), |b| b.danger());
+            let builder = switch(builder, query.on("ghost"), |b| b.ghost());
+            let builder = switch(builder, query.on("small"), |b| b.small());
+            let builder = switch(builder, query.on("disabled"), |b| b.disabled());
+            builder.loading(query.on("loading")).render()
         },
     },
     Entry {
@@ -81,14 +81,14 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Badge(\"New\")",
         props: &["secondary", "danger", "outline", "ok", "warn", "shimmer"],
         rest: ";",
-        build: |t| {
-            let b = t.ui.badge("New");
-            let b = switch(b, t.on("shimmer"), |b| b.shimmer());
-            let b = switch(b, t.on("secondary"), |b| b.secondary());
-            let b = switch(b, t.on("danger"), |b| b.danger());
-            let b = switch(b, t.on("outline"), |b| b.outline());
-            let b = switch(b, t.on("ok"), |b| b.ok());
-            switch(b, t.on("warn"), |b| b.warn()).render()
+        build: |query| {
+            let builder = query.ui.badge("New");
+            let builder = switch(builder, query.on("shimmer"), |b| b.shimmer());
+            let builder = switch(builder, query.on("secondary"), |b| b.secondary());
+            let builder = switch(builder, query.on("danger"), |b| b.danger());
+            let builder = switch(builder, query.on("outline"), |b| b.outline());
+            let builder = switch(builder, query.on("ok"), |b| b.ok());
+            switch(builder, query.on("warn"), |b| b.warn()).render()
         },
     },
     Entry {
@@ -96,13 +96,15 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Alert(\"Heads up\")",
         props: &["description", "danger", "warn", "ok"],
         rest: ";",
-        build: |t| {
-            let b = with(t.ui.alert("Heads up"), t.text("description"), |b, v| {
-                b.description(v)
-            });
-            let b = switch(b, t.on("danger"), |b| b.danger());
-            let b = switch(b, t.on("warn"), |b| b.warn());
-            switch(b, t.on("ok"), |b| b.ok()).render()
+        build: |query| {
+            let builder = with(
+                query.ui.alert("Heads up"),
+                query.text("description"),
+                |b, v| b.description(v),
+            );
+            let builder = switch(builder, query.on("danger"), |b| b.danger());
+            let builder = switch(builder, query.on("warn"), |b| b.warn());
+            switch(builder, query.on("ok"), |b| b.ok()).render()
         },
     },
     Entry {
@@ -117,14 +119,16 @@ pub(crate) const ENTRIES: &[Entry] = &[
             "reveal",
         ],
         rest: " { p { \"The card's body.\" } }",
-        build: |t| {
-            let b = with(t.ui.card(), t.text("title"), |b, v| b.title(v));
-            let b = with(b, t.text("description"), |b, v| b.description(v));
-            let b = switch(b, t.on("beam"), |b| b.beam());
-            let b = switch(b, t.on("glow"), |b| b.glow());
-            let b = switch(b, t.on("gradient_border"), |b| b.gradient_border());
-            let b = switch(b, t.on("reveal"), |b| b.reveal());
-            b.body(html! { p { "The card's body." } }).render()
+        build: |query| {
+            let builder = with(query.ui.card(), query.text("title"), |b, v| b.title(v));
+            let builder = with(builder, query.text("description"), |b, v| b.description(v));
+            let builder = switch(builder, query.on("beam"), |b| b.beam());
+            let builder = switch(builder, query.on("glow"), |b| b.glow());
+            let builder = switch(builder, query.on("gradient_border"), |b| {
+                b.gradient_border()
+            });
+            let builder = switch(builder, query.on("reveal"), |b| b.reveal());
+            builder.body(html! { p { "The card's body." } }).render()
         },
     },
     Entry {
@@ -132,9 +136,11 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Avatar(\"Ada Lovelace\")",
         props: &["small", "large"],
         rest: ";",
-        build: |t| {
-            let b = switch(t.ui.avatar("Ada Lovelace"), t.on("small"), |b| b.small());
-            switch(b, t.on("large"), |b| b.large()).render()
+        build: |query| {
+            let builder = switch(query.ui.avatar("Ada Lovelace"), query.on("small"), |b| {
+                b.small()
+            });
+            switch(builder, query.on("large"), |b| b.large()).render()
         },
     },
     Entry {
@@ -142,18 +148,25 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Progress(40, 100)",
         props: &["label"],
         rest: ";",
-        build: |t| with(t.ui.progress(40, 100), t.text("label"), |b, v| b.label(v)).render(),
+        build: |query| {
+            with(query.ui.progress(40, 100), query.text("label"), |b, v| {
+                b.label(v)
+            })
+            .render()
+        },
     },
     Entry {
         builder: "Meter",
         call: "Meter(83, 0, 100)",
         props: &["label", "low", "high", "optimum"],
         rest: ";",
-        build: |t| {
-            let b = with(t.ui.meter(83, 0, 100), t.text("label"), |b, v| b.label(v));
-            let b = with(b, t.num("low"), |b, v| b.low(v));
-            let b = with(b, t.num("high"), |b, v| b.high(v));
-            with(b, t.num("optimum"), |b, v| b.optimum(v)).render()
+        build: |query| {
+            let builder = with(query.ui.meter(83, 0, 100), query.text("label"), |b, v| {
+                b.label(v)
+            });
+            let builder = with(builder, query.num("low"), |b, v| b.low(v));
+            let builder = with(builder, query.num("high"), |b, v| b.high(v));
+            with(builder, query.num("optimum"), |b, v| b.optimum(v)).render()
         },
     },
     Entry {
@@ -161,9 +174,9 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Separator",
         props: &["label", "vertical"],
         rest: ";",
-        build: |t| {
-            let b = with(t.ui.separator(), t.text("label"), |b, v| b.label(v));
-            switch(b, t.on("vertical"), |b| b.vertical()).render()
+        build: |query| {
+            let builder = with(query.ui.separator(), query.text("label"), |b, v| b.label(v));
+            switch(builder, query.on("vertical"), |b| b.vertical()).render()
         },
     },
     Entry {
@@ -171,9 +184,9 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Skeleton(3)",
         props: &["heading", "label"],
         rest: ";",
-        build: |t| {
-            let b = switch(t.ui.skeleton(3), t.on("heading"), |b| b.heading());
-            with(b, t.text("label"), |b, v| b.label(v)).render()
+        build: |query| {
+            let builder = switch(query.ui.skeleton(3), query.on("heading"), |b| b.heading());
+            with(builder, query.text("label"), |b, v| b.label(v)).render()
         },
     },
     Entry {
@@ -181,10 +194,10 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "EmptyState(\"No projects yet\")",
         props: &["icon"],
         rest: ";",
-        build: |t| {
+        build: |query| {
             with(
-                t.ui.empty_state("No projects yet"),
-                t.text("icon"),
+                query.ui.empty_state("No projects yet"),
+                query.text("icon"),
                 |b, v| b.icon(v),
             )
             .render()
@@ -195,13 +208,15 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Stat(\"Revenue\", \"$48,210\")",
         props: &["delta", "description", "down_is_good", "reveal"],
         rest: ";",
-        build: |t| {
-            let b = with(t.ui.stat("Revenue", "$48,210"), t.text("delta"), |b, v| {
-                b.delta(v)
-            });
-            let b = switch(b, t.on("reveal"), |b| b.reveal());
-            let b = with(b, t.text("description"), |b, v| b.description(v));
-            switch(b, t.on("down_is_good"), |b| b.down_is_good()).render()
+        build: |query| {
+            let builder = with(
+                query.ui.stat("Revenue", "$48,210"),
+                query.text("delta"),
+                |b, v| b.delta(v),
+            );
+            let builder = switch(builder, query.on("reveal"), |b| b.reveal());
+            let builder = with(builder, query.text("description"), |b, v| b.description(v));
+            switch(builder, query.on("down_is_good"), |b| b.down_is_good()).render()
         },
     },
     Entry {
@@ -209,17 +224,18 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Chart(\"Signups\")",
         props: &["description", "unit", "bar", "line", "sparkline"],
         rest: " { point \"Mon\" 12.0; point \"Tue\" 18.0; point \"Wed\" 9.0; }",
-        build: |t| {
-            let b =
-                t.ui.chart("Signups")
-                    .point("Mon", 12.0)
-                    .point("Tue", 18.0)
-                    .point("Wed", 9.0);
-            let b = with(b, t.text("description"), |b, v| b.description(v));
-            let b = with(b, t.text("unit"), |b, v| b.unit(v));
-            let b = switch(b, t.on("bar"), |b| b.bar());
-            let b = switch(b, t.on("line"), |b| b.line());
-            switch(b, t.on("sparkline"), |b| b.sparkline()).render()
+        build: |query| {
+            let builder = query
+                .ui
+                .chart("Signups")
+                .point("Mon", 12.0)
+                .point("Tue", 18.0)
+                .point("Wed", 9.0);
+            let builder = with(builder, query.text("description"), |b, v| b.description(v));
+            let builder = with(builder, query.text("unit"), |b, v| b.unit(v));
+            let builder = switch(builder, query.on("bar"), |b| b.bar());
+            let builder = switch(builder, query.on("line"), |b| b.line());
+            switch(builder, query.on("sparkline"), |b| b.sparkline()).render()
         },
     },
     Entry {
@@ -227,13 +243,13 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Table(\"try\", \"\")",
         props: &["hide_search", "choose_columns", "loading"],
         rest: " { column \"name\" \"Name\"; column \"size\" \"Size\" numeric; rows ([(\"a.txt\", \"1 KB\"), (\"b.txt\", \"2 KB\")]); }",
-        build: |t| {
-            let b = t.ui.table("try", "").column("name", "Name");
-            let b = b.column("size", "Size").numeric();
-            let b = b.rows([("a.txt", "1 KB"), ("b.txt", "2 KB")]);
-            let b = switch(b, t.on("hide_search"), |b| b.hide_search());
-            let b = switch(b, t.on("choose_columns"), |b| b.choose_columns());
-            b.loading(t.on("loading")).render()
+        build: |query| {
+            let builder = query.ui.table("try", "").column("name", "Name");
+            let builder = builder.column("size", "Size").numeric();
+            let builder = builder.rows([("a.txt", "1 KB"), ("b.txt", "2 KB")]);
+            let builder = switch(builder, query.on("hide_search"), |b| b.hide_search());
+            let builder = switch(builder, query.on("choose_columns"), |b| b.choose_columns());
+            builder.loading(query.on("loading")).render()
         },
     },
     Entry {
@@ -241,12 +257,13 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "DescriptionList",
         props: &["stacked"],
         rest: " { item \"Plan\" \"Team\"; item \"Seats\" \"12\"; }",
-        build: |t| {
-            let b =
-                t.ui.description_list()
-                    .item("Plan", "Team")
-                    .item("Seats", "12");
-            switch(b, t.on("stacked"), |b| b.stacked()).render()
+        build: |query| {
+            let builder = query
+                .ui
+                .description_list()
+                .item("Plan", "Team")
+                .item("Seats", "12");
+            switch(builder, query.on("stacked"), |b| b.stacked()).render()
         },
     },
     Entry {
@@ -254,10 +271,12 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "InputOtp(\"code\", \"Code\")",
         props: &["length"],
         rest: ";",
-        build: |t| {
-            with(t.ui.input_otp("code", "Code"), t.num("length"), |b, v| {
-                b.length(v)
-            })
+        build: |query| {
+            with(
+                query.ui.input_otp("code", "Code"),
+                query.num("length"),
+                |b, v| b.length(v),
+            )
             .render()
         },
     },
@@ -276,17 +295,19 @@ pub(crate) const ENTRIES: &[Entry] = &[
             "gradient_border",
         ],
         rest: ";",
-        build: |t| {
-            let b = t.ui.input("name", "Name");
-            let b = switch(b, t.on("gradient_border"), |b| b.gradient_border());
-            let b = switch(b, t.on("email"), |b| b.email());
-            let b = switch(b, t.on("password"), |b| b.password());
-            let b = switch(b, t.on("required"), |b| b.required());
-            let b = with(b, t.text("placeholder"), |b, v| b.placeholder(v));
-            let b = with(b, t.text("help"), |b, v| b.help(v));
-            let b = with(b, t.text("error"), |b, v| b.error(v));
-            let b = with(b, t.num("maxlength"), |b, v| b.maxlength(v));
-            switch(b, t.on("hide_label"), |b| b.hide_label()).render()
+        build: |query| {
+            let builder = query.ui.input("name", "Name");
+            let builder = switch(builder, query.on("gradient_border"), |b| {
+                b.gradient_border()
+            });
+            let builder = switch(builder, query.on("email"), |b| b.email());
+            let builder = switch(builder, query.on("password"), |b| b.password());
+            let builder = switch(builder, query.on("required"), |b| b.required());
+            let builder = with(builder, query.text("placeholder"), |b, v| b.placeholder(v));
+            let builder = with(builder, query.text("help"), |b, v| b.help(v));
+            let builder = with(builder, query.text("error"), |b, v| b.error(v));
+            let builder = with(builder, query.num("maxlength"), |b, v| b.maxlength(v));
+            switch(builder, query.on("hide_label"), |b| b.hide_label()).render()
         },
     },
     Entry {
@@ -294,11 +315,11 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Marquee(\"Customers\")",
         props: &["reverse", "duration"],
         rest: " { text \"Acme\"; text \"Globex\"; text \"Initech\"; text \"Umbrella\"; }",
-        build: |t| {
-            let b = t.ui.marquee("Customers").text("Acme").text("Globex");
-            let b = b.text("Initech").text("Umbrella");
-            let b = switch(b, t.on("reverse"), |b| b.reverse());
-            with(b, t.num("duration"), |b, v| b.duration(v)).render()
+        build: |query| {
+            let builder = query.ui.marquee("Customers").text("Acme").text("Globex");
+            let builder = builder.text("Initech").text("Umbrella");
+            let builder = switch(builder, query.on("reverse"), |b| b.reverse());
+            with(builder, query.num("duration"), |b, v| b.duration(v)).render()
         },
     },
     Entry {
@@ -306,13 +327,15 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Range(\"volume\", \"Volume\")",
         props: &["value", "min", "max", "step"],
         rest: ";",
-        build: |t| {
-            let b = with(t.ui.range("volume", "Volume"), t.num("value"), |b, v| {
-                b.value(v)
-            });
-            let b = with(b, t.num("min"), |b, v| b.min(v));
-            let b = with(b, t.num("max"), |b, v| b.max(v));
-            with(b, t.num("step"), |b, v| b.step(v)).render()
+        build: |query| {
+            let builder = with(
+                query.ui.range("volume", "Volume"),
+                query.num("value"),
+                |b, v| b.value(v),
+            );
+            let builder = with(builder, query.num("min"), |b, v| b.min(v));
+            let builder = with(builder, query.num("max"), |b, v| b.max(v));
+            with(builder, query.num("step"), |b, v| b.step(v)).render()
         },
     },
     Entry {
@@ -320,12 +343,14 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "Form(\"/form\")",
         props: &["submit", "inline", "get"],
         rest: " { text \"nick\" \"Nickname\"; switch \"news\" \"Newsletter\"; }",
-        build: |t| {
-            let b = with(t.ui.form("/form"), t.text("submit"), |b, v| b.submit(v));
-            let b = switch(b, t.on("inline"), |b| b.inline());
-            let b = switch(b, t.on("get"), |b| b.get());
-            let b = b.id("playground").text("nick", "Nickname");
-            b.switch("news", "Newsletter").render()
+        build: |query| {
+            let builder = with(query.ui.form("/form"), query.text("submit"), |b, v| {
+                b.submit(v)
+            });
+            let builder = switch(builder, query.on("inline"), |b| b.inline());
+            let builder = switch(builder, query.on("get"), |b| b.get());
+            let builder = builder.id("playground").text("nick", "Nickname");
+            builder.switch("news", "Newsletter").render()
         },
     },
     Entry {
@@ -333,10 +358,12 @@ pub(crate) const ENTRIES: &[Entry] = &[
         call: "ErrorPage(404)",
         props: &["title", "description", "home"],
         rest: ";",
-        build: |t| {
-            let b = with(t.ui.error_page(404), t.text("title"), |b, v| b.title(v));
-            let b = with(b, t.text("description"), |b, v| b.description(v));
-            with(b, t.text("home"), |b, v| b.home(v)).render()
+        build: |query| {
+            let builder = with(query.ui.error_page(404), query.text("title"), |b, v| {
+                b.title(v)
+            });
+            let builder = with(builder, query.text("description"), |b, v| b.description(v));
+            with(builder, query.text("home"), |b, v| b.home(v)).render()
         },
     },
 ];
@@ -364,39 +391,41 @@ pub(crate) fn tried(ui: &Ui, builder: &str) -> bool {
 }
 
 /// The `lui!` line for what the query chose.
-fn snippet(t: &Try, e: &Entry, props: &[Prop]) -> String {
-    let mut line = e.call.to_string();
-    for p in props.iter().filter(|p| e.props.contains(&p.name)) {
-        match p.kind {
-            PropKind::Switch if t.on(p.name) => line += &format!(" {}", p.name),
-            PropKind::Condition if t.on(p.name) => line += &format!(" {}=(true)", p.name),
+fn snippet(query: &Try, entry: &Entry, props: &[Prop]) -> String {
+    let mut line = entry.call.to_string();
+    for prop in props.iter().filter(|p| entry.props.contains(&p.name)) {
+        match prop.kind {
+            PropKind::Switch if query.on(prop.name) => line += &format!(" {}", prop.name),
+            PropKind::Condition if query.on(prop.name) => line += &format!(" {}=(true)", prop.name),
             PropKind::Number => {
-                if let Some(v) = t.text(p.name) {
-                    line += &format!(" {}={}", p.name, v.trim());
+                if let Some(value) = query.text(prop.name) {
+                    line += &format!(" {}={}", prop.name, value.trim());
                 }
             }
             PropKind::Value => {
-                if let Some(v) = t.text(p.name) {
-                    line += &format!(" {}={:?}", p.name, v);
+                if let Some(value) = query.text(prop.name) {
+                    line += &format!(" {}={:?}", prop.name, value);
                 }
             }
             _ => {}
         }
     }
-    line + e.rest
+    line + entry.rest
 }
 
 /// The control for one prop in the table's "Try" column; empty for props it does not offer.
-fn control(ui: &Ui, t: &Try, e: &Entry, p: &Prop) -> Markup {
-    if !e.props.contains(&p.name) {
+fn control(ui: &Ui, query: &Try, entry: &Entry, prop: &Prop) -> Markup {
+    if !entry.props.contains(&prop.name) {
         return html! {};
     }
-    let key = t.key(p.name);
-    match p.kind {
+    let key = query.key(prop.name);
+    match prop.kind {
         PropKind::Switch | PropKind::Condition => {
-            html! { (ui.checkbox(&key, p.name).checked(t.on(p.name))) }
+            html! { (ui.checkbox(&key, prop.name).checked(query.on(prop.name))) }
         }
-        _ => html! { (ui.input(&key, p.name).hide_label().value(t.text(p.name).unwrap_or(""))) },
+        _ => {
+            html! { (ui.input(&key, prop.name).hide_label().value(query.text(prop.name).unwrap_or(""))) }
+        }
     }
 }
 
@@ -404,25 +433,25 @@ fn control(ui: &Ui, t: &Try, e: &Entry, p: &Prop) -> Markup {
 pub(crate) fn playground(
     ui: &Ui,
     action: &str,
-    c: &Component,
+    component: &Component,
     table: impl Fn(&dyn Fn(&Prop) -> Markup) -> Markup,
 ) -> Markup {
-    let Some(e) = entry(c.builder) else {
+    let Some(entry) = entry(component.builder) else {
         return table(&|_| html! {});
     };
-    let t = Try {
+    let query = Try {
         ui,
-        builder: c.builder,
+        builder: component.builder,
     };
-    let id = format!("pg-{}", c.builder.to_lowercase());
+    let id = format!("pg-{}", component.builder.to_lowercase());
     html! {
         div id=(id) data-lui="swap" class="lui-playground" {
             form method="get" action=(action) {
-                (table(&|p| control(ui, &t, e, p)))
+                (table(&|prop| control(ui, &query, entry, prop)))
                 p { (ui.button("Try").primary().small()) " " a href=(action) { "Reset" } }
             }
-            div class="lui-playground-preview" { ((e.build)(&t)) }
-            pre tabindex="0" aria-label={ (c.builder) " in lui!" } { code { (snippet(&t, e, c.props)) } }
+            div class="lui-playground-preview" { ((entry.build)(&query)) }
+            pre tabindex="0" aria-label={ (component.builder) " in lui!" } { code { (snippet(&query, entry, component.props)) } }
         }
     }
 }

@@ -281,10 +281,8 @@ document.addEventListener("change", function (e) {
 var typing;
 document.addEventListener("input", function (e) {
   var t = e.target, out = t.id && document.querySelector("output[for='" + t.id + "']");
-  // Range: its value. Field with maxlength: length / limit.
   if (out) out.textContent = t.maxLength > 0 ? t.value.length + " / " + t.maxLength : t.value;
   if (t.type === "range") {
-    // The track's fill: up to the value, or between a pair's thumbs.
     var p = function (r) { return (r.value - r.min) * 100 / (r.max - r.min || 1); }, k = t.closest(".lui-range-track");
     if (k) { var v = [].map.call(k.querySelectorAll("input"), p).sort(function (a, b) { return a - b; });
       k.style.cssText = "--lui-range-lo:" + v[0] + "%;--lui-range-hi:" + v[1] + "%"; }
@@ -475,24 +473,24 @@ mod axum_glue {
     /// an HTML answer to an enhanced request (`Lui-Enhance: 1`) loses its inline stylesheet
     /// ([`slim_html`]), and every HTML answer carries `Vary: Lui-Enhance, Cookie`, so a cache or
     /// a `<link rel="prefetch">` never serves one variant, or one cookie's page, for another. Streamed bodies (no known size) pass through untouched.
-    pub async fn slim(req: Request, next: Next) -> Response {
-        let enhanced = req.headers().contains_key("lui-enhance");
-        let mut res = next.run(req).await;
-        let html = res
+    pub async fn slim(request: Request, next: Next) -> Response {
+        let enhanced = request.headers().contains_key("lui-enhance");
+        let mut response = next.run(request).await;
+        let html = response
             .headers()
             .get(header::CONTENT_TYPE)
             .is_some_and(|v| v.as_bytes().starts_with(b"text/html"));
         if !html {
-            return res;
+            return response;
         }
-        res.headers_mut().append(
+        response.headers_mut().append(
             header::VARY,
             HeaderValue::from_static("lui-enhance, cookie"),
         );
-        if !enhanced || res.body().size_hint().exact().is_none() {
-            return res;
+        if !enhanced || response.body().size_hint().exact().is_none() {
+            return response;
         }
-        let (mut parts, body) = res.into_parts();
+        let (mut parts, body) = response.into_parts();
         let Ok(bytes) = axum::body::to_bytes(body, usize::MAX).await else {
             return Response::from_parts(parts, Body::empty());
         };
@@ -504,24 +502,28 @@ mod axum_glue {
     /// Middleware: every HTML answer without a `Content-Security-Policy` of its own gets
     /// [`super::CSP`], or [`super::CSP_NO_SCRIPT`] when it is a `Page::without_script`. Layer it on the
     /// router: `.layer(axum::middleware::from_fn(loco_ui::enhance::csp))`.
-    pub async fn csp(req: Request, next: Next) -> Response {
-        let mut res = next.run(req).await;
-        let html = res
+    pub async fn csp(request: Request, next: Next) -> Response {
+        let mut response = next.run(request).await;
+        let html = response
             .headers()
             .get(header::CONTENT_TYPE)
             .is_some_and(|v| v.as_bytes().starts_with(b"text/html"));
-        if html && !res.headers().contains_key(header::CONTENT_SECURITY_POLICY) {
-            let policy = if res.extensions().get::<super::NoScript>().is_some() {
+        if html
+            && !response
+                .headers()
+                .contains_key(header::CONTENT_SECURITY_POLICY)
+        {
+            let policy = if response.extensions().get::<super::NoScript>().is_some() {
                 super::CSP_NO_SCRIPT
             } else {
                 super::CSP
             };
-            res.headers_mut().insert(
+            response.headers_mut().insert(
                 header::CONTENT_SECURITY_POLICY,
                 HeaderValue::from_static(policy),
             );
         }
-        res
+        response
     }
 
     /// Serves [`served`] at [`SCRIPT_PATH`], immutable for a year (the URL carries a hash).

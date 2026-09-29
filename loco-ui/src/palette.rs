@@ -73,14 +73,16 @@ struct Command<'a> {
 
 /// The command whose label is `query`, ignoring case and outer spaces: where Enter goes.
 fn exact<'c, 'a>(commands: &'c [Command<'a>], query: &str) -> Option<&'c Command<'a>> {
-    let q = query.trim();
-    commands.iter().find(|c| c.label.eq_ignore_ascii_case(q))
+    let trimmed = query.trim();
+    commands
+        .iter()
+        .find(|c| c.label.eq_ignore_ascii_case(trimmed))
 }
 
 /// Commands whose label or keywords contain every word of `query`, labels that start with it first.
 fn matches<'c, 'a>(commands: &'c [Command<'a>], query: &str) -> Vec<&'c Command<'a>> {
-    let q = query.trim().to_lowercase();
-    let words: Vec<&str> = q.split_whitespace().collect();
+    let trimmed = query.trim().to_lowercase();
+    let words: Vec<&str> = trimmed.split_whitespace().collect();
     let mut found: Vec<&Command> = commands
         .iter()
         .filter(|c| {
@@ -88,7 +90,7 @@ fn matches<'c, 'a>(commands: &'c [Command<'a>], query: &str) -> Vec<&'c Command<
             words.iter().all(|w| hay.contains(w))
         })
         .collect();
-    found.sort_by_key(|c| !c.label.to_lowercase().starts_with(&q));
+    found.sort_by_key(|c| !c.label.to_lowercase().starts_with(&trimmed));
     found
 }
 

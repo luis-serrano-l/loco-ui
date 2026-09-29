@@ -265,17 +265,17 @@ impl<'a> Wizard<'a> {
             .min(self.steps.len().saturating_sub(1))
     }
 
-    /// The link to step `n`, keeping the rest of the page's state: where a handler redirects
+    /// The link to `step`, keeping the rest of the page's state: where a handler redirects
     /// after a valid post.
-    pub fn link(&self, n: usize) -> String {
+    pub fn link(&self, step: usize) -> String {
         self.ui
             .state
-            .link(&format!("step.{}", self.id), &n.to_string())
+            .link(&format!("step.{}", self.id), &step.to_string())
     }
 
-    /// Whether step `n` is the last one.
-    pub fn is_last(&self, n: usize) -> bool {
-        n + 1 >= self.steps.len()
+    /// Whether `step` is the last one.
+    pub fn is_last(&self, step: usize) -> bool {
+        step + 1 >= self.steps.len()
     }
 
     /// A step's fields with the wizard's values and messages filled in.

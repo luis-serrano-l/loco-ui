@@ -11,17 +11,17 @@ use crate::{
 };
 
 /// The model as the form's `(name, value)` pairs, for the edit page.
-pub fn values(m: &Model) -> Vec<(String, String)> {
-    vec![("name".into(), m.name.to_string())]
+pub fn values(notebook: &Model) -> Vec<(String, String)> {
+    vec![("name".into(), notebook.name.to_string())]
 }
 
 /// Every notebook on this page, with the pager from Loco's paging answer.
 pub fn list(ui: &Ui, rows: &[Model], meta: &PagerMeta) -> Markup {
-    let rows = rows.iter().map(|m| {
-        let v = values(m);
-        let href = format!("/notebooks/{}", m.id);
-        let mut cells = vec![html! { a href=(href) { (m.id) } }];
-        cells.extend(v.iter().map(|(_, value)| html! { (value) }));
+    let rows = rows.iter().map(|notebook| {
+        let fields = values(notebook);
+        let href = format!("/notebooks/{}", notebook.id);
+        let mut cells = vec![html! { a href=(href) { (notebook.id) } }];
+        cells.extend(fields.iter().map(|(_, value)| html! { (value) }));
         Row::new(cells)
     });
     lui! {
@@ -36,30 +36,30 @@ pub fn list(ui: &Ui, rows: &[Model], meta: &PagerMeta) -> Markup {
 
 /// One notebook: its fields in a card, with back, edit and delete beside the title, and
 /// then its notes.
-pub fn show(ui: &Ui, m: &Model, notes: &[Listed]) -> Markup {
+pub fn show(ui: &Ui, notebook: &Model, notes: &[Listed]) -> Markup {
     let labels = ["Name"];
-    let title = m.name.clone();
-    let action = format!("/notebooks/{}/delete", m.id);
-    let edit = format!("/notebooks/{}/edit", m.id);
-    let new = format!("/notes/new?notebook={}", m.id);
+    let title = notebook.name.clone();
+    let action = format!("/notebooks/{}/delete", notebook.id);
+    let edit = format!("/notebooks/{}/edit", notebook.id);
+    let new = format!("/notes/new?notebook={}", notebook.id);
     let count = notes.len().to_string();
     lui! {
         RecordPage(&title) back="/notebooks" edit=(&edit) delete=(&action) {
-            @for (label, (_, value)) in labels.iter().zip(values(m)) {
+            @for (label, (_, value)) in labels.iter().zip(values(notebook)) {
                 field (label) (value);
             }
             field "Notes" (count.as_str());
-            field "Created" (m.created_at.format("%-d %b %Y").to_string());
+            field "Created" (notebook.created_at.format("%-d %b %Y").to_string());
         }
         div class="notes-section" {
             div class="notes-bar" {
-                h2 { "Notes in " (m.name) }
+                h2 { "Notes in " (notebook.name) }
                 LinkButton("New note here", &new) primary;
             }
             @if notes.is_empty() {
                 EmptyState("No notes yet") icon=(Icon::File) { link "New note here" (&new); }
             } @else {
-                Grid("17rem") { @for it in notes { (card(ui, it)) } }
+                Grid("17rem") { @for note in notes { (card(ui, note)) } }
             }
         }
     }

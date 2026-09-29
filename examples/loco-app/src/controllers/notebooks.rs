@@ -24,8 +24,8 @@ struct Params {
     name: String,
 }
 
-fn set(item: &mut ActiveModel, p: Params) {
-    item.name = Set(p.name);
+fn set(item: &mut ActiveModel, params: Params) {
+    item.name = Set(params.name);
 }
 
 /// What each reference field can point at: every row of the parent table as `(id, label)`,
@@ -78,8 +78,9 @@ async fn show(
 ) -> Result<Page> {
     let me = owner(&ctx, &auth).await?;
     let item = load(&ctx, id, me.id).await?;
-    let notes = crate::models::notes::Entity::listed(&ctx.db, me.id, |q| {
-        q.filter(crate::models::notes::Column::NotebookId.eq(id))
+    let notes = crate::models::notes::Entity::listed(&ctx.db, me.id, |query| {
+        query
+            .filter(crate::models::notes::Column::NotebookId.eq(id))
             .filter(crate::models::notes::Column::Archived.eq(false))
     })
     .await?;
@@ -103,8 +104,8 @@ async fn create(
     Valid(form): Valid<Params>,
 ) -> Result<Response> {
     let me = owner(&ctx, &auth).await?;
-    let p = match form {
-        Ok(p) => p,
+    let params = match form {
+        Ok(params) => params,
         Err(bad) => {
             let title = "New notebook";
             let body = views::notebooks::form(
@@ -121,7 +122,7 @@ async fn create(
     let mut item = ActiveModel {
         ..Default::default()
     };
-    set(&mut item, p);
+    set(&mut item, params);
     item.user_id = Set(me.id);
     let item = item.insert(&ctx.db).await?;
     let to = format!("/notebooks/{}", item.id);
@@ -161,8 +162,8 @@ async fn update(
     let me = owner(&ctx, &auth).await?;
     let item = load(&ctx, id, me.id).await?;
     let action = format!("/notebooks/{id}");
-    let p = match form {
-        Ok(p) => p,
+    let params = match form {
+        Ok(params) => params,
         Err(bad) => {
             let title = "Edit notebook";
             let body = views::notebooks::form(
@@ -177,7 +178,7 @@ async fn update(
         }
     };
     let mut item = item.into_active_model();
-    set(&mut item, p);
+    set(&mut item, params);
     item.update(&ctx.db).await?;
     Ok(ui.redirect(&action).ok("Saved.").into_response())
 }

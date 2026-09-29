@@ -425,14 +425,14 @@ impl Text {
         Text::Sunday,
     ];
 
-    /// The month `n`, 1 to 12.
-    pub const fn month(n: u32) -> Text {
-        Text::ALL[Text::January as usize + (n as usize - 1) % 12]
+    /// The month `number`, 1 to 12.
+    pub const fn month(number: u32) -> Text {
+        Text::ALL[Text::January as usize + (number as usize - 1) % 12]
     }
 
-    /// The weekday `n`, 0 for Monday to 6 for Sunday.
-    pub const fn weekday(n: u32) -> Text {
-        Text::ALL[Text::Monday as usize + n as usize % 7]
+    /// The weekday `number`, 0 for Monday to 6 for Sunday.
+    pub const fn weekday(number: u32) -> Text {
+        Text::ALL[Text::Monday as usize + number as usize % 7]
     }
 
     /// The key a lookup is asked for: `lui-` and the name in kebab case (`lui-load-more`).

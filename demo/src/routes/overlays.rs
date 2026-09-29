@@ -55,15 +55,15 @@ struct DeleteForm {
 }
 
 /// The confirm form's target: only ever redirects to a local path from `returns_to`.
-async fn dialog_delete(ui: Ui, Form(f): Form<DeleteForm>) -> Redirect {
-    let local = f.returns_to.starts_with('/') && !f.returns_to.starts_with("//");
-    let msg = if f.reason.is_empty() {
+async fn dialog_delete(ui: Ui, Form(form): Form<DeleteForm>) -> Redirect {
+    let local = form.returns_to.starts_with('/') && !form.returns_to.starts_with("//");
+    let message = if form.reason.is_empty() {
         "Account deleted (not really)".to_string()
     } else {
-        format!("Account deleted (not really). Reason: {}", f.reason)
+        format!("Account deleted (not really). Reason: {}", form.reason)
     };
-    ui.redirect(if local { &f.returns_to } else { "/dialog" })
-        .flash(&msg)
+    ui.redirect(if local { &form.returns_to } else { "/dialog" })
+        .flash(&message)
 }
 
 fn menus(ui: &Ui) -> Markup {

@@ -128,21 +128,21 @@ mod axum_glue {
     impl<S: Send + Sync> FromRequest<S> for Posted {
         type Rejection = Response;
 
-        async fn from_request(req: Request, state: &S) -> Result<Posted, Response> {
-            let multipart = req
+        async fn from_request(request: Request, state: &S) -> Result<Posted, Response> {
+            let multipart = request
                 .headers()
                 .get(header::CONTENT_TYPE)
                 .and_then(|v| v.to_str().ok())
                 .is_some_and(|t| t.starts_with("multipart/form-data"));
             if !multipart {
-                let body = Bytes::from_request(req, state)
+                let body = Bytes::from_request(request, state)
                     .await
                     .map_err(IntoResponse::into_response)?;
                 return Ok(Posted::from_pairs(
                     form_urlencoded::parse(&body).into_owned().collect(),
                 ));
             }
-            let mut parts = Multipart::from_request(req, state)
+            let mut parts = Multipart::from_request(request, state)
                 .await
                 .map_err(IntoResponse::into_response)?;
             let mut posted = Posted::default();

@@ -45,7 +45,7 @@ const COLUMNS: [&str; 3] = ["name", "size", "kind"];
 
 /// Thirty-six files filtered and sorted on the server as the table's query says, in one place
 /// for the page and the CSV.
-fn files(q: &TableQuery) -> Vec<File> {
+fn files(query: &TableQuery) -> Vec<File> {
     let mut files: Vec<File> = ["src", "docs", "old"]
         .iter()
         .flat_map(|dir| {
@@ -53,9 +53,9 @@ fn files(q: &TableQuery) -> Vec<File> {
                 .iter()
                 .map(move |f| (format!("{dir}/{}", f.0), f.1 * (dir.len() as u32), f.2))
         })
-        .filter(|f| q.matches(&f.0) || q.matches(f.2))
+        .filter(|f| query.matches(&f.0) || query.matches(f.2))
         .collect();
-    q.sort_by(&mut files, |a, b, key| match key {
+    query.sort_by(&mut files, |a, b, key| match key {
         "size" => a.1.cmp(&b.1),
         "kind" => a.2.cmp(b.2),
         _ => a.0.cmp(&b.0),
@@ -77,24 +77,24 @@ impl Kinds {
 }
 
 /// A file as a row that expands, has its own menu, can be selected and edited in place.
-fn file_row<'a>(f: &'a File, kinds: &'a Kinds) -> Row<'a> {
+fn file_row<'a>(file: &'a File, kinds: &'a Kinds) -> Row<'a> {
     let size = format!(
         "{} KB",
-        loco_ui::paged_table::thousands(f.1 as usize / 1024)
+        loco_ui::paged_table::thousands(file.1 as usize / 1024)
     );
-    Row::from((html! { code { (f.0) } }, size, kinds.of(&f.0, f.2)))
-        .key(&f.0)
-        .values(["", "", kinds.of(&f.0, f.2)])
-        .detail(html! { p { "A " (f.2) " of " (f.1) " bytes, in " code { (f.0.split('/').next().unwrap_or("")) } "." } })
+    Row::from((html! { code { (file.0) } }, size, kinds.of(&file.0, file.2)))
+        .key(&file.0)
+        .values(["", "", kinds.of(&file.0, file.2)])
+        .detail(html! { p { "A " (file.2) " of " (file.1) " bytes, in " code { (file.0.split('/').next().unwrap_or("")) } "." } })
         .menu([MenuItem::link("Open", "/table"), MenuItem::action("Delete", "/table/bulk").danger()])
 }
 
 /// The table only renders and links: the route reads its query, fetches, sorts and slices.
 fn files_page(ui: &Ui, kinds: &Kinds) -> Markup {
     // code: /table
-    let q = ui.table_query("files", &COLUMNS);
-    let files = files(&q);
-    let (page, total) = q.page_of(&files);
+    let query = ui.table_query("files", &COLUMNS);
+    let files = files(&query);
+    let (page, total) = query.page_of(&files);
     lui! { Table("files", "/table") paged=(total) choose_columns csv="/table.csv" edit="/table/edit"
             empty="No files match this filter." loading=(ui.param("loading") == Some("1")) {
         column "name" "Name" sortable;
@@ -107,31 +107,31 @@ fn files_page(ui: &Ui, kinds: &Kinds) -> Markup {
 }
 
 async fn table_page(ui: Ui, Saved(kinds): Saved<Kinds>) -> Page {
-    let t = files_page(&ui, &kinds);
+    let table = files_page(&ui, &kinds);
     page(
         &ui,
         "Table",
         html! {
             p { "Click a header to sort, again to flip. Type to filter. Hide columns, tick rows for the bulk form, open a row's menu or its detail. The page size you pick is remembered for your next visit. Every state is a URL, including " a href="/table?loading=1" { "the loading one" } "." }
-            (t)
+            (table)
         },
     )
 }
 
 /// The same rows as text/csv, for the sort, filter and columns in the URL.
 async fn table_csv(ui: Ui) -> impl IntoResponse {
-    let q = ui.table_query("files", &COLUMNS);
-    let cols = q.visible(&COLUMNS);
-    let mut csv = cols.join(",") + "\n";
-    for f in files(&q) {
+    let query = ui.table_query("files", &COLUMNS);
+    let columns = query.visible(&COLUMNS);
+    let mut csv = columns.join(",") + "\n";
+    for file in files(&query) {
         let cells = [
-            ("name", f.0.clone()),
-            ("size", f.1.to_string()),
-            ("kind", f.2.to_string()),
+            ("name", file.0.clone()),
+            ("size", file.1.to_string()),
+            ("kind", file.2.to_string()),
         ];
         csv += &cells
             .iter()
-            .filter(|(k, _)| cols.contains(k))
+            .filter(|(k, _)| columns.contains(k))
             .map(|(_, v)| v.as_str())
             .collect::<Vec<_>>()
             .join(",");
@@ -182,10 +182,10 @@ async fn table_bulk(ui: Ui, posted: Posted) -> Redirect {
         "" => "delete",
         a => a,
     };
-    let msg = if rows == 0 {
+    let message = if rows == 0 {
         "Nothing selected: tick a row first.".to_string()
     } else {
         format!("{action}: {rows} file(s) (not really).")
     };
-    ui.redirect("/table").flash(&msg)
+    ui.redirect("/table").flash(&message)
 }

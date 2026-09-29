@@ -76,9 +76,9 @@ fn chosen(ui: &Ui) -> Chosen {
 
 /// The scales of one scheme, plus what follows from the brand in both: white or near-black
 /// text on its solid step, and a gradient that keeps near-black text readable.
-fn declarations(c: &Chosen, dark: bool) -> String {
-    let on = c.brand_scale.on_solid();
-    let mut out = c.gray_scale.css("gray", dark) + &c.brand_scale.css("brand", dark);
+fn declarations(chosen: &Chosen, dark: bool) -> String {
+    let on = chosen.brand_scale.on_solid();
+    let mut out = chosen.gray_scale.css("gray", dark) + &chosen.brand_scale.css("brand", dark);
     out.push_str(&format!("  --lui-on-primary: {on};\n"));
     if on != "#ffffff" {
         out.push_str("  --lui-gradient-primary: linear-gradient(in oklch to bottom, var(--lui-brand-9), var(--lui-brand-10));\n");
@@ -87,30 +87,30 @@ fn declarations(c: &Chosen, dark: bool) -> String {
 }
 
 /// The overrides as a stylesheet, in the cascade order of `layout::Tokens::css`.
-fn css(c: &Chosen) -> String {
-    let (light, dark) = (declarations(c, false), declarations(c, true));
+fn css(chosen: &Chosen) -> String {
+    let (light, dark) = (declarations(chosen, false), declarations(chosen, true));
     format!(
         "/* loco-ui theme from /theme: paste after the stylesheet (Page::css), or put the same\n   scales in a layout::Tokens and pass it to Page::tokens. */\n\
          :root {{\n{light}  --lui-radius: {}px;\n}}\n\
          @media (prefers-color-scheme: dark) {{\n  :root:not([data-theme=\"light\"]) {{\n{dark}  }}\n}}\n\
          :root[data-theme=\"dark\"] {{\n{dark}}}\n",
-        c.radius
+        chosen.radius
     )
 }
 
 /// A few components under one scheme's values: the preview. The roles and depth tokens are
 /// declared again on it, since `--lui-bg: var(--lui-gray-1)` resolves where it is declared
 /// (on `:root`); the chosen scales come last so their `--lui-on-primary` wins.
-fn preview(ui: &Ui, c: &Chosen, dark: bool) -> Markup {
-    let (t, scheme) = (Tokens::default(), if dark { "dark" } else { "light" });
-    let roles = if dark { t.dark } else { t.light };
+fn preview(ui: &Ui, chosen: &Chosen, dark: bool) -> Markup {
+    let (tokens, scheme) = (Tokens::default(), if dark { "dark" } else { "light" });
+    let roles = if dark { tokens.dark } else { tokens.light };
     let depth = if dark { DEPTH_DARK } else { DEPTH_LIGHT };
     let style = format!(
         "{}{}{} --lui-radius: {}px; color-scheme: {scheme};",
         roles.declarations(),
         depth,
-        declarations(c, dark),
-        c.radius
+        declarations(chosen, dark),
+        chosen.radius
     )
     .replace('\n', " ");
     html! {
@@ -133,12 +133,12 @@ fn preview(ui: &Ui, c: &Chosen, dark: bool) -> Markup {
 }
 
 /// The form that picks the theme, and the previews in both schemes.
-fn pickers(ui: &Ui, c: &Chosen) -> Markup {
+fn pickers(ui: &Ui, chosen: &Chosen) -> Markup {
     let download = format!(
         "/theme.css?brand={}&gray={}&radius={}",
-        c.brand.replace('#', "%23"),
-        c.gray.replace('#', "%23"),
-        c.radius
+        chosen.brand.replace('#', "%23"),
+        chosen.gray.replace('#', "%23"),
+        chosen.radius
     );
     lui! {
         // code: /theme
@@ -146,11 +146,11 @@ fn pickers(ui: &Ui, c: &Chosen) -> Markup {
             fieldset {
                 legend { "Scales" }
                 div {
-                    Color("brand", "Brand") value=(&c.brand) presets=(&BRANDS);
-                    Color("gray", "Gray") value=(&c.gray) presets=(&GRAYS);
+                    Color("brand", "Brand") value=(&chosen.brand) presets=(&BRANDS);
+                    Color("gray", "Gray") value=(&chosen.gray) presets=(&GRAYS);
                 }
             }
-            Range("radius", "Radius (px)") value=(i64::from(c.radius)) min=0 max=24;
+            Range("radius", "Radius (px)") value=(i64::from(chosen.radius)) min=0 max=24;
             Cluster {
                 Button("Preview") primary;
                 LinkButton("Download theme.css", &download);
@@ -158,19 +158,19 @@ fn pickers(ui: &Ui, c: &Chosen) -> Markup {
             }
         }
         div class="lui-theme-previews" {
-            (preview(ui, c, false))
-            (preview(ui, c, true))
+            (preview(ui, chosen, false))
+            (preview(ui, chosen, true))
         }
         // end code
     }
 }
 
 async fn builder(ui: Ui) -> Page {
-    let c = chosen(&ui);
-    let rust = c.brand_scale.rust("BRAND") + &c.gray_scale.rust("GRAY");
+    let chosen = chosen(&ui);
+    let rust = chosen.brand_scale.rust("BRAND") + &chosen.gray_scale.rust("GRAY");
     let body = lui! {
-        (pickers(&ui, &c))
-        details { summary { "theme.css" } pre tabindex="0" aria-label="theme.css" { code { (css(&c)) } } }
+        (pickers(&ui, &chosen))
+        details { summary { "theme.css" } pre tabindex="0" aria-label="theme.css" { code { (css(&chosen)) } } }
         details { summary { "The scales in Rust" } pre tabindex="0" aria-label="The scales in Rust" { code { (rust) } } }
     };
     page(&ui, "Theme builder", body)

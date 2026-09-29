@@ -19,8 +19,9 @@
 //!
 //! **Accessibility:** each tab is a `<summary>` holding a link (one tab stop, Enter follows
 //! it); the narrow select is named "Tab"; not the ARIA tablist pattern, which needs
-//! script (FINDINGS). Checked by axe-core in headless Firefox on every demo route, both
-//! capability variants, light and dark (no serious or critical violation).
+//! script (FINDINGS, M29 · axe-core over every route). Checked by axe-core in headless
+//! Firefox on every demo route, both capability variants, light and dark (no serious or
+//! critical violation).
 //!
 //! **What it does not do without script:** arrow keys between tabs (the WAI-ARIA tabs pattern);
 //! each tab is a `<summary>` reached by Tab.
@@ -216,10 +217,10 @@ impl Render for Tabs<'_> {
             select_below,
             underline,
         } = *self;
-        let s = &ui.state;
+        let state = &ui.state;
         let strip = ui.has(Cap::DetailsContent);
         let vt = ui.has(Cap::ViewTransitions);
-        let active = s.tab(name);
+        let active = state.tab(name);
         let key = format!("tab.{name}");
         let class = match (strip, vertical, underline) {
             (false, ..) => "lui-tabs lui-accordion",
@@ -231,8 +232,8 @@ impl Render for Tabs<'_> {
             div id={ "lui-tabs-" (name) } data-lui="swap"
                 class=(class) style=[(strip && vertical).then(|| format!("--lui-tabs-n: {}", tabs.len()))] {
                 @if select_below {
-                    form method="get" action=(s.path()) class="lui-tabs-select" {
-                        @for (k, v) in s.entries() { @if k != key { input type="hidden" name=(k) value=(v); } }
+                    form method="get" action=(state.path()) class="lui-tabs-select" {
+                        @for (k, v) in state.entries() { @if k != key { input type="hidden" name=(k) value=(v); } }
                         select name=(key) aria-label=(ui.text(Text::Tab)) {
                             @for (i, t) in tabs.iter().enumerate() {
                                 option value=(i) selected[i == active] { (t.title) @if let Some(n) = &t.badge { " (" (n) ")" } }
@@ -244,7 +245,7 @@ impl Render for Tabs<'_> {
                 @for (i, t) in tabs.iter().enumerate() {
                     details name=(name) open[i == active] {
                         summary {
-                            a href=(s.link(&key, &i.to_string())) { (t.title) (badge(t)) }
+                            a href=(state.link(&key, &i.to_string())) { (t.title) (badge(t)) }
                             @if i == active && strip {
                                 span class="lui-tabs-mark" style=[vt.then(|| format!("view-transition-name: lui-tabs-{name}; view-transition-class: lui-tabs-mark"))] {}
                             }
@@ -262,8 +263,8 @@ impl Render for Tabs<'_> {
         }
     }
 }
-fn badge(t: &Tab) -> Markup {
-    html! { @if let Some(n) = &t.badge { " " span class="lui-tabs-badge" { (n) } } }
+fn badge(tab: &Tab) -> Markup {
+    html! { @if let Some(n) = &tab.badge { " " span class="lui-tabs-badge" { (n) } } }
 }
 
 /// Styles for this component; included in [`crate::stylesheet`].
@@ -313,7 +314,7 @@ pub const CSS: &str = r#"
 /* Vertical: a plain list with a rule, the open title marked by a bar on the rule. The titles
    are in the first column, the open panel spans every row of the second. The rule goes on
    ::details-content, the grid item, so it runs the full height; the padding stays on the
-   panel (Blitz builds no ::details-content box, see FINDINGS). */
+   panel (Blitz builds no ::details-content box: FINDINGS, M4). */
 .lui-tabs.lui-tabs-vertical { display: grid; grid-template-columns: max-content 1fr; }
 .lui-tabs.lui-tabs-vertical summary {
   grid-column: 1; padding: 0; background: none; border-right: 1px solid var(--lui-line); margin: 0 -1px 0 0;

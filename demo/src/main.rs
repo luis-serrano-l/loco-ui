@@ -43,14 +43,17 @@ fn write_spec() {
     std::fs::write(root.join("spec/components.json"), loco_ui::spec::to_json()).unwrap();
     let readme_path = root.join("README.md");
     let readme = std::fs::read_to_string(&readme_path).unwrap();
-    let (start, end) = ("<!-- matrix:start -->", "<!-- matrix:end -->");
-    let a = readme.find(start).expect("README matrix start marker") + start.len();
-    let b = readme.find(end).expect("README matrix end marker");
+    let (start_marker, end_marker) = ("<!-- matrix:start -->", "<!-- matrix:end -->");
+    let start = readme
+        .find(start_marker)
+        .expect("README matrix start marker")
+        + start_marker.len();
+    let end = readme.find(end_marker).expect("README matrix end marker");
     let updated = format!(
         "{}\n{}{}",
-        &readme[..a],
+        &readme[..start],
         loco_ui::spec::markdown_table(),
-        &readme[b..]
+        &readme[end..]
     );
     std::fs::write(&readme_path, updated).unwrap();
     println!("wrote spec/components.json and README.md feature matrix");

@@ -110,9 +110,9 @@ fn called(code: &str) -> Vec<&'static Component> {
         .join(" ")
         .replace(" .", ".");
     let mut found: Vec<(usize, &'static Component)> = Vec::new();
-    for c in loco_ui::props() {
-        let lui = c.lui();
-        let at = c
+    for component in loco_ui::props() {
+        let lui = component.lui();
+        let at = component
             .calls
             .iter()
             .filter_map(|call| {
@@ -132,7 +132,7 @@ fn called(code: &str) -> Vec<&'static Component> {
             )
             .min();
         if let Some(at) = at {
-            found.push((at, c));
+            found.push((at, component));
         }
     }
     found.sort_by_key(|(at, _)| *at);

@@ -94,37 +94,39 @@ struct Cx {
 }
 
 /// The builder variable of an expansion; hygienic, so it never meets a caller's name.
-fn b() -> Ident {
+fn builder_ident() -> Ident {
     Ident::new("__lui_builder", Span::mixed_site())
 }
 
-fn punct(t: Option<&TokenTree>, c: char) -> bool {
-    matches!(t, Some(TokenTree::Punct(p)) if p.as_char() == c)
+fn punct(token: Option<&TokenTree>, c: char) -> bool {
+    matches!(token, Some(TokenTree::Punct(p)) if p.as_char() == c)
 }
 
-fn brace(t: Option<&TokenTree>) -> Option<&Group> {
-    match t {
+fn brace(token: Option<&TokenTree>) -> Option<&Group> {
+    match token {
         Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => Some(g),
         _ => None,
     }
 }
 
-fn paren(t: Option<&TokenTree>) -> Option<&Group> {
-    match t {
+fn paren(token: Option<&TokenTree>) -> Option<&Group> {
+    match token {
         Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Parenthesis => Some(g),
         _ => None,
     }
 }
 
-fn keyword(t: Option<&TokenTree>) -> Option<String> {
-    match t {
+fn keyword(token: Option<&TokenTree>) -> Option<String> {
+    match token {
         Some(TokenTree::Ident(i)) => Some(i.to_string()),
         _ => None,
     }
 }
 
-fn starts_upper(i: &Ident) -> bool {
-    i.to_string().starts_with(|c: char| c.is_ascii_uppercase())
+fn starts_upper(ident: &Ident) -> bool {
+    ident
+        .to_string()
+        .starts_with(|c: char| c.is_ascii_uppercase())
 }
 
 /// `DatePicker` → `date_picker`.
@@ -159,20 +161,20 @@ fn until_brace(tokens: &[TokenTree], from: usize, what: &str) -> Result<usize> {
         })
 }
 
-/// Whether `tokens[i]` starts an item: a lowercase name followed by an argument, `body`
+/// Whether `tokens[index]` starts an item: a lowercase name followed by an argument, `body`
 /// followed by its block, or (a mistake [`Cx::items`] reports) a name followed by a component.
-fn item_at(tokens: &[TokenTree], i: usize) -> bool {
-    let Some(TokenTree::Ident(name)) = tokens.get(i) else {
+fn item_at(tokens: &[TokenTree], index: usize) -> bool {
+    let Some(TokenTree::Ident(name)) = tokens.get(index) else {
         return false;
     };
     if starts_upper(name) {
         return false;
     }
-    match tokens.get(i + 1) {
+    match tokens.get(index + 1) {
         Some(TokenTree::Literal(_)) => true,
         Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => name == "body",
         Some(TokenTree::Group(_)) => true,
-        Some(TokenTree::Ident(c)) => starts_upper(c) && paren(tokens.get(i + 2)).is_some(),
+        Some(TokenTree::Ident(c)) => starts_upper(c) && paren(tokens.get(index + 2)).is_some(),
         _ => false,
     }
 }
@@ -180,17 +182,17 @@ fn item_at(tokens: &[TokenTree], i: usize) -> bool {
 /// Whether a component's block holds items: its first entry (looking inside control flow)
 /// is an item, or it is empty.
 fn holds_items(tokens: &[TokenTree]) -> bool {
-    let mut i = 0;
-    while i < tokens.len() {
-        if punct(tokens.get(i), '@') {
-            if keyword(tokens.get(i + 1)).as_deref() == Some("let") {
-                i = (i..tokens.len())
+    let mut index = 0;
+    while index < tokens.len() {
+        if punct(tokens.get(index), '@') {
+            if keyword(tokens.get(index + 1)).as_deref() == Some("let") {
+                index = (index..tokens.len())
                     .find(|&j| punct(tokens.get(j), ';'))
                     .map_or(tokens.len(), |j| j + 1);
                 continue;
             }
-            return match (i..tokens.len()).find_map(|j| brace(tokens.get(j))) {
-                Some(g) if keyword(tokens.get(i + 1)).as_deref() == Some("match") => {
+            return match (index..tokens.len()).find_map(|j| brace(tokens.get(j))) {
+                Some(g) if keyword(tokens.get(index + 1)).as_deref() == Some("match") => {
                     let arms: Vec<TokenTree> = g.stream().into_iter().collect();
                     let at = arms
                         .windows(2)
@@ -206,7 +208,7 @@ fn holds_items(tokens: &[TokenTree]) -> bool {
                 None => false,
             };
         }
-        return item_at(tokens, i);
+        return item_at(tokens, index);
     }
     true
 }
@@ -215,21 +217,21 @@ impl Cx {
     /// Plain Maud markup, with every component in it expanded to a splice.
     fn markup(&self, tokens: &[TokenTree]) -> Result<TokenStream> {
         let mut out = TokenStream::new();
-        let mut i = 0;
-        while i < tokens.len() {
-            match &tokens[i] {
+        let mut index = 0;
+        while index < tokens.len() {
+            match &tokens[index] {
                 TokenTree::Punct(p) if p.as_char() == '@' => {
-                    let kw = keyword(tokens.get(i + 1)).unwrap_or_default();
+                    let kw = keyword(tokens.get(index + 1)).unwrap_or_default();
                     if kw == "let" {
-                        let end = (i..tokens.len())
+                        let end = (index..tokens.len())
                             .find(|&j| punct(tokens.get(j), ';'))
                             .ok_or_else(|| (p.span(), "`@let` needs a `;`".to_string()))?;
-                        out.extend(stream(&tokens[i..=end]));
-                        i = end + 1;
+                        out.extend(stream(&tokens[index..=end]));
+                        index = end + 1;
                         continue;
                     }
-                    let at = until_brace(tokens, i, &format!("@{kw}"))?;
-                    out.extend(stream(&tokens[i..at]));
+                    let at = until_brace(tokens, index, &format!("@{kw}"))?;
+                    out.extend(stream(&tokens[index..at]));
                     let g = brace(tokens.get(at)).unwrap();
                     let inner: Vec<TokenTree> = g.stream().into_iter().collect();
                     let body = if kw == "match" {
@@ -238,36 +240,35 @@ impl Cx {
                         self.markup(&inner)?
                     };
                     out.extend([regroup(g, body)]);
-                    i = at + 1;
+                    index = at + 1;
                 }
                 TokenTree::Group(g) if g.delimiter() == Delimiter::Brace => {
                     let inner: Vec<TokenTree> = g.stream().into_iter().collect();
                     out.extend([regroup(g, self.markup(&inner)?)]);
-                    i += 1;
+                    index += 1;
                 }
                 TokenTree::Ident(name) if starts_upper(name) => {
-                    let (expr, next) = self.component(tokens, i)?;
+                    let (expr, next) = self.component(tokens, index)?;
                     out.extend([TokenTree::Group(Group::new(Delimiter::Parenthesis, expr))]);
-                    i = next;
+                    index = next;
                 }
                 TokenTree::Ident(_) | TokenTree::Punct(_) => {
-                    // An element (`p`, `a href=..`, `.class`, `#id`, `my-el`) up to its block or `;`.
-                    let mut j = i;
+                    let mut j = index;
                     loop {
                         match tokens.get(j) {
                             None => {
-                                out.extend(stream(&tokens[i..]));
+                                out.extend(stream(&tokens[index..]));
                                 return Ok(out);
                             }
-                            Some(TokenTree::Punct(p)) if p.as_char() == ';' && j > i => {
-                                out.extend(stream(&tokens[i..=j]));
+                            Some(TokenTree::Punct(p)) if p.as_char() == ';' && j > index => {
+                                out.extend(stream(&tokens[index..=j]));
                                 break;
                             }
                             Some(TokenTree::Group(g))
                                 if g.delimiter() == Delimiter::Brace
                                     && !punct(tokens.get(j - 1), '=') =>
                             {
-                                out.extend(stream(&tokens[i..j]));
+                                out.extend(stream(&tokens[index..j]));
                                 let inner: Vec<TokenTree> = g.stream().into_iter().collect();
                                 out.extend([regroup(g, self.markup(&inner)?)]);
                                 break;
@@ -275,11 +276,11 @@ impl Cx {
                             _ => j += 1,
                         }
                     }
-                    i = j + 1;
+                    index = j + 1;
                 }
                 other => {
                     out.extend([other.clone()]);
-                    i += 1;
+                    index += 1;
                 }
             }
         }
@@ -289,21 +290,21 @@ impl Cx {
     /// The arms of a markup `@match`: patterns copied, each arm's markup expanded.
     fn arms(&self, tokens: &[TokenTree]) -> Result<TokenStream> {
         let mut out = TokenStream::new();
-        let mut i = 0;
-        while i < tokens.len() {
-            let Some(arrow) = (i..tokens.len())
+        let mut index = 0;
+        while index < tokens.len() {
+            let Some(arrow) = (index..tokens.len())
                 .find(|&j| punct(tokens.get(j), '=') && punct(tokens.get(j + 1), '>'))
             else {
-                out.extend(stream(&tokens[i..]));
+                out.extend(stream(&tokens[index..]));
                 break;
             };
-            out.extend(stream(&tokens[i..arrow + 2]));
+            out.extend(stream(&tokens[index..arrow + 2]));
             let end = (arrow + 2..tokens.len())
                 .find(|&j| punct(tokens.get(j), ','))
                 .unwrap_or(tokens.len());
             out.extend(self.markup(&tokens[arrow + 2..end])?);
             out.extend(tokens.get(end).cloned());
-            i = end + 1;
+            index = end + 1;
         }
         Ok(out)
     }
@@ -315,11 +316,11 @@ impl Cx {
         };
         let method = Ident::new(&snake(&name.to_string()), name.span());
         let ui = &self.ui;
-        let b = b();
-        let mut i = at + 1;
-        let args = match paren(tokens.get(i)) {
+        let builder = builder_ident();
+        let mut index = at + 1;
+        let args = match paren(tokens.get(index)) {
             Some(g) => {
-                i += 1;
+                index += 1;
                 g.clone()
             }
             None => {
@@ -328,10 +329,10 @@ impl Cx {
                 g
             }
         };
-        let mut steps = vec![quote!(let #b = #ui.#method #args;)];
-        i = self.attributes(tokens, i, &mut steps)?;
-        match tokens.get(i) {
-            Some(TokenTree::Punct(p)) if p.as_char() == ';' => i += 1,
+        let mut steps = vec![quote!(let #builder = #ui.#method #args;)];
+        index = self.attributes(tokens, index, &mut steps)?;
+        match tokens.get(index) {
+            Some(TokenTree::Punct(p)) if p.as_char() == ';' => index += 1,
             Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => {
                 let inner: Vec<TokenTree> = g.stream().into_iter().collect();
                 if holds_items(&inner) {
@@ -339,9 +340,9 @@ impl Cx {
                 } else {
                     let body = self.markup(&inner)?;
                     let call = Ident::new("body", g.span_open());
-                    steps.push(quote!(let #b = #b.#call(::maud::html! { #body });));
+                    steps.push(quote!(let #builder = #builder.#call(::maud::html! { #body });));
                 }
-                i += 1;
+                index += 1;
             }
             None => {}
             Some(other) => {
@@ -351,75 +352,79 @@ impl Cx {
                 ));
             }
         }
-        Ok((quote!({ #(#steps)* #b }), i))
+        Ok((quote!({ #(#steps)* #builder }), index))
     }
 
-    /// Attributes from `tokens[i]` up to a `;`, a block or a closure body; each becomes a step.
+    /// Attributes from `tokens[index]` up to a `;`, a block or a closure body; each becomes a step.
     fn attributes(
         &self,
         tokens: &[TokenTree],
-        mut i: usize,
+        mut index: usize,
         steps: &mut Vec<TokenStream>,
     ) -> Result<usize> {
-        let b = b();
-        while let Some(TokenTree::Ident(name)) = tokens.get(i) {
-            if name == "move" && punct(tokens.get(i + 1), '|') {
+        let builder = builder_ident();
+        while let Some(TokenTree::Ident(name)) = tokens.get(index) {
+            if name == "move" && punct(tokens.get(index + 1), '|') {
                 break;
             }
-            i += 1;
-            match tokens.get(i) {
+            index += 1;
+            match tokens.get(index) {
                 Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Bracket => {
                     let cond = g.stream();
-                    steps.push(quote!(let #b = if #cond { #b.#name() } else { #b };));
-                    i += 1;
+                    steps.push(
+                        quote!(let #builder = if #cond { #builder.#name() } else { #builder };),
+                    );
+                    index += 1;
                 }
                 Some(TokenTree::Punct(p)) if p.as_char() == '=' => {
-                    i += 1;
-                    let (value, next) = self.value(tokens, i, name)?;
-                    i = next;
+                    index += 1;
+                    let (value, next) = self.value(tokens, index, name)?;
+                    index = next;
                     match value {
                         Value::Optional(option) => {
                             let v = Ident::new("__lui_value", Span::mixed_site());
-                            steps.push(quote!(let #b = match #option {
-                                ::core::option::Option::Some(#v) => #b.#name(#v),
-                                ::core::option::Option::None => #b,
+                            steps.push(quote!(let #builder = match #option {
+                                ::core::option::Option::Some(#v) => #builder.#name(#v),
+                                ::core::option::Option::None => #builder,
                             };));
                         }
-                        Value::Args(args) => steps.push(quote!(let #b = #b.#name(#args);)),
+                        Value::Args(args) => {
+                            steps.push(quote!(let #builder = #builder.#name(#args);))
+                        }
                     }
                 }
-                _ => steps.push(quote!(let #b = #b.#name();)),
+                _ => steps.push(quote!(let #builder = #builder.#name();)),
             }
         }
-        Ok(i)
+        Ok(index)
     }
 
-    /// An attribute's value at `tokens[i]` and the index after it.
-    fn value(&self, tokens: &[TokenTree], i: usize, name: &Ident) -> Result<(Value, usize)> {
-        match tokens.get(i) {
-            Some(TokenTree::Literal(l)) => Ok((Value::Args(quote!(#l)), i + 1)),
+    /// An attribute's value at `tokens[index]` and the index after it.
+    fn value(&self, tokens: &[TokenTree], index: usize, name: &Ident) -> Result<(Value, usize)> {
+        match tokens.get(index) {
+            Some(TokenTree::Literal(l)) => Ok((Value::Args(quote!(#l)), index + 1)),
             Some(TokenTree::Punct(p)) if p.as_char() == '-' => {
-                let lit = tokens.get(i + 1).cloned();
-                Ok((Value::Args(quote!(-#lit)), i + 2))
+                let lit = tokens.get(index + 1).cloned();
+                Ok((Value::Args(quote!(-#lit)), index + 2))
             }
             Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Parenthesis => {
-                Ok((Value::Args(g.stream()), i + 1))
+                Ok((Value::Args(g.stream()), index + 1))
             }
             Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Bracket => {
-                Ok((Value::Optional(g.stream()), i + 1))
+                Ok((Value::Optional(g.stream()), index + 1))
             }
             Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => {
                 let inner: Vec<TokenTree> = g.stream().into_iter().collect();
                 let body = self.markup(&inner)?;
                 let html = quote_spanned!(g.span()=> ::maud::html! { #body });
-                Ok((Value::Args(html), i + 1))
+                Ok((Value::Args(html), index + 1))
             }
             Some(TokenTree::Punct(p)) if p.as_char() == '|' => {
-                let (closure, next) = self.closure(tokens, i)?;
+                let (closure, next) = self.closure(tokens, index)?;
                 Ok((Value::Args(closure), next))
             }
             Some(TokenTree::Ident(m)) if m == "move" => {
-                let (closure, next) = self.closure(tokens, i)?;
+                let (closure, next) = self.closure(tokens, index)?;
                 Ok((Value::Args(closure), next))
             }
             other => Err((
@@ -432,25 +437,26 @@ impl Cx {
         }
     }
 
-    /// `move? |params| { markup }` at `tokens[i]` as a closure returning markup.
-    fn closure(&self, tokens: &[TokenTree], mut i: usize) -> Result<(TokenStream, usize)> {
+    /// `move? |params| { markup }` at `tokens[index]` as a closure returning markup.
+    fn closure(&self, tokens: &[TokenTree], mut index: usize) -> Result<(TokenStream, usize)> {
         let mut head = TokenStream::new();
-        let span = tokens.get(i).map_or_else(Span::call_site, TokenTree::span);
-        if keyword(tokens.get(i)).as_deref() == Some("move") {
-            head.extend(tokens.get(i).cloned());
-            i += 1;
+        let span = tokens
+            .get(index)
+            .map_or_else(Span::call_site, TokenTree::span);
+        if keyword(tokens.get(index)).as_deref() == Some("move") {
+            head.extend(tokens.get(index).cloned());
+            index += 1;
         }
-        let start = i;
-        let Some(open) = tokens.get(i).cloned() else {
+        let start = index;
+        let Some(open) = tokens.get(index).cloned() else {
             return Err((span, "a closure here is `move |..| { markup }`".to_string()));
         };
-        // `||` or `|params|`
-        let close = if matches!(&tokens[i], TokenTree::Punct(p) if p.spacing() == Spacing::Joint)
-            && punct(tokens.get(i + 1), '|')
+        let close = if matches!(&tokens[index], TokenTree::Punct(p) if p.spacing() == Spacing::Joint)
+            && punct(tokens.get(index + 1), '|')
         {
-            i + 1
+            index + 1
         } else {
-            (i + 1..tokens.len())
+            (index + 1..tokens.len())
                 .find(|&j| punct(tokens.get(j), '|'))
                 .ok_or_else(|| {
                     (
@@ -473,26 +479,26 @@ impl Cx {
 
     /// The items of a component's block, each a step on the builder.
     fn items(&self, tokens: &[TokenTree], steps: &mut Vec<TokenStream>) -> Result<()> {
-        let b = b();
-        let mut i = 0;
-        while i < tokens.len() {
-            if punct(tokens.get(i), '@') {
-                i = self.control(tokens, i, steps)?;
+        let builder = builder_ident();
+        let mut index = 0;
+        while index < tokens.len() {
+            if punct(tokens.get(index), '@') {
+                index = self.control(tokens, index, steps)?;
                 continue;
             }
             let Some(TokenTree::Ident(name)) = tokens
-                .get(i)
-                .filter(|_| !matches!(&tokens[i], TokenTree::Ident(n) if starts_upper(n)))
+                .get(index)
+                .filter(|_| !matches!(&tokens[index], TokenTree::Ident(n) if starts_upper(n)))
             else {
                 return Err((
-                    tokens[i].span(),
+                    tokens[index].span(),
                     "a component's block holds items (`tab \"Title\" { .. }`) or markup, not both; \
                      put markup inside an item's block"
                         .to_string(),
                 ));
             };
-            i += 1;
-            if let Some(TokenTree::Ident(c)) = tokens.get(i)
+            index += 1;
+            if let Some(TokenTree::Ident(c)) = tokens.get(index)
                 && starts_upper(c)
             {
                 return Err((
@@ -504,16 +510,15 @@ impl Cx {
                     ),
                 ));
             }
-            // Arguments: literals, negative literals and `(..)` groups, before any attribute.
             let mut args: Vec<TokenStream> = Vec::new();
-            let first = i;
+            let first = index;
             loop {
-                match tokens.get(i) {
+                match tokens.get(index) {
                     Some(TokenTree::Literal(l)) => args.push(quote!(#l)),
                     Some(TokenTree::Punct(p)) if p.as_char() == '-' => {
-                        let lit = tokens.get(i + 1).cloned();
+                        let lit = tokens.get(index + 1).cloned();
                         args.push(quote!(-#lit));
-                        i += 1;
+                        index += 1;
                     }
                     Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Parenthesis => {
                         if !g.stream().is_empty() {
@@ -522,9 +527,9 @@ impl Cx {
                     }
                     _ => break,
                 }
-                i += 1;
+                index += 1;
             }
-            if i == first && brace(tokens.get(i)).is_some() && name != "body" {
+            if index == first && brace(tokens.get(index)).is_some() && name != "body" {
                 return Err((
                     name.span(),
                     format!(
@@ -534,19 +539,19 @@ impl Cx {
                 ));
             }
             let mut modifiers = Vec::new();
-            i = self.attributes(tokens, i, &mut modifiers)?;
+            index = self.attributes(tokens, index, &mut modifiers)?;
             let mut nested = Vec::new();
-            match tokens.get(i) {
-                Some(TokenTree::Punct(p)) if p.as_char() == ';' => i += 1,
+            match tokens.get(index) {
+                Some(TokenTree::Punct(p)) if p.as_char() == ';' => index += 1,
                 Some(TokenTree::Punct(p)) if p.as_char() == '|' => {
-                    let (closure, next) = self.closure(tokens, i)?;
+                    let (closure, next) = self.closure(tokens, index)?;
                     args.push(closure);
-                    i = next;
+                    index = next;
                 }
                 Some(TokenTree::Ident(m)) if m == "move" => {
-                    let (closure, next) = self.closure(tokens, i)?;
+                    let (closure, next) = self.closure(tokens, index)?;
                     args.push(closure);
-                    i = next;
+                    index = next;
                 }
                 Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => {
                     let inner: Vec<TokenTree> = g.stream().into_iter().collect();
@@ -556,7 +561,7 @@ impl Cx {
                         let body = self.markup(&inner)?;
                         args.push(quote!(::maud::html! { #body }));
                     }
-                    i += 1;
+                    index += 1;
                 }
                 None => {}
                 Some(other) => {
@@ -568,7 +573,7 @@ impl Cx {
             }
             let mut call = Group::new(Delimiter::Parenthesis, quote!(#(#args),*));
             call.set_span(name.span());
-            steps.push(quote!(let #b = #b.#name #call;));
+            steps.push(quote!(let #builder = #builder.#name #call;));
             steps.extend(modifiers);
             steps.extend(nested);
         }
@@ -582,13 +587,13 @@ impl Cx {
         at: usize,
         steps: &mut Vec<TokenStream>,
     ) -> Result<usize> {
-        let b = b();
+        let builder = builder_ident();
         let kw = keyword(tokens.get(at + 1)).unwrap_or_default();
-        let scoped = |cx: &Cx, g: &Group| -> Result<TokenStream> {
-            let inner: Vec<TokenTree> = g.stream().into_iter().collect();
+        let scoped = |cx: &Cx, group: &Group| -> Result<TokenStream> {
+            let inner: Vec<TokenTree> = group.stream().into_iter().collect();
             let mut inner_steps = Vec::new();
             cx.items(&inner, &mut inner_steps)?;
-            Ok(quote!({ #(#inner_steps)* #b }))
+            Ok(quote!({ #(#inner_steps)* #builder }))
         };
         match kw.as_str() {
             "let" => {
@@ -603,41 +608,40 @@ impl Cx {
                 let open = until_brace(tokens, at, "@for")?;
                 let head = stream(&tokens[at + 2..open]);
                 let body = scoped(self, brace(tokens.get(open)).unwrap())?;
-                steps.push(quote!(let mut #b = #b; for #head { #b = #body; } let #b = #b;));
+                steps.push(quote!(let mut #builder = #builder; for #head { #builder = #body; } let #builder = #builder;));
                 Ok(open + 1)
             }
             "if" => {
                 let mut chain = TokenStream::new();
-                let mut i = at + 1;
+                let mut index = at + 1;
                 let mut closed = false;
                 loop {
-                    // `if cond { .. }` at `tokens[i]` (`i` on `if`), or a final `{ .. }`.
-                    let open = until_brace(tokens, i, "@if")?;
-                    let head = stream(&tokens[i..open]);
+                    let open = until_brace(tokens, index, "@if")?;
+                    let head = stream(&tokens[index..open]);
                     let body = scoped(self, brace(tokens.get(open)).unwrap())?;
                     chain.extend(quote!(#head #body));
-                    i = open + 1;
-                    if keyword(tokens.get(i)).is_none()
-                        && punct(tokens.get(i), '@')
-                        && keyword(tokens.get(i + 1)).as_deref() == Some("else")
+                    index = open + 1;
+                    if keyword(tokens.get(index)).is_none()
+                        && punct(tokens.get(index), '@')
+                        && keyword(tokens.get(index + 1)).as_deref() == Some("else")
                     {
                         chain.extend(quote!(else));
-                        i += 2;
-                        if keyword(tokens.get(i)).as_deref() == Some("if") {
+                        index += 2;
+                        if keyword(tokens.get(index)).as_deref() == Some("if") {
                             continue;
                         }
-                        let open = until_brace(tokens, i, "@else")?;
+                        let open = until_brace(tokens, index, "@else")?;
                         chain.extend(scoped(self, brace(tokens.get(open)).unwrap())?);
-                        i = open + 1;
+                        index = open + 1;
                         closed = true;
                     }
                     break;
                 }
                 if !closed {
-                    chain.extend(quote!(else { #b }));
+                    chain.extend(quote!(else { #builder }));
                 }
-                steps.push(quote!(let #b = #chain;));
-                Ok(i)
+                steps.push(quote!(let #builder = #chain;));
+                Ok(index)
             }
             "match" => {
                 let open = until_brace(tokens, at, "@match")?;
@@ -648,14 +652,14 @@ impl Cx {
                     .into_iter()
                     .collect();
                 let mut out = TokenStream::new();
-                let mut i = 0;
-                while i < arms.len() {
-                    let Some(arrow) = (i..arms.len())
+                let mut index = 0;
+                while index < arms.len() {
+                    let Some(arrow) = (index..arms.len())
                         .find(|&j| punct(arms.get(j), '=') && punct(arms.get(j + 1), '>'))
                     else {
                         break;
                     };
-                    out.extend(stream(&arms[i..arrow + 2]));
+                    out.extend(stream(&arms[index..arrow + 2]));
                     let (body, next) = match brace(arms.get(arrow + 2)) {
                         Some(g) => (scoped(self, g)?, arrow + 3),
                         None => {
@@ -664,18 +668,18 @@ impl Cx {
                                 .unwrap_or(arms.len());
                             let mut inner_steps = Vec::new();
                             self.items(&arms[arrow + 2..end], &mut inner_steps)?;
-                            (quote!({ #(#inner_steps)* #b }), end)
+                            (quote!({ #(#inner_steps)* #builder }), end)
                         }
                     };
                     out.extend(body);
                     out.extend([TokenTree::Punct(Punct::new(',', Spacing::Alone))]);
-                    i = if punct(arms.get(next), ',') {
+                    index = if punct(arms.get(next), ',') {
                         next + 1
                     } else {
                         next
                     };
                 }
-                steps.push(quote!(let #b = match #scrutinee { #out };));
+                steps.push(quote!(let #builder = match #scrutinee { #out };));
                 Ok(open + 1)
             }
             other => Err((
@@ -695,9 +699,9 @@ enum Value {
     Optional(TokenStream),
 }
 
-/// `g` with new contents, keeping its delimiter and span.
-fn regroup(g: &Group, inner: TokenStream) -> TokenTree {
-    let mut out = Group::new(g.delimiter(), inner);
-    out.set_span(g.span());
+/// `group` with new contents, keeping its delimiter and span.
+fn regroup(group: &Group, inner: TokenStream) -> TokenTree {
+    let mut out = Group::new(group.delimiter(), inner);
+    out.set_span(group.span());
     TokenTree::Group(out)
 }

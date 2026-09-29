@@ -535,7 +535,7 @@ fn popover_action(command: &str) -> Option<&'static str> {
 impl Render for Button<'_> {
     fn render(&self) -> Markup {
         let class = self.classes();
-        let a = &self.attrs;
+        let attrs = &self.attrs;
         let text = html! { @if let Some(m) = &self.content { (m) } @else { (self.text) } };
         // Busy: the label stays (for the width and the accessible name) under the spinner.
         let text = if self.loading {
@@ -548,11 +548,11 @@ impl Render for Button<'_> {
         if let Some(href) = self.href {
             let off = self.disabled || self.loading;
             return html! {
-                a class=(class) href=[(!off).then_some(href)] role=[a.role.or(off.then_some("link"))]
+                a class=(class) href=[(!off).then_some(href)] role=[attrs.role.or(off.then_some("link"))]
                     aria-disabled=[off.then_some("true")] aria-busy=[self.loading.then_some("true")]
-                    aria-label=[self.label] id=[a.id] title=[a.title] style=[a.style.as_deref()]
-                    rel=[a.rel] aria-current=[a.current.then_some("page")]
-                    accesskey=[a.accesskey] aria-keyshortcuts=[a.aria_keyshortcuts] { (spinner) (text) }
+                    aria-label=[self.label] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
+                    rel=[attrs.rel] aria-current=[attrs.current.then_some("page")]
+                    accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts] { (spinner) (text) }
             };
         }
         // Without invoker commands, a popover command becomes the older popovertarget pair.
@@ -577,10 +577,10 @@ impl Render for Button<'_> {
                 popovertarget=[target] popovertargetaction=[fallback.map(|(_, a)| a)]
                 form=[self.form] name=[self.name] value=[self.value] aria-label=[self.label]
                 aria-busy=[self.loading.then_some("true")] disabled[self.disabled || self.loading]
-                id=[a.id] role=[a.role] title=[a.title] style=[a.style.as_deref()]
-                aria-haspopup=[a.aria_haspopup] aria-pressed=[a.aria_pressed.map(|p| if p { "true" } else { "false" })]
-                accesskey=[a.accesskey] aria-keyshortcuts=[a.aria_keyshortcuts]
-                formmethod=[a.formmethod] formaction=[a.formaction] formnovalidate[a.formnovalidate]
+                id=[attrs.id] role=[attrs.role] title=[attrs.title] style=[attrs.style.as_deref()]
+                aria-haspopup=[attrs.aria_haspopup] aria-pressed=[attrs.aria_pressed.map(|p| if p { "true" } else { "false" })]
+                accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts]
+                formmethod=[attrs.formmethod] formaction=[attrs.formaction] formnovalidate[attrs.formnovalidate]
                 { (spinner) (text) }
         }
     }

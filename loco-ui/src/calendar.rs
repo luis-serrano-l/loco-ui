@@ -78,8 +78,8 @@ impl Date {
     }
 
     /// `YYYY-MM-DD`, as `<input type="date">` and the query string carry it.
-    pub fn parse(s: &str) -> Option<Date> {
-        let mut parts = s.trim().splitn(3, '-');
+    pub fn parse(text: &str) -> Option<Date> {
+        let mut parts = text.trim().splitn(3, '-');
         let year = parts.next()?.parse().ok()?;
         let month = parts.next()?.parse().ok()?;
         let day = parts.next()?.parse().ok()?;
@@ -100,14 +100,14 @@ impl Date {
         (self.days() + 3).rem_euclid(7) as u8
     }
 
-    /// The date `n` days later (earlier when negative).
-    pub fn add_days(self, n: i64) -> Date {
-        Date::from_days(self.days() + n)
+    /// The date `days` later (earlier when negative).
+    pub fn add_days(self, days: i64) -> Date {
+        Date::from_days(self.days() + days)
     }
 
-    /// The first day of the month `n` months later (earlier when negative).
-    pub fn add_months(self, n: i32) -> Date {
-        let index = self.year * 12 + i32::from(self.month) - 1 + n;
+    /// The first day of the month `months` later (earlier when negative).
+    pub fn add_months(self, months: i32) -> Date {
+        let index = self.year * 12 + i32::from(self.month) - 1 + months;
         Date {
             year: index.div_euclid(12),
             month: (index.rem_euclid(12) + 1) as u8,
@@ -141,16 +141,16 @@ impl Date {
     }
 
     /// `"24 September 2026"`, the date as a button or a sentence shows it.
-    pub(crate) fn long(self, s: &Strings) -> String {
-        let month = s.get(Text::month(u32::from(self.month)));
-        s.fill(Text::DayMonthYear, &[&self.day, &month, &self.year])
+    pub(crate) fn long(self, strings: &Strings) -> String {
+        let month = strings.get(Text::month(u32::from(self.month)));
+        strings.fill(Text::DayMonthYear, &[&self.day, &month, &self.year])
     }
 
     /// `"Thursday, 24 September 2026"`, what a screen reader says for the day.
-    pub(crate) fn spoken(self, s: &Strings) -> String {
-        let weekday = s.get(Text::weekday(u32::from(self.weekday())));
-        let month = s.get(Text::month(u32::from(self.month)));
-        s.fill(Text::LongDate, &[&weekday, &self.day, &month, &self.year])
+    pub(crate) fn spoken(self, strings: &Strings) -> String {
+        let weekday = strings.get(Text::weekday(u32::from(self.weekday())));
+        let month = strings.get(Text::month(u32::from(self.month)));
+        strings.fill(Text::LongDate, &[&weekday, &self.day, &month, &self.year])
     }
 }
 
@@ -170,8 +170,8 @@ fn days_in_month(year: i32, month: u8) -> u8 {
 }
 
 /// `YYYY-MM` to the first of that month.
-fn parse_month(s: &str) -> Option<Date> {
-    let (y, m) = s.trim().split_once('-')?;
+fn parse_month(text: &str) -> Option<Date> {
+    let (y, m) = text.trim().split_once('-')?;
     Date::new(y.parse().ok()?, m.parse().ok()?, 1)
 }
 
@@ -306,10 +306,10 @@ impl<'a> Calendar<'a> {
         self
     }
 
-    fn off(&self, d: Date) -> bool {
-        self.min.is_some_and(|m| d < m)
-            || self.max.is_some_and(|m| d > m)
-            || self.disabled.is_some_and(|f| f(d))
+    fn off(&self, date: Date) -> bool {
+        self.min.is_some_and(|m| date < m)
+            || self.max.is_some_and(|m| date > m)
+            || self.disabled.is_some_and(|f| f(date))
     }
 }
 
@@ -347,16 +347,16 @@ impl Render for Calendar<'_> {
             ui.link_with(&month_key, &format!("{:04}-{:02}", next.year, next.month)),
         );
         let nav = |href: &str, label: &'static str, icon: Icon, on: bool| -> Markup {
-            let b = Button::link(ui.caps, "", href)
+            let button = Button::link(ui.caps, "", href)
                 .ghost()
                 .small()
                 .icon_only()
                 .aria_label(label)
                 .body(html! { (icon) });
             if on {
-                b.render()
+                button.render()
             } else {
-                b.disabled().render()
+                button.disabled().render()
             }
         };
         let weekdays = (0..7).map(|i| ui.text(Text::weekday((i + start) as u32)));
@@ -386,12 +386,12 @@ impl Render for Calendar<'_> {
 }
 
 impl Calendar<'_> {
-    fn day(&self, d: Date, outside: bool, today: bool, picked: bool) -> Markup {
-        let off = self.off(d);
+    fn day(&self, date: Date, outside: bool, today: bool, picked: bool) -> Markup {
+        let off = self.off(date);
         let events: Vec<&str> = self
             .events
             .iter()
-            .filter(|e| e.0 == d)
+            .filter(|e| e.0 == date)
             .map(|e| e.1)
             .collect();
         let class = format!(
@@ -403,9 +403,9 @@ impl Calendar<'_> {
         );
         let tip = (!events.is_empty()).then(|| events.join(", "));
         let face = html! {
-            span aria-hidden="true" { (d.day) }
+            span aria-hidden="true" { (date.day) }
             span class="lui-sr" {
-                (d.spoken(self.ui.strings)) @for e in &events { ", " (e) }
+                (date.spoken(self.ui.strings)) @for e in &events { ", " (e) }
                 @if picked && !self.radio { (self.ui.text(Text::IsSelected)) }
             }
             @if !events.is_empty() {
@@ -413,7 +413,7 @@ impl Calendar<'_> {
             }
         };
         let current = today.then_some("date");
-        let value = d.to_string();
+        let value = date.to_string();
         html! {
             td {
                 @if self.radio {

@@ -8,7 +8,7 @@
 //! the element. Under a 30rem viewport an `@media` rule caps the minimum at the grid's width
 //! with `min(<min>, 100%)`, so a wide minimum never overflows a phone. (Not at every width:
 //! Taffy, Blitz's layout engine, lays out a single column whenever a track minimum uses
-//! `min()`; see FINDINGS.)
+//! `min()`: FINDINGS, M21.)
 //!
 //! **Accessibility:** layout only: no roles, reading order is source order. Checked by axe-core
 //! in headless Firefox on every demo route, both capability variants, light and dark (no

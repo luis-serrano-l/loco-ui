@@ -20,7 +20,7 @@ pub fn page(ui: &Ui, nav: &Nav, title: &str, body: Markup) -> Page {
     let hrefs: Vec<String> = (nav.notebooks.iter())
         .map(|(id, _, _)| format!("/notebooks/{id}"))
         .collect();
-    let q = ui.param("q").unwrap_or_default();
+    let query = ui.param("q").unwrap_or_default();
     ui.page(title, lui! {
         AppShell("Notes") user=(&nav.user, "/signout") {
             link "Overview" "/" icon=(Icon::House);
@@ -36,7 +36,7 @@ pub fn page(ui: &Ui, nav: &Nav, title: &str, body: Markup) -> Page {
             body {
                 div class="notes-top" {
                     form class="notes-search" method="get" action="/notes" role="search" {
-                        Input("q", "Search notes") hide_label placeholder="Search notes…" value=(q) leading=(Icon::Search);
+                        Input("q", "Search notes") hide_label placeholder="Search notes…" value=(query) leading=(Icon::Search);
                     }
                     ThemeToggle("/theme");
                 }
