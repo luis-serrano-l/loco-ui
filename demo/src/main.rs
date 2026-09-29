@@ -58,7 +58,10 @@ fn write_spec() {
 
 /// Write every page of the static snapshot into `dir`, replacing what was there.
 async fn write_snapshot(dir: &Path) {
-    let _ = std::fs::remove_dir_all(dir);
+    match std::fs::remove_dir_all(dir) {
+        Err(e) if e.kind() != std::io::ErrorKind::NotFound => panic!("{}: {e}", dir.display()),
+        _ => {}
+    }
     std::fs::create_dir_all(dir).unwrap();
     let pages = demo::snapshot::pages().await;
     for page in &pages {

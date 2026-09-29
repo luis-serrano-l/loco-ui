@@ -3,7 +3,7 @@
 use crate::site::page;
 use axum::{
     Form, Router,
-    extract::Query,
+    extract::{Query, rejection::QueryRejection},
     routing::{get, post},
 };
 use loco_ui::prelude::*;
@@ -327,11 +327,15 @@ const COUNTRIES: [(&str, [Country; 7]); 3] = [
 
 /// Select, range and colour in one form, saved in `lui-inputs`. The country filter is a GET
 /// through the same form, so while filtering the values come from the query.
-async fn inputs_page(ui: Ui, Query(q): Query<Inputs>, Saved(saved): Saved<Inputs>) -> Page {
-    let v = if ui.param("country-q").is_some() {
-        q
-    } else {
-        saved
+/// A query that does not parse (`?volume=abc`) shows the saved values instead of a 400.
+async fn inputs_page(
+    ui: Ui,
+    query: Result<Query<Inputs>, QueryRejection>,
+    Saved(saved): Saved<Inputs>,
+) -> Page {
+    let v = match query {
+        Ok(Query(query)) if ui.param("country-q").is_some() => query,
+        _ => saved,
     };
     let body = lui! { Stack {
         (inputs(&ui, &v))

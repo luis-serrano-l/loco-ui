@@ -46,16 +46,24 @@ fn chosen(ui: &Ui) -> Chosen {
     let hex = |v: &str| {
         v.len() == 7 && v.starts_with('#') && v[1..].chars().all(|c| c.is_ascii_hexdigit())
     };
-    let pick = |name: &str, default: &str| {
-        ui.param(&format!("{name}-preset"))
+    // The asked colour counts only once it derives a scale; the default is a constant that does.
+    let pick = |name: &str, default: &str, like: &Scale| {
+        let asked = ui
+            .param(&format!("{name}-preset"))
             .or_else(|| ui.param(name))
             .filter(|v| hex(v))
-            .map_or_else(|| default.to_string(), str::to_lowercase)
+            .map(str::to_lowercase);
+        asked
+            .into_iter()
+            .chain([default.to_string()])
+            .find_map(|value| Some((Scale::derive(&value, like)?, value)))
+            .expect("the default is a #rrggbb colour")
     };
-    let (brand, gray) = (pick("brand", BRANDS[0]), pick("gray", GRAYS[0]));
+    let (brand_scale, brand) = pick("brand", BRANDS[0], &Scale::INDIGO);
+    let (gray_scale, gray) = pick("gray", GRAYS[0], &Scale::SLATE);
     Chosen {
-        brand_scale: Scale::derive(&brand, &Scale::INDIGO).expect("a #rrggbb colour"),
-        gray_scale: Scale::derive(&gray, &Scale::SLATE).expect("a #rrggbb colour"),
+        brand_scale,
+        gray_scale,
         brand,
         gray,
         radius: ui

@@ -360,6 +360,19 @@ async fn enhancement_script_is_served_immutable() {
 }
 
 #[tokio::test]
+async fn a_query_that_does_not_parse_renders_the_page() {
+    for path in [
+        "/inputs?country-q=a&volume=abc",
+        "/?x=%a%C3%A9",
+        "/theme?brand=%23zzzzzz",
+    ] {
+        let request = Request::get(path).body(Body::empty()).unwrap();
+        let response = router().oneshot(request).await.unwrap();
+        assert_eq!(response.status(), 200, "{path}");
+    }
+}
+
+#[tokio::test]
 async fn caps_beacon_sets_one_cookie_per_flag() {
     let req = Request::get("/lui/caps?flag=popover")
         .body(Body::empty())

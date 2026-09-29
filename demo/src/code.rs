@@ -115,7 +115,10 @@ fn called(code: &str) -> Vec<&'static Component> {
         let at = c
             .calls
             .iter()
-            .filter_map(|call| code.find(&call[..=call.find('(').unwrap()]))
+            .filter_map(|call| {
+                let (name, _) = call.split_once('(')?;
+                code.find(&format!("{name}("))
+            })
             .chain(
                 [format!("{lui}("), format!("{lui} ")]
                     .iter()
