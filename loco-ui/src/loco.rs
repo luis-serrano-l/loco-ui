@@ -763,14 +763,19 @@ async fn sign_in_on_401(
 /// use loco_ui::{loco::landing, prelude::*};
 /// let ui = Ui::from_request("/signin", "next=%2Fnotes%2F1%3Ftab%3D2", "");
 /// assert_eq!(landing(&ui, "/"), "/notes/1?tab=2");
-/// for elsewhere in ["https%3A%2F%2Fevil.example", "%2F%2Fevil.example", "%2F%5Cevil.example"] {
+/// for elsewhere in ["https%3A%2F%2Fevil.example", "%2F%2Fevil.example", "%2F%5Cevil.example", "%2F%0A"] {
 ///     let ui = Ui::from_request("/signin", &format!("next={elsewhere}"), "");
 ///     assert_eq!(landing(&ui, "/"), "/");
 /// }
 /// ```
 pub fn landing<'a>(ui: &'a crate::Ui, home: &'a str) -> &'a str {
     ui.param("next")
-        .filter(|p| p.starts_with('/') && !p.starts_with("//") && !p.contains('\\'))
+        .filter(|path| {
+            path.starts_with('/')
+                && !path.starts_with("//")
+                && !path.contains('\\')
+                && !path.chars().any(char::is_control)
+        })
         .unwrap_or(home)
 }
 

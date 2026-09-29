@@ -101,18 +101,22 @@ pub(crate) fn decode(s: &str) -> Cow<'_, str> {
     while i < bytes.len() {
         match bytes[i] {
             b'+' => out.push(b' '),
-            b'%' if i + 2 < bytes.len() => match u8::from_str_radix(&s[i + 1..i + 3], 16) {
-                Ok(b) => {
-                    out.push(b);
+            b'%' => match (hex_digit(bytes.get(i + 1)), hex_digit(bytes.get(i + 2))) {
+                (Some(high), Some(low)) => {
+                    out.push(high * 16 + low);
                     i += 2;
                 }
-                Err(_) => out.push(b'%'),
+                _ => out.push(b'%'),
             },
             b => out.push(b),
         }
         i += 1;
     }
     Cow::Owned(String::from_utf8_lossy(&out).into_owned())
+}
+
+fn hex_digit(byte: Option<&u8>) -> Option<u8> {
+    char::from(*byte?).to_digit(16).map(|digit| digit as u8)
 }
 
 pub(crate) fn encode(s: &str) -> String {
@@ -361,8 +365,9 @@ mod axum_glue {
 
         fn into_response_parts(self, mut res: ResponseParts) -> Result<ResponseParts, Self::Error> {
             for c in self.set_cookies() {
-                res.headers_mut()
-                    .append(header::SET_COOKIE, HeaderValue::from_str(&c).unwrap());
+                if let Ok(value) = HeaderValue::try_from(c) {
+                    res.headers_mut().append(header::SET_COOKIE, value);
+                }
             }
             Ok(res)
         }
@@ -377,6 +382,8 @@ mod tests {
     fn parsing_borrows_until_something_needs_decoding() {
         assert!(matches!(decode("open.faq"), Cow::Borrowed("open.faq")));
         assert_eq!(decode("a%2Cb+c"), "a,b c");
+        assert_eq!(decode("%aé"), "%aé");
+        assert_eq!(decode("%+f%4"), "% f%4");
         let state = UiState::parse("/", "page.t=3&q.t=a+b&tab.x=1", "per.t=25&sort.t=name");
         assert_eq!(
             (state.tab("x"), state.link("tab.x", "2")),

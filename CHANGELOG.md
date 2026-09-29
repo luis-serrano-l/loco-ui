@@ -8,6 +8,11 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+- Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
+  (`?x=%aé`) no longer panics while it is decoded. A redirect whose target holds a control
+  character (`/signin?next=/%0A`) now goes to `/` instead of panicking in
+  `Redirect::into_http`, and `loco::landing` refuses such a `next`. Set-Cookie values that are
+  not valid header values are skipped instead of unwrapped.
 - The generator templates write their markup in `lui!`, as the demo does: `cargo lui auth`'s
   account pages (`AuthPage` holding a `Form`) and the scaffold's list, show and form views
   (`Table` with a `column` per field, `RecordPage` with a `field` per value, `Form` with an

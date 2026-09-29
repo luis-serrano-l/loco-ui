@@ -438,14 +438,18 @@ impl Redirect {
     /// As an `http::Response` with an empty body, for any server built on the `http` crate.
     #[cfg(feature = "http")]
     pub fn into_http<B: From<String>>(self) -> http::Response<B> {
-        let mut res = http::Response::builder()
-            .status(303)
-            .header(http::header::LOCATION, &self.to);
-        for c in self.set_cookies() {
-            res = res.header(http::header::SET_COOKIE, c);
+        use http::{HeaderValue, header};
+        let mut response = http::Response::new(B::from(String::new()));
+        *response.status_mut() = http::StatusCode::SEE_OTHER;
+        // A target with a control character (say from `?next=/%0A`) is no header value: go home.
+        let location = HeaderValue::try_from(&self.to).unwrap_or(HeaderValue::from_static("/"));
+        response.headers_mut().insert(header::LOCATION, location);
+        for cookie in self.set_cookies() {
+            if let Ok(value) = HeaderValue::try_from(cookie) {
+                response.headers_mut().append(header::SET_COOKIE, value);
+            }
         }
-        res.body(B::from(String::new()))
-            .expect("valid redirect headers")
+        response
     }
 }
 
@@ -531,14 +535,13 @@ mod axum_glue {
         }
     }
 
-    fn with_cookies(mut res: Response, cookies: impl IntoIterator<Item = String>) -> Response {
-        for c in cookies {
-            res.headers_mut().append(
-                header::SET_COOKIE,
-                HeaderValue::from_str(&c).expect("cookie is ASCII"),
-            );
+    fn with_cookies(mut response: Response, cookies: impl IntoIterator<Item = String>) -> Response {
+        for cookie in cookies {
+            if let Ok(value) = HeaderValue::try_from(cookie) {
+                response.headers_mut().append(header::SET_COOKIE, value);
+            }
         }
-        res
+        response
     }
 
     impl IntoResponse for Page {
@@ -565,6 +568,15 @@ mod axum_glue {
 mod tests {
     use super::*;
     use crate::Cap;
+
+    #[cfg(feature = "http")]
+    #[test]
+    fn a_redirect_to_a_control_character_goes_home() {
+        let ui = Ui::from_request("/", "", "");
+        let response = ui.redirect("/\n").into_http::<String>();
+        assert_eq!(response.status(), 303);
+        assert_eq!(response.headers()[http::header::LOCATION], "/");
+    }
 
     #[test]
     fn page_fits_in_a_result_err_under_clippys_limit() {
