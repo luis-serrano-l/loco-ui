@@ -20,7 +20,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 46] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 47] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -216,6 +216,13 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 46] = [
         "Server state",
         "links + view transitions",
         "A long list shown a page at a time.",
+    ),
+    (
+        "/table/minimal",
+        "Table, minimal",
+        "Server state",
+        "sort links, <search> filter, ?page.<id>=n",
+        "The smallest useful table: sorted, filtered and paged by the URL.",
     ),
     (
         "/table",
@@ -685,7 +692,16 @@ fn wide(href: &str) -> bool {
     COMPONENTS
         .iter()
         .any(|c| c.0 == href && groups.contains(&c.2))
-        || ["/kanban", "/table", "/theme", "/nav", "/inputs", "/chart"].contains(&href)
+        || [
+            "/kanban",
+            "/table",
+            "/table/minimal",
+            "/theme",
+            "/nav",
+            "/inputs",
+            "/chart",
+        ]
+        .contains(&href)
 }
 
 #[derive(Deserialize)]

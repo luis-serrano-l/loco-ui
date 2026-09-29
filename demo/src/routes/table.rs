@@ -1,4 +1,5 @@
-//! The table page: sort, filter, paging, columns, CSV, in-place edit and bulk actions.
+//! The table pages: `/table/minimal`, a table whose snippet is all its code, and `/table`,
+//! with sort, filter, paging, columns, CSV, in-place edit and bulk actions and their handlers.
 
 use crate::site::page;
 use axum::{
@@ -12,6 +13,7 @@ use serde::{Deserialize, Serialize};
 pub(crate) fn routes() -> Router {
     Router::new()
         .route("/table", get(table_page))
+        .route("/table/minimal", get(minimal_page))
         .route("/table.csv", get(table_csv))
         .route("/table/bulk", post(table_bulk))
         .route("/table/edit", post(table_edit))
@@ -19,8 +21,10 @@ pub(crate) fn routes() -> Router {
 
 /// Each page's live component, which the index shows too (`site::preview`), without the
 /// visitor's renamed kinds there.
-pub(crate) const PREVIEWS: &[super::Preview] =
-    &[("/table", |ui| files_page(ui, &Kinds::default()))];
+pub(crate) const PREVIEWS: &[super::Preview] = &[
+    ("/table", |ui| files_page(ui, &Kinds::default())),
+    ("/table/minimal", minimal_table),
+];
 
 const FILES: [(&str, u32, &str); 12] = [
     ("archive.tar", 40960, "backup"),
@@ -43,6 +47,7 @@ type File = (String, u32, &'static str);
 /// The table's columns, every one sortable; the CSV writes the visible ones.
 const COLUMNS: [&str; 3] = ["name", "size", "kind"];
 
+// code: /table
 /// Thirty-six files filtered and sorted on the server as the table's query says, in one place
 /// for the page and the CSV.
 fn files(query: &TableQuery) -> Vec<File> {
@@ -62,7 +67,9 @@ fn files(query: &TableQuery) -> Vec<File> {
     });
     files
 }
+// end code
 
+// code: /table
 /// Kinds renamed in place on `/table`, remembered per visitor.
 #[derive(Default, Deserialize, Serialize)]
 struct Kinds(Vec<(String, String)>);
@@ -75,7 +82,9 @@ impl Kinds {
             .map_or(kind, |(_, k)| k.as_str())
     }
 }
+// end code
 
+// code: /table
 /// A file as a row that expands, has its own menu, can be selected and edited in place.
 fn file_row<'a>(file: &'a File, kinds: &'a Kinds) -> Row<'a> {
     let size = format!(
@@ -88,6 +97,7 @@ fn file_row<'a>(file: &'a File, kinds: &'a Kinds) -> Row<'a> {
         .detail(html! { p { "A " (file.2) " of " (file.1) " bytes, in " code { (file.0.split('/').next().unwrap_or("")) } "." } })
         .menu([MenuItem::link("Open", "/table"), MenuItem::action("Delete", "/table/bulk").danger()])
 }
+// end code
 
 /// The table only renders and links: the route reads its query, fetches, sorts and slices.
 fn files_page(ui: &Ui, kinds: &Kinds) -> Markup {
@@ -106,18 +116,50 @@ fn files_page(ui: &Ui, kinds: &Kinds) -> Markup {
     // end code
 }
 
+/// Sorted by a header link, filtered by the search box, paged: the URL carries all three, so
+/// the route reads them, fetches and slices, and the table draws the links for the next ones.
+fn minimal_table(ui: &Ui) -> Markup {
+    // code: /table/minimal
+    let query = ui.table_query("minimal", &["name", "size"]);
+    let mut files: Vec<_> = FILES.iter().filter(|f| query.matches(f.0)).collect();
+    query.sort_by(&mut files, |a, b, key| match key {
+        "size" => a.1.cmp(&b.1),
+        _ => a.0.cmp(b.0),
+    });
+    let (page, total) = query.page_of(&files);
+    lui! { Table("minimal", "/table/minimal") paged=(total) {
+        column "name" "Name" sortable;
+        column "size" "Bytes" sortable numeric;
+        rows (page.iter().map(|f| Row::from((f.0, f.1))));
+    } }
+    // end code
+}
+
+async fn minimal_page(ui: Ui) -> Page {
+    let table = minimal_table(&ui);
+    page(
+        &ui,
+        "Table, minimal",
+        html! {
+            p { "Sort, filter and page: the whole route is the code below. " a href="/table" { "The full table" } " adds columns, CSV, row menus, in-place edit and bulk actions." }
+            (table)
+        },
+    )
+}
+
 async fn table_page(ui: Ui, Saved(kinds): Saved<Kinds>) -> Page {
     let table = files_page(&ui, &kinds);
     page(
         &ui,
         "Table",
         html! {
-            p { "Click a header to sort, again to flip. Type to filter. Hide columns, tick rows for the bulk form, open a row's menu or its detail. The page size you pick is remembered for your next visit. Every state is a URL, including " a href="/table?loading=1" { "the loading one" } "." }
+            p { a href="/table/minimal" { "The minimal table" } " shows only sorting, filtering and paging. Click a header to sort, again to flip. Type to filter. Hide columns, tick rows for the bulk form, open a row's menu or its detail. The page size you pick is remembered for your next visit. Every state is a URL, including " a href="/table?loading=1" { "the loading one" } "." }
             (table)
         },
     )
 }
 
+// code: /table
 /// The same rows as text/csv, for the sort, filter and columns in the URL.
 async fn table_csv(ui: Ui) -> impl IntoResponse {
     let query = ui.table_query("files", &COLUMNS);
@@ -145,7 +187,9 @@ async fn table_csv(ui: Ui) -> impl IntoResponse {
         csv,
     )
 }
+// end code
 
+// code: /table
 /// A row edited in place: the file's new kind, saved, then back to the page it came from.
 #[derive(Deserialize)]
 struct EditedRow {
@@ -174,7 +218,9 @@ async fn table_edit(
         .flash(&format!("Saved {}.", row.key))
         .save(&kinds)
 }
+// end code
 
+// code: /table
 /// `row=<key>` per ticked box and `action=<value>` from the button: acknowledged with a flash.
 async fn table_bulk(ui: Ui, posted: Posted) -> Redirect {
     let rows = posted.all("row").count();
@@ -189,3 +235,4 @@ async fn table_bulk(ui: Ui, posted: Posted) -> Redirect {
     };
     ui.redirect("/table").flash(&message)
 }
+// end code

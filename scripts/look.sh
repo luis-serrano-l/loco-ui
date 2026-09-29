@@ -56,6 +56,7 @@ palette|/palette?q=ta|$shadcn/command
 dashboard|/dashboard|$tremor/visualizations/area-chart
 chart|/chart|$tremor/visualizations/bar-chart
 table|/table?q.files=a|$shadcn/data-table
+table-minimal|/table/minimal|$shadcn/table
 description-list|/description-list|$radix/data-list
 card|/card|$radix/card
 kanban|/kanban|https://www.diceui.com/docs/components/kanban
