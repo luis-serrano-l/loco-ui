@@ -16,6 +16,10 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   and the `loco` module's examples are in `lui!` too. The installer's ignored test now
   generates three scaffolds (a field of every kind, enums required and optional, a required
   and an optional reference) and builds them; it needs `sea-orm-cli`, which CI installs.
+- `Combobox::keep(name)`, as `Table::keep`: a query parameter of this page (`view`, a search
+  of its own) that the search form, every result and every chip's remove link carry, so
+  picking a value no longer drops it. examples/loco-app's tag box keeps the search and the
+  cards/table choice.
 - `loco_ui::href(path, pairs)`: another page's URL with its query parameters, each
   percent-encoded as the components' own links are (`href("/notes", [("sel", "c#")])` is
   `/notes?sel=c%23`). `ui.link_with` and `ui.link_without` build theirs with it, and

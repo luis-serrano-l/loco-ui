@@ -630,7 +630,8 @@
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Results add to the selection instead of replacing it." },
             { "name": "create", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "A \"Create\" row posting to `action` when the query matches nothing." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Search", "attr": "aria-label", "doc": "Accessible name of the input." },
-            { "name": "placeholder", "kind": "value", "args": "placeholder: &'a str", "default": "Type to search…", "attr": "", "doc": "Placeholder of the input." }
+            { "name": "placeholder", "kind": "value", "args": "placeholder: &'a str", "default": "Type to search…", "attr": "", "doc": "Placeholder of the input." },
+            { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page (`view`) carried, with the request's value, by the search form, every result and every chip's remove link." }
           ]
         }
       ]

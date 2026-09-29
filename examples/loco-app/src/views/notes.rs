@@ -70,7 +70,7 @@ pub fn list(ui: &Ui, heading: &str, path: &str, items: &[Listed], tags: &[String
         }
         div class="notes-filters" {
             Combobox("tag", path) options=(tags.iter().map(String::as_str)) results=(results)
-                multiple label="Tags" placeholder="Filter by tag";
+                multiple label="Tags" placeholder="Filter by tag" keep="q" keep="view";
             form class="notes-view" method="get" action=(path) {
                 // The switch keeps the search and the chosen tags.
                 @if let Some(q) = ui.param("q") { input type="hidden" name="q" value=(q); }

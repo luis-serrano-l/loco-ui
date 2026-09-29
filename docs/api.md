@@ -93,6 +93,7 @@ assert!(menu.into_string().contains(r#"action="/logout""#));
 | `badge(..)` | a count or short text after an entry, any `Display` | Tabs, Sidebar |
 | `value` / `error` | a control's value and its server message | Input, Select, Color, Range, RadioGroup, Form |
 | `disabled` / `disabled_dates` | the element is not usable / which days cannot be picked | Button, menus / Calendar, DatePicker |
+| `keep` | a query parameter of this page carried, with its value, by the component's links and form | Table, Combobox |
 | `hide_progress` | a switch that turns off something shown by default | Wizard |
 
 ## Markup in `lui!`

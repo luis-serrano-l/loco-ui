@@ -538,6 +538,20 @@ async fn every_page_works_without_script() {
         assert!(switch.contains(kept), "view switch: no {kept} in {switch}");
     }
 
+    // So does the tag box: picking a tag keeps the search and the table.
+    let html = text(send(&router, "GET", "/notes?q=Hello&view=list", &auth, "").await).await;
+    let tags = html
+        .split(r#"<search class="lui-combobox""#)
+        .nth(1)
+        .expect("the tag box");
+    let tags = &tags[..tags.find("</form>").unwrap()];
+    for kept in [
+        r#"<input type="hidden" name="q" value="Hello">"#,
+        r#"<input type="hidden" name="view" value="list">"#,
+    ] {
+        assert!(tags.contains(kept), "tag box: no {kept} in {tags}");
+    }
+
     // A tag link encodes its tag: `c#` filters by `c#`, not by `c`.
     let res = send(&router, "POST", "/notes", &auth, "title=Sharp&tags=c%23").await;
     let sharp = location(&res).to_string();

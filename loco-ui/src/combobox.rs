@@ -59,13 +59,13 @@ use maud::{Markup, Render, html};
 use crate::i18n::Text;
 use crate::input::Input;
 use crate::props::{Prop, PropKind};
-use crate::{Icon, Ui, state::encode};
+use crate::{Icon, Ui};
 
 /// A search form sending `name` (the text) and `sel` (the selection) by GET, made by
 /// [`Ui::combobox`]. Single choice, labelled "Search", unless told otherwise.
 ///
 /// **Setters.** Values and items: `.options(..)`, `.group(..)`, `.results(..)`, `.create(..)`,
-/// `.label(..)`, `.placeholder(..)`; switches: `.multiple()`.
+/// `.label(..)`, `.placeholder(..)`, `.keep(..)`; switches: `.multiple()`.
 #[derive(Clone, Debug)]
 pub struct Combobox<'a> {
     ui: &'a Ui,
@@ -77,6 +77,7 @@ pub struct Combobox<'a> {
     create: Option<&'a str>,
     label: &'a str,
     placeholder: &'a str,
+    keep: Vec<&'a str>,
 }
 
 impl Combobox<'_> {
@@ -112,6 +113,8 @@ impl Combobox<'_> {
         Prop::new("placeholder", PropKind::Value, "placeholder: &'a str")
             .default("Type to search…")
             .doc("Placeholder of the input."),
+        Prop::new("keep", PropKind::Item, "name: &'a str")
+            .doc("A query parameter of this page (`view`) carried, with the request's value, by the search form, every result and every chip's remove link."),
     ];
 }
 
@@ -129,6 +132,7 @@ impl Ui {
             create: None,
             label: self.text(Text::Search),
             placeholder: self.text(Text::TypeToSearch),
+            keep: Vec::new(),
         }
     }
 }
@@ -173,6 +177,14 @@ impl<'a> Combobox<'a> {
         self
     }
 
+    /// A query parameter of this page (`view`, a search of its own) carried, with the
+    /// request's value, by the search form, every result and every chip's remove link, so
+    /// picking a value keeps what else the page shows. Absent or empty, it is not carried.
+    pub fn keep(mut self, name: &'a str) -> Self {
+        self.keep.push(name);
+        self
+    }
+
     /// Accessible name of the input.
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = label;
@@ -198,6 +210,7 @@ impl Render for Combobox<'_> {
             create,
             label,
             placeholder,
+            ref keep,
         } = *self;
         let query = ui.param(name).unwrap_or("");
         let selected: Vec<&str> = ui.params("sel").collect();
@@ -214,10 +227,18 @@ impl Render for Combobox<'_> {
         let list_id = format!("{name}-options");
         let results_id = format!("{name}-results");
         let input_id = format!("{name}-input");
+        let kept: Vec<(&str, &str)> = (keep.iter())
+            .filter_map(|&k| Some((k, ui.param(k).filter(|v| !v.is_empty())?)))
+            .collect();
         let link = |q: &str, sel: &[&str]| {
-            let mut parts = vec![format!("{}={}", encode(name), encode(q))];
-            parts.extend(sel.iter().map(|s| format!("sel={}", encode(s))));
-            format!("{action}?{}", parts.join("&"))
+            let sel = sel.iter().map(|&s| ("sel", s));
+            crate::href(
+                action,
+                [(name, q)]
+                    .into_iter()
+                    .chain(sel)
+                    .chain(kept.iter().copied()),
+            )
         };
         let add = |v: &str| -> String {
             let mut sel: Vec<&str> = if multi { selected.clone() } else { Vec::new() };
@@ -232,6 +253,7 @@ impl Render for Combobox<'_> {
         html! {
             search class="lui-combobox" {
                 form method="get" action=(action) {
+                    @for (k, v) in &kept { input type="hidden" name=(k) value=(v); }
                     @if !selected.is_empty() {
                         ul class="lui-combobox-chips" aria-label=(ui.text(Text::Selected)) {
                             @for v in &selected {
@@ -319,3 +341,35 @@ pub const CSS: &str = r#"
 .lui-combobox-create { display: flex; justify-content: center; padding-bottom: var(--lui-space-1); }
 @media (pointer: coarse) { .lui-combobox-list a, .lui-combobox-list > .lui-combobox-chosen { min-height: var(--lui-hit); } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use crate::Ui;
+    use maud::Render;
+
+    #[test]
+    fn keep_carries_a_parameter_through_the_form_and_every_link() {
+        let ui = Ui::from_request("/notes", "tag=ru&sel=go&view=list&q=late%20fee&page=2", "");
+        let html = (ui.combobox("tag", "/notes").options(["rust"]).multiple())
+            .keep("view")
+            .keep("q")
+            .keep("missing")
+            .render()
+            .into_string();
+        assert!(
+            html.contains(r#"<input type="hidden" name="view" value="list">"#),
+            "{html}"
+        );
+        assert!(
+            html.contains(r#"<input type="hidden" name="q" value="late fee">"#),
+            "{html}"
+        );
+        let add = "/notes?tag=ru&amp;sel=go&amp;sel=rust&amp;view=list&amp;q=late%20fee";
+        let remove = "/notes?tag=ru&amp;view=list&amp;q=late%20fee";
+        assert!(html.contains(add) && html.contains(remove), "{html}");
+        assert!(
+            !html.contains("page") && !html.contains("missing"),
+            "{html}"
+        );
+    }
+}
