@@ -67,9 +67,9 @@
 //!     // `Validate::validate`: Loco's prelude also brings `Validatable::validate` into scope.
 //!     if let Err(e) = Validate::validate(&note) {
 //!         let errors = FieldErrors::from(&e);
-//!         // Built inside `html!`, so the borrowed pairs live as long as the render.
-//!         let body = html! {
-//!             (ui.form("/notes").text("title", "Title").value(&note.title).errors(&errors.pairs()))
+//!         let pairs = errors.pairs();
+//!         let body = lui! {
+//!             Form("/notes") errors=(&pairs) { text "title" "Title" value=(&note.title); }
 //!         };
 //!         return Ok(ui.page("New note", body).into_response());
 //!     }
@@ -102,13 +102,13 @@
 //!     match note {
 //!         Ok(note) => ui.redirect("/notes").ok(&format!("Saved {}.", note.title)).into_response(),
 //!         Err(bad) => {
-//!             let body = html! {
-//!                 (ui.form("/notes")
-//!                     .text("title", "Title").required()
-//!                     .number("stars", "Stars", 1, 5)
-//!                     .checkbox("done", "Done")
-//!                     .values(&bad.values)
-//!                     .errors(&bad.errors.pairs()))
+//!             let errors = bad.errors.pairs();
+//!             let body = lui! {
+//!                 Form("/notes") values=(&bad.values) errors=(&errors) {
+//!                     text "title" "Title" required;
+//!                     number "stars" "Stars" 1 5;
+//!                     checkbox "done" "Done";
+//!                 }
 //!             };
 //!             ui.page("New note", body).into_response()
 //!         }
@@ -137,12 +137,13 @@
 //!         use crate::Note; // `crate::models::_entities::notes::Model` in a Loco app
 //!
 //!         pub fn list(ui: &Ui, rows: &[Note], total: usize) -> Markup {
-//!             let table = ui.table("notes", "/notes").column("title", "Title").sortable();
 //!             let rows = rows.iter().map(|n| Row::new([html! { a href={ "/notes/" (n.id) } { (n.title) } }]));
-//!             html! {
-//!                 (ui.flash())
-//!                 (table.rows(rows).paged(total))
-//!                 (ui.link_button("New note", "/notes/new"))
+//!             lui! {
+//!                 Flash;
+//!                 Table("notes", "/notes") rows=(rows) paged=(total) {
+//!                     column "title" "Title" sortable;
+//!                 }
+//!                 LinkButton("New note", "/notes/new");
 //!             }
 //!         }
 //!     }

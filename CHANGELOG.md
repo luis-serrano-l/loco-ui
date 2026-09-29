@@ -8,6 +8,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+- The generator templates write their markup in `lui!`, as the demo does: `cargo lui auth`'s
+  account pages (`AuthPage` holding a `Form`) and the scaffold's list, show and form views
+  (`Table` with a `column` per field, `RecordPage` with a `field` per value, `Form` with an
+  adder per field). `examples/loco-app` follows, views included; controllers keep the builder
+  only where they call a method on it (`table.page()`). The HTML is unchanged. `docs/loco.md`
+  and the `loco` module's examples are in `lui!` too.
+- examples/loco-app: a tag link encodes its tag (`c#`, `r&d` filtered by the wrong tag), and
+  the cards/table switch keeps the search.
 - `loco::SignIn("/signin")`, a Loco initializer (and `loco::sign_in` for a hand-built
   router): a 401 becomes a redirect to the sign-in form with a flash
   (`Text::SignInToSee`), naming the page asked for in `?next=` on a GET; a JSON-only

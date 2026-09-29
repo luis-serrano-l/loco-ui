@@ -20,38 +20,29 @@ pub fn page(ui: &Ui, nav: &Nav, title: &str, body: Markup) -> Page {
     let hrefs: Vec<String> = (nav.notebooks.iter())
         .map(|(id, _, _)| format!("/notebooks/{id}"))
         .collect();
-    let shell = ui
-        .app_shell("Notes")
-        .link("Overview", "/")
-        .icon(Icon::House)
-        .link("All notes", "/notes")
-        .icon(Icon::File)
-        .badge(nav.notes)
-        .link("Pinned", "/notes/pinned")
-        .icon("📌")
-        .badge(nav.pinned)
-        .link("Archive", "/notes/archive")
-        .icon(Icon::Download)
-        .badge(nav.archived)
-        .link("Tasks", "/tasks")
-        .icon(Icon::CircleCheck)
-        .badge(nav.open_tasks)
-        .group("Notebooks");
-    let shell = (nav.notebooks.iter().zip(&hrefs))
-        .fold(shell, |s, ((_, name, n), href)| s.link(name, href).badge(n))
-        .link("All notebooks", "/notebooks")
-        .icon(Icon::Menu)
-        .user(&nav.user, "/signout");
     let q = ui.param("q").unwrap_or_default();
-    let body = html! {
-        div class="notes-top" {
-            form class="notes-search" method="get" action="/notes" role="search" {
-                (ui.input("q", "Search notes").hide_label().placeholder("Search notes…").value(q).leading(Icon::Search))
+    ui.page(title, lui! {
+        AppShell("Notes") user=(&nav.user, "/signout") {
+            link "Overview" "/" icon=(Icon::House);
+            link "All notes" "/notes" icon=(Icon::File) badge=(nav.notes);
+            link "Pinned" "/notes/pinned" icon="📌" badge=(nav.pinned);
+            link "Archive" "/notes/archive" icon=(Icon::Download) badge=(nav.archived);
+            link "Tasks" "/tasks" icon=(Icon::CircleCheck) badge=(nav.open_tasks);
+            group "Notebooks";
+            @for ((_, name, n), href) in nav.notebooks.iter().zip(&hrefs) {
+                link (name) (href) badge=(n);
             }
-            (ui.theme_toggle("/theme"))
+            link "All notebooks" "/notebooks" icon=(Icon::Menu);
+            body {
+                div class="notes-top" {
+                    form class="notes-search" method="get" action="/notes" role="search" {
+                        Input("q", "Search notes") hide_label placeholder="Search notes…" value=(q) leading=(Icon::Search);
+                    }
+                    ThemeToggle("/theme");
+                }
+                Flash;
+                (body)
+            }
         }
-        (ui.flash())
-        (body)
-    };
-    ui.page(title, shell.body(body).render())
+    })
 }

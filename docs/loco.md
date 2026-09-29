@@ -123,10 +123,13 @@ async fn create(
     let note = match form {
         Ok(note) => note,
         Err(bad) => {
-            let body = html! {
-                (ui.form("/notes").text("title", "Title").required()
-                    .date("due", "Due", "1900-01-01", "2100-12-31").checkbox("done", "Done")
-                    .values(&bad.values).errors(&bad.errors.pairs()).submit("Save"))
+            let errors = bad.errors.pairs();
+            let body = lui! {
+                Form("/notes") values=(&bad.values) errors=(&errors) submit="Save" {
+                    text "title" "Title" required;
+                    date "due" "Due" "1900-01-01" "2100-12-31";
+                    checkbox "done" "Done";
+                }
             };
             return Ok(ui.page("New note", body).into_response());
         }
@@ -321,17 +324,21 @@ use loco_ui::{prelude::*, table::Row};
 use crate::models::_entities::notes;
 
 pub fn list(ui: &Ui, rows: &[notes::Model], meta: &PagerMeta) -> Markup {
-    let table = ui.table("notes", "/notes").column("title", "Title").sortable();
-    html! {
-        (ui.flash())
-        (table.rows(rows.iter().map(|n| Row::new([html! { a href={ "/notes/" (n.id) } { (n.title) } }]))).paged_from(meta))
-        (ui.link_button("New note", "/notes/new"))
+    let rows = rows.iter().map(|n| Row::new([html! { a href={ "/notes/" (n.id) } { (n.title) } }]));
+    lui! {
+        Flash;
+        Table("notes", "/notes") rows=(rows) paged_from=(meta) {
+            column "title" "Title" sortable;
+        }
+        LinkButton("New note", "/notes/new");
     }
 }
 
 pub fn form(ui: &Ui, action: &str, title: &str, errors: &[(&str, &str)]) -> Markup {
-    html! {
-        (ui.form(action).text("title", "Title").required().value(title).errors(errors).submit("Save"))
+    lui! {
+        Form(action) errors=(errors) submit="Save" {
+            text "title" "Title" required value=(title);
+        }
     }
 }
 ```
