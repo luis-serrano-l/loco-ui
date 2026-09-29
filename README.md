@@ -114,7 +114,8 @@ server.
 cargo run -p demo      # http://127.0.0.1:3000: every component live on the index, a sidebar of them on every page
 cargo dev              # same, restarted when Rust source changes (cargo install cargo-watch)
 cargo test             # includes: only the enhancement <script> on any route, and Blitz layout tests
-scripts/verify.sh      # build + clippy -D warnings + tests + screenshots + <script> grep + Firefox check
+scripts/verify.sh      # fmt + clippy -D warnings + tests + screenshots + <script> grep; --full adds
+                       # every feature level, the installer test, rustdoc and the Firefox check
 scripts/snapshot.sh    # static snapshot of every page into target/site/ (no script, relative links, a banner)
 ```
 
@@ -527,7 +528,7 @@ loco-ui-test/src/lib.rs   Page: render a route through Blitz, assert layout, scr
 loco-ui-test/tests/       every route rendered and captured; layout assertions
 loco-ui-test/examples/probe.rs   render any HTML file through Blitz, print boxes
 tests/shots/                PNG per route and capability level, from Blitz
-scripts/verify.sh           the full verification pass
+scripts/verify.sh           the verification pass (quick, or --full)
 FINDINGS.md                 what works, what needs a fallback, what is impossible without JS
 CHANGELOG.md                what each version added; both crates share the version
 ```
