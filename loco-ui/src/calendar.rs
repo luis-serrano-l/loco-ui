@@ -67,10 +67,14 @@ pub struct Date {
 }
 
 impl Date {
-    /// The date, or `None` when the day does not exist (`2026-02-30`).
+    /// The date, or `None` when the day does not exist (`2026-02-30`) or the year is outside
+    /// 1 to 9999, the range `<input type="date">` offers.
     pub fn new(year: i32, month: u8, day: u8) -> Option<Date> {
-        ((1..=12).contains(&month) && day >= 1 && day <= days_in_month(year, month))
-            .then_some(Date { year, month, day })
+        ((1..=9999).contains(&year)
+            && (1..=12).contains(&month)
+            && day >= 1
+            && day <= days_in_month(year, month))
+        .then_some(Date { year, month, day })
     }
 
     /// `YYYY-MM-DD`, as `<input type="date">` and the query string carry it.
@@ -494,6 +498,11 @@ mod tests {
             "a Thursday"
         );
         assert_eq!(Date::parse("2026-02-29"), None);
+        assert_eq!(
+            Date::parse("999999999-01-01"),
+            None,
+            "add_months would overflow"
+        );
         assert_eq!(
             Date::parse("2026-12-15").unwrap().add_months(1).to_string(),
             "2027-01-01"

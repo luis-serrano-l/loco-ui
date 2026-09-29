@@ -102,7 +102,7 @@ impl Ui {
             .param("page")
             .and_then(|p| p.parse().ok())
             .unwrap_or(1)
-            .max(1);
+            .clamp(1, total.max(1));
         Pager {
             caps: self.caps,
             strings: self.strings,
@@ -178,3 +178,15 @@ pub const CSS: &str = r#"
 /* "Load more" is the outline button, full width under the list. */
 .lui-pager-more { display: flex; margin-top: 1rem; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use crate::Ui;
+
+    #[test]
+    fn a_page_past_the_end_shows_the_whole_list() {
+        let ui = Ui::from_request("/", "page=18446744073709551615", "");
+        let pager = ui.pager("/list", 25);
+        assert_eq!(pager.shown(), 25);
+    }
+}

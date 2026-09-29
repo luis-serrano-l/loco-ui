@@ -435,12 +435,15 @@ impl Cx {
     /// `move? |params| { markup }` at `tokens[i]` as a closure returning markup.
     fn closure(&self, tokens: &[TokenTree], mut i: usize) -> Result<(TokenStream, usize)> {
         let mut head = TokenStream::new();
+        let span = tokens.get(i).map_or_else(Span::call_site, TokenTree::span);
         if keyword(tokens.get(i)).as_deref() == Some("move") {
-            head.extend([tokens[i].clone()]);
+            head.extend(tokens.get(i).cloned());
             i += 1;
         }
         let start = i;
-        let open = tokens[i].clone();
+        let Some(open) = tokens.get(i).cloned() else {
+            return Err((span, "a closure here is `move |..| { markup }`".to_string()));
+        };
         // `||` or `|params|`
         let close = if matches!(&tokens[i], TokenTree::Punct(p) if p.spacing() == Spacing::Joint)
             && punct(tokens.get(i + 1), '|')

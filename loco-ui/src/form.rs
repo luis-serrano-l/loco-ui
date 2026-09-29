@@ -252,12 +252,9 @@ impl Ui {
 
 impl<'a> Form<'a> {
     fn add(mut self, name: &'a str, label: &'a str, kind: FieldKind<'a>) -> Self {
-        let field = Field::new(name, label, kind);
-        self.groups
-            .last_mut()
-            .expect("a form always has a group")
-            .fields
-            .push(field);
+        if let Some(group) = self.groups.last_mut() {
+            group.fields.push(Field::new(name, label, kind));
+        }
         self
     }
 

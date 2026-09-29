@@ -351,7 +351,7 @@ mod axum_glue {
     use axum::{
         Router,
         extract::FromRequestParts,
-        http::{HeaderMap, StatusCode, Uri, header, request::Parts},
+        http::{HeaderMap, HeaderValue, StatusCode, Uri, header, request::Parts},
         routing::get,
     };
 
@@ -390,12 +390,15 @@ mod axum_glue {
             header("forwarded"),
         );
         let mut headers = HeaderMap::new();
-        headers.insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
+        headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
         match beacon_cookie(uri.query().unwrap_or(""), secure) {
-            Some(cookie) => {
-                headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
-                (StatusCode::NO_CONTENT, headers)
-            }
+            Some(cookie) => match HeaderValue::try_from(cookie) {
+                Ok(value) => {
+                    headers.insert(header::SET_COOKIE, value);
+                    (StatusCode::NO_CONTENT, headers)
+                }
+                Err(_) => (StatusCode::NOT_FOUND, headers),
+            },
             None => (StatusCode::NOT_FOUND, headers),
         }
     }

@@ -59,6 +59,7 @@ pub struct Saved<T>(pub T);
 /// wrapper) goes by its Rust name, generics and path dropped (`Vec<..>` is `lui-vec`).
 pub fn cookie_name<T: DeserializeOwned>() -> String {
     let mut named = None;
+    // The probe always fails on purpose: it only records the name serde asks for.
     let _ = T::deserialize(NameProbe(&mut named));
     let full = std::any::type_name::<T>();
     let name = named.unwrap_or_else(|| {

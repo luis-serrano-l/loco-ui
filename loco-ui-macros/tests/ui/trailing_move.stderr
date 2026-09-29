@@ -1,0 +1,5 @@
+error: a closure here is `move |..| { markup }`
+ --> tests/ui/trailing_move.rs:5:40
+  |
+5 |     let _ = lui! { Pager("/p", 3) rows=move };
+  |                                        ^^^^

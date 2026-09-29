@@ -187,10 +187,10 @@ impl Streamed {
         let mut pieces: Vec<Piece> = Vec::new();
         let mut rest = self.prefix.as_str();
         while let Some(start) = rest.find("<!--lui-slot:") {
-            let end = rest[start..]
-                .find("-->")
-                .map(|e| start + e + 3)
-                .unwrap_or(rest.len());
+            let Some(close) = rest[start..].find("-->") else {
+                break;
+            };
+            let end = start + close + 3;
             pieces.push(Piece::Text(rest[..start].to_string()));
             let id = &rest[start + "<!--lui-slot:".len()..end - 3];
             if let Some(fut) = fills.remove(id) {

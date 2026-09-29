@@ -13,6 +13,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   character (`/signin?next=/%0A`) now goes to `/` instead of panicking in
   `Redirect::into_http`, and `loco::landing` refuses such a `next`. Set-Cookie values that are
   not valid header values are skipped instead of unwrapped.
+- More odd input that no longer panics or overflows. `Date::new` and `Date::parse` take years
+  1 to 9999 only, as `<input type="date">` does, so `?due=999999999-01-01` renders the default
+  month. `ui.pager` holds `?page=` to the list's length. A streamed page with an unterminated
+  `<!--lui-slot:` keeps the rest as text. `lui!` reports `rows=move` with nothing after it as
+  an error instead of panicking. `cargo lui` stops with the path when it cannot read a file it
+  edits, instead of writing it over as empty.
 - The generator templates write their markup in `lui!`, as the demo does: `cargo lui auth`'s
   account pages (`AuthPage` holding a `Form`) and the scaffold's list, show and form views
   (`Table` with a `column` per field, `RecordPage` with a `field` per value, `Form` with an

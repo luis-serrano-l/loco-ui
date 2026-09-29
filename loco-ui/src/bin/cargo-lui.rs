@@ -36,7 +36,7 @@
 //! only, so it builds without the crate's features.
 
 use std::{
-    fs,
+    fs, io,
     path::{Path, PathBuf},
     process::ExitCode,
 };
@@ -278,6 +278,9 @@ fn write_file(path: &Path, content: &str, force: bool) -> Result<(), String> {
     match fs::read_to_string(path) {
         Ok(old) if old == content => println!("unchanged {}", path.display()),
         Ok(_) if !force => println!("kept      {} (edited; --force overwrites)", path.display()),
+        Err(e) if e.kind() != io::ErrorKind::NotFound => {
+            return Err(format!("{}: {e}", path.display()));
+        }
         _ => {
             if let Some(dir) = path.parent() {
                 fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
@@ -291,7 +294,11 @@ fn write_file(path: &Path, content: &str, force: bool) -> Result<(), String> {
 
 /// Apply `f` to the file (created empty when missing) and write it back only if it changed.
 fn edit(path: &Path, f: impl Fn(&str) -> Result<String, String>) -> Result<(), String> {
-    let old = fs::read_to_string(path).unwrap_or_default();
+    let old = match fs::read_to_string(path) {
+        Ok(old) => old,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
+        Err(e) => return Err(format!("{}: {e}", path.display())),
+    };
     let new = f(&old).map_err(|e| format!("{}: {e}", path.display()))?;
     if new == old {
         println!("unchanged {}", path.display());
