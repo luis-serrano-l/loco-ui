@@ -28,6 +28,11 @@ jobs:
     - name: System libraries
       run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
 
+    # `generate scaffold`, in the installer's ignored test, writes the entities with sea-orm-cli.
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: sea-orm-cli@2
+
     - name: Format
       run: cargo fmt --all --check
     - name: Clippy

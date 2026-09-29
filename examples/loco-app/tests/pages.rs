@@ -12,13 +12,18 @@ use axum::{
 };
 use loco_app::{
     app::App,
-    models::{_entities::users as user_rows, users},
+    models::{
+        _entities::{notebooks, notes, users as user_rows},
+        users,
+    },
 };
 use loco_rs::testing::prelude::*;
 use loco_ui_test::Page;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, sea_query::Expr};
 use serial_test::serial;
 use tower::ServiceExt;
+
+const SHOTS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/shots");
 
 async fn send(
     router: &Router,
@@ -65,6 +70,40 @@ async fn ada(db: &sea_orm::DatabaseConnection) -> users::Model {
     users::Model::find_by_email(db, "ada@example.com")
         .await
         .unwrap()
+}
+
+/// GET `path` signed in with `auth`: it answers 200 in the app's look with only the
+/// enhancement script (`tag`), and Blitz lays it out into `tests/shots/loco-<name>.png`.
+async fn shoot(router: &Router, auth: &str, tag: &str, path: &str, name: &str) {
+    let res = send(router, "GET", path, auth, "").await;
+    assert_eq!(res.status(), StatusCode::OK, "{path}");
+    let html = text(res).await;
+    if path == "/notes/1/edit" {
+        // The edit form starts from the saved note, every field filled in.
+        for filled in [
+            r#"value="First""#,
+            ">Hello\n\nAgain</textarea>",
+            r#"value="2026-10-01""#,
+            r#"value="ideas, rust""#,
+            r#"<option value="1" selected>"#,
+            "checked",
+        ] {
+            assert!(html.contains(filled), "edit form: no {filled} in {html}");
+        }
+    }
+    assert_eq!(html.matches("<script").count(), 1, "{path}: one script");
+    assert!(
+        html.contains("--lui-brand-9: #0f766e"),
+        "{path}: in the app's look"
+    );
+    assert!(
+        html.contains(tag),
+        "{path}: and it is the enhancement script"
+    );
+
+    let mut page = Page::render(router.clone(), path, auth).await;
+    assert!(page.is_visible("h1"), "{path}: Blitz lays the page out");
+    page.screenshot(format!("{SHOTS}/loco-{name}.png")).unwrap();
 }
 
 #[tokio::test]
@@ -426,11 +465,38 @@ async fn every_page_works_without_script() {
     assert!(html.contains("Notes that live on your server."), "{html}");
     let mut page = Page::render(router.clone(), "/", "").await;
     assert!(page.is_visible("h1"));
-    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/shots");
-    page.screenshot(format!("{dir}/loco-landing.png")).unwrap();
+    page.screenshot(format!("{SHOTS}/loco-landing.png"))
+        .unwrap();
+
+    // The pages print when a note changed ("Edited …") and was created: fixed times, so a shot
+    // changes only when its page does. A minute apart by id, so the notes keep their order.
+    let day = chrono::DateTime::parse_from_rfc3339("2026-09-01T09:00:00Z").unwrap();
+    for note in notes::Entity::find().all(&db).await.unwrap() {
+        notes::Entity::update_many()
+            .col_expr(
+                notes::Column::UpdatedAt,
+                Expr::value(day + chrono::Duration::minutes(note.id.into())),
+            )
+            .filter(notes::Column::Id.eq(note.id))
+            .exec(&db)
+            .await
+            .unwrap();
+    }
+    // The overview before the creation day: its chart counts the notes of the eight weeks up
+    // to today, so that shot still moves with the calendar.
+    shoot(&router, &auth, &tag, "/", "index").await;
+    notes::Entity::update_many()
+        .col_expr(notes::Column::CreatedAt, Expr::value(day))
+        .exec(&db)
+        .await
+        .unwrap();
+    notebooks::Entity::update_many()
+        .col_expr(notebooks::Column::CreatedAt, Expr::value(day))
+        .exec(&db)
+        .await
+        .unwrap();
 
     let pages = [
-        ("/", "index"),
         ("/signin", "signin"),
         ("/signup", "signup"),
         ("/forgot", "forgot"),
@@ -454,36 +520,31 @@ async fn every_page_works_without_script() {
         ("/tasks/1/edit", "tasks-edit"),
     ];
     for (path, name) in pages {
-        let res = send(&router, "GET", path, &auth, "").await;
-        assert_eq!(res.status(), StatusCode::OK, "{path}");
-        let html = text(res).await;
-        if path == "/notes/1/edit" {
-            // The edit form starts from the saved note, every field filled in.
-            for filled in [
-                r#"value="First""#,
-                ">Hello\n\nAgain</textarea>",
-                r#"value="2026-10-01""#,
-                r#"value="ideas, rust""#,
-                r#"<option value="1" selected>"#,
-                "checked",
-            ] {
-                assert!(html.contains(filled), "edit form: no {filled} in {html}");
-            }
-        }
-        assert_eq!(html.matches("<script").count(), 1, "{path}: one script");
-        assert!(
-            html.contains("--lui-brand-9: #0f766e"),
-            "{path}: in the app's look"
-        );
-        assert!(
-            html.contains(&tag),
-            "{path}: and it is the enhancement script"
-        );
-
-        let mut page = Page::render(router.clone(), path, &auth).await;
-        assert!(page.is_visible("h1"), "{path}: Blitz lays the page out");
-        page.screenshot(format!("{dir}/loco-{name}.png")).unwrap();
+        shoot(&router, &auth, &tag, path, name).await;
     }
+
+    // Switching between cards and the table keeps the search and the chosen tags (the tag
+    // box has its own hidden `sel`, so look inside the switch's form).
+    let html = text(send(&router, "GET", "/notes?q=Hello&sel=rust", &auth, "").await).await;
+    let switch = html
+        .split(r#"<form class="notes-view""#)
+        .nth(1)
+        .expect("the view switch");
+    let switch = &switch[..switch.find("</form>").unwrap()];
+    for kept in [
+        r#"<input type="hidden" name="q" value="Hello">"#,
+        r#"<input type="hidden" name="sel" value="rust">"#,
+    ] {
+        assert!(switch.contains(kept), "view switch: no {kept} in {switch}");
+    }
+
+    // A tag link encodes its tag: `c#` filters by `c#`, not by `c`.
+    let res = send(&router, "POST", "/notes", &auth, "title=Sharp&tags=c%23").await;
+    let sharp = location(&res).to_string();
+    let html = text(send(&router, "GET", "/notes", &auth, "").await).await;
+    assert!(html.contains(r#"href="/notes?sel=c%23""#), "{html}");
+    let res = send(&router, "POST", &format!("{sharp}/delete"), &auth, "").await;
+    assert_eq!(location(&res), "/notes");
 
     // A path no route answers is loco-ui's 404 page, not Loco's plain one.
     let res = send(&router, "GET", "/no-such-page", "", "").await;

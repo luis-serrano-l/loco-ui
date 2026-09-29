@@ -1,7 +1,8 @@
 //! `cargo lui install` and `cargo lui auth` on a fresh Loco app. `tests/fresh-loco-app` is
 //! `loco new -n fresh_app --db sqlite --bg blocking --assets none` (loco 1.2.0) trimmed to
-//! what `cargo check` and the installer read: `Cargo.toml`, `Cargo.lock`, `config/`, `src/`
-//! and `migration/`.
+//! what `cargo check`, the installer and `generate scaffold` read: `Cargo.toml`, `Cargo.lock`,
+//! `.cargo/config.toml` (the `loco-tool` alias the generator runs), `config/`, `src/`,
+//! `migration/` and `tests/models/mod.rs` (where the generator adds each model's test).
 
 use std::{
     fs,
@@ -159,8 +160,12 @@ fn a_directory_that_is_not_a_loco_app_is_refused() {
     assert!(String::from_utf8_lossy(&out.stderr).contains("not a Loco app"));
 }
 
-/// With the account pages too. Builds Loco and SeaORM for the fixture (about a minute the first time), so it is run by
-/// `scripts/verify.sh` and CI with `--ignored` rather than by every `cargo test`.
+/// With the account pages and three scaffolds from the installed templates: one field of every
+/// kind they tell apart (text, dates and times, numbers, a bool, enums required and optional,
+/// the owner's `user_id`, which the form leaves out), then a required and an optional
+/// reference to it. Builds Loco and SeaORM for the fixture (a few minutes the first time), so
+/// it is run by `scripts/verify.sh` and CI with `--ignored` rather than by every `cargo test`.
+/// The generator runs `sea-orm-cli` for the entities, so that must be installed.
 #[test]
 #[ignore]
 fn the_installed_app_compiles() {
@@ -168,17 +173,44 @@ fn the_installed_app_compiles() {
     install(&app);
     lui(&["auth"], &app, &[]);
     let target = Path::new(env!("CARGO_MANIFEST_DIR")).join("../target/lui-install-target");
-    let out = Command::new(env!("CARGO"))
-        .arg("check")
-        .current_dir(&app)
-        .env("CARGO_TARGET_DIR", target)
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "{}",
-        String::from_utf8_lossy(&out.stderr)
-    );
+    let cargo = |args: &[&str]| {
+        let out = Command::new(env!("CARGO"))
+            .args(args)
+            .current_dir(&app)
+            .env("CARGO_TARGET_DIR", &target)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "cargo {}: {}",
+            args.join(" "),
+            String::from_utf8_lossy(&out.stderr)
+        );
+    };
+    let scaffold = |fields: &[&str]| {
+        let generate = ["run", "--quiet", "--", "generate", "scaffold"];
+        cargo(&[&generate[..], fields].concat());
+    };
+    scaffold(&[
+        "gadget",
+        "name:string!",
+        "body:text",
+        "due:date!",
+        "at:tstz",
+        "starts:tstz!",
+        "opens:time",
+        "price:float",
+        "qty:int!",
+        "size:small_int",
+        "done:bool!",
+        "status:enum:draft,published!",
+        "kind:enum:small,large",
+        "user:references",
+    ]);
+    scaffold(&["widget", "title:string!", "gadget:references"]);
+    scaffold(&["doodad", "title:string!", "gadget:references?"]);
+    // `build`, not `check`: the generator's runs built everything already.
+    cargo(&["build"]);
 }
 
 /// `examples/loco-app` generates its scaffolds from its own copy of the templates; that copy

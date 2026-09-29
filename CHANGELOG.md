@@ -13,9 +13,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   (`Table` with a `column` per field, `RecordPage` with a `field` per value, `Form` with an
   adder per field). `examples/loco-app` follows, views included; controllers keep the builder
   only where they call a method on it (`table.page()`). The HTML is unchanged. `docs/loco.md`
-  and the `loco` module's examples are in `lui!` too.
+  and the `loco` module's examples are in `lui!` too. The installer's ignored test now
+  generates three scaffolds (a field of every kind, enums required and optional, a required
+  and an optional reference) and builds them; it needs `sea-orm-cli`, which CI installs.
 - examples/loco-app: a tag link encodes its tag (`c#`, `r&d` filtered by the wrong tag), and
-  the cards/table switch keeps the search.
+  the cards/table switch keeps the search. The screenshot test fixes when each note changed
+  and was created, so only the overview's shot (its chart counts back from today) still
+  moves with the date.
 - `loco::SignIn("/signin")`, a Loco initializer (and `loco::sign_in` for a hand-built
   router): a 401 becomes a redirect to the sign-in form with a flash
   (`Text::SignInToSee`), naming the page asked for in `?next=` on a GET; a JSON-only
