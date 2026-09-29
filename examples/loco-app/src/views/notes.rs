@@ -31,10 +31,7 @@ fn excerpt(m: &Model) -> String {
 
 /// The list of the notes tagged `t`, the tag encoded (`c#`, `r&d`).
 fn tag_href(t: &str) -> String {
-    let query = form_urlencoded::Serializer::new(String::new())
-        .append_pair("sel", t)
-        .finish();
-    format!("/notes?{query}")
+    loco_ui::href("/notes", [("sel", t)])
 }
 
 /// A note as a card: title (the card's link), a few lines, tags and when it changed.

@@ -190,23 +190,10 @@ impl Ui {
     }
 
     fn link_changing(&self, key: &str, value: Option<&str>) -> String {
-        use crate::state::encode;
-        let mut pairs: Vec<(&str, &str)> = self
-            .params
-            .iter()
+        let kept = (self.params.iter())
             .filter(|(k, _)| k != key)
-            .map(|(k, v)| (k.as_str(), v.as_str()))
-            .collect();
-        pairs.extend(value.map(|v| (key, v)));
-        let query: Vec<String> = pairs
-            .iter()
-            .map(|(k, v)| format!("{}={}", encode(k), encode(v)))
-            .collect();
-        if query.is_empty() {
-            self.state.path().to_string()
-        } else {
-            format!("{}?{}", self.state.path(), query.join("&"))
-        }
+            .map(|(k, v)| (k.as_str(), v.as_str()));
+        crate::href(self.state.path(), kept.chain(value.map(|v| (key, v))))
     }
 
     /// A whole page titled `title` in this request's theme. A flash a [`Ui::redirect`] left

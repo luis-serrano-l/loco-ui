@@ -87,6 +87,8 @@ These are the conventions of `CLAUDE.md`, restated for a component outside the c
   the route should not have to pass what the component can read.
   `ui.link_with(key, value)` and `ui.link_without(key)` are this page's URL with one parameter
   changed or dropped, every other one kept: the links a component offers to move its state.
+  `loco_ui::href(path, [(key, value)])` is another page with its parameters, encoded the
+  same way.
 - **Build from the primitives.** A visible button is `ui.button`, a field is `ui.input`, a
   box is `ui.card`; your CSS arranges them and styles your own parts by class. Never style a
   bare `button` or `input`: the library's own look comes from `button.rs` and `input.rs`,

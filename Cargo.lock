@@ -3384,7 +3384,6 @@ dependencies = [
  "async-trait",
  "axum",
  "chrono",
- "form_urlencoded",
  "include_dir",
  "insta",
  "loco-rs",

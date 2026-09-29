@@ -16,6 +16,10 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   and the `loco` module's examples are in `lui!` too. The installer's ignored test now
   generates three scaffolds (a field of every kind, enums required and optional, a required
   and an optional reference) and builds them; it needs `sea-orm-cli`, which CI installs.
+- `loco_ui::href(path, pairs)`: another page's URL with its query parameters, each
+  percent-encoded as the components' own links are (`href("/notes", [("sel", "c#")])` is
+  `/notes?sel=c%23`). `ui.link_with` and `ui.link_without` build theirs with it, and
+  examples/loco-app's tag links use it instead of the `form_urlencoded` crate.
 - Fix: the scaffold's select for an optional enum starts with an empty "None" choice, as an
   optional reference's does; without it the browser picked the first variant and saving the
   form wrote it.

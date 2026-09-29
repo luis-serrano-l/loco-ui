@@ -285,7 +285,9 @@ reasons, plus the meter's minimum, which no rule flags.
 **Other names**
 
 - `Ui::link_with(key, value)`: this page's URL with one parameter set, the pair of
-  `link_without`; not a `_with` twin of a plainer function.
+  `link_without`; not a `_with` twin of a plainer function. `loco_ui::href(path, pairs)` is
+  a free function, not a `Ui` method, because another page's link reads nothing of this
+  request.
 - `Table::paged_from(&PagerMeta)` (feature `loco`): takes Loco's own pager metadata as it
   comes from a paginated query, beside `.paged(total)` for anything else.
 

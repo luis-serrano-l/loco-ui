@@ -184,6 +184,27 @@ pub fn slug(key: &str) -> String {
         .collect()
 }
 
+/// `path` with `pairs` as its query, each key and value percent-encoded as the components'
+/// own links are: a link to another page and its parameters. [`Ui::link_with`] changes one
+/// parameter of this page instead.
+///
+/// ```rust
+/// assert_eq!(loco_ui::href("/notes", [("sel", "c#")]), "/notes?sel=c%23");
+/// assert_eq!(loco_ui::href("/search", [("q", "r&d"), ("page", "2")]), "/search?q=r%26d&page=2");
+/// assert_eq!(loco_ui::href("/notes", []), "/notes");
+/// ```
+pub fn href<'a>(path: &str, pairs: impl IntoIterator<Item = (&'a str, &'a str)>) -> String {
+    use state::encode;
+    let mut out = path.to_string();
+    for (i, (k, v)) in pairs.into_iter().enumerate() {
+        out.push(if i == 0 { '?' } else { '&' });
+        out.push_str(&encode(k));
+        out.push('=');
+        out.push_str(&encode(v));
+    }
+    out
+}
+
 /// A control under its label in a `div.lui-field`, as the form component lays out its
 /// fields; the control alone when there is no label. `id` is the control's id.
 pub(crate) fn labelled(label: Option<&str>, id: &str, control: maud::Markup) -> maud::Markup {
