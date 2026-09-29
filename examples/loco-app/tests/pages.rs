@@ -475,7 +475,7 @@ async fn every_page_works_without_script() {
         notes::Entity::update_many()
             .col_expr(
                 notes::Column::UpdatedAt,
-                Expr::value(day + chrono::Duration::minutes(note.id.into())),
+                Expr::value(day + chrono::Duration::minutes(note.id)),
             )
             .filter(notes::Column::Id.eq(note.id))
             .exec(&db)
