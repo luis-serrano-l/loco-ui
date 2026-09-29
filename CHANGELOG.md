@@ -16,6 +16,9 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   and the `loco` module's examples are in `lui!` too. The installer's ignored test now
   generates three scaffolds (a field of every kind, enums required and optional, a required
   and an optional reference) and builds them; it needs `sea-orm-cli`, which CI installs.
+- Fix: the scaffold's select for an optional enum starts with an empty "None" choice, as an
+  optional reference's does; without it the browser picked the first variant and saving the
+  form wrote it.
 - examples/loco-app: a tag link encodes its tag (`c#`, `r&d` filtered by the wrong tag), and
   the cards/table switch keeps the search. The screenshot test fixes when each note changed
   and was created, so only the overview's shot (its chart counts back from today) still

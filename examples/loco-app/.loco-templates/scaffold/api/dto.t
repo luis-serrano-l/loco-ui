@@ -110,7 +110,11 @@ pub fn form(
             select "{{ f.field_name }}" "{{ f.label | trim_end_matches(pat=" id") }}"
                 ({% if f.nullable %}std::iter::once(("", "None")).chain({% endif %}refs.{{ f.field_name }}.iter().map(|(id, label)| (id.as_str(), label.as_str())){% if f.nullable %}){% endif %}){{ req }};
 {%- elif f.is_enum %}
+{%- if f.nullable %}
+            select "{{ f.field_name }}" "{{ f.label }}" ([("", "None"), {% for e in enums %}{% if e.enum_type == f.enum_type %}{% for v in e.variants %}("{{ v.value }}", "{{ v.value }}"){% if not loop.last %}, {% endif %}{% endfor %}{% endif %}{% endfor %}]);
+{%- else %}
             select "{{ f.field_name }}" "{{ f.label }}" ([{% for e in enums %}{% if e.enum_type == f.enum_type %}{% for v in e.variants %}"{{ v.value }}"{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}{% endfor %}]){{ req }};
+{%- endif %}
 {%- elif f.input_kind == "checkbox" %}
             checkbox "{{ f.field_name }}" "{{ f.label }}";
 {%- elif f.input_kind == "textarea" %}
