@@ -1,5 +1,5 @@
 //! The table pages: `/table/minimal`, a table whose snippet is all its code, and `/table`,
-//! with sort, filter, paging, columns, CSV, in-place edit and bulk actions and their handlers.
+//! with sort, filter, paging, columns, CSV, in-place edit and bulk actions.
 
 use crate::site::page;
 use axum::{
@@ -47,7 +47,6 @@ type File = (String, u32, &'static str);
 /// The table's columns, every one sortable; the CSV writes the visible ones.
 const COLUMNS: [&str; 3] = ["name", "size", "kind"];
 
-// code: /table
 /// Thirty-six files filtered and sorted on the server as the table's query says, in one place
 /// for the page and the CSV.
 fn files(query: &TableQuery) -> Vec<File> {
@@ -67,9 +66,7 @@ fn files(query: &TableQuery) -> Vec<File> {
     });
     files
 }
-// end code
 
-// code: /table
 /// Kinds renamed in place on `/table`, remembered per visitor.
 #[derive(Default, Deserialize, Serialize)]
 struct Kinds(Vec<(String, String)>);
@@ -82,7 +79,6 @@ impl Kinds {
             .map_or(kind, |(_, k)| k.as_str())
     }
 }
-// end code
 
 // code: /table
 /// A file as a row that expands, has its own menu, can be selected and edited in place.
@@ -159,7 +155,6 @@ async fn table_page(ui: Ui, Saved(kinds): Saved<Kinds>) -> Page {
     )
 }
 
-// code: /table
 /// The same rows as text/csv, for the sort, filter and columns in the URL.
 async fn table_csv(ui: Ui) -> impl IntoResponse {
     let query = ui.table_query("files", &COLUMNS);
@@ -187,9 +182,7 @@ async fn table_csv(ui: Ui) -> impl IntoResponse {
         csv,
     )
 }
-// end code
 
-// code: /table
 /// A row edited in place: the file's new kind, saved, then back to the page it came from.
 #[derive(Deserialize)]
 struct EditedRow {
@@ -218,9 +211,7 @@ async fn table_edit(
         .flash(&format!("Saved {}.", row.key))
         .save(&kinds)
 }
-// end code
 
-// code: /table
 /// `row=<key>` per ticked box and `action=<value>` from the button: acknowledged with a flash.
 async fn table_bulk(ui: Ui, posted: Posted) -> Redirect {
     let rows = posted.all("row").count();
@@ -235,4 +226,3 @@ async fn table_bulk(ui: Ui, posted: Posted) -> Redirect {
     };
     ui.redirect("/table").flash(&message)
 }
-// end code
