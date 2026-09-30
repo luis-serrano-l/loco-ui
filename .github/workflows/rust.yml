@@ -1,22 +1,27 @@
 name: Rust
 
+# The checks run as parallel jobs; the Pages snapshot deploys only from main and only after
+# every one of them passes. A crates.io publish job would hang off the same `needs` list.
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
-# A new push to the same branch or PR cancels the run still going.
+# A new push to a PR cancels the run still going. On main runs queue instead, so a Pages
+# deployment is never cut off halfway.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
 
 jobs:
-  check:
+  lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -24,39 +29,125 @@ jobs:
       with:
         components: clippy, rustfmt
     - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
     # Blitz (loco-ui-test) finds fonts through fontconfig.
     - name: System libraries
       run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
-
-    # `generate scaffold`, in the installer's ignored test, writes the entities with sea-orm-cli.
-    - uses: taiki-e/install-action@v2
-      with:
-        tool: sea-orm-cli@2
-
     - name: Format
       run: cargo fmt --all --check
     - name: Clippy
       run: cargo clippy --workspace --all-targets
-    # The library must build clean with no features and with only `http`.
+    # The library must build clean with no features, with only `http` and with `loco`.
     - name: Clippy (feature levels)
       run: |
+        cargo clippy -p loco-ui-caps --all-targets
         cargo clippy -p loco-ui --all-targets
         cargo clippy -p loco-ui --features http --all-targets
         cargo clippy -p loco-ui --features loco --all-targets
-    - name: Tests
+    # The enhancement tag is built in loco-ui/src/enhance.rs; nothing else may write one.
+    - name: No <script> outside enhance.rs
       run: |
-        cargo test --workspace
+        if grep -rn '<script' loco-ui/src demo/src loco-ui-test/src examples/loco-app/src \
+             | grep -v '^loco-ui/src/enhance.rs:' \
+             | grep -v 'matches("<script")' \
+             | grep -v '^\S*:\s*//' \
+             | grep -v 'code { "<script>" }'; then
+          echo "found a <script> mention outside enhance.rs and its test"; exit 1
+        fi
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: System libraries
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+    - name: Tests
+      run: cargo test --workspace
+    # `examples/loco-app` turns `loco` on for the workspace run; these check the crate on its own.
+    - name: Tests (loco feature)
+      run: |
         cargo test -p loco-ui --features loco loco
         cargo test -p loco-ui --features loco --doc loco
-        cargo test -p loco-ui --test install -- --include-ignored
-    # The enhancement script in headless Firefox, then axe-core on every route (fails on any
-    # serious or critical violation). The runner image has Firefox and geckodriver.
+
+  # `cargo lui install` on a fresh `loco new` copy, then `cargo check` of the result.
+  install:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: System libraries
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+    # `generate scaffold`, in the installer's ignored test, writes the entities with sea-orm-cli.
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: sea-orm-cli@2
+    - name: Installer
+      run: cargo test -p loco-ui --test install -- --include-ignored
+
+  # The enhancement script in headless Firefox, then axe-core on every route (fails on any
+  # serious or critical violation). The runner image has Firefox and geckodriver.
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: System libraries
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
     - name: Browser check and accessibility
       run: |
         cargo build -p demo
         npm install --prefix scripts --no-audit --no-fund
         node scripts/browser-check.mjs
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
     - name: Rustdoc
       run: cargo doc --no-deps -p loco-ui-caps -p loco-ui-macros -p loco-ui --all-features
       env:
         RUSTDOCFLAGS: -D warnings
+
+  # The static snapshot of the demo (scripts/snapshot.sh) on GitHub Pages. Pages serves files
+  # only: every page renders and <dialog>, popover, <details> and tooltips work, while forms,
+  # cookies and paging need `cargo run -p demo` (each page carries a banner saying so).
+  # Turn Pages on in the repository settings with "GitHub Actions" as the source.
+  pages:
+    needs: [lint, test, install, browser, docs]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: Snapshot
+      run: scripts/snapshot.sh target/site
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: target/site
+    - id: deployment
+      uses: actions/deploy-pages@v4

@@ -164,7 +164,7 @@ fn a_directory_that_is_not_a_loco_app_is_refused() {
 /// kind they tell apart (text, dates and times, numbers, a bool, enums required and optional,
 /// the owner's `user_id`, which the form leaves out), then a required and an optional
 /// reference to it. Builds Loco and SeaORM for the fixture (a few minutes the first time), so
-/// it is run by `scripts/verify.sh` and CI with `--ignored` rather than by every `cargo test`.
+/// it is run by CI with `--ignored` rather than by every `cargo test`.
 /// The generator runs `sea-orm-cli` for the entities, so that must be installed.
 #[test]
 #[ignore]

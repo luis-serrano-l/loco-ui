@@ -33,7 +33,7 @@ scripts/look.sh [--only <name>] [--tag <tag>] [--no-ref]  # Firefox shots of eve
 cargo run -p demo -- spec write    # regenerate spec/components.json and the README feature matrix from loco_ui::spec::SPECS
 scripts/snapshot.sh [dir]          # static GitHub Pages snapshot of every GET page into target/site/
 cargo run -p loco-ui -- install <app> --dep-path "$PWD/loco-ui"   # the cargo-lui installer on a Loco app (also `auth`); tests/install.rs runs it on tests/fresh-loco-app
-scripts/verify.sh [--full]         # quick: fmt check, clippy, tests, <script> grep; run before committing. --full adds build, clippy at every feature level, the installer test (after a template change), rustdoc (docs, public API), browser check (enhance.rs); run before ticking a milestone
+scripts/verify.sh                  # fmt check, clippy, tests, <script> grep; run before committing. Clippy at every feature level, the installer test, rustdoc and the browser check run only in CI (.github/workflows/rust.yml, parallel jobs); never run them all locally
 ```
 
 Never format Rust by hand: write the code in any layout, then run `cargo fmt --all` (verify.sh
