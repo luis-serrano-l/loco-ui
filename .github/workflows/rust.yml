@@ -66,13 +66,29 @@ jobs:
         key: ${{ github.job }}
     - name: System libraries
       run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+    # The Blitz layout tests and screenshots (loco-ui-test) take two minutes on their own and
+    # run in the `shots` job beside this one.
     - name: Tests
-      run: cargo test --workspace
+      run: cargo test --workspace --exclude loco-ui-test
     # `examples/loco-app` turns `loco` on for the workspace run; these check the crate on its own.
     - name: Tests (loco feature)
       run: |
         cargo test -p loco-ui --features loco loco
         cargo test -p loco-ui --features loco --doc loco
+
+  # Blitz layout assertions and the screenshots in tests/shots/.
+  shots:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: System libraries
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+    - name: Blitz tests
+      run: cargo test -p loco-ui-test
 
   # `cargo lui install` on a fresh `loco new` copy, then `cargo check` of the result.
   install:
@@ -128,7 +144,7 @@ jobs:
   # cookies and paging need `cargo run -p demo` (each page carries a banner saying so).
   # Turn Pages on in the repository settings with "GitHub Actions" as the source.
   pages:
-    needs: [lint, test, install, browser, docs]
+    needs: [lint, test, shots, install, browser, docs]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
