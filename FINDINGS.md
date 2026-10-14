@@ -927,3 +927,17 @@ is not drawn only because it sits behind the motion query.
   `AddUserRefToNotes` migration fails there. The app's notes table is recreated instead,
   which drops the notes written before it (development data only).
 
+### M46 · Tests that would have caught the audit's bugs
+
+- **Where `cargo test --workspace` spends its time** (2026-10-14, 12 cores, warm debug build,
+  `RUSTC_BOOTSTRAP=1 cargo test --workspace -- -Z unstable-options --report-time`): the
+  Blitz crate's `every_route_renders_and_is_captured` 248 s (all of `loco-ui-test/tests/demo.rs`
+  252 s), the example app's `every_page_works_without_script` 69 s, the library's doctests
+  25 s, the `lui!` `trybuild` errors 19 s, the demo's unit tests 13 s (the conformance test is
+  all of it), the rest under 5 s each. Proptest and the snapshots take under 1 s. So
+  `scripts/verify.sh` leaves the Blitz crate to `--full` and CI. `RUSTC_BOOTSTRAP` changes
+  the build fingerprint and rebuilds the whole workspace once.
+- **html5ever finds no parse error on any route.** Maud's output is well formed; what the
+  conformance test catches are document-level problems (repeated ids, links in
+  `<summary>`) that no single component's doctest can see.
+
