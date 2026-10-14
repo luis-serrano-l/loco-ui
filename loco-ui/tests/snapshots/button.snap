@@ -1,0 +1,8 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<button type="submit" class="lui-button lui-button-primary">Save</button>
+
+caps: none
+<button type="submit" class="lui-button lui-button-primary">Save</button>

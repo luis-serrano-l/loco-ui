@@ -1,0 +1,74 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<nav class="lui-sidebar" aria-label="Mail">
+<div class="lui-sidebar-group">
+<p class="lui-sidebar-heading" id="lui-sidebar-mail-1">Mail</p>
+<ul aria-labelledby="lui-sidebar-mail-1">
+<li>
+<a href="/inbox" aria-current="page">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="mail">
+<rect width="20" height="16" x="2" y="4" rx="2"/>
+<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+</svg>
+<span class="lui-sidebar-text">Inbox</span>
+<span class="lui-sidebar-badge">12</span>
+</a>
+</li>
+<li>
+<a href="/sent">
+<span class="lui-sidebar-initial" aria-hidden="true">S</span>
+<span class="lui-sidebar-text">Sent</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="lui-sidebar-group">
+<p class="lui-sidebar-heading" id="lui-sidebar-mail-2">Labels</p>
+<ul aria-labelledby="lui-sidebar-mail-2">
+<li>
+<a href="/labels/work">
+<span class="lui-sidebar-initial" aria-hidden="true">W</span>
+<span class="lui-sidebar-text">Work</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+
+caps: none
+<nav class="lui-sidebar" aria-label="Mail">
+<div class="lui-sidebar-group">
+<p class="lui-sidebar-heading" id="lui-sidebar-mail-1">Mail</p>
+<ul aria-labelledby="lui-sidebar-mail-1">
+<li>
+<a href="/inbox" aria-current="page">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="mail">
+<rect width="20" height="16" x="2" y="4" rx="2"/>
+<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+</svg>
+<span class="lui-sidebar-text">Inbox</span>
+<span class="lui-sidebar-badge">12</span>
+</a>
+</li>
+<li>
+<a href="/sent">
+<span class="lui-sidebar-initial" aria-hidden="true">S</span>
+<span class="lui-sidebar-text">Sent</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="lui-sidebar-group">
+<p class="lui-sidebar-heading" id="lui-sidebar-mail-2">Labels</p>
+<ul aria-labelledby="lui-sidebar-mail-2">
+<li>
+<a href="/labels/work">
+<span class="lui-sidebar-initial" aria-hidden="true">W</span>
+<span class="lui-sidebar-text">Work</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>

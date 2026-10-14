@@ -1,0 +1,46 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-dashboard">
+<h1>Overview</h1>
+<p class="lui-dashboard-description">Last 30 days.</p>
+<div class="lui-stat-grid">
+<div class="lui-stat">
+<p class="lui-stat-label">Revenue</p>
+<p class="lui-stat-value">$12,480</p>
+<p class="lui-stat-delta-row">
+<span class="lui-stat-delta lui-stat-good">
+<span aria-hidden="true">▲</span>
+<span class="lui-sr">up </span>+8%</span>
+</p>
+</div>
+<div class="lui-stat">
+<p class="lui-stat-label">Customers</p>
+<p class="lui-stat-value">312</p>
+</div>
+</div>
+<p>Recent orders</p>
+</div>
+
+caps: none
+<div class="lui-dashboard">
+<h1>Overview</h1>
+<p class="lui-dashboard-description">Last 30 days.</p>
+<div class="lui-stat-grid">
+<div class="lui-stat">
+<p class="lui-stat-label">Revenue</p>
+<p class="lui-stat-value">$12,480</p>
+<p class="lui-stat-delta-row">
+<span class="lui-stat-delta lui-stat-good">
+<span aria-hidden="true">▲</span>
+<span class="lui-sr">up </span>+8%</span>
+</p>
+</div>
+<div class="lui-stat">
+<p class="lui-stat-label">Customers</p>
+<p class="lui-stat-value">312</p>
+</div>
+</div>
+<p>Recent orders</p>
+</div>

@@ -1,0 +1,42 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-error-summary lui-callout lui-callout-danger" role="alert" aria-labelledby="lui-error-summary-title">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="triangle-alert">
+<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+<path d="M12 9v4"/>
+<path d="M12 17h.01"/>
+</svg>
+<h2 class="lui-error-summary-title" id="lui-error-summary-title">
+<a href="#f-email" autofocus>Check your details</a>
+</h2>
+<ul class="lui-error-summary-list">
+<li>
+<a href="#f-email">Email: Enter an email address.</a>
+</li>
+<li>
+<a href="#f-password">At least 8 characters.</a>
+</li>
+</ul>
+</div>
+
+caps: none
+<div class="lui-error-summary lui-callout lui-callout-danger" role="alert" aria-labelledby="lui-error-summary-title">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="triangle-alert">
+<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+<path d="M12 9v4"/>
+<path d="M12 17h.01"/>
+</svg>
+<h2 class="lui-error-summary-title" id="lui-error-summary-title">
+<a href="#f-email" autofocus>Check your details</a>
+</h2>
+<ul class="lui-error-summary-list">
+<li>
+<a href="#f-email">Email: Enter an email address.</a>
+</li>
+<li>
+<a href="#f-password">At least 8 characters.</a>
+</li>
+</ul>
+</div>

@@ -1,0 +1,132 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-app-shell">
+<div class="lui-drawer lui-drawer-sidebar">
+<button type="button" class="lui-button lui-drawer-open" command="show-modal" commandfor="app" aria-haspopup="dialog">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="menu">
+<path d="M4 6h16"/>
+<path d="M4 12h16"/>
+<path d="M4 18h16"/>
+</svg>Acme</button>
+<dialog id="app" class="lui-drawer-panel" closedby="any" aria-labelledby="app-title">
+<div class="lui-drawer-head">
+<p id="app-title" class="lui-drawer-title">Acme</p>
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" command="close" commandfor="app" aria-label="Close">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</button>
+</div>
+<nav class="lui-drawer-nav" aria-labelledby="app-title">
+<div class="lui-app-shell-links">
+<div class="lui-sidebar">
+<div class="lui-sidebar-group">
+<ul>
+<li>
+<a href="/" aria-current="page">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="mail">
+<rect width="20" height="16" x="2" y="4" rx="2"/>
+<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+</svg>
+<span class="lui-sidebar-text">Inbox</span>
+<span class="lui-sidebar-badge">3</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="lui-sidebar-group">
+<p class="lui-sidebar-heading" id="app-nav-1">Projects</p>
+<ul aria-labelledby="app-nav-1">
+<li>
+<a href="/p/apollo">
+<span class="lui-sidebar-initial" aria-hidden="true">A</span>
+<span class="lui-sidebar-text">Apollo</span>
+<span class="lui-sidebar-badge">12</span>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<form method="post" action="/signout" class="lui-app-shell-user">
+<span class="lui-avatar lui-avatar-1" role="img" aria-label="Ada Lovelace">
+<span class="lui-avatar-initials" aria-hidden="true">AL</span>
+</span>
+<span>Ada Lovelace</span>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small">Sign out</button>
+</form>
+</nav>
+</dialog>
+<div class="lui-drawer-content">
+<h1>Hello</h1>
+</div>
+</div>
+</div>
+
+caps: none
+<div class="lui-app-shell">
+<div class="lui-drawer lui-drawer-sidebar">
+<a class="lui-button lui-drawer-open" href="#app" role="button">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="menu">
+<path d="M4 6h16"/>
+<path d="M4 12h16"/>
+<path d="M4 18h16"/>
+</svg>Acme</a>
+<dialog id="app" class="lui-drawer-panel" closedby="any" aria-labelledby="app-title">
+<div class="lui-drawer-head">
+<p id="app-title" class="lui-drawer-title">Acme</p>
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" href="#" aria-label="Close">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</div>
+<nav class="lui-drawer-nav" aria-labelledby="app-title">
+<div class="lui-app-shell-links">
+<div class="lui-sidebar">
+<div class="lui-sidebar-group">
+<ul>
+<li>
+<a href="/" aria-current="page">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="mail">
+<rect width="20" height="16" x="2" y="4" rx="2"/>
+<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+</svg>
+<span class="lui-sidebar-text">Inbox</span>
+<span class="lui-sidebar-badge">3</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="lui-sidebar-group">
+<p class="lui-sidebar-heading" id="app-nav-1">Projects</p>
+<ul aria-labelledby="app-nav-1">
+<li>
+<a href="/p/apollo">
+<span class="lui-sidebar-initial" aria-hidden="true">A</span>
+<span class="lui-sidebar-text">Apollo</span>
+<span class="lui-sidebar-badge">12</span>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<form method="post" action="/signout" class="lui-app-shell-user">
+<span class="lui-avatar lui-avatar-1" role="img" aria-label="Ada Lovelace">
+<span class="lui-avatar-initials" aria-hidden="true">AL</span>
+</span>
+<span>Ada Lovelace</span>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small">Sign out</button>
+</form>
+</nav>
+</dialog>
+<div class="lui-drawer-content">
+<h1>Hello</h1>
+</div>
+</div>
+</div>

@@ -1,0 +1,64 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<nav class="lui-nav-menu" aria-label="Main">
+<ul>
+<li>
+<div class="lui-popover lui-popover-anchored lui-popover-start" style="anchor-name: --nav-main-products">
+<button type="button" class="lui-button" popovertarget="nav-main-products" aria-haspopup="menu">Products<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</button>
+<nav id="nav-main-products" popover style="position-anchor: --nav-main-products; position-area: bottom span-right">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/mail">
+<span class="lui-popover-text">Mail</span>
+</a>
+</li>
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/calendar">
+<span class="lui-popover-text">Calendar</span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</li>
+<li>
+<a class="lui-nav-menu-link" href="/pricing" aria-current="page">Pricing</a>
+</li>
+</ul>
+</nav>
+
+caps: none
+<nav class="lui-nav-menu" aria-label="Main">
+<ul>
+<li>
+<details class="lui-popover lui-popover-details lui-popover-start" id="nav-main-products">
+<summary class="lui-button" aria-haspopup="menu">Products<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</summary>
+<nav>
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/mail">
+<span class="lui-popover-text">Mail</span>
+</a>
+</li>
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/calendar">
+<span class="lui-popover-text">Calendar</span>
+</a>
+</li>
+</ul>
+</nav>
+</details>
+</li>
+<li>
+<a class="lui-nav-menu-link" href="/pricing" aria-current="page">Pricing</a>
+</li>
+</ul>
+</nav>

@@ -1,0 +1,80 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-field">
+<label for="f-volume">Volume</label>
+<div class="lui-range">
+<div class="lui-range-main">
+<input type="range" class="lui-range-input" id="f-volume" name="volume" min="0" max="100" step="1" value="40" list="volume-ticks" style="--lui-range-fill: 40%">
+<div class="lui-range-ticks" aria-hidden="true">
+<span>0</span>
+<span>
+</span>
+<span>100</span>
+</div>
+</div>
+<datalist id="volume-ticks">
+<option value="0" label="0">
+</option>
+<option value="50">
+</option>
+<option value="100" label="100">
+</option>
+</datalist>
+<output for="f-volume">40</output>
+</div>
+</div>
+<div class="lui-field">
+<label for="f-price_min">Price</label>
+<div class="lui-range lui-range-pair">
+<div class="lui-range-main">
+<div class="lui-range-track" style="--lui-range-lo: 20%; --lui-range-hi: 80%">
+<input type="range" class="lui-range-input" id="f-price_min" name="price_min" min="0" max="100" step="10" value="20" aria-label="Minimum">
+<input type="range" class="lui-range-input" id="f-price_max" name="price_max" min="0" max="100" step="10" value="80" aria-label="Maximum">
+</div>
+</div>
+<span class="lui-range-values">
+<output for="f-price_min">20</output> – <output for="f-price_max">80</output>
+</span>
+</div>
+</div>
+
+caps: none
+<div class="lui-field">
+<label for="f-volume">Volume</label>
+<div class="lui-range">
+<div class="lui-range-main">
+<input type="range" class="lui-range-input" id="f-volume" name="volume" min="0" max="100" step="1" value="40" list="volume-ticks" style="--lui-range-fill: 40%">
+<div class="lui-range-ticks" aria-hidden="true">
+<span>0</span>
+<span>
+</span>
+<span>100</span>
+</div>
+</div>
+<datalist id="volume-ticks">
+<option value="0" label="0">
+</option>
+<option value="50">
+</option>
+<option value="100" label="100">
+</option>
+</datalist>
+<output for="f-volume">40</output>
+</div>
+</div>
+<div class="lui-field">
+<label for="f-price_min">Price</label>
+<div class="lui-range lui-range-pair">
+<div class="lui-range-main">
+<div class="lui-range-track" style="--lui-range-lo: 20%; --lui-range-hi: 80%">
+<input type="range" class="lui-range-input" id="f-price_min" name="price_min" min="0" max="100" step="10" value="20" aria-label="Minimum">
+<input type="range" class="lui-range-input" id="f-price_max" name="price_max" min="0" max="100" step="10" value="80" aria-label="Maximum">
+</div>
+</div>
+<span class="lui-range-values">
+<output for="f-price_min">20</output> – <output for="f-price_max">80</output>
+</span>
+</div>
+</div>

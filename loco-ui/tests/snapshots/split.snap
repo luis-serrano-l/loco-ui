@@ -1,0 +1,22 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-split">
+<div class="lui-split-side">
+<nav>Settings</nav>
+</div>
+<div class="lui-split-main">
+<p>Form</p>
+</div>
+</div>
+
+caps: none
+<div class="lui-split">
+<div class="lui-split-side">
+<nav>Settings</nav>
+</div>
+<div class="lui-split-main">
+<p>Form</p>
+</div>
+</div>

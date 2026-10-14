@@ -24,6 +24,7 @@ cargo test --workspace             # all tests, including the only-one-script te
 cargo test -p demo pages_ship_only_the_enhancement_script   # the single enforcement test
 node scripts/browser-check.mjs     # headless Firefox via geckodriver: the script works (needs a built demo)
 cargo test -p loco-ui --doc      # component doc examples
+cargo insta review                 # accept or reject changed HTML snapshots (loco-ui/tests/snapshots/, one per builder; needs cargo-insta)
 cargo clippy --workspace --all-targets  # must be clean before a roadmap milestone counts as done
 cargo test -p loco-ui-test       # Blitz layout assertions + screenshots into tests/shots/
 cargo bench -p loco-ui           # criterion: stylesheet, layout, table with 1 000 rows, paged table, UiState

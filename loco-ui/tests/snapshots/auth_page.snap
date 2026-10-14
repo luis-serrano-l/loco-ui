@@ -1,0 +1,42 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-auth">
+<div class="lui-auth-card">
+<h1 class="lui-auth-title">Sign in</h1>
+<p class="lui-auth-description">Welcome back.</p>
+<form id="lui-form--signin" data-lui="swap" class="lui-form" method="post" action="/signin">
+<div class="lui-field">
+<label for="f-email">Email *</label>
+<input id="f-email" name="email" type="email" value="" required>
+</div>
+<div class="lui-form-actions">
+<button type="submit" class="lui-button lui-button-primary">Sign in</button>
+</div>
+</form>
+</div>
+<div class="lui-auth-footer">
+<a href="/signup">Create an account</a>
+</div>
+</div>
+
+caps: none
+<div class="lui-auth">
+<div class="lui-auth-card">
+<h1 class="lui-auth-title">Sign in</h1>
+<p class="lui-auth-description">Welcome back.</p>
+<form id="lui-form--signin" data-lui="swap" class="lui-form" method="post" action="/signin">
+<div class="lui-field">
+<label for="f-email">Email *</label>
+<input id="f-email" name="email" type="email" value="" required>
+</div>
+<div class="lui-form-actions">
+<button type="submit" class="lui-button lui-button-primary">Sign in</button>
+</div>
+</form>
+</div>
+<div class="lui-auth-footer">
+<a href="/signup">Create an account</a>
+</div>
+</div>

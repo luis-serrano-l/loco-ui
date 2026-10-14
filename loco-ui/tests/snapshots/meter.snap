@@ -1,0 +1,20 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-progress-field">
+<label for="lui-meter-disk">
+<span>Disk</span>
+<span class="lui-progress-value">82 / 100</span>
+</label>
+<meter id="lui-meter-disk" class="lui-meter" value="82" min="0" max="100" low="60" high="80" optimum="0">82 / 100</meter>
+</div>
+
+caps: none
+<div class="lui-progress-field">
+<label for="lui-meter-disk">
+<span>Disk</span>
+<span class="lui-progress-value">82 / 100</span>
+</label>
+<meter id="lui-meter-disk" class="lui-meter" value="82" min="0" max="100" low="60" high="80" optimum="0">82 / 100</meter>
+</div>

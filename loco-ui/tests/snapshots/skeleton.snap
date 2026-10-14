@@ -1,0 +1,24 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-skeleton" role="status" aria-busy="true">
+<span class="lui-sr">Loading orders</span>
+<span class="lui-skeleton-heading" aria-hidden="true">
+</span>
+<span class="lui-skeleton-line" aria-hidden="true">
+</span>
+<span class="lui-skeleton-line lui-skeleton-last" aria-hidden="true">
+</span>
+</div>
+
+caps: none
+<div class="lui-skeleton" role="status" aria-busy="true">
+<span class="lui-sr">Loading orders</span>
+<span class="lui-skeleton-heading" aria-hidden="true">
+</span>
+<span class="lui-skeleton-line" aria-hidden="true">
+</span>
+<span class="lui-skeleton-line lui-skeleton-last" aria-hidden="true">
+</span>
+</div>

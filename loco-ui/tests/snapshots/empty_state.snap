@@ -1,0 +1,28 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-empty">
+<span class="lui-empty-icon" aria-hidden="true">🔍</span>
+<p class="lui-empty-title">No results for “zzz”</p>
+<p class="lui-empty-text">Check the spelling or clear the filter.</p>
+<div class="lui-empty-actions">
+<form method="post" action="/files/new">
+<button type="submit" class="lui-button lui-button-primary">Create a file</button>
+</form>
+<a class="lui-button" href="/table">Clear the filter</a>
+</div>
+</div>
+
+caps: none
+<div class="lui-empty">
+<span class="lui-empty-icon" aria-hidden="true">🔍</span>
+<p class="lui-empty-title">No results for “zzz”</p>
+<p class="lui-empty-text">Check the spelling or clear the filter.</p>
+<div class="lui-empty-actions">
+<form method="post" action="/files/new">
+<button type="submit" class="lui-button lui-button-primary">Create a file</button>
+</form>
+<a class="lui-button" href="/table">Clear the filter</a>
+</div>
+</div>

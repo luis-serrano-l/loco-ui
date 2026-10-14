@@ -1,0 +1,46 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-marquee lui-marquee-reverse" role="region" aria-label="What people say" style="--lui-marquee-duration: 20s">
+<div class="lui-marquee-track">
+<ul class="lui-marquee-group">
+<li class="lui-marquee-item">
+<blockquote>Fast.</blockquote>
+</li>
+<li class="lui-marquee-item">
+<blockquote>No script!</blockquote>
+</li>
+</ul>
+<ul class="lui-marquee-group" aria-hidden="true" inert>
+<li class="lui-marquee-item">
+<blockquote>Fast.</blockquote>
+</li>
+<li class="lui-marquee-item">
+<blockquote>No script!</blockquote>
+</li>
+</ul>
+</div>
+</div>
+
+caps: none
+<div class="lui-marquee lui-marquee-reverse" role="region" aria-label="What people say" style="--lui-marquee-duration: 20s">
+<div class="lui-marquee-track">
+<ul class="lui-marquee-group">
+<li class="lui-marquee-item">
+<blockquote>Fast.</blockquote>
+</li>
+<li class="lui-marquee-item">
+<blockquote>No script!</blockquote>
+</li>
+</ul>
+<ul class="lui-marquee-group" aria-hidden="true" inert>
+<li class="lui-marquee-item">
+<blockquote>Fast.</blockquote>
+</li>
+<li class="lui-marquee-item">
+<blockquote>No script!</blockquote>
+</li>
+</ul>
+</div>
+</div>

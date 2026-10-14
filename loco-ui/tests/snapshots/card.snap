@@ -1,0 +1,26 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-card">
+<div class="lui-card-header">
+<div class="lui-card-heading">
+<h3 class="lui-card-title">Team</h3>
+</div>
+</div>
+<div class="lui-card-body">
+<p>3 members</p>
+</div>
+</div>
+
+caps: none
+<div class="lui-card">
+<div class="lui-card-header">
+<div class="lui-card-heading">
+<h3 class="lui-card-title">Team</h3>
+</div>
+</div>
+<div class="lui-card-body">
+<p>3 members</p>
+</div>
+</div>

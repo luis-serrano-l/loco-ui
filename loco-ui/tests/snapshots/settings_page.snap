@@ -1,0 +1,56 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-settings-page">
+<h1>Settings</h1>
+<nav class="lui-settings-page-nav" aria-label="Settings">
+<a href="#settings-profile">Profile</a>
+<a href="#settings-email">Email</a>
+</nav>
+<section id="settings-profile" class="lui-settings-page-section" aria-labelledby="settings-profile-title">
+<div>
+<h2 id="settings-profile-title">Profile</h2>
+<p>How others see you.</p>
+</div>
+<div class="lui-settings-page-body">
+<p>form</p>
+</div>
+</section>
+<section id="settings-email" class="lui-settings-page-section" aria-labelledby="settings-email-title">
+<div>
+<h2 id="settings-email-title">Email</h2>
+<p>Where we write to you.</p>
+</div>
+<div class="lui-settings-page-body">
+<p>form</p>
+</div>
+</section>
+</div>
+
+caps: none
+<div class="lui-settings-page">
+<h1>Settings</h1>
+<nav class="lui-settings-page-nav" aria-label="Settings">
+<a href="#settings-profile">Profile</a>
+<a href="#settings-email">Email</a>
+</nav>
+<section id="settings-profile" class="lui-settings-page-section" aria-labelledby="settings-profile-title">
+<div>
+<h2 id="settings-profile-title">Profile</h2>
+<p>How others see you.</p>
+</div>
+<div class="lui-settings-page-body">
+<p>form</p>
+</div>
+</section>
+<section id="settings-email" class="lui-settings-page-section" aria-labelledby="settings-email-title">
+<div>
+<h2 id="settings-email-title">Email</h2>
+<p>Where we write to you.</p>
+</div>
+<div class="lui-settings-page-body">
+<p>form</p>
+</div>
+</section>
+</div>

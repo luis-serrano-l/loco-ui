@@ -1,0 +1,126 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-upload--files" data-lui="swap" class="lui-upload">
+<form method="post" action="/files" enctype="multipart/form-data" class="lui-upload-form">
+<label class="lui-upload-drop" for="lui-upload--files-input">
+<span class="lui-upload-tile" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="upload">
+<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+<path d="m17 8-5-5-5 5"/>
+<path d="M12 3v12"/>
+</svg>
+</span>
+<span class="lui-upload-title">Choose files or drop them on the button</span>
+<span class="lui-upload-hint">PNG or JPEG, up to 200 KB.</span>
+<input id="lui-upload--files-input" class="lui-upload-input" type="file" name="file" accept="image/*" multiple required>
+</label>
+<progress class="lui-upload-progress" data-lui-progress hidden>
+</progress>
+<button type="submit" class="lui-button lui-button-primary">Upload</button>
+</form>
+<ul class="lui-upload-files" aria-label="Uploaded files">
+<li class="lui-upload-file">
+<img class="lui-upload-thumb" src="/files/cat.png" alt="" loading="lazy">
+<span class="lui-upload-meta">
+<span class="lui-upload-name" title="cat.png">cat.png</span>
+<span class="lui-upload-size">47.1 KB</span>
+</span>
+<form method="post" action="/files/remove">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="cat.png" aria-label="Remove cat.png">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
+<path d="M3 6h18"/>
+<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+</svg>
+</button>
+</form>
+</li>
+<li class="lui-upload-file">
+<span class="lui-upload-thumb" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="file">
+<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+<path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+</svg>
+</span>
+<span class="lui-upload-meta">
+<span class="lui-upload-name" title="notes.txt">
+<a href="/files/notes.txt">notes.txt</a>
+</span>
+<span class="lui-upload-size">1.0 KB</span>
+</span>
+<form method="post" action="/files/remove">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="notes.txt" aria-label="Remove notes.txt">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
+<path d="M3 6h18"/>
+<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+</svg>
+</button>
+</form>
+</li>
+</ul>
+</div>
+
+caps: none
+<div id="lui-upload--files" data-lui="swap" class="lui-upload">
+<form method="post" action="/files" enctype="multipart/form-data" class="lui-upload-form">
+<label class="lui-upload-drop" for="lui-upload--files-input">
+<span class="lui-upload-tile" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="upload">
+<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+<path d="m17 8-5-5-5 5"/>
+<path d="M12 3v12"/>
+</svg>
+</span>
+<span class="lui-upload-title">Choose files or drop them on the button</span>
+<span class="lui-upload-hint">PNG or JPEG, up to 200 KB.</span>
+<input id="lui-upload--files-input" class="lui-upload-input" type="file" name="file" accept="image/*" multiple required>
+</label>
+<progress class="lui-upload-progress" data-lui-progress hidden>
+</progress>
+<button type="submit" class="lui-button lui-button-primary">Upload</button>
+</form>
+<ul class="lui-upload-files" aria-label="Uploaded files">
+<li class="lui-upload-file">
+<img class="lui-upload-thumb" src="/files/cat.png" alt="" loading="lazy">
+<span class="lui-upload-meta">
+<span class="lui-upload-name" title="cat.png">cat.png</span>
+<span class="lui-upload-size">47.1 KB</span>
+</span>
+<form method="post" action="/files/remove">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="cat.png" aria-label="Remove cat.png">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
+<path d="M3 6h18"/>
+<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+</svg>
+</button>
+</form>
+</li>
+<li class="lui-upload-file">
+<span class="lui-upload-thumb" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="file">
+<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+<path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+</svg>
+</span>
+<span class="lui-upload-meta">
+<span class="lui-upload-name" title="notes.txt">
+<a href="/files/notes.txt">notes.txt</a>
+</span>
+<span class="lui-upload-size">1.0 KB</span>
+</span>
+<form method="post" action="/files/remove">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="notes.txt" aria-label="Remove notes.txt">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
+<path d="M3 6h18"/>
+<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+</svg>
+</button>
+</form>
+</li>
+</ul>
+</div>

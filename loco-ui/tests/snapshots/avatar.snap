@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Ada Lovelace">
+<span class="lui-avatar-initials" aria-hidden="true">AL</span>
+</span>
+
+caps: none
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Ada Lovelace">
+<span class="lui-avatar-initials" aria-hidden="true">AL</span>
+</span>
