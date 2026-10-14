@@ -1599,3 +1599,73 @@ async fn description_list_stacks_each_term_above_its_detail() {
         "an empty detail keeps a line (its dash)"
     );
 }
+
+/// M40a: the type scale grows with its size, a truncated text stays on one line inside its
+/// cell, the copy button is absent without script, the inset reaches its card's edges, the
+/// scroll area scrolls inside itself and an indicator sits on its button's corner.
+#[tokio::test]
+async fn typography_and_layout_primitives() {
+    let page = Page::render(demo::router(), "/typography", MODERN).await;
+    let big = page
+        .bbox(".lui-stage .lui-heading[data-size=\"8\"]")
+        .unwrap();
+    let small = page
+        .bbox(".lui-stage .lui-heading[data-size=\"2\"]")
+        .unwrap();
+    assert!(
+        big.height > small.height * 1.5,
+        "size 8 is taller than size 2: {big:?} {small:?}"
+    );
+    let cut = page.bbox(".lui-stage .lui-text-truncate").unwrap();
+    assert!(
+        cut.height < 30.0,
+        "a truncated text keeps one line: {cut:?}"
+    );
+    assert!(page.is_visible(".lui-stage .lui-kbd") && page.is_visible(".lui-stage .lui-code"));
+    assert!(page.is_visible(".lui-stage .lui-blockquote figcaption"));
+
+    let page = Page::render(demo::router(), "/code-block", MODERN).await;
+    assert!(page.is_visible(".lui-stage .lui-code-block-pre"));
+    assert!(
+        !page.is_visible(".lui-stage .lui-code-block-copy"),
+        "the copy button waits for the script"
+    );
+    let block = page.bbox(".lui-stage .lui-code-block").unwrap();
+    let stage = page.bbox(".lui-stage").unwrap();
+    assert!(
+        block.width <= stage.width + 1.0,
+        "a long line scrolls inside the block: {block:?}"
+    );
+
+    let page = Page::render(demo::router(), "/container", MODERN).await;
+    let card = page.bbox(".lui-stage .lui-card").unwrap();
+    let inset = page.bbox(".lui-stage .lui-inset").unwrap();
+    assert!(
+        (inset.x - card.x).abs() < 2.0 && (inset.y - card.y).abs() < 2.0,
+        "the inset meets the card's corner: {inset:?} {card:?}"
+    );
+    assert!(page.is_visible(".lui-stage .lui-center"));
+    let spacer = page.bbox(".lui-stage .lui-spacer").unwrap();
+    assert!(
+        spacer.width > 40.0,
+        "the spacer takes the free room: {spacer:?}"
+    );
+
+    let page = Page::render(demo::router(), "/scroll-area", MODERN).await;
+    let area = page.bbox(".lui-stage .lui-scroll-area").unwrap();
+    assert!((area.height - 192.0).abs() < 2.0, "12rem tall: {area:?}");
+
+    let page = Page::render(demo::router(), "/spinner", MODERN).await;
+    assert_eq!(page.count(".lui-stage .lui-spinner"), 4);
+    assert_eq!(page.count(".lui-stage .lui-indicator-badge"), 2);
+    let button = page.bbox(".lui-stage .lui-indicator .lui-button").unwrap();
+    let badge = page.bbox(".lui-stage .lui-indicator-badge").unwrap();
+    assert!(
+        badge.y < button.y + 2.0,
+        "the badge sits on the top edge: {badge:?} {button:?}"
+    );
+    assert_eq!(
+        page.text(".lui-stage .lui-indicator-badge").as_deref(),
+        Some("3")
+    );
+}

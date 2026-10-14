@@ -215,7 +215,7 @@ impl Render for CodeBlock<'_> {
             div class="lui-code-block" {
                 @if let Some(title) = self.title { div class="lui-code-block-title" { (title) } }
                 pre class="lui-code-block-pre" id=(id) tabindex="0" role="region" aria-label=(self.title.unwrap_or(name)) {
-                    code class=[lang] { (self.text) }
+                    code class=[lang] { (self.text.trim_end_matches('\n')) }
                 }
                 @if self.copy {
                     // Hidden until the script shows it: a button that copies needs script.

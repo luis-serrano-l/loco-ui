@@ -161,7 +161,7 @@ pub const CSS: &str = r#"
    --lui-text-1, centred on the top end corner by translate(50%, -50%), a 2px ring of the page
    colour; the dot is 0.625rem. */
 .lui-indicator { position: relative; display: inline-flex; vertical-align: middle; max-width: 100%; }
-.lui-indicator-badge, .lui-indicator-dot { position: absolute; top: 0; inset-inline-end: 0; z-index: 1; translate: 50% -50%; pointer-events: none; }
+.lui-indicator-badge, .lui-indicator-dot { position: absolute; top: 0; inset-inline-end: 0; translate: 50% -50%; pointer-events: none; }
 [dir=rtl] .lui-indicator-badge, [dir=rtl] .lui-indicator-dot { translate: -50% -50%; }
 .lui-indicator-badge > .lui-badge {
   min-width: 1.25rem; height: 1.25rem; padding: 0 0.375rem; justify-content: center;
