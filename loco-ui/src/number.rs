@@ -25,9 +25,8 @@
 //! [`Ui::param`] read (a derived serde struct rejects the repeated name); the page answers
 //! with the new value. With the enhancement script a
 //! stepper calls `stepUp()`/`stepDown()` on the field and nothing is sent. A stepper is a
-//! submit button, so in a form with several fields put the number after the field Enter is
-//! pressed in, or give the form its own submit button first (the browser's Enter presses
-//! the first one).
+//! submit button, and Enter in any field presses a form's first submit button wherever the
+//! field is: give a stepped number a form of its own, or put a submit button before it.
 //!
 //! **Fallback:** none needed: a native number field. Without `:has()` the field keeps its
 //! own focus outline inside the row.

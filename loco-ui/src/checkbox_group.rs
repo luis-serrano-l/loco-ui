@@ -9,8 +9,8 @@
 //! label beside each and an optional line under it, or `.cards()` for a grid of bordered
 //! cards that ring in the primary colour when ticked.
 //!
-//! **Platform features:** `<fieldset>` + `<legend>` (every browser) around
-//! `<input type="checkbox">`, drawn with `appearance: none` (baseline 2022); `:has()`
+//! **Platform features:** `<fieldset>` + `<legend>` (Chrome 1, Firefox 1, Safari 3) around
+//! `<input type="checkbox">`, drawn with `appearance: none` (Chrome 84, Firefox 80, Safari 15.4); `:has()`
 //! (Chrome 105, Firefox 121, Safari 15.4) rings a ticked card; a container query (Chrome 105,
 //! Firefox 110, Safari 16) lays cards 1, 2 or 3 across.
 //!

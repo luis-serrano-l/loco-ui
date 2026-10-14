@@ -1020,8 +1020,9 @@ is not drawn only because it sits behind the motion query.
 - **A number's steppers are submit buttons, so Enter in an earlier field presses one.** The
   HTML spec's implicit submission clicks the form's first submit button
   (https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission),
-  and the steppers come before the form's own button. Put a stepped number last, or give
-  the form its own submit button first. Without script there is no way to make a button
+  and the steppers come before the form's own button, so Enter in any field of the form
+  steps the number up. Give a stepped number a form of its own, or put a submit button
+  before it (the demo's /number uses two forms). Without script there is no way to make a button
   that posts but is never the default; the colour presets and the counter's buttons have the
   same trait.
 - **A stepper's value travels as the first of two pairs with one name.** The pressed button

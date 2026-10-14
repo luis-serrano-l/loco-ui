@@ -36,7 +36,7 @@ pub(crate) const PAGES: &[super::Simple] = &[
     (
         "/number",
         number,
-        "Without the script a stepper sends the form with the stepped value first, and the page answers with it; with the script it steps in place. A stepper is a submit button, so Enter in a field before it presses it: put the number last, or give the form its own submit button first.",
+        "Without the script a stepper sends the form with the stepped value first, and the page answers with it; with the script it steps in place. A stepper is a submit button, and Enter presses a form's first one, so the stepped quantity has a form of its own.",
     ),
     (
         "/search",
@@ -461,13 +461,15 @@ fn checkbox_group(ui: &Ui) -> Markup {
 /// A cart line: a quantity with steppers, a price and a weight with their units.
 fn number(ui: &Ui) -> Markup {
     lui! {
-        Form("/number") get submit="Update" {
-            // code: /number
+        // code: /number
+        Form("/number") id="cart-price" get submit="Update" {
             Number("price", "Price") prefix="$" step=0.5 min=0 placeholder="0";
             Number("parcel", "Parcel weight") suffix="kg" step=0.1 min=0 help="Up to one decimal.";
-            Number("qty", "Quantity") min=1 max=10 steppers required;
-            // end code
         }
+        Form("/number") id="cart-qty" get submit="Update" {
+            Number("qty", "Quantity") min=1 max=10 steppers required;
+        }
+        // end code
     }
 }
 

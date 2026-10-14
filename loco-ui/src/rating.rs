@@ -19,7 +19,7 @@
 //! **What it does not do without script:** nothing is missing: picking a star is choosing a
 //! radio, and the surrounding form sends it.
 //!
-//! **Fallback:** without `:has()` only the picked star is filled (an adjacent-sibling rule),
+//! **Fallback:** without `:has()` only the picked star is filled (a general-sibling `~` rule),
 //! not the ones before it, and hovering fills nothing.
 //!
 //! ```rust
@@ -185,7 +185,7 @@ impl Render for Rating<'_> {
         if self.readonly {
             let of = self.strings.fill(Text::RatingOf, &[&value, &self.max]);
             return html! {
-                div class="lui-field lui-rating" data-readonly aria-describedby=[described.as_deref()] {
+                div class="lui-field lui-rating" data-readonly role="group" aria-label=(self.label) aria-describedby=[described.as_deref()] {
                     span class="lui-rating-label" { (self.label) }
                     span class="lui-rating-stars" role="img" aria-label=(of) {
                         @for n in 1..=self.max {
