@@ -25,7 +25,7 @@ fn buttons(ui: &Ui) -> Markup {
             // code: /button
             Cluster {
                 Button("Save") primary loading=(loading);
-                Button("Invite") soft;
+                Button("Invite") soft leading=(Icon::Plus);
                 Button("Share") surface;
                 Button("Cancel");
                 Button("Skip") ghost;
@@ -33,7 +33,7 @@ fn buttons(ui: &Ui) -> Markup {
                 Button("Archived") disabled;
             }
             Cluster {
-                Button("Small") small; Button("Default"); Button("Large") size=3;
+                Button("Small") small; Button("Default"); Button("Large") large;
                 Button("\u{2026}") icon_only ghost aria_label="More";
                 Button("Bold") pressed=(true) aria_label="Bold, on";
                 LinkButton("Read the docs", "/");
@@ -51,6 +51,7 @@ fn buttons(ui: &Ui) -> Markup {
                 Button("Delete") danger ghost; Button("Retry") tone="warn" variant="soft" radius="full";
                 Badge("Beta") tone="info" variant="surface" size=2; Badge("Synced") ok solid radius="full";
             }
+            Button("Continue") primary large block trailing=(Icon::ArrowRight);
             Cluster gap=3 { @for icon in Icon::ALL { Icon(icon) label=(icon.name()); } }
             // end code
         }

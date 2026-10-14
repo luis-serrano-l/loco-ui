@@ -349,7 +349,7 @@ fn inputs(ui: &Ui, values: &Inputs) -> Markup {
     lui! {
         // code: /inputs
         Form("/inputs") submit="Save" {
-            Select("size", "Size") value=(&values.size) options=(SIZES);
+            Select("size", "Size") value=(&values.size) options=(SIZES) size=1 variant="soft";
             Select("country", "Country") value=(&values.country) groups=(COUNTRIES) search="/inputs";
             Range("volume", "Volume") value=(values.volume) step=5 ticks;
             RangePair("price", "Price") values=(values.price_min, values.price_max) step=5 ticks;
