@@ -14,6 +14,8 @@ keywords = ["maud", "ssr", "components", "axum"]
 categories = ["web-programming", "template-engine", "gui"]
 # Leaves out `tests/fresh-loco-app`, the `loco new` copy `tests/install.rs` runs the installer on.
 include = ["src/**/*", "benches/**/*", "examples/**/*", "loco-templates/**/*", "tests/*.rs", "LICENSE", "NOTICE"]
+# The component template is not part of the package.
+exclude = ["src/_template.rs.txt"]
 
 [features]
 default = []

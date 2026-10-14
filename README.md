@@ -259,7 +259,9 @@ component gives the HTML to another template engine.
   `Page::invalid()`, `Posted`, the flash that shows itself, layouts and markup blocks in `lui!`,
   `ui.table_query` with `sort_by`/`page_of`, rows from tuples): the demo's visible snippets went
   from 460 to 436 lines while showing more (the forms now sit inside them), and its route files
-  from 2,614 to 2,384 lines.
+  from 2,614 to 2,384 lines. Measured again on 2026-10-14 (M44), after later pages such as
+  `/table/minimal` and the description list: 502 snippet lines in 57 blocks, route files
+  2,580 lines.
 - Primitives come first: `ui.button`/`ui.link_button`, `ui.input`/`ui.checkbox`/`ui.switch`/
   `ui.radio_group`, `ui.badge`, `ui.card`, `Icon` (32 Lucide shapes as inline SVG),
   `ui.avatar`, and the layouts `ui.stack()`, `ui.cluster()`, `ui.grid(min)` (their content is
@@ -563,8 +565,22 @@ loco-ui-test/tests/       every route rendered and captured; layout assertions
 loco-ui-test/examples/probe.rs   render any HTML file through Blitz, print boxes
 tests/shots/                PNG per route and capability level, from Blitz
 scripts/verify.sh           the local verification pass (CI runs the slow checks)
+scripts/check-script.sh     the <script> grep, shared by verify.sh, CI and the commit hook
+loco-ui/src/_template.rs.txt  a component skeleton with a TODO per convention (not packaged)
 FINDINGS.md                 what works, what needs a fallback, what is impossible without JS
 CHANGELOG.md                what each version added; both crates share the version
+```
+
+Repo tooling, for Claude Code (plain Markdown that a person or another agent can follow too):
+
+```
+.claude/skills/new-component/   add a component: the template, every list to append to, the test behind each
+.claude/skills/look-check/      shoot a page with scripts/look.sh, compare with its reference, delete the PNGs
+.claude/skills/roadmap-tick/    close a ROADMAP box: the Done note, CHANGELOG, FINDINGS, README
+.claude/skills/release/         prepare a release up to, and not including, cargo publish
+.claude/skills/bench/, plain-writing/, rust-practices/   benchmarks, prose, Rust rules
+.claude/agents/component-reviewer.md   read-only check of one component against the nine conventions
+.claude/settings.json           hooks: cargo fmt after a .rs edit, scripts/check-script.sh before a commit
 ```
 
 ## License

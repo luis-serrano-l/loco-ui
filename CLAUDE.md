@@ -34,7 +34,25 @@ cargo run -p demo -- spec write    # regenerate spec/components.json and the REA
 scripts/snapshot.sh [dir]          # static GitHub Pages snapshot of every GET page into target/site/
 cargo run -p loco-ui -- install <app> --dep-path "$PWD/loco-ui"   # the cargo-lui installer on a Loco app (also `auth`); tests/install.rs runs it on tests/fresh-loco-app
 scripts/verify.sh                  # fmt check, clippy, tests, <script> grep; run before committing. Clippy at every feature level, the installer test, rustdoc and the browser check run only in CI (.github/workflows/rust.yml, parallel jobs); never run them all locally
+scripts/check-script.sh            # the <script> grep alone; verify.sh, CI and the commit hook all call this one copy
 ```
+
+## Repo tooling
+
+- Skill `new-component`: adding a component. Start from `loco-ui/src/_template.rs.txt`
+  (excluded from the package); the skill lists every list to append to and the test behind it.
+- Skill `look-check`: `scripts/look.sh --only <name>`, read the PNGs against the reference,
+  list the deltas, `rm -rf target/look`.
+- Skill `roadmap-tick`: the "Done:" note, CHANGELOG bullet, FINDINGS entry and README step
+  when closing a box; also how to count the demo snippet lines.
+- Skill `release`: CHANGELOG cut, version bump of the three crates, package and docs.rs dry
+  runs, BLOCKED.md gates; stops before `cargo publish`.
+- Skills `bench`, `plain-writing`, `rust-practices`: benchmarks, prose, Rust rules.
+- Agent `component-reviewer` (read-only): give it a module name, get a PASS/FAIL list against
+  the nine conventions. `new-component` ends with it.
+- Hooks in `.claude/settings.json`: after Edit/Write of a `.rs` file, `cargo fmt --all`
+  (silent); before a Bash `git commit`, `scripts/check-script.sh`, which blocks the commit on
+  a stray `<script>`.
 
 Never format Rust by hand: write the code in any layout, then run `cargo fmt --all` (verify.sh
 fails on `cargo fmt --all --check`). Do not spend edits or tokens on line breaks, wrapping or

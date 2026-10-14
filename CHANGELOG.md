@@ -19,6 +19,13 @@ Everything below also ships in 0.2.0, the first publish.
   `semver` (reports only, until 0.2.0 is tagged). `.github/` has a contributing guide, a
   security policy, issue and pull request templates and dependabot.
 
+#### M44
+
+- Repo tooling: skills `new-component`, `look-check`, `roadmap-tick` and `release`, the
+  `component-reviewer` agent, a component template (`loco-ui/src/_template.rs.txt`, not
+  packaged), hooks for `cargo fmt` and the `<script>` check, and `scripts/check-script.sh`
+  shared by `verify.sh`, CI and the hook.
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
