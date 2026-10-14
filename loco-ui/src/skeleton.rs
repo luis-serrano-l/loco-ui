@@ -31,7 +31,7 @@
 //! assert_eq!(same.into_string(), m);
 //! // A card: an image block, then a circle beside two lines.
 //! let m = ui.skeleton(2).rect("100%", "8rem").circle().render().into_string();
-//! assert!(m.contains(r#"<span class="lui-skeleton-rect" style="width: 100%; height: 8rem" aria-hidden="true"></span>"#));
+//! assert!(m.contains(r#"<span class="lui-skeleton-rect" style="width:100%;height:8rem" aria-hidden="true"></span>"#));
 //! assert!(m.contains(r#"<span class="lui-skeleton-circle" aria-hidden="true"></span>"#));
 //! assert_eq!(lui! { Skeleton(2) rect=("100%", "8rem") circle; }.into_string(), m);
 //! // Three people in a list.
@@ -144,7 +144,7 @@ impl Render for Skeleton<'_> {
             div class="lui-skeleton" role="status" aria-busy="true" {
                 span class="lui-sr" { (self.label) }
                 @if let Some((w, h)) = self.rect {
-                    span class="lui-skeleton-rect" style={ "width: " (w) "; height: " (h) } aria-hidden="true" {}
+                    span class="lui-skeleton-rect" style=(format!("width:{w};height:{h}")) aria-hidden="true" {}
                 }
                 @if self.circle {
                     div class="lui-skeleton-media" {

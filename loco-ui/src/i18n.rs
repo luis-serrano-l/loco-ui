@@ -362,6 +362,8 @@ pub enum Text {
     DeleteConfirm,
     /// "This cannot be undone.": record page: the delete dialog's text.
     CannotUndo,
+    /// "Skip to content": the skip link every page starts with.
+    SkipToContent,
     /// "Sign in to continue": 401 page.
     Unauthorized,
     /// "This page is for signed-in visitors. Sign in, then come back.": 401 page.
@@ -398,7 +400,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 162] = [
+    pub const ALL: [Text; 163] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -547,6 +549,7 @@ impl Text {
         Text::Deleted,
         Text::DeleteConfirm,
         Text::CannotUndo,
+        Text::SkipToContent,
         Text::Unauthorized,
         Text::UnauthorizedMessage,
         Text::Forbidden,
@@ -742,6 +745,7 @@ const ENGLISH: [&str; N] = [
     "Deleted.",
     "Delete {}?",
     "This cannot be undone.",
+    "Skip to content",
     "Sign in to continue",
     "This page is for signed-in visitors. Sign in, then come back.",
     "You cannot open this page",

@@ -237,7 +237,7 @@ pub const CSS: &str = r#"
 .lui-popover-card-panel {
   --lui-popover-card-gap: 0.5rem;
   box-sizing: border-box; width: max-content; max-width: min(20rem, calc(100vw - 1rem)); padding: var(--lui-space-4);
-  font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-fg); background: var(--lui-popover);
+  font-size: var(--lui-text-2); line-height: var(--lui-leading-2); color: var(--lui-fg); background: var(--lui-popover);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
 .lui-popover-card-panel > :first-child:not(.lui-popover-card-arrow), .lui-popover-card-arrow + * { margin-top: 0; }
@@ -267,7 +267,7 @@ pub const CSS: &str = r#"
 /* <details> fallback: the panel drops under (or over) the summary. */
 .lui-popover-card-details > summary { list-style: none; }
 .lui-popover-card-details > summary::-webkit-details-marker { display: none; }
-.lui-popover-card-details > .lui-popover-card-panel { position: absolute; z-index: 10; inset-block-start: calc(100% + var(--lui-popover-card-gap)); inset-inline-start: 0; }
+.lui-popover-card-details > .lui-popover-card-panel { position: absolute; z-index: var(--lui-z-popover); inset-block-start: calc(100% + var(--lui-popover-card-gap)); inset-inline-start: 0; }
 .lui-popover-card-details[data-align=end] > .lui-popover-card-panel { inset-inline-start: auto; inset-inline-end: 0; }
 .lui-popover-card-details[data-side=top] > .lui-popover-card-panel { inset-block-start: auto; inset-block-end: calc(100% + var(--lui-popover-card-gap)); }
 /* Motion: a fade and a 4px slide from the button, both ways. */

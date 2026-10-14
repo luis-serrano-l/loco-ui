@@ -161,12 +161,12 @@ pub const CSS: &str = r#"
   .lui-carousel-viewport { anchor-name: --lui-carousel; }
   .lui-carousel-viewport::scroll-button(*) {
     position: absolute; position-anchor: --lui-carousel; top: anchor(center); translate: 0 -50%;
-    display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 9999px; font-size: 1rem; line-height: 1;
+    display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 9999px; font-size: var(--lui-text-3); line-height: 1;
     color: var(--lui-fg); background: var(--lui-bg); border: 1px solid var(--lui-line); box-shadow: var(--lui-shadow-sm); cursor: pointer;
   }
   .lui-carousel-viewport::scroll-button(*):disabled { opacity: 0.5; cursor: default; }
-  .lui-carousel-viewport::scroll-button(inline-start) { content: "\2039" / attr(data-prev); left: calc(anchor(left) + 0.5rem); }
-  .lui-carousel-viewport::scroll-button(inline-end) { content: "\203A" / attr(data-next); right: calc(anchor(right) + 0.5rem); }
+  .lui-carousel-viewport::scroll-button(inline-start) { content: "\2039" / attr(data-prev); inset-inline-start: calc(anchor(start) + 0.5rem); }
+  .lui-carousel-viewport::scroll-button(inline-end) { content: "\203A" / attr(data-next); inset-inline-end: calc(anchor(end) + 0.5rem); }
   @media (pointer: coarse) { .lui-carousel-viewport::scroll-button(*) { width: var(--lui-hit); height: var(--lui-hit); } }
 }
 @supports selector(::scroll-marker) {

@@ -209,7 +209,7 @@ pub const CSS: &str = r#"
   container: lui-banner / inline-size;
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--lui-space-2);
   box-sizing: border-box; padding: var(--lui-space-3) var(--lui-space-4);
-  font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-banner-fg); background: var(--lui-banner-bg);
+  font-size: var(--lui-text-2); line-height: var(--lui-leading-2); color: var(--lui-banner-fg); background: var(--lui-banner-bg);
 }
 .lui-banner[data-tone=brand], .lui-banner[data-tone=info] { --lui-banner-bg: var(--lui-brand-3); --lui-banner-fg: var(--lui-brand-11); }
 .lui-banner[data-tone=ok] { --lui-banner-bg: color-mix(in srgb, var(--lui-ok) 14%, var(--lui-bg)); --lui-banner-fg: color-mix(in srgb, var(--lui-ok) 80%, var(--lui-fg)); }
