@@ -272,9 +272,12 @@ use axum::{
     Router,
     body::Bytes,
     extract::{FromRequest, Request, rejection::BytesRejection},
+    http::header::{ACCEPT_LANGUAGE, COOKIE},
 };
 use loco_rs::{Result, app::AppContext, validation::ModelValidationErrors, validator::Validate};
 use serde::{Deserialize, Deserializer, de::DeserializeOwned};
+
+use crate::i18n::{Strings, Text};
 
 /// The Loco initializer: `Box::new(loco_ui::loco::Initializer)` in `App::initializers`.
 #[derive(Clone, Copy, Debug, Default)]
@@ -331,8 +334,11 @@ impl FieldErrors {
     }
 }
 
+/// In the app's default language (the first table given to [`crate::i18n::languages`]);
+/// [`Valid`] writes the visitor's.
 impl From<&ModelValidationErrors> for FieldErrors {
     fn from(errors: &ModelValidationErrors) -> Self {
+        let strings = crate::i18n::default_strings();
         // A `BTreeMap`, so already sorted by field.
         Self(
             errors
@@ -342,7 +348,7 @@ impl From<&ModelValidationErrors> for FieldErrors {
                     let first = list.first()?;
                     Some((
                         field.clone(),
-                        message(&first.code, first.message.as_deref()),
+                        message(strings, &first.code, first.message.as_deref()),
                     ))
                 })
                 .collect(),
@@ -350,8 +356,16 @@ impl From<&ModelValidationErrors> for FieldErrors {
     }
 }
 
+/// In the app's default language (the first table given to [`crate::i18n::languages`]);
+/// [`Valid`] writes the visitor's.
 impl From<&loco_rs::validator::ValidationErrors> for FieldErrors {
     fn from(errors: &loco_rs::validator::ValidationErrors) -> Self {
+        FieldErrors::validated(errors, crate::i18n::default_strings())
+    }
+}
+
+impl FieldErrors {
+    fn validated(errors: &loco_rs::validator::ValidationErrors, strings: &Strings) -> Self {
         let mut pairs: Vec<(String, String)> = errors
             .field_errors()
             .into_iter()
@@ -359,7 +373,7 @@ impl From<&loco_rs::validator::ValidationErrors> for FieldErrors {
                 let first = list.first()?;
                 Some((
                     field.to_string(),
-                    message(&first.code, first.message.as_deref()),
+                    message(strings, &first.code, first.message.as_deref()),
                 ))
             })
             .collect();
@@ -369,21 +383,21 @@ impl From<&loco_rs::validator::ValidationErrors> for FieldErrors {
 }
 
 /// The rule's own message, or a sentence for the `validator` built-in codes.
-fn message(code: &str, message: Option<&str>) -> String {
+fn message(strings: &Strings, code: &str, message: Option<&str>) -> String {
     if let Some(m) = message {
         return m.to_string();
     }
-    match code {
-        "required" => "This field is required.",
-        "email" => "Enter a valid email address.",
-        "url" => "Enter a valid URL.",
-        "length" => "Check the length.",
-        "range" => "Enter a value in range.",
-        "must_match" => "The values do not match.",
-        "contains" | "does_not_contain" | "regex" => "Check the format.",
-        _ => "Check this field.",
-    }
-    .to_string()
+    let text = match code {
+        "required" => Text::FieldRequired,
+        "email" => Text::FieldEmail,
+        "url" => Text::FieldUrl,
+        "length" => Text::FieldLength,
+        "range" => Text::FieldRange,
+        "must_match" => Text::FieldMustMatch,
+        "contains" | "does_not_contain" | "regex" => Text::FieldFormat,
+        _ => Text::FieldCheck,
+    };
+    strings.get(text).to_string()
 }
 
 /// A posted form read field by field, collecting a message for each field that is missing
@@ -405,15 +419,24 @@ fn message(code: &str, message: Option<&str>) -> String {
 pub struct Submitted {
     values: Vec<(String, String)>,
     errors: Vec<(String, String)>,
+    strings: &'static Strings,
 }
 
 impl Submitted {
-    /// The posted `(name, value)` pairs.
+    /// The posted `(name, value)` pairs; messages in the app's default language until
+    /// [`Submitted::strings`] says otherwise.
     pub fn new(values: Vec<(String, String)>) -> Self {
         Self {
             values,
             errors: Vec::new(),
+            strings: crate::i18n::default_strings(),
         }
+    }
+
+    /// Write the messages in `strings`' language: `.strings(ui.strings)` for the visitor's.
+    pub fn strings(mut self, strings: &'static Strings) -> Self {
+        self.strings = strings;
+        self
     }
 
     fn raw(&self, name: &str) -> &str {
@@ -432,7 +455,7 @@ impl Submitted {
     /// The value of `name`; a message if it is empty or does not parse as `T`.
     pub fn required<T: std::str::FromStr>(&mut self, name: &str) -> Option<T> {
         if self.raw(name).is_empty() {
-            self.fail(name, "This field is required.");
+            self.fail(name, self.strings.get(Text::FieldRequired));
             return None;
         }
         self.optional(name)
@@ -446,7 +469,7 @@ impl Submitted {
         }
         let parsed = raw.parse().ok();
         if parsed.is_none() {
-            self.fail(name, "Check this field.");
+            self.fail(name, self.strings.get(Text::FieldCheck));
         }
         parsed
     }
@@ -511,8 +534,13 @@ const STAND_INS: [&str; 7] = [
 ];
 
 impl<T: DeserializeOwned + Validate> Valid<T> {
-    /// What the extractor does with the posted `(name, value)` pairs.
+    /// What the extractor does with the posted `(name, value)` pairs, the messages in the
+    /// app's default language (the extractor writes the visitor's).
     pub fn check(values: Vec<(String, String)>) -> Self {
+        Self::check_in(values, crate::i18n::default_strings())
+    }
+
+    fn check_in(values: Vec<(String, String)>, strings: &Strings) -> Self {
         let mut input: Vec<(String, String)> = values
             .iter()
             .map(|(n, v)| (n.clone(), v.trim().to_string()))
@@ -531,7 +559,7 @@ impl<T: DeserializeOwned + Validate> Valid<T> {
                 Ok(value) => break Some(value),
                 Err(err) => err,
             };
-            let Some((field, message)) = failed_field(&err) else {
+            let Some((field, message)) = failed_field(&err, strings) else {
                 break None;
             };
             let tried = input.iter().position(|(n, _)| *n == field);
@@ -553,12 +581,12 @@ impl<T: DeserializeOwned + Validate> Valid<T> {
         };
         let Some(parsed) = parsed else {
             if errors.is_empty() {
-                errors.push((String::new(), "Check the form.".to_string()));
+                errors.push((String::new(), strings.get(Text::FormCheck).to_string()));
             }
             return Self::refused(errors, values);
         };
         if let Err(e) = Validate::validate(&parsed) {
-            for (field, message) in FieldErrors::from(&e).0 {
+            for (field, message) in FieldErrors::validated(&e, strings).0 {
                 if !errors.iter().any(|(f, _)| *f == field) {
                     errors.push((field, message));
                 }
@@ -583,14 +611,15 @@ impl<T: DeserializeOwned + Validate> Valid<T> {
 /// The field a deserialization error is about, and the message it gets.
 fn failed_field(
     err: &serde_path_to_error::Error<serde::de::value::Error>,
+    strings: &Strings,
 ) -> Option<(String, &'static str)> {
     if let Some(serde_path_to_error::Segment::Map { key }) = err.path().iter().next() {
-        return Some((key.clone(), "Check this field."));
+        return Some((key.clone(), strings.get(Text::FieldCheck)));
     }
     // Serde's own wording: "missing field `title`".
     let text = err.inner().to_string();
     let field = text.strip_prefix("missing field `")?.strip_suffix('`')?;
-    Some((field.to_string(), "This field is required."))
+    Some((field.to_string(), strings.get(Text::FieldRequired)))
 }
 
 impl<S: Send + Sync, T: DeserializeOwned + Validate> FromRequest<S> for Valid<T> {
@@ -600,9 +629,19 @@ impl<S: Send + Sync, T: DeserializeOwned + Validate> FromRequest<S> for Valid<T>
         request: Request,
         state: &S,
     ) -> std::result::Result<Self, Self::Rejection> {
+        let strings = {
+            let header = |name| {
+                let value = request.headers().get(name);
+                value.and_then(|v| v.to_str().ok()).unwrap_or("")
+            };
+            crate::Ui::from_request("", "", header(COOKIE))
+                .accept_language(header(ACCEPT_LANGUAGE))
+                .strings
+        };
         let body = Bytes::from_request(request, state).await?;
-        Ok(Self::check(
+        Ok(Self::check_in(
             form_urlencoded::parse(&body).into_owned().collect(),
+            strings,
         ))
     }
 }

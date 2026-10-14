@@ -253,7 +253,7 @@ impl Input<'_> {
             .doc("The file picker takes several files."),
         Prop::new("required", PropKind::Switch, "")
             .attr("required")
-            .doc("The `required` attribute, and a `*` after the label."),
+            .doc("The `required` attribute, and a `*` after the label (hidden from screen readers, which say \"required\")."),
         Prop::new("help", PropKind::Value, "help: &'a str").doc("Help text under the field."),
         Prop::new("maxlength", PropKind::Number, "max: usize")
             .attr("maxlength")
@@ -420,7 +420,8 @@ impl<'a> Input<'a> {
         self
     }
 
-    /// The `required` attribute, and a `*` after the label.
+    /// The `required` attribute, and a `*` after the label. The star is `aria-hidden`: the
+    /// attribute already makes a screen reader say "required", in the browser's language.
     pub fn required(mut self) -> Self {
         self.0.required = true;
         self
@@ -682,7 +683,7 @@ impl Render for Field<'_> {
         }
         html! {
             div class="lui-field" {
-                label for=(id) { (self.label) @if self.required { " *" } }
+                label for=(id) { (self.label) @if self.required { " " (REQUIRED) } }
                 @if let FieldKind::Textarea { rows } = self.kind {
                     textarea id=(id) class=[gradient] name=(self.name) rows=(rows) required[self.required] maxlength=[self.maxlength] placeholder=[self.placeholder]
                         aria-invalid=[invalid] aria-describedby=[described.as_deref()] { (self.value) }
@@ -819,7 +820,7 @@ impl Render for RadioGroup<'_> {
         html! {
             fieldset class={ "lui-field lui-radio-group" @if self.cards { " lui-radio-cards" } }
                 aria-describedby=[described.as_deref()] aria-invalid=[self.error.map(|_| "true")] {
-                legend { (self.legend) @if self.required { " *" } }
+                legend { (self.legend) @if self.required { " " (REQUIRED) } }
                 div class="lui-radio-group-options" {
                     @for (i, (value, label, description)) in self.options.iter().enumerate() {
                         @let oid = format!("{id}-{i}");
@@ -843,6 +844,12 @@ impl Render for RadioGroup<'_> {
         }
     }
 }
+
+/// The visual mark of a required field. Hidden from screen readers, since the `required`
+/// attribute says it already; [`Text::RequiredHint`](crate::i18n::Text::RequiredHint)
+/// explains the star under a form.
+const REQUIRED: maud::PreEscaped<&str> =
+    maud::PreEscaped(r#"<span class="lui-field-required" aria-hidden="true">*</span>"#);
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
@@ -1018,7 +1025,7 @@ mod tests {
                 && g.contains(r#"aria-invalid="true""#)
         );
         assert_eq!(
-            g.matches("required").count(),
+            g.matches(" required").count(),
             1,
             "one required radio covers the group"
         );

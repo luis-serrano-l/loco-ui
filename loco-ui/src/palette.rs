@@ -336,11 +336,7 @@ fn grouped(commands: Vec<&Command>) -> Markup {
 
 /// "1 match" or "{n} matches" in the visitor's language; the combobox says it too.
 pub(crate) fn count(ui: &Ui, n: usize) -> String {
-    if n == 1 {
-        ui.text(Text::OneMatch).to_string()
-    } else {
-        ui.fill(Text::Matches, &[&n])
-    }
+    ui.count(Text::Matches, n as u64)
 }
 
 /// Styles for this component; included in [`crate::stylesheet`].

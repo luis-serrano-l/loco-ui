@@ -793,6 +793,33 @@ async fn components_speak_the_visitors_language() {
     assert!(set.starts_with("lui-lang=es;"), "{set}");
 }
 
+/// `?dir=rtl` turns any page right to left; the Arabic table brings `dir="rtl"` itself, its
+/// own week start, and English for the texts it does not translate.
+#[tokio::test]
+async fn pages_run_right_to_left() {
+    let page = |uri: &'static str, accept: &'static str| async move {
+        let req = Request::get(uri)
+            .header("accept-language", accept)
+            .body(Body::empty())
+            .unwrap();
+        let res = router().oneshot(req).await.unwrap();
+        let bytes = axum::body::to_bytes(res.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        String::from_utf8(bytes.to_vec()).unwrap()
+    };
+    let flipped = page("/calendar?dir=rtl", "en").await;
+    assert!(flipped.contains(r#"<html lang="en" dir="rtl""#));
+    let arabic = page("/calendar?month.day=2026-09", "ar").await;
+    assert!(arabic.contains(r#"<html lang="ar" dir="rtl""#));
+    assert!(arabic.contains(
+        "\u{627}\u{644}\u{634}\u{647}\u{631} \u{627}\u{644}\u{62a}\u{627}\u{644}\u{64a}"
+    ));
+    assert!(arabic.contains(r#"abbr="Saturday""#));
+    let english = page("/calendar", "en").await;
+    assert!(english.contains(r#"<html lang="en" dir="ltr""#));
+}
+
 /// A path no route answers gets the 404 block with a 404 status, in the site's look.
 #[tokio::test]
 async fn unknown_paths_get_the_not_found_block() {

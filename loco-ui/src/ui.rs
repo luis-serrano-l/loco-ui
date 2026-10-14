@@ -43,7 +43,7 @@ use crate::{
     Caps, Theme, UiState,
     cookie::SetCookie,
     flash::{Level, stack},
-    i18n::{self, Strings, Text},
+    i18n::{self, Dir, Strings, Text},
     layout::{self, Look, Tokens},
     state::{FLASH_COOKIE, decode, encode},
     theme::THEME_COOKIE,
@@ -62,6 +62,8 @@ pub struct Ui {
     pub strings: &'static Strings,
     /// Whether the `lui-lang` cookie chose the language (then `Accept-Language` does not).
     lang_from_cookie: bool,
+    /// `?dir=rtl` or `?dir=ltr`, over the language's own direction.
+    dir: Option<Dir>,
     /// Every query parameter, decoded, in order: what components read their own input from.
     params: Vec<(String, String)>,
     /// The app's own look, applied by [`Ui::page`].
@@ -93,19 +95,26 @@ impl Ui {
             .find(|(k, _)| *k == i18n::LANG_COOKIE)
             .map(|(_, v)| v);
         let strings = i18n::choose(lang, "");
+        let params: Vec<(String, String)> = query
+            .split('&')
+            .filter(|p| !p.is_empty())
+            .map(|p| p.split_once('=').unwrap_or((p, "")))
+            .map(|(k, v)| (decode(k).into_owned(), decode(v).into_owned()))
+            .collect();
+        // `dir` is also a sort direction's name (`asc`, `desc`): only the two writing
+        // directions count.
+        let dir = (params.iter())
+            .filter(|(k, _)| k == "dir")
+            .find_map(|(_, v)| Dir::parse(v));
         Ui {
+            dir,
             strings,
             lang_from_cookie: lang.is_some_and(|l| strings.lang().eq_ignore_ascii_case(l.trim())),
             caps: Caps::from_query(query)
                 .unwrap_or_else(|| Caps::from_cookie_header(cookie_header)),
             theme,
             state: UiState::from_request(path, query, cookie_header),
-            params: query
-                .split('&')
-                .filter(|p| !p.is_empty())
-                .map(|p| p.split_once('=').unwrap_or((p, "")))
-                .map(|(k, v)| (decode(k).into_owned(), decode(v).into_owned()))
-                .collect(),
+            params,
             look: None,
         }
     }
@@ -143,9 +152,54 @@ impl Ui {
         self.strings.lang()
     }
 
+    /// Which way the page runs, as `<html dir>` says it: `?dir=rtl` or `?dir=ltr` when the
+    /// query has one, else the language's own ([`Strings::dir`]).
+    ///
+    /// ```rust
+    /// use loco_ui::{i18n::Dir, prelude::*};
+    /// assert_eq!(Ui::from_request("/", "", "").dir(), Dir::Ltr);
+    /// let ui = Ui::from_request("/", "dir=rtl", "");
+    /// assert_eq!(ui.dir(), Dir::Rtl);
+    /// assert!(ui.page("RTL", html! {}).into_string().contains(r#"<html lang="en" dir="rtl""#));
+    /// ```
+    pub fn dir(&self) -> Dir {
+        self.dir.unwrap_or(self.strings.dir())
+    }
+
     /// A component text in the visitor's language.
     pub fn text(&self, text: Text) -> &'static str {
         self.strings.get(text)
+    }
+
+    /// The app's own text `key` ([`Strings::with_custom`]) in the visitor's language, else
+    /// in the app's default language, else `key` itself, so a missing text shows.
+    ///
+    /// ```rust
+    /// use loco_ui::i18n::{self, Strings};
+    /// use loco_ui::prelude::*;
+    /// static ENGLISH: Strings = Strings::ENGLISH.with_custom(&[("notes.pinned", "Pinned"), ("notes.new", "New note")]);
+    /// static SPANISH: Strings = Strings::new("es").with_custom(&[("notes.pinned", "Fijada")]);
+    /// static LANGUAGES: [&Strings; 2] = [&ENGLISH, &SPANISH];
+    /// i18n::languages(&LANGUAGES);
+    /// let ui = Ui::from_request("/", "", "lui-lang=es");
+    /// assert_eq!(ui.text_key("notes.pinned"), "Fijada");
+    /// assert_eq!(ui.text_key("notes.new"), "New note");
+    /// assert_eq!(ui.text_key("notes.gone"), "notes.gone");
+    /// ```
+    pub fn text_key<'a>(&self, key: &'a str) -> &'a str {
+        (self.strings.custom(key))
+            .or_else(|| i18n::default_strings().custom(key))
+            .unwrap_or(key)
+    }
+
+    /// The counted text's form for `n` in the visitor's language ([`Strings::count`]).
+    pub fn count(&self, text: Text, n: u64) -> String {
+        self.strings.count(text, n)
+    }
+
+    /// `n` with the visitor's language's separators ([`Strings::number`]).
+    pub fn number(&self, n: f64) -> String {
+        self.strings.number(n)
     }
 
     /// A component text in the visitor's language, its placeholders filled.
@@ -213,6 +267,7 @@ impl Ui {
             caps: self.caps,
             theme: self.theme,
             lang: self.strings.lang(),
+            dir: self.dir(),
             title: title.into(),
             tokens: None,
             header: None,
@@ -262,6 +317,7 @@ impl Deref for Ui {
 pub struct Page {
     caps: Caps,
     lang: &'static str,
+    dir: Dir,
     theme: Theme,
     title: Box<str>,
     tokens: Option<Box<Tokens>>,
@@ -348,6 +404,7 @@ impl Render for Page {
         layout::page(
             &self.caps,
             self.lang,
+            self.dir.as_str(),
             &self.title,
             self.theme,
             self.tokens.as_deref(),

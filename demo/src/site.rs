@@ -529,7 +529,7 @@ fn sidebar(ui: &Ui) -> Markup {
 fn title_bar(ui: &Ui, back: bool, title: Markup) -> Markup {
     let languages = html! {
         form method="post" action="/lang" class="lui-lang" {
-            @for (tag, name) in [("en", "English"), ("es", "Español")] {
+            @for (tag, name) in [("en", "English"), ("es", "Español"), ("ar", "العربية")] {
                 (ui.button(name).small().ghost().name("lang").value(tag).pressed(ui.lang() == tag))
             }
         }

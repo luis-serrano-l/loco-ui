@@ -162,7 +162,7 @@ impl Render for Pager<'_> {
                         }
                     }
                 }
-                p class="lui-note" { (self.strings.fill(Text::ShowingOf, &[&shown, &total])) }
+                p class="lui-note" { (self.strings.fill(Text::ShowingOf, &[&self.strings.digits(shown), &self.strings.digits(total)])) }
                 @if page * per_page < total {
                     (Button::link(caps, self.strings.get(Text::LoadMore), &next).class("lui-pager-more"))
                 }
