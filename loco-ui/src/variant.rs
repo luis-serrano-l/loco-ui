@@ -2,7 +2,8 @@
 //!
 //! The four choices most components share, after Radix Themes' props of the same names: a
 //! [`Size`] (1 to 3), a [`Tone`] (the colour), a [`Variant`] (how the tone is painted) and a
-//! [`Radius`] (the corners). A builder takes them with `.size(..)`, `.tone(..)`,
+//! [`Radius`] (the corners). Four more serve type and layout: a [`Weight`] (headings, text),
+//! an [`Align`] and a [`Justify`] (stacks, clusters) and an [`Underline`] (links). A builder takes them with `.size(..)`, `.tone(..)`,
 //! `.variant(..)` and `.radius(..)`, and writes each one that is not its default on its root
 //! as `data-size`, `data-tone`, `data-variant` and `data-radius`, beside its classes, so an
 //! app's CSS can select on them too.
@@ -353,6 +354,244 @@ impl FromStr for Radius {
     }
 }
 
+// M40a: the typography and layout choices, in the same shape as the four above.
+
+/// How heavy a heading's or a text's letters are, Radix's four weights.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Weight {
+    /// 300.
+    Light,
+    /// 400, body text.
+    Regular,
+    /// 500, labels.
+    Medium,
+    /// 700, Radix's heading default.
+    Bold,
+}
+
+impl Weight {
+    /// Every value, in the order of [`Self::NAMES`].
+    pub const ALL: &'static [Weight] = &[Weight::Light, Weight::Regular, Weight::Medium, Weight::Bold];
+    /// Every value as written in `data-weight` and in `lui!`.
+    pub const NAMES: &'static [&'static str] = &["light", "regular", "medium", "bold"];
+
+    /// The value as written in `data-weight` and in `lui!`.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Weight::Light => "light",
+            Weight::Regular => "regular",
+            Weight::Medium => "medium",
+            Weight::Bold => "bold",
+        }
+    }
+
+    /// The value named `name`, or `None`; a `const fn`, so `lui!` checks a string literal at
+    /// compile time.
+    pub const fn parse(name: &str) -> Option<Self> {
+        let mut i = 0;
+        while i < Self::ALL.len() {
+            if same(name, Self::ALL[i].as_str()) {
+                return Some(Self::ALL[i]);
+            }
+            i += 1;
+        }
+        None
+    }
+}
+
+impl fmt::Display for Weight {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Weight {
+    type Err = UnknownChoice;
+    fn from_str(name: &str) -> Result<Self, UnknownChoice> {
+        Self::parse(name).ok_or(UnknownChoice {
+            choice: "weight",
+            names: Self::NAMES,
+        })
+    }
+}
+
+/// Where a stack's or a cluster's children sit across its main axis (`align-items`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Align {
+    /// At the start (the top of a row, the left of a column in a left-to-right page).
+    Start,
+    /// Centred.
+    Center,
+    /// At the end.
+    End,
+    /// On their first text baseline (a row of mixed sizes).
+    Baseline,
+    /// Stretched to fill the cross axis.
+    Stretch,
+}
+
+impl Align {
+    /// Every value, in the order of [`Self::NAMES`].
+    pub const ALL: &'static [Align] = &[Align::Start, Align::Center, Align::End, Align::Baseline, Align::Stretch];
+    /// Every value as written in `data-align` and in `lui!`.
+    pub const NAMES: &'static [&'static str] = &["start", "center", "end", "baseline", "stretch"];
+
+    /// The value as written in `data-align` and in `lui!`.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Align::Start => "start",
+            Align::Center => "center",
+            Align::End => "end",
+            Align::Baseline => "baseline",
+            Align::Stretch => "stretch",
+        }
+    }
+
+    /// The value named `name`, or `None`; a `const fn`, so `lui!` checks a string literal at
+    /// compile time.
+    pub const fn parse(name: &str) -> Option<Self> {
+        let mut i = 0;
+        while i < Self::ALL.len() {
+            if same(name, Self::ALL[i].as_str()) {
+                return Some(Self::ALL[i]);
+            }
+            i += 1;
+        }
+        None
+    }
+}
+
+impl fmt::Display for Align {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Align {
+    type Err = UnknownChoice;
+    fn from_str(name: &str) -> Result<Self, UnknownChoice> {
+        Self::parse(name).ok_or(UnknownChoice {
+            choice: "align",
+            names: Self::NAMES,
+        })
+    }
+}
+
+/// How a stack's or a cluster's children share its main axis (`justify-content`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Justify {
+    /// Packed at the start.
+    Start,
+    /// Packed in the middle.
+    Center,
+    /// Packed at the end.
+    End,
+    /// The first at the start, the last at the end, the rest spread between.
+    Between,
+}
+
+impl Justify {
+    /// Every value, in the order of [`Self::NAMES`].
+    pub const ALL: &'static [Justify] = &[Justify::Start, Justify::Center, Justify::End, Justify::Between];
+    /// Every value as written in `data-justify` and in `lui!`.
+    pub const NAMES: &'static [&'static str] = &["start", "center", "end", "between"];
+
+    /// The value as written in `data-justify` and in `lui!`.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Justify::Start => "start",
+            Justify::Center => "center",
+            Justify::End => "end",
+            Justify::Between => "between",
+        }
+    }
+
+    /// The value named `name`, or `None`; a `const fn`, so `lui!` checks a string literal at
+    /// compile time.
+    pub const fn parse(name: &str) -> Option<Self> {
+        let mut i = 0;
+        while i < Self::ALL.len() {
+            if same(name, Self::ALL[i].as_str()) {
+                return Some(Self::ALL[i]);
+            }
+            i += 1;
+        }
+        None
+    }
+}
+
+impl fmt::Display for Justify {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Justify {
+    type Err = UnknownChoice;
+    fn from_str(name: &str) -> Result<Self, UnknownChoice> {
+        Self::parse(name).ok_or(UnknownChoice {
+            choice: "justify",
+            names: Self::NAMES,
+        })
+    }
+}
+
+/// When a link is underlined, Radix Link's `underline` prop.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Underline {
+    /// Always: links in running text, so they do not rely on colour alone.
+    Always,
+    /// Only under the pointer or focus: links in navigation and lists.
+    Hover,
+    /// Never: a link whose place already says it is one.
+    None,
+}
+
+impl Underline {
+    /// Every value, in the order of [`Self::NAMES`].
+    pub const ALL: &'static [Underline] = &[Underline::Always, Underline::Hover, Underline::None];
+    /// Every value as written in `data-underline` and in `lui!`.
+    pub const NAMES: &'static [&'static str] = &["always", "hover", "none"];
+
+    /// The value as written in `data-underline` and in `lui!`.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Underline::Always => "always",
+            Underline::Hover => "hover",
+            Underline::None => "none",
+        }
+    }
+
+    /// The value named `name`, or `None`; a `const fn`, so `lui!` checks a string literal at
+    /// compile time.
+    pub const fn parse(name: &str) -> Option<Self> {
+        let mut i = 0;
+        while i < Self::ALL.len() {
+            if same(name, Self::ALL[i].as_str()) {
+                return Some(Self::ALL[i]);
+            }
+            i += 1;
+        }
+        None
+    }
+}
+
+impl fmt::Display for Underline {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Underline {
+    type Err = UnknownChoice;
+    fn from_str(name: &str) -> Result<Self, UnknownChoice> {
+        Self::parse(name).ok_or(UnknownChoice {
+            choice: "underline",
+            names: Self::NAMES,
+        })
+    }
+}
+
 /// The `data-radius` rules every component with `.radius(..)` shares; included in
 /// [`crate::stylesheet`]. A class and an attribute of weight, so they win over a component's
 /// own `border-radius` on its root class.
@@ -381,6 +620,18 @@ mod tests {
         }
         for name in Radius::NAMES {
             assert_eq!(name.parse::<Radius>().unwrap().to_string(), *name);
+        }
+        for name in Weight::NAMES {
+            assert_eq!(name.parse::<Weight>().unwrap().to_string(), *name);
+        }
+        for name in Align::NAMES {
+            assert_eq!(name.parse::<Align>().unwrap().to_string(), *name);
+        }
+        for name in Justify::NAMES {
+            assert_eq!(name.parse::<Justify>().unwrap().to_string(), *name);
+        }
+        for name in Underline::NAMES {
+            assert_eq!(name.parse::<Underline>().unwrap().to_string(), *name);
         }
         assert_eq!(
             "huge".parse::<Size>().unwrap_err().to_string(),

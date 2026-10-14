@@ -1067,7 +1067,7 @@ async fn buttons_badges_and_icons() {
         "an icon button is square: {icon:?}"
     );
     assert!(
-        page.is_visible(".lui-button-primary .lui-button-spinner"),
+        page.is_visible(".lui-button-primary .lui-spinner"),
         "?loading=1 shows the spinner"
     );
     assert!(page.html.contains(r#"aria-busy="true" disabled"#));

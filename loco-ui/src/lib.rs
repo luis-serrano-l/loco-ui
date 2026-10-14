@@ -54,17 +54,22 @@
 
 pub mod accordion;
 pub mod alert;
+pub mod aspect_ratio;
 pub mod avatar;
 pub mod badge;
+pub mod blockquote;
 pub mod blocks;
 pub mod breadcrumbs;
 pub mod button;
 pub mod calendar;
 pub mod card;
+pub mod center;
 pub mod chart;
 pub mod cluster;
+pub mod code;
 pub mod color;
 pub mod combobox;
+pub mod container;
 pub mod context_menu;
 pub mod cookie;
 pub mod counter;
@@ -78,12 +83,17 @@ pub mod error_summary;
 pub mod flash;
 pub mod form;
 pub mod grid;
+pub mod heading;
 pub mod i18n;
 pub mod icon;
+pub mod indicator;
 pub mod input;
 pub mod input_otp;
+pub mod inset;
 pub mod kanban;
+pub mod kbd;
 pub mod layout;
+pub mod link;
 #[cfg(feature = "loco")]
 pub mod loco;
 pub mod marquee;
@@ -97,15 +107,20 @@ pub mod popover;
 pub mod posted;
 pub mod progress;
 pub mod props;
+pub mod prose;
 pub mod range;
 #[cfg(feature = "axum")]
 pub mod saved;
+pub mod scroll_area;
+pub mod section;
 pub mod select;
 pub mod separator;
 pub mod sidebar;
 pub mod skeleton;
 pub mod sortable;
+pub mod spacer;
 pub mod spec;
+pub mod spinner;
 pub mod split;
 pub mod stack;
 pub mod stat;
@@ -114,6 +129,7 @@ pub mod state;
 pub mod stream;
 pub mod table;
 pub mod tabs;
+pub mod text;
 pub mod theme;
 pub mod toast;
 pub mod toggle_group;
@@ -162,7 +178,7 @@ pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::Saved;
     pub use crate::lui;
-    pub use crate::variant::{Radius, Size, Tone, Variant};
+    pub use crate::variant::{Align, Justify, Radius, Size, Tone, Underline, Variant, Weight};
     pub use crate::{
         Cap, Caps, Icon, MenuItem, Page, Posted, Redirect, Row, TableQuery, Theme, Ui,
     };
@@ -365,6 +381,22 @@ pub const COMPONENT_CSS: &[&str] = &[
     palette::CSS,
     marquee::CSS,
     variant::CSS,
+    heading::CSS,
+    text::CSS,
+    link::CSS,
+    kbd::CSS,
+    code::CSS,
+    blockquote::CSS,
+    prose::CSS,
+    container::CSS,
+    section::CSS,
+    inset::CSS,
+    aspect_ratio::CSS,
+    scroll_area::CSS,
+    center::CSS,
+    spacer::CSS,
+    spinner::CSS,
+    indicator::CSS,
 ];
 
 #[cfg(test)]
@@ -1118,6 +1150,10 @@ mod tests {
             "body",
             "a component's main markup; Form's is an item, markup placed among its fields",
         ),
+        (
+            "underline",
+            "Tabs' switch draws the underline style; Link's choice says when a link is underlined",
+        ),
     ];
 
     /// Setters that take a whole list in one call instead of an adder per item, each with the
@@ -1642,6 +1678,22 @@ mod tests {
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
             ("variant", variant::CSS),
+            ("heading", heading::CSS),
+            ("text", text::CSS),
+            ("link", link::CSS),
+            ("kbd", kbd::CSS),
+            ("code", code::CSS),
+            ("blockquote", blockquote::CSS),
+            ("prose", prose::CSS),
+            ("container", container::CSS),
+            ("section", section::CSS),
+            ("inset", inset::CSS),
+            ("aspect_ratio", aspect_ratio::CSS),
+            ("scroll_area", scroll_area::CSS),
+            ("center", center::CSS),
+            ("spacer", spacer::CSS),
+            ("spinner", spinner::CSS),
+            ("indicator", indicator::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -1664,6 +1716,7 @@ mod tests {
                 "the page frame: its container is the viewport (the drawer decides)",
             ),
             ("stack", "one column"),
+            ("center", "one centred column"),
             (
                 "marquee",
                 "one looping row, or at rest a row that wraps by its own content",

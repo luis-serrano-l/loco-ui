@@ -362,6 +362,16 @@ pub enum Text {
     DeleteConfirm,
     /// "This cannot be undone.": record page: the delete dialog's text.
     CannotUndo,
+    /// "(opens in a new tab)": link: an external link's hint for screen readers.
+    OpensInNewTab,
+    /// "Code": code block: the region's name when it has no title.
+    Code,
+    /// "Copy": code block: the copy button.
+    Copy,
+    /// "Copied": code block: the copy button once it has copied.
+    Copied,
+    /// "one:{} new|other:{} new": indicator: the count in words, read with [`Strings::count`].
+    IndicatorNew,
 }
 
 /// How many texts there are.
@@ -370,7 +380,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 148] = [
+    pub const ALL: [Text; 153] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -519,6 +529,11 @@ impl Text {
         Text::Deleted,
         Text::DeleteConfirm,
         Text::CannotUndo,
+        Text::OpensInNewTab,
+        Text::Code,
+        Text::Copy,
+        Text::Copied,
+        Text::IndicatorNew,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -700,6 +715,11 @@ const ENGLISH: [&str; N] = [
     "Deleted.",
     "Delete {}?",
     "This cannot be undone.",
+    "(opens in a new tab)",
+    "Code",
+    "Copy",
+    "Copied",
+    "one:{} new|other:{} new",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

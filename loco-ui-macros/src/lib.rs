@@ -40,7 +40,8 @@
 //!   calls `.x(v)` only when the option is `Some(v)` (Maud's toggle and optional syntax).
 //!   `x=|i| { markup }` passes a closure returning markup (`rows=|i| { .. }` on a pager), and
 //!   `x={ markup }` passes markup, itself `lui!` (`footer={ Button("Save") primary; }`).
-//! - **Choices**: a string given to `size`, `tone`, `variant` or `radius` names a value of
+//! - **Choices**: a string given to `size`, `tone`, `variant`, `radius`, `weight`, `align`,
+//!   `justify` or `underline` names a value of
 //!   that type in `loco_ui::variant`, looked up at compile time, so `tone="danger"` is
 //!   `.tone(Tone::Danger)` and `tone="dangr"` does not compile. A number (`size=2`, through
 //!   `From<u8>`) and `(expr)` (`tone=(Tone::Danger)`) pass through as for any setter.
@@ -160,6 +161,10 @@ fn choice(attribute: &Ident) -> Option<Ident> {
         "tone" => "Tone",
         "variant" => "Variant",
         "radius" => "Radius",
+        "weight" => "Weight",
+        "align" => "Align",
+        "justify" => "Justify",
+        "underline" => "Underline",
         _ => return None,
     };
     Some(Ident::new(ty, attribute.span()))
