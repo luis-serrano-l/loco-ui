@@ -290,6 +290,8 @@ pub enum Text {
     Saturday,
     /// "Sunday": calendar.
     Sunday,
+    /// "Skip to content": the skip link every page starts with.
+    SkipToContent,
 }
 
 /// How many texts there are.
@@ -297,7 +299,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 125] = [
+    pub const ALL: [Text; 126] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -423,6 +425,7 @@ impl Text {
         Text::Friday,
         Text::Saturday,
         Text::Sunday,
+        Text::SkipToContent,
     ];
 
     /// The month `number`, 1 to 12.
@@ -576,6 +579,7 @@ const ENGLISH: [&str; N] = [
     "Friday",
     "Saturday",
     "Sunday",
+    "Skip to content",
 ];
 
 /// One language's texts. Start from [`Strings::new`] (English with another tag) and set

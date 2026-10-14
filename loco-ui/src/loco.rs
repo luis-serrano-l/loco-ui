@@ -819,7 +819,7 @@ mod tests {
 
     static LOOK: crate::layout::Look = crate::layout::Look {
         tokens: crate::layout::Tokens {
-            radius: "0.75rem",
+            radius: crate::layout::Radius::new("0.75rem"),
             ..crate::layout::Tokens::DEFAULT
         },
         css: &[".app{gap:1rem}"],
@@ -843,7 +843,8 @@ mod tests {
                 .unwrap();
             let html = String::from_utf8(body.to_vec()).unwrap();
             assert!(
-                html.contains("--lui-radius: 0.75rem") && html.contains(".app{gap:1rem}"),
+                html.contains("calc(0.75rem * var(--lui-radius-factor))")
+                    && html.contains(".app{gap:1rem}"),
                 "{path}"
             );
         }

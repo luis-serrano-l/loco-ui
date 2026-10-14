@@ -139,7 +139,8 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Thursday, "jueves")
     .with(Text::Friday, "viernes")
     .with(Text::Saturday, "sábado")
-    .with(Text::Sunday, "domingo");
+    .with(Text::Sunday, "domingo")
+    .with(Text::SkipToContent, "Saltar al contenido");
 
 /// The languages the demo offers, English first (the default).
 pub static LANGUAGES: [&Strings; 2] = [&Strings::ENGLISH, &SPANISH];
