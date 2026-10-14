@@ -956,3 +956,31 @@ is not drawn only because it sits behind the motion query.
   treats a string given to an attribute named `size`, `tone`, `variant` or `radius` as a
   name in `loco_ui::variant`. A component with a string setter of one of those names would
   need `x=("..")` in `lui!`; none has one.
+### M39 · CSS that an app can own
+
+- **Stylesheet size and speed.** Before (`23e9e06`): 117 240 bytes, 19 967 gzipped (level 9).
+  After: 111 358 bytes, 19 546 gzipped; the base subset (`stylesheet_for(Component::BASE)`)
+  is 32 251 bytes, 6 990 gzipped. `cargo bench -p loco-ui --bench render`: `stylesheet`
+  1.52 ns to 0.83 ns, `layout` 30.0 µs to 20.0 µs (Ryzen 5 5600H; the before run shared the
+  machine with other builds, so the layout gain is partly noise).
+- **`light-dark()` is used unconditionally.** It is Baseline 2024 (Chrome 123, Firefox 120,
+  Safari 17.5, https://caniuse.com/mdn-css_types_color_light-dark). An older browser drops
+  every colour token and shows the default black on white: readable, not themed. The
+  `Cap::LightDark` beacon is informational only; no markup branches on it.
+- **Blitz always takes the light side of `light-dark()`.** Stylo's servo device answers
+  `is_dark_color_scheme` with `false`, so a `data-theme="dark"` page lays out light in
+  `tests/shots/` (https://github.com/servo/stylo/blob/main/style/device/servo.rs; no upstream
+  issue yet, the owner files it). Layout is unaffected.
+- **`style-src-attr`** (Chrome 75, Firefox 108, Safari 15.4,
+  https://caniuse.com/mdn-http_headers_content-security-policy_style-src-attr) lets a linked
+  page keep `style=""` attributes while `<style>` elements need a hash. A browser without it
+  falls back to `style-src` and refuses the attributes: computed widths (progress, range
+  fill) fall back to their CSS defaults.
+- **`Page::subset` takes an explicit list** instead of recording which builders rendered.
+  Recording needs a mark in every `Render` impl (55 files, all being edited by other
+  milestones); a list is one call and cannot miss a component built outside `ui`.
+- **Naming against M38.** Control heights are `--lui-size-1..3` (M38's plan said
+  `--lui-size-n-h`) and the ramp type is `layout::Radius` (M38 has `variant::Radius`); the
+  merge picks one. `Look::with_tokens` was folded into `Ui::tokens`. Shadows have one
+  geometry for both schemes (the light one) with colours in `light-dark()`.
+

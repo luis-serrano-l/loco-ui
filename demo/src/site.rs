@@ -8,9 +8,10 @@ use axum::{
     http::HeaderMap,
     routing::{get, post},
 };
-use loco_ui::layout::{Palette, Scale, Tokens};
+use loco_ui::layout::{Look, Palette, Radius, Scale, Tokens};
 use loco_ui::prelude::*;
 use serde::Deserialize;
+use std::borrow::Cow;
 
 pub(crate) fn routes() -> Router {
     Router::new()
@@ -20,7 +21,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 47] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -350,6 +351,13 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 47] = [
         "<input type=color>, --lui-* custom properties, a GET form, a CSS download",
         "Pick the colours and the radius, see a few components in them, download theme.css.",
     ),
+    (
+        "/modes",
+        "Modes",
+        "Primitives",
+        "@media (forced-colors: active), (prefers-contrast: more), print",
+        "The controls drawn in CSS under forced colours and more contrast, emulated by a class.",
+    ),
 ];
 
 /// The index's layers, bottom up, each with the groups it holds (as in `docs/layers.svg`).
@@ -398,49 +406,53 @@ const LINEN: Tokens = Tokens {
     gray: Scale::SLATE,
     brand: Scale::INDIGO,
     light: Palette {
-        bg: "#f4efe6",
-        fg: "#1d1a17",
-        muted: "#5d574f",
-        line: "#d6cdbf",
-        surface: "#fffdf9",
-        card: "#fffdf9",
-        popover: "#fffdf9",
-        secondary: "#ebe3d6",
-        accent: "#ebe3d6",
-        on_accent: "#1d1a17",
-        primary: "#8a3b12",
-        on_primary: "#ffffff",
-        input: "#d6cdbf",
-        ring: "#b5764f",
-        link: "#8a3b12",
-        danger: "#a0261c",
-        on_danger: "#ffffff",
-        ok: "#2f6b3a",
-        warn: "#7a5500",
+        bg: Cow::Borrowed("#f4efe6"),
+        fg: Cow::Borrowed("#1d1a17"),
+        muted: Cow::Borrowed("#5d574f"),
+        line: Cow::Borrowed("#d6cdbf"),
+        surface: Cow::Borrowed("#fffdf9"),
+        card: Cow::Borrowed("#fffdf9"),
+        popover: Cow::Borrowed("#fffdf9"),
+        secondary: Cow::Borrowed("#ebe3d6"),
+        accent: Cow::Borrowed("#ebe3d6"),
+        on_accent: Cow::Borrowed("#1d1a17"),
+        primary: Cow::Borrowed("#8a3b12"),
+        on_primary: Cow::Borrowed("#ffffff"),
+        input: Cow::Borrowed("#d6cdbf"),
+        ring: Cow::Borrowed("#b5764f"),
+        link: Cow::Borrowed("#8a3b12"),
+        danger: Cow::Borrowed("#a0261c"),
+        on_danger: Cow::Borrowed("#ffffff"),
+        ok: Cow::Borrowed("#2f6b3a"),
+        warn: Cow::Borrowed("#7a5500"),
+        info: Cow::Borrowed("#245f8f"),
+        on_info: Cow::Borrowed("#ffffff"),
     },
     dark: Palette {
-        bg: "#161311",
-        fg: "#ece6dc",
-        muted: "#a59c90",
-        line: "#3a332c",
-        surface: "#1f1b18",
-        card: "#1f1b18",
-        popover: "#1f1b18",
-        secondary: "#2b2521",
-        accent: "#2b2521",
-        on_accent: "#ece6dc",
-        primary: "#e8965a",
-        on_primary: "#1a0f06",
-        input: "#4a4038",
-        ring: "#a8683a",
-        link: "#e8965a",
-        danger: "#ff8f85",
-        on_danger: "#1a0f06",
-        ok: "#8fd39a",
-        warn: "#f0c060",
+        bg: Cow::Borrowed("#161311"),
+        fg: Cow::Borrowed("#ece6dc"),
+        muted: Cow::Borrowed("#a59c90"),
+        line: Cow::Borrowed("#3a332c"),
+        surface: Cow::Borrowed("#1f1b18"),
+        card: Cow::Borrowed("#1f1b18"),
+        popover: Cow::Borrowed("#1f1b18"),
+        secondary: Cow::Borrowed("#2b2521"),
+        accent: Cow::Borrowed("#2b2521"),
+        on_accent: Cow::Borrowed("#ece6dc"),
+        primary: Cow::Borrowed("#e8965a"),
+        on_primary: Cow::Borrowed("#1a0f06"),
+        input: Cow::Borrowed("#4a4038"),
+        ring: Cow::Borrowed("#a8683a"),
+        link: Cow::Borrowed("#e8965a"),
+        danger: Cow::Borrowed("#ff8f85"),
+        on_danger: Cow::Borrowed("#1a0f06"),
+        ok: Cow::Borrowed("#8fd39a"),
+        warn: Cow::Borrowed("#f0c060"),
+        info: Cow::Borrowed("#8cc4f0"),
+        on_info: Cow::Borrowed("#1a0f06"),
     },
-    radius: "3px",
-    space: "8px",
+    radius: Radius::new("3px"),
+    ..Tokens::DEFAULT
 };
 
 /// A component page's live component, from the `PAGES` or `PREVIEWS` beside its route: the
@@ -646,8 +658,15 @@ pub(crate) fn page(ui: &Ui, title: &str, body: Markup) -> Page {
     let page = ui.page(title, shell(ui, title, body));
     // `?script=off`: the same page without the enhancement script, served under
     // `script-src 'none'`, so the no-script path can be tried in any browser.
-    if ui.param("script") == Some("off") {
+    let page = if ui.param("script") == Some("off") {
         page.without_script()
+    } else {
+        page
+    };
+    // `?css=linked`: the stylesheet as `/lui.css` instead of inline, served without
+    // `'unsafe-inline'` for `<style>` (the demo's own CSS goes in by hash).
+    if ui.param("css") == Some("linked") {
+        page.linked_stylesheet()
     } else {
         page
     }
@@ -739,3 +758,187 @@ fn back_to(headers: &HeaderMap) -> String {
         .filter(|path| !path.starts_with("//"))
         .unwrap_or_else(|| "/".to_string())
 }
+
+/// The demo's look: its header and its own CSS (the shell, the index, the snippets, the
+/// props tables, the theme builder), on every page through one layer in `router()`. The
+/// CSS is unlayered, so it wins over the library's layers.
+pub static LOOK: Look = Look {
+    tokens: Tokens::DEFAULT,
+    css: &[CSS],
+    header: Some(header),
+};
+
+/// The site header shown above every page.
+fn header() -> Markup {
+    html! {
+        header class="lui-site-header" {
+            a href="/" { strong { "loco-ui" } }
+            span { "Interactive HTML for Rust servers, works without JavaScript" }
+        }
+    }
+}
+
+/// The demo's own styles, outside the library: the shell, the index, the snippets, the
+/// props tables, the theme builder and the modes page.
+/// [`CSS`] as pages carry it, for the markup budget in the tests.
+#[cfg(test)]
+pub(crate) static CSS_MINIFIED: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| loco_ui::minify_css(CSS));
+
+pub const CSS: &str = r#"
+/* The site header above every page: the name and what it is. */
+.lui-site-header {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem;
+  max-width: 52rem; margin: 0 auto; padding: calc(var(--lui-space) * 2);
+  color: var(--lui-muted);
+}
+.lui-site-header a { color: var(--lui-fg); text-decoration: none; font-size: 1rem; letter-spacing: -0.01em; }
+.lui-site-header span { font-size: 0.875rem; }
+.lui-site-header strong { font-weight: 600; }
+/* The dashed boxes on the layout page. */
+.lui-layout-tile { padding: calc(var(--lui-space) * 1.5); border: 1px dashed var(--lui-input); border-radius: var(--lui-radius-sm); background: var(--lui-surface); font-size: 0.875rem; }
+.lui-yes { color: var(--lui-ok); font-weight: 600; }
+.lui-no { color: var(--lui-danger); font-weight: 600; }
+/* Demo shell, after the shadcn docs: the sidebar of every component beside the page, a
+   toolbar with the way back and the theme switch, the lede under a title, "built on" as
+   outline badges, the plate (a --lui-gray-2 stage over a muted code block, so a card on the stage
+   is the only frame), and the index as a
+   gallery of the components themselves, per group. */
+/* The frame: from 60rem the component list is a sticky column beside a readable page (the
+   index spreads wider); narrower, it follows a closed <details> that hides it until opened,
+   so it is a plain <nav> of links either way and needs no script. */
+/* Wider than <main> (52rem): the frame spreads to 84rem, centred, by negative margins (not
+   :has(), which Blitz lacks: FINDINGS, M34); the header follows where :has() works. */
+.lui-site {
+  display: grid; gap: calc(var(--lui-space) * 3); width: min(84rem, calc(100vw - 2rem));
+  margin-inline: calc((100% - min(84rem, calc(100vw - 2rem))) / 2);
+}
+body:has(.lui-site) > .lui-site-header { max-width: 84rem; }
+.lui-site-main { min-width: 0; }
+.lui-site-menu > summary { display: flex; width: 100%; justify-content: space-between; list-style: none; }
+.lui-site-menu > summary::-webkit-details-marker { display: none; }
+.lui-site-menu > summary svg { transition: rotate var(--lui-duration-fast) ease; }
+.lui-site-menu[open] > summary svg { rotate: 180deg; }
+.lui-site-menu[open] > summary { margin-bottom: var(--lui-space); }
+@media (max-width: 59.99rem) {
+  .lui-site-menu:not([open]) + .lui-sidebar { display: none; }
+}
+@media (min-width: 60rem) {
+  .lui-site { grid-template-columns: 14rem minmax(0, 1fr); gap: calc(var(--lui-space) * 6); align-items: start; }
+  .lui-site-menu { display: none; }
+  .lui-site-nav {
+    position: sticky; top: calc(var(--lui-space) * 2); max-height: calc(100vh - var(--lui-space) * 4); overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--lui-line) transparent;
+  }
+  .lui-site-main:not(.lui-site-wide) { max-width: 56rem; }
+}
+/* The title with the toolbar (languages, theme) on its row; the toolbar goes under the title
+   when they do not fit side by side. */
+.lui-title-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--lui-space) calc(var(--lui-space) * 2); margin: 0 0 0.75rem; }
+.lui-title-bar h1 { margin: 0; }
+.lui-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); }
+.lui-popover-row { display: flex; justify-content: space-between; gap: var(--lui-space); margin-bottom: calc(var(--lui-space) * 2); }
+.lui-back { display: inline-block; margin-bottom: calc(var(--lui-space) * 2); color: var(--lui-muted); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+.lui-back::before { content: "\2190"; margin-right: 0.35em; }
+.lui-back:hover { color: var(--lui-fg); }
+.lui-lede { font-size: 1.125rem; line-height: 1.75rem; color: var(--lui-muted); margin-bottom: 1rem; }
+.lui-built { color: var(--lui-muted); font-size: 0.875rem; margin: 0 0 1.5rem; }
+.lui-built code {
+  display: inline-block; max-width: 100%; box-sizing: border-box; margin: 0 0.25rem 0.25rem 0; padding: 0.125rem 0.5rem; overflow-wrap: anywhere;
+  font-size: 0.75rem; line-height: 1rem; font-weight: 500; color: var(--lui-fg);
+  background: transparent; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-sm);
+}
+/* A component page's plate: the live component on a stage, the code that drew it joined
+   underneath. One per page; no transform, overflow or contain on the stage, so dialogs,
+   drawers and toasts still escape it. */
+.lui-plate { margin: 0 0 2rem; }
+.lui-stage {
+  padding: calc(var(--lui-space) * 5) calc(var(--lui-space) * 4); background: var(--lui-gray-2);
+  border-radius: var(--lui-radius-lg) var(--lui-radius-lg) 0 0;
+}
+.lui-stage > :last-child { margin-bottom: 0; }
+.lui-stage h2:first-child { margin-top: 0; }
+@media (max-width: 40rem) { .lui-stage { padding: calc(var(--lui-space) * 3) calc(var(--lui-space) * 2); } }
+.lui-snippet {
+  margin: 0; max-width: none; overflow: hidden;
+  border: 1px solid var(--lui-line); border-radius: 0 0 var(--lui-radius-lg) var(--lui-radius-lg);
+  background: var(--lui-surface);
+}
+.lui-snippet figcaption {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem;
+  padding: 0.5rem calc(var(--lui-space) * 2); border-bottom: 1px solid var(--lui-line);
+  color: var(--lui-muted); font-size: 0.75rem;
+}
+.lui-snippet figcaption span:first-child { color: var(--lui-fg); font-weight: 500; font-family: var(--lui-font-mono); }
+.lui-snippet pre { margin: 0; padding: calc(var(--lui-space) * 2); overflow-x: auto; scrollbar-color: var(--lui-line) transparent; line-height: 1.7; tab-size: 4; }
+.lui-snippet pre code { background: none; border: 0; padding: 0; font-size: 0.8125rem; color: var(--lui-fg); }
+/* Highlighted Rust in the status colours, as a GitHub-like theme: keywords in danger, strings
+   in ok, numbers and types in warn, comments muted, macros bold. */
+.lui-hl-k { color: var(--lui-danger); }
+.lui-hl-s { color: var(--lui-ok); }
+.lui-hl-n, .lui-hl-t { color: color-mix(in srgb, var(--lui-warn) 70%, var(--lui-fg)); }
+.lui-hl-c { color: var(--lui-muted); font-style: italic; }
+.lui-hl-m { color: var(--lui-fg); font-weight: 600; }
+.lui-hl-f { color: var(--lui-fg); }
+/* The demo's props tables under the snippet: one <details> per builder. */
+.lui-theme-builder { display: grid; gap: calc(var(--lui-space) * 2); max-width: none; }
+.lui-theme-builder fieldset > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr)); gap: var(--lui-space); }
+.lui-theme-builder fieldset { margin: 0; padding: calc(var(--lui-space) * 2); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
+.lui-theme-previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr)); gap: calc(var(--lui-space) * 2); margin-block: calc(var(--lui-space) * 2); }
+.lui-theme-preview { padding: calc(var(--lui-space) * 2); background: var(--lui-bg); color: var(--lui-fg); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
+/* The builder's depth row: a tile per shadow step, then the primary gradient. */
+.lui-theme-depth { display: flex; flex-wrap: wrap; gap: calc(var(--lui-space) * 2); margin-top: calc(var(--lui-space) * 3); }
+.lui-theme-depth span { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: var(--lui-radius); background: var(--lui-card); color: var(--lui-muted); font-size: 0.75rem; }
+.lui-theme-depth .lui-theme-gradient { background: var(--lui-primary); background-image: var(--lui-gradient-primary); box-shadow: var(--lui-shadow-sm), var(--lui-highlight); }
+.lui-props { max-width: none; margin: 0 0 2rem; }
+.lui-props details { border: 1px solid var(--lui-line); border-radius: var(--lui-radius); margin: 0 0 0.5rem; }
+.lui-props summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem; padding: 0.5rem 0.75rem; cursor: pointer; }
+.lui-props summary span { margin-left: auto; color: var(--lui-muted); font-size: 0.8125rem; }
+.lui-props-scroll { overflow-x: auto; border-top: 1px solid var(--lui-line); }
+.lui-caps-scroll { overflow-x: auto; }
+.lui-playground > form > p { margin: 0; padding: 0.5rem 0.75rem; border-top: 1px solid var(--lui-line); }
+.lui-playground-preview { padding: 1rem 0.75rem; border-top: 1px solid var(--lui-line); }
+.lui-playground > pre { margin: 0; padding: 0.5rem 0.75rem; border-top: 1px solid var(--lui-line); overflow-x: auto; font-size: 0.8125rem; }
+.lui-props table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.lui-props th, .lui-props td { text-align: left; vertical-align: top; padding: 0.375rem 0.75rem; border-bottom: 1px solid var(--lui-line); }
+.lui-props th { color: var(--lui-muted); font-weight: 500; white-space: nowrap; }
+.lui-props tbody tr:last-child td { border-bottom: 0; }
+.lui-props td:nth-child(-n+2), .lui-props td:nth-child(4), .lui-props td:nth-child(5) { white-space: nowrap; }
+.lui-props td:nth-child(3) { min-width: 10rem; }
+.lui-props td:nth-child(6) { min-width: 16rem; }
+.lui-props td:nth-child(7) { white-space: nowrap; }
+.lui-index { max-width: none; }
+.lui-index h2 { margin: 3rem 0 0.25rem; font-size: 1.5rem; line-height: 2rem; }
+.lui-index-layer { margin: 0 0 1rem; color: var(--lui-muted); font-size: 0.875rem; }
+.lui-index h3 { margin: 1.5rem 0 0.75rem; font-size: 0.875rem; font-weight: 500; color: var(--lui-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.lui-index > ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1rem; }
+/* Each component is a card: its name (the link to its page), what it is for, and the
+   component itself, live, on a small stage. Widgets, blocks and flows take the whole row. */
+.lui-index > ul > li {
+  display: grid; grid-template-rows: auto auto 1fr; min-width: 0; max-width: none; padding: 1rem;
+  background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
+  box-shadow: var(--lui-shadow-xs);
+}
+.lui-index > ul > li.lui-index-wide { grid-column: 1 / -1; }
+.lui-index > ul > li > p { margin: 0 0 0.25rem; }
+.lui-index > ul > li > p:first-child > a { font-size: 1rem; font-weight: 600; line-height: 1.5rem; color: var(--lui-fg); text-decoration: none; }
+.lui-index > ul > li > p:first-child > a:hover { text-decoration: underline; }
+.lui-index-stage {
+  min-width: 0; margin-top: 0.75rem; padding: calc(var(--lui-space) * 3) calc(var(--lui-space) * 2);
+  background: var(--lui-bg); border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
+}
+.lui-index-stage > :last-child { margin-bottom: 0; }
+/* The theme builder's radius tiles and its table of every token, a swatch per scheme. */
+.lui-theme-depth .lui-theme-corner { background: var(--lui-secondary); border: 1px solid var(--lui-line); }
+.lui-theme-tokens { grid-column: 1 / -1; }
+.lui-theme-tokens > div { max-height: 32rem; overflow: auto; margin-top: var(--lui-space-2); }
+.lui-theme-tokens td { vertical-align: middle; font-family: var(--lui-font-mono); font-size: 0.75rem; }
+.lui-theme-light, .lui-theme-dark { background: var(--lui-bg); color: var(--lui-fg); }
+.lui-theme-light { color-scheme: light; }
+.lui-theme-dark { color-scheme: dark; }
+.lui-theme-tokens i { display: inline-block; vertical-align: middle; margin-inline-end: var(--lui-space-2); background: var(--lui-swatch); width: 2rem; height: 1.25rem; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-sm); }
+/* The modes page: one stage per mode, side by side when they fit. */
+.lui-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr)); gap: var(--lui-space-4); }
+.lui-modes > section { padding: var(--lui-space-4); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
+.lui-modes h2 { margin-top: 0; font-size: 1rem; }
+"#;

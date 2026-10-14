@@ -162,6 +162,7 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Deleted, "Borrado.")
     .with(Text::DeleteConfirm, "¿Borrar {}?")
     .with(Text::CannotUndo, "No se puede deshacer.")
+    .with(Text::SkipToContent, "Saltar al contenido")
     .with(Text::Completed, "completado")
     .with(Text::MoreAbout, "Más sobre {}");
 

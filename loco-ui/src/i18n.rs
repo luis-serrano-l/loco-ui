@@ -362,6 +362,8 @@ pub enum Text {
     DeleteConfirm,
     /// "This cannot be undone.": record page: the delete dialog's text.
     CannotUndo,
+    /// "Skip to content": the skip link every page starts with.
+    SkipToContent,
     /// "completed": steps: read after a done step's title.
     Completed,
     /// "More about {}": hover card: the button that opens the card by click.
@@ -374,7 +376,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 150] = [
+    pub const ALL: [Text; 151] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -523,6 +525,7 @@ impl Text {
         Text::Deleted,
         Text::DeleteConfirm,
         Text::CannotUndo,
+        Text::SkipToContent,
         Text::Completed,
         Text::MoreAbout,
     ];
@@ -706,6 +709,7 @@ const ENGLISH: [&str; N] = [
     "Deleted.",
     "Delete {}?",
     "This cannot be undone.",
+    "Skip to content",
     "completed",
     "More about {}",
 ];

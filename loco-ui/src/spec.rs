@@ -137,13 +137,16 @@ pub const SPECS: &[ComponentSpec] = &[
         name: "Layout",
         module: "layout",
         look: "Radix Themes scales and depth, a Linear / Magic UI finish",
-        responsive: Responsive::Viewport,
+        responsive: Responsive::Content,
         features: &[
             f("@view-transition", b("126", "no", "18.2")),
             PREFERS_COLOR_SCHEME,
             f("custom properties", b("49", "31", "9.1")),
+            f("@layer", b("99", "97", "15.4")),
+            f("light-dark()", b("123", "120", "17.5")),
+            f("forced-colors", b("89", "89", "16")),
         ],
-        fallback: "plain navigations (root never cross-fades); colours still switch by media query and data-theme",
+        fallback: "plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {
