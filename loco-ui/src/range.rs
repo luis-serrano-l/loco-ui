@@ -65,43 +65,50 @@ use crate::props::{Prop, PropKind};
 /// otherwise.
 ///
 /// **Setters.** Values and items: `.value(..)`, `.values(..)`, `.min(..)`, `.max(..)`,
-/// `.step(..)`; switches: `.ticks()`.
+/// `.step(..)`; switches: `.ticks()`, `.disabled()`, `.readonly()`.
 #[derive(Clone, Debug)]
 pub struct Range<'a> {
     name: &'a str,
     label: &'a str,
     /// The value, or a pair's low one, when known.
-    value: Option<i64>,
+    value: Option<f64>,
     /// A pair's high value, when known; `None` inside `Some` for a single slider.
-    high: Option<Option<i64>>,
-    min: i64,
-    max: i64,
-    step: i64,
+    high: Option<Option<f64>>,
+    min: f64,
+    max: f64,
+    step: f64,
     ticks: bool,
     strings: &'static Strings,
+    pub(crate) disabled: bool,
+    pub(crate) readonly: bool,
 }
 
 impl Range<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
-        Prop::new("value", PropKind::Number, "value: i64")
+        Prop::new("value", PropKind::Number, "value: impl Into<f64>")
             .attr("value")
             .doc("The value (a pair's low one), instead of the query's."),
-        Prop::new("values", PropKind::Value, "low: i64, high: i64")
+        Prop::new("values", PropKind::Value, "low: impl Into<f64>, high: impl Into<f64>")
             .doc("A pair's two values, put in order, instead of the query's."),
-        Prop::new("min", PropKind::Number, "min: i64")
+        Prop::new("min", PropKind::Number, "min: impl Into<f64>")
             .default("0")
             .attr("min")
             .doc("Lowest value."),
-        Prop::new("max", PropKind::Number, "max: i64")
+        Prop::new("max", PropKind::Number, "max: impl Into<f64>")
             .default("100")
             .attr("max")
             .doc("Highest value."),
-        Prop::new("step", PropKind::Number, "step: i64")
+        Prop::new("step", PropKind::Number, "step: impl Into<f64>")
             .default("1")
             .attr("step")
-            .doc("Distance between allowed values (at least 1)."),
+            .doc("Distance between allowed values (above 0)."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("`disabled` and `aria-disabled`: shown greyed and not posted."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("Shown and posted, not movable: a disabled slider and a hidden input with its value."),
         Prop::new("ticks", PropKind::Switch, "")
             .doc("The lowest, middle and highest values marked under the track."),
     ];
@@ -117,11 +124,7 @@ impl Ui {
             name,
             label,
             value: self.param(name).and_then(|v| v.trim().parse().ok()),
-            high: None,
-            min: 0,
-            max: 100,
-            step: 1,
-            ticks: false,
+            ..Range::bare(self.strings, name, label)
         }
     }
 
@@ -139,16 +142,48 @@ impl Ui {
 }
 
 impl<'a> Range<'a> {
+    /// A slider with nothing read from a request: what a form's range field starts from.
+    pub(crate) fn bare(strings: &'static Strings, name: &'a str, label: &'a str) -> Self {
+        Range {
+            strings,
+            name,
+            label,
+            value: None,
+            high: None,
+            min: 0.0,
+            max: 100.0,
+            step: 1.0,
+            ticks: false,
+            disabled: false,
+            readonly: false,
+        }
+    }
+
+    /// `disabled` and `aria-disabled`: shown greyed and not posted.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+
+    /// Shown and posted, not movable. HTML has no read-only slider, so the slider is
+    /// disabled and a hidden input posts its value.
+    pub fn readonly(mut self) -> Self {
+        self.readonly = true;
+        self
+    }
+}
+
+impl<'a> Range<'a> {
     /// The value (a pair's low one), instead of the query's: a saved value.
-    pub fn value(mut self, value: i64) -> Self {
-        self.value = Some(value);
+    pub fn value(mut self, value: impl Into<f64>) -> Self {
+        self.value = Some(value.into());
         self
     }
 
     /// A pair's two values, put in order, instead of the query's; on a single slider, the
     /// value is `low`.
-    pub fn values(mut self, low: i64, high: i64) -> Self {
-        let (low, high) = order(low, high);
+    pub fn values(mut self, low: impl Into<f64>, high: impl Into<f64>) -> Self {
+        let (low, high) = order(low.into(), high.into());
         self.value = Some(low);
         if self.high.is_some() {
             self.high = Some(Some(high));
@@ -157,20 +192,21 @@ impl<'a> Range<'a> {
     }
 
     /// Lowest value.
-    pub fn min(mut self, min: i64) -> Self {
-        self.min = min;
+    pub fn min(mut self, min: impl Into<f64>) -> Self {
+        self.min = min.into();
         self
     }
 
     /// Highest value.
-    pub fn max(mut self, max: i64) -> Self {
-        self.max = max;
+    pub fn max(mut self, max: impl Into<f64>) -> Self {
+        self.max = max.into();
         self
     }
 
-    /// Distance between allowed values (at least 1).
-    pub fn step(mut self, step: i64) -> Self {
-        self.step = step.max(1);
+    /// Distance between allowed values (above 0; 1 when given 0 or less).
+    pub fn step(mut self, step: impl Into<f64>) -> Self {
+        let step = step.into();
+        self.step = if step > 0.0 { step } else { 1.0 };
         self
     }
 
@@ -184,9 +220,9 @@ impl<'a> Range<'a> {
 
 /// Where `value` sits between `min` and `max`, as a CSS percentage: what the track is filled
 /// up to (`--lui-range-fill`, or `--lui-range-lo` and `--lui-range-hi` for a pair).
-fn percent(value: i64, min: i64, max: i64) -> String {
-    let span = (max - min).max(1) as f64;
-    let at = ((value.clamp(min, max) - min) as f64 / span * 100.0).round();
+fn percent(value: f64, min: f64, max: f64) -> String {
+    let span = (max - min).max(f64::EPSILON);
+    let at = ((value.clamp(min, max.max(min)) - min) / span * 100.0).round();
     format!("{at}%")
 }
 
@@ -194,6 +230,8 @@ impl Render for Range<'_> {
     fn render(&self) -> Markup {
         let Range {
             strings: _,
+            disabled,
+            readonly,
             name,
             label,
             value,
@@ -210,8 +248,12 @@ impl Render for Range<'_> {
                 }
             }
         });
+        // The middle, on a step.
+        let mid = crate::input::tidy(min + ((max - min) / 2.0 / step).round() * step, step, min);
+        let off = disabled || readonly;
+        let aria_off = disabled.then_some("true");
         let value = match high {
-            None => (value.unwrap_or((min + max) / 2), None),
+            None => (value.unwrap_or(mid), None),
             Some(high) => {
                 let (lo, hi) = order(value.unwrap_or(min), high.unwrap_or(max));
                 (lo, Some(hi))
@@ -224,15 +266,16 @@ impl Render for Range<'_> {
                     div class="lui-range" {
                         div class="lui-range-main" {
                             input type="range" class="lui-range-input" id=(id) name=(name) min=(min) max=(max) step=(step) value=(value) list=(list)
-                                style={ "--lui-range-fill: " (percent(value, min, max)) };
+                                disabled[off] aria-disabled=[aria_off] style={ "--lui-range-fill: " (percent(value, min, max)) };
                             @if let Some(t) = &ticks { (t) }
                         }
                         datalist id=(list) {
                             option value=(min) label=(min) {}
-                            option value=((min + max) / 2) {}
+                            option value=(mid) {}
                             option value=(max) label=(max) {}
                         }
                         output for=(id) { (value) }
+                        @if readonly { (crate::input::keep(name, &value.to_string())) }
                     }
                 }
             }
@@ -242,12 +285,16 @@ impl Render for Range<'_> {
                     div class="lui-range lui-range-pair" {
                         div class="lui-range-main" {
                         div class="lui-range-track" style={ "--lui-range-lo: " (percent(lo, min, max)) "; --lui-range-hi: " (percent(hi, min, max)) } {
-                            input type="range" class="lui-range-input" id=(lo_id) name={ (name) "_min" } min=(min) max=(max) step=(step) value=(lo) aria-label=(self.strings.get(Text::Minimum));
-                            input type="range" class="lui-range-input" id=(hi_id) name={ (name) "_max" } min=(min) max=(max) step=(step) value=(hi) aria-label=(self.strings.get(Text::Maximum));
+                            input type="range" class="lui-range-input" id=(lo_id) name={ (name) "_min" } min=(min) max=(max) step=(step) value=(lo) aria-label=(self.strings.get(Text::Minimum)) disabled[off] aria-disabled=[aria_off];
+                            input type="range" class="lui-range-input" id=(hi_id) name={ (name) "_max" } min=(min) max=(max) step=(step) value=(hi) aria-label=(self.strings.get(Text::Maximum)) disabled[off] aria-disabled=[aria_off];
                         }
                         @if let Some(t) = &ticks { (t) }
                         }
                         span class="lui-range-values" { output for=(lo_id) { (lo) } " – " output for=(hi_id) { (hi) } }
+                        @if readonly {
+                            (crate::input::keep(&format!("{name}_min"), &lo.to_string()))
+                            (crate::input::keep(&format!("{name}_max"), &hi.to_string()))
+                        }
                     }
                 }
             }
@@ -262,8 +309,8 @@ impl Render for Range<'_> {
     }
 }
 /// A posted pair in order: the thumbs can cross, the stored range should not.
-pub fn order(a: i64, b: i64) -> (i64, i64) {
-    (a.min(b), a.max(b))
+pub fn order<T: PartialOrd>(a: T, b: T) -> (T, T) {
+    if b < a { (b, a) } else { (a, b) }
 }
 
 /// Styles for this component; included in [`crate::stylesheet`].

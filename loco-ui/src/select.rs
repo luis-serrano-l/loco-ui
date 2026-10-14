@@ -71,17 +71,17 @@
 
 use maud::{Markup, Render, html};
 
-use crate::i18n::Text;
+use crate::i18n::{Strings, Text};
 use crate::icon::Glyph;
-use crate::input::Input;
+use crate::input::{Input, described_by, keep};
 use crate::props::{Prop, PropKind};
 use crate::variant::{Size, Variant};
-use crate::{Cap, Ui};
+use crate::{Cap, Caps, Ui};
 
 /// One option: its value, its text (what the filter matches), an optional icon and optional
 /// rich content shown instead of the text.
 ///
-/// **Setters.** Values and items: `.icon(..)`, `.body(..)`.
+/// **Setters.** Values and items: `.icon(..)`, `.body(..)`; switches: `.disabled()`.
 #[derive(Clone, Debug)]
 pub struct SelectOption<'a> {
     /// Posted value.
@@ -92,6 +92,8 @@ pub struct SelectOption<'a> {
     pub icon: Option<Glyph<'a>>,
     /// Markup shown instead of `text` when the select is rich.
     pub content: Option<Markup>,
+    /// Shown, but cannot be picked.
+    pub disabled: bool,
 }
 
 impl SelectOption<'_> {
@@ -102,6 +104,9 @@ impl SelectOption<'_> {
             .doc("An icon before the label."),
         Prop::new("body", PropKind::Value, "content: Markup")
             .doc("Rich markup instead of the text (with `Caps::BaseSelect` only)."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("Shown, but cannot be picked."),
     ];
 }
 
@@ -113,6 +118,7 @@ impl<'a> SelectOption<'a> {
             text,
             icon: None,
             content: None,
+            disabled: false,
         }
     }
     /// An icon before the label; a plain `<select>` shows only a text glyph.
@@ -123,6 +129,11 @@ impl<'a> SelectOption<'a> {
     /// Rich markup instead of the text (with `Caps::BaseSelect` only).
     pub fn body(mut self, content: Markup) -> Self {
         self.content = Some(content);
+        self
+    }
+    /// Shown, but cannot be picked (`disabled`): sold out, not in your plan.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
         self
     }
 
@@ -147,6 +158,13 @@ impl<'a> From<(&'a str, &'a str, &'a str)> for SelectOption<'a> {
     }
 }
 
+/// A form's `&str` or `(value, label)` choice.
+impl<'a> From<crate::input::Choice<'a>> for SelectOption<'a> {
+    fn from(c: crate::input::Choice<'a>) -> Self {
+        SelectOption::new(c.value, c.label)
+    }
+}
+
 /// Options under an `<optgroup label>`, or loose when `label` is `None`.
 #[derive(Clone, Debug)]
 struct Group<'a> {
@@ -154,22 +172,43 @@ struct Group<'a> {
     options: Vec<SelectOption<'a>>,
 }
 
-/// A select, made by [`Ui::select`]. No filter box unless [`Select::search`] asks for one.
+/// A select, made by [`Ui::select`]; a form's `.select(..)` field is one too. No filter box
+/// unless [`Select::search`] asks for one.
 ///
 /// **Setters.** Values and items: `.options(..)`, `.group(..)`, `.groups(..)`, `.search(..)`,
-/// `.search_over(..)`, `.value(..)`, `.error(..)`, `.size(..)`, `.variant(..)`.
+/// `.search_over(..)`, `.value(..)`, `.error(..)`, `.help(..)`, `.placeholder(..)`,
+/// `.size(..)`, `.variant(..)`; switches: `.required()`, `.disabled()`, `.readonly()`,
+/// `.multiple()`, `.hide_label()`.
 #[derive(Clone, Debug)]
 pub struct Select<'a> {
-    ui: &'a Ui,
+    caps: Caps,
+    strings: &'static Strings,
+    /// The filter box's text (the query's `<name>-q`).
+    filter: &'a str,
     name: &'a str,
     label: &'a str,
-    selected: &'a str,
+    id: Option<&'a str>,
+    pub(crate) selected: Vec<&'a str>,
+    /// Whether `.value(..)` replaced the query's picks yet.
+    by_hand: bool,
     groups: Vec<Group<'a>>,
     search: Option<&'a str>,
     search_over: usize,
-    error: Option<&'a str>,
-    size: Size,
-    variant: Option<Variant>,
+    pub(crate) error: Option<&'a str>,
+    pub(crate) help: Option<&'a str>,
+    pub(crate) required: bool,
+    pub(crate) optional: bool,
+    pub(crate) disabled: bool,
+    pub(crate) readonly: bool,
+    pub(crate) multiple: bool,
+    pub(crate) placeholder: Option<&'a str>,
+    pub(crate) hide_label: bool,
+    pub(crate) autocomplete: Option<&'a str>,
+    pub(crate) autofocus: bool,
+    pub(crate) form: Option<&'a str>,
+    pub(crate) class: Option<&'a str>,
+    pub(crate) size: Size,
+    pub(crate) variant: Option<Variant>,
 }
 
 impl Select<'_> {
@@ -200,9 +239,25 @@ impl Select<'_> {
             .default("15")
             .doc("Show the filter box above this many options (default 15)."),
         Prop::new("value", PropKind::Value, "value: &'a str")
-            .doc("The chosen option's value, instead of the query's `name`."),
+            .doc("The chosen option's value, instead of the query's `name` (once more per pick with `.multiple()`)."),
         Prop::new("error", PropKind::Value, "message: &'a str")
             .doc("A server message under the select, which gets `aria-invalid`."),
+        Prop::new("help", PropKind::Value, "help: &'a str").doc("Help text under the select."),
+        Prop::new("placeholder", PropKind::Value, "placeholder: &'a str")
+            .doc("A first option posting nothing (\"Choose…\"), picked until another is."),
+        Prop::new("required", PropKind::Switch, "")
+            .attr("required")
+            .doc("An option other than the placeholder must be picked."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("`disabled` and `aria-disabled`: shown greyed and not posted."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("Shown and posted, not changeable: a disabled select and a hidden input per picked value."),
+        Prop::new("multiple", PropKind::Switch, "")
+            .attr("multiple")
+            .doc("Several options may be picked (a list box; no rich trigger)."),
+        Prop::new("hide_label", PropKind::Switch, "")
+            .doc("Only the select, the label kept as its `aria-label`."),
         Prop::new(
             "size",
             PropKind::Choice { of: Size::NAMES },
@@ -226,22 +281,57 @@ impl Ui {
     /// [`Select::value`] says otherwise. Add options with [`Select::options`] or
     /// [`Select::group`].
     pub fn select<'a>(&'a self, name: &'a str, label: &'a str) -> Select<'a> {
-        Select {
-            ui: self,
-            name,
-            label,
-            selected: self.param(name).unwrap_or(""),
-            groups: Vec::new(),
-            search: None,
-            search_over: 15,
-            error: None,
-            size: Size::S2,
-            variant: None,
-        }
+        let mut s = Select::bare(self.caps, self.strings, name, label);
+        s.selected = self.params(name).collect();
+        s.filter = self.param(&format!("{name}-q")).unwrap_or("");
+        s
     }
 }
 
 impl<'a> Select<'a> {
+    /// A select with nothing read from a request: what a form's select field starts from.
+    pub(crate) fn bare(
+        caps: Caps,
+        strings: &'static Strings,
+        name: &'a str,
+        label: &'a str,
+    ) -> Self {
+        Select {
+            caps,
+            strings,
+            filter: "",
+            name,
+            label,
+            id: None,
+            selected: Vec::new(),
+            by_hand: false,
+            groups: Vec::new(),
+            search: None,
+            search_over: 15,
+            error: None,
+            help: None,
+            required: false,
+            optional: false,
+            disabled: false,
+            readonly: false,
+            multiple: false,
+            placeholder: None,
+            hide_label: false,
+            autocomplete: None,
+            autofocus: false,
+            form: None,
+            class: None,
+            size: Size::S2,
+            variant: None,
+        }
+    }
+
+    /// The control's id, `f-<name>` unless `id` says otherwise (a form field's `.id(..)`).
+    pub(crate) fn id_from(mut self, id: Option<&'a str>) -> Self {
+        self.id = id;
+        self
+    }
+
     /// Options with no `<optgroup>`: [`SelectOption`]s or `(value, label)` and
     /// `(value, label, icon)` tuples.
     pub fn options<O: Into<SelectOption<'a>>>(
@@ -291,9 +381,14 @@ impl<'a> Select<'a> {
         self
     }
 
-    /// The chosen option's value, instead of the query's `name`: a saved value.
+    /// The chosen option's value, instead of the query's `name`: a saved value. With
+    /// `.multiple()` (called first), each call picks one more.
     pub fn value(mut self, value: &'a str) -> Self {
-        self.selected = value;
+        if !self.by_hand || !self.multiple {
+            self.selected.clear();
+        }
+        self.by_hand = true;
+        self.selected.push(value);
         self
     }
 
@@ -301,6 +396,52 @@ impl<'a> Select<'a> {
     /// to it as it does to a form field. An empty message is no error.
     pub fn error(mut self, message: &'a str) -> Self {
         self.error = (!message.is_empty()).then_some(message);
+        self
+    }
+
+    /// Help text under the select.
+    pub fn help(mut self, help: &'a str) -> Self {
+        self.help = Some(help);
+        self
+    }
+
+    /// A first option posting nothing (`"Choose…"`), picked until another is; with
+    /// `.required()` the browser asks for a real choice.
+    pub fn placeholder(mut self, placeholder: &'a str) -> Self {
+        self.placeholder = Some(placeholder);
+        self
+    }
+
+    /// An option other than the placeholder must be picked, and a `*` after the label.
+    pub fn required(mut self) -> Self {
+        self.required = true;
+        self
+    }
+
+    /// `disabled` and `aria-disabled`: shown greyed and not posted.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+
+    /// Shown and posted, not changeable. HTML has no read-only select, so the select is
+    /// disabled and a hidden input posts each picked value.
+    pub fn readonly(mut self) -> Self {
+        self.readonly = true;
+        self
+    }
+
+    /// Several options may be picked: a list box posting `name` once per pick. A multiple
+    /// select keeps the native list look (`base-select` has no multiple mode yet).
+    pub fn multiple(mut self) -> Self {
+        self.multiple = true;
+        self
+    }
+
+    /// Only the select, the label kept as its `aria-label`: a sort order in a toolbar. Help
+    /// and error still follow it.
+    pub fn hide_label(mut self) -> Self {
+        self.hide_label = true;
         self
     }
 
@@ -320,69 +461,82 @@ impl<'a> Select<'a> {
 
 impl Render for Select<'_> {
     fn render(&self) -> Markup {
-        let Select {
-            ui,
-            name,
-            label,
-            selected,
-            ref groups,
-            search,
-            search_over,
-            error,
-            size,
-            variant,
-        } = *self;
-        let id = format!("f-{name}");
+        let name = self.name;
+        let id = self
+            .id
+            .map_or_else(|| format!("f-{name}"), str::to_string);
         let error_id = format!("{id}-error");
-        let rich = ui.has(Cap::BaseSelect);
-        let total: usize = groups.iter().map(|g| g.options.len()).sum();
-        let search = search.filter(|_| total > search_over);
+        let rich = self.caps.has(Cap::BaseSelect) && !self.multiple;
+        let total: usize = self.groups.iter().map(|g| g.options.len()).sum();
+        let search = self.search.filter(|_| total > self.search_over);
         let query_name = format!("{name}-q");
         let query_id = format!("{name}-filter");
-        let raw_query = ui.param(&query_name).unwrap_or("");
         let query = if search.is_some() {
-            raw_query.trim().to_lowercase()
+            self.filter.trim().to_lowercase()
         } else {
             String::new()
         };
+        let chosen = |v: &str| self.selected.contains(&v);
         let shown = |o: &SelectOption| {
-            query.is_empty() || o.value == selected || o.text.to_lowercase().contains(&query)
+            query.is_empty() || chosen(o.value) || o.text.to_lowercase().contains(&query)
         };
         let option = |o: &SelectOption| {
             html! {
-                option value=(o.value) selected[o.value == selected] {
+                option value=(o.value) selected[chosen(o.value)] disabled[o.disabled] {
                     @if let Some(i) = o.icon.filter(|i| rich || matches!(i, Glyph::Text(_))) { span class="lui-select-icon" aria-hidden="true" { (i) } " " }
                     @match (&o.content, rich) { (Some(c), true) => (c), _ => (o.text) }
                 }
             }
         };
-        crate::labelled(
-            Some(label),
-            &id,
-            html! {
-                span class="lui-select" data-size=[(size != Size::S2).then(|| size.as_str())] data-variant=[variant.map(Variant::as_str)] {
-                    @if let Some(action) = search {
-                        span class="lui-select-search" {
-                            (Input::search_box(&query_name, ui.text(Text::FilterOptions), raw_query).id(&query_id).placeholder(ui.text(Text::Filter)).class("lui-select-filter"))
-                            (ui.button(ui.text(Text::Filter)).formmethod("get").formaction(action).formnovalidate())
-                        }
+        let described = described_by(&[
+            self.help.map(|_| format!("{id}-help")),
+            self.error.map(|_| error_id.clone()),
+        ]);
+        let off = self.disabled || self.readonly;
+        let nothing = self.selected.iter().all(|v| v.is_empty());
+        let t = |text| self.strings.get(text);
+        let size = (self.size != Size::S2).then(|| self.size.as_str());
+        let control = html! {
+            span class="lui-select" data-size=[size] data-variant=[self.variant.map(Variant::as_str)] {
+                @if let Some(action) = search {
+                    span class="lui-select-search" {
+                        (Input::search_box(&query_name, t(Text::FilterOptions), self.filter).id(&query_id).placeholder(t(Text::Filter)).class("lui-select-filter"))
+                        (crate::button::Button::new(self.caps, t(Text::Filter)).formmethod("get").formaction(action).formnovalidate())
                     }
-                    select id=(id) name=(name) aria-invalid=[error.map(|_| "true")]
-                        aria-describedby=[error.map(|_| error_id.as_str())] {
-                        @if rich { button type="button" class="lui-select-trigger" { selectedcontent {} } }
-                        @for g in groups {
-                            @let visible: Vec<&SelectOption> = g.options.iter().filter(|o| shown(o)).collect();
-                            @if let (Some(label), false) = (g.label, visible.is_empty()) {
-                                optgroup label=(label) { @for o in &visible { (option(o)) } }
-                            } @else {
-                                @for o in &visible { (option(o)) }
-                            }
+                }
+                select id=(id) name=(name) class=[self.class] required[self.required] multiple[self.multiple]
+                    disabled[off] aria-disabled=[self.disabled.then_some("true")]
+                    form=[self.form] autocomplete=[self.autocomplete] autofocus[self.autofocus]
+                    aria-label=[self.hide_label.then_some(self.label)]
+                    aria-invalid=[self.error.map(|_| "true")] aria-describedby=[described.as_deref()] {
+                    @if rich { button type="button" class="lui-select-trigger" { selectedcontent {} } }
+                    @if let Some(p) = self.placeholder { option value="" selected[nothing] { (p) } }
+                    @for g in &self.groups {
+                        @let visible: Vec<&SelectOption> = g.options.iter().filter(|o| shown(o)).collect();
+                        @if let (Some(label), false) = (g.label, visible.is_empty()) {
+                            optgroup label=(label) { @for o in &visible { (option(o)) } }
+                        } @else {
+                            @for o in &visible { (option(o)) }
                         }
                     }
                 }
-                @if let Some(e) = error { (crate::input::error_line(&error_id, e)) }
-            },
-        )
+                @if self.readonly { @for v in self.selected.iter().filter(|v| !v.is_empty()) { (keep(name, v)) } }
+            }
+            @if let Some(h) = self.help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
+            @if let Some(e) = self.error { (crate::input::error_line(&error_id, e)) }
+        };
+        if self.hide_label {
+            return control;
+        }
+        html! {
+            div class="lui-field" {
+                label for=(id) {
+                    (self.label) @if self.required { " " (crate::input::REQUIRED) }
+                    @if self.optional && !self.required { " " span class="lui-field-optional" { (t(Text::Optional)) } }
+                }
+                (control)
+            }
+        }
     }
 }
 /// Styles for this component; included in [`crate::stylesheet`].

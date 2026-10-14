@@ -86,10 +86,60 @@
 
 use maud::{Markup, Render, html};
 
-use crate::Ui;
+use crate::button::Button;
+use crate::i18n::{Strings, Text};
 use crate::icon::{Glyph, Icon};
 use crate::props::{Prop, PropKind};
+use crate::select::SelectOption;
 use crate::variant::{Size, Variant};
+use crate::{Caps, Ui};
+
+/// A bound of a number field: a number, or no bound. Any number converts (`0`, `2.5`), and
+/// `None::<f64>` is no bound, so `.number(0, None)` has no maximum.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Bound(pub Option<f64>);
+
+impl From<f64> for Bound {
+    fn from(n: f64) -> Self {
+        Bound(Some(n))
+    }
+}
+
+impl From<i32> for Bound {
+    fn from(n: i32) -> Self {
+        Bound(Some(f64::from(n)))
+    }
+}
+
+impl From<u32> for Bound {
+    fn from(n: u32) -> Self {
+        Bound(Some(f64::from(n)))
+    }
+}
+
+impl From<i64> for Bound {
+    #[allow(clippy::cast_precision_loss)]
+    fn from(n: i64) -> Self {
+        Bound(Some(n as f64))
+    }
+}
+
+impl From<Option<f64>> for Bound {
+    fn from(n: Option<f64>) -> Self {
+        Bound(n)
+    }
+}
+
+/// `n` rounded to the decimals `step` and `base` are written with, so `0.1 + 0.2` shows as
+/// `0.3`: what a stepper posts and a number field shows.
+pub(crate) fn tidy(n: f64, step: f64, base: f64) -> f64 {
+    let decimals = |x: f64| {
+        let s = x.to_string();
+        s.find('.').map_or(0, |at| s.len() - at - 1).min(10)
+    };
+    let scale = 10f64.powi(decimals(step).max(decimals(base)) as i32);
+    (n * scale).round() / scale
+}
 
 /// Input type of a field.
 #[derive(Clone, Debug)]
@@ -98,9 +148,11 @@ pub(crate) enum FieldKind<'a> {
     Search,
     Email,
     Password,
+    Tel,
+    Url,
     Number {
-        min: Option<i64>,
-        max: Option<i64>,
+        min: Option<f64>,
+        max: Option<f64>,
     },
     Pattern {
         pattern: &'a str,
@@ -111,7 +163,6 @@ pub(crate) enum FieldKind<'a> {
     },
     File {
         accept: &'a str,
-        multiple: bool,
     },
     Date {
         min: &'a str,
@@ -125,7 +176,27 @@ pub(crate) enum FieldKind<'a> {
         min: &'a str,
         max: &'a str,
     },
-    Select(Vec<Choice<'a>>),
+    Month {
+        min: &'a str,
+        max: &'a str,
+    },
+    Week {
+        min: &'a str,
+        max: &'a str,
+    },
+    /// A `<select>`, drawn by [`crate::select`].
+    Select(Vec<SelectOption<'a>>),
+    /// Radio buttons, drawn by [`RadioGroup`].
+    Radio(Vec<Pick<'a>>),
+    /// Checkboxes, drawn by [`crate::checkbox_group`].
+    Checkboxes(Vec<Pick<'a>>),
+    /// A slider, drawn by [`crate::range`].
+    Range {
+        min: f64,
+        max: f64,
+    },
+    /// A colour picker, drawn by [`crate::color`].
+    Color,
     Checkbox,
     Switch,
     Hidden,
@@ -158,6 +229,27 @@ impl<'a> From<(&'a str, &'a str)> for Choice<'a> {
     }
 }
 
+/// One choice of a radio or checkbox group: what it posts, its label, a line under it and
+/// whether it can be picked.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct Pick<'a> {
+    pub(crate) value: &'a str,
+    pub(crate) label: &'a str,
+    pub(crate) description: Option<&'a str>,
+    pub(crate) disabled: bool,
+}
+
+impl<'a> From<Choice<'a>> for Pick<'a> {
+    fn from(c: Choice<'a>) -> Self {
+        Pick {
+            value: c.value,
+            label: c.label,
+            description: None,
+            disabled: false,
+        }
+    }
+}
+
 /// One field with its current value and server-side error: what [`Ui::input`] builds and
 /// what a [`crate::form::Form`] holds a list of.
 #[derive(Clone, Debug)]
@@ -166,32 +258,48 @@ pub(crate) struct Field<'a> {
     pub(crate) label: &'a str,
     pub(crate) kind: FieldKind<'a>,
     pub(crate) value: &'a str,
+    /// Every value, for a field that takes several (checkboxes, a multiple select); `value`
+    /// is its first.
+    pub(crate) values: Vec<&'a str>,
     pub(crate) error: Option<&'a str>,
     pub(crate) required: bool,
     pub(crate) help: Option<&'a str>,
     pub(crate) maxlength: Option<usize>,
     pub(crate) placeholder: Option<&'a str>,
     pub(crate) id: Option<&'a str>,
+    pub(crate) multiple: bool,
+    pub(crate) disabled: bool,
+    pub(crate) readonly: bool,
+    pub(crate) optional: bool,
     pub(crate) extra: Extra<'a>,
+    pub(crate) caps: Caps,
+    pub(crate) strings: &'static Strings,
 }
 
 /// Attributes only some fields need, each set by the `Input` setter of the same name.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Extra<'a> {
-    hide_label: bool,
-    list: Option<&'a str>,
-    autocomplete: Option<&'a str>,
-    autofocus: bool,
-    inputmode: Option<&'a str>,
-    step: Option<i64>,
-    aria_controls: Option<&'a str>,
-    class: Option<&'a str>,
-    form: Option<&'a str>,
-    gradient_border: bool,
-    leading: Option<Glyph<'a>>,
-    trailing: Option<Glyph<'a>>,
-    size: Size,
-    variant: Option<Variant>,
+    pub(crate) hide_label: bool,
+    pub(crate) list: Option<&'a str>,
+    pub(crate) autocomplete: Option<&'a str>,
+    pub(crate) autofocus: bool,
+    pub(crate) inputmode: Option<&'a str>,
+    pub(crate) step: Option<f64>,
+    pub(crate) aria_controls: Option<&'a str>,
+    pub(crate) class: Option<&'a str>,
+    pub(crate) form: Option<&'a str>,
+    pub(crate) gradient_border: bool,
+    pub(crate) leading: Option<Glyph<'a>>,
+    pub(crate) trailing: Option<Glyph<'a>>,
+    pub(crate) prefix: Option<Glyph<'a>>,
+    pub(crate) suffix: Option<Glyph<'a>>,
+    pub(crate) addon: Option<Markup>,
+    pub(crate) reveal: bool,
+    pub(crate) steppers: bool,
+    pub(crate) cards: bool,
+    pub(crate) width: Option<Size>,
+    pub(crate) size: Size,
+    pub(crate) variant: Option<Variant>,
 }
 
 impl<'a> Field<'a> {
@@ -201,34 +309,74 @@ impl<'a> Field<'a> {
             label,
             kind,
             value: "",
+            values: Vec::new(),
             error: None,
             required: false,
             help: None,
             maxlength: None,
             placeholder: None,
             id: None,
+            multiple: false,
+            disabled: false,
+            readonly: false,
+            optional: false,
             extra: Extra::default(),
+            caps: Caps::NONE,
+            strings: &Strings::ENGLISH,
         }
+    }
+
+    /// The same field speaking `ui`'s language and knowing its browser.
+    pub(crate) fn of(mut self, ui: &Ui) -> Self {
+        self.caps = ui.caps;
+        self.strings = ui.strings;
+        self
     }
 
     /// Whether a person sees it (a review lists only these).
     pub(crate) fn shown(&self) -> bool {
         !matches!(self.kind, FieldKind::Hidden | FieldKind::Markup(_))
     }
+
+    /// The control's id: `f-<name>` unless set.
+    pub(crate) fn control_id(&self) -> String {
+        self.id
+            .map_or_else(|| format!("f-{}", self.name), str::to_string)
+    }
+
+    /// The marks after a label: the required star or the "(optional)" note.
+    fn marks(&self) -> Markup {
+        html! {
+            @if self.required { " " (REQUIRED) }
+            @if self.optional && !self.required { " " span class="lui-field-optional" { (self.strings.get(Text::Optional)) } }
+        }
+    }
+
+    /// The label with its marks, what a group's legend or a field's label reads.
+    pub(crate) fn legend(&self) -> Markup {
+        html! { (self.label) (self.marks()) }
+    }
+}
+
+/// A hidden input posting `value` as `name`: what a read-only control that HTML cannot make
+/// read-only (a select, a checkbox, a slider) posts instead of itself.
+pub(crate) fn keep(name: &str, value: &str) -> Markup {
+    html! { input type="hidden" name=(name) value=(value); }
 }
 
 /// A labelled field, made by [`Ui::input`], [`Ui::checkbox`] or [`Ui::switch`].
 ///
 /// **Setters.** Values and items: `.number(..)`, `.pattern(..)`, `.textarea(..)`, `.file(..)`,
-/// `.date(..)`, `.time(..)`, `.datetime(..)`, `.help(..)`, `.maxlength(..)`, `.value(..)`, `.error(..)`,
-/// `.placeholder(..)`, `.list(..)`, `.autocomplete(..)`, `.inputmode(..)`, `.step(..)`,
-/// `.aria_controls(..)`, `.form(..)`, `.class(..)`, `.id(..)`, `.leading(..)`, `.trailing(..)`,
-/// `.size(..)`, `.variant(..)`; switches: `.email()`,
-/// `.password()`, `.multiple()`, `.required()`, `.search()`, `.hide_label()`, `.autofocus()`,
-/// `.gradient_border()`;
-/// from a condition: `.checked(bool)`.
+/// `.date(..)`, `.time(..)`, `.datetime(..)`, `.month(..)`, `.week(..)`, `.help(..)`,
+/// `.maxlength(..)`, `.value(..)`, `.error(..)`, `.placeholder(..)`, `.list(..)`,
+/// `.autocomplete(..)`, `.inputmode(..)`, `.step(..)`, `.aria_controls(..)`, `.form(..)`,
+/// `.class(..)`, `.id(..)`, `.leading(..)`, `.trailing(..)`, `.prefix(..)`, `.suffix(..)`,
+/// `.addon_button(..)`, `.width(..)`, `.size(..)`, `.variant(..)`; switches: `.email()`,
+/// `.password()`, `.tel()`, `.url()`, `.multiple()`, `.required()`, `.optional()`,
+/// `.disabled()`, `.readonly()`, `.search()`, `.hide_label()`, `.autofocus()`,
+/// `.gradient_border()`, `.reveal()`; from a condition: `.checked(bool)`.
 #[derive(Clone, Debug)]
-pub struct Input<'a>(Field<'a>);
+pub struct Input<'a>(pub(crate) Field<'a>);
 
 impl Input<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
@@ -240,8 +388,18 @@ impl Input<'_> {
         Prop::new("password", PropKind::Switch, "")
             .attr("type")
             .doc("`type=\"password\"`."),
-        Prop::new("number", PropKind::Value, "min: i64, max: i64")
-            .doc("A whole number from `min` to `max`, inclusive."),
+        Prop::new("tel", PropKind::Switch, "")
+            .attr("type")
+            .doc("`type=\"tel\"`: a phone number, the phone keypad on a touch screen."),
+        Prop::new("url", PropKind::Switch, "")
+            .attr("type")
+            .doc("`type=\"url\"`: the browser checks it is an absolute URL."),
+        Prop::new(
+            "number",
+            PropKind::Value,
+            "min: impl Into<Bound>, max: impl Into<Bound>",
+        )
+        .doc("A number from `min` to `max`, inclusive; `None::<f64>` for no bound."),
         Prop::new(
             "pattern",
             PropKind::Value,
@@ -257,12 +415,23 @@ impl Input<'_> {
             .doc("`type=\"time\"`, bounds as `HH:MM`."),
         Prop::new("datetime", PropKind::Value, "min: &'a str, max: &'a str")
             .doc("`type=\"datetime-local\"`, bounds as `YYYY-MM-DDTHH:MM`."),
+        Prop::new("month", PropKind::Value, "min: &'a str, max: &'a str")
+            .doc("`type=\"month\"`, bounds as `YYYY-MM`."),
+        Prop::new("week", PropKind::Value, "min: &'a str, max: &'a str")
+            .doc("`type=\"week\"`, bounds as `YYYY-Www`."),
         Prop::new("multiple", PropKind::Switch, "")
             .attr("multiple")
             .doc("The file picker takes several files."),
         Prop::new("required", PropKind::Switch, "")
             .attr("required")
             .doc("The `required` attribute, and a `*` after the label (hidden from screen readers, which say \"required\")."),
+        Prop::new("optional", PropKind::Switch, "")
+            .doc("\"(optional)\" after the label, for a form whose fields are mostly required."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("`disabled` and `aria-disabled`: shown greyed and not posted."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("Shown and posted, not editable (`readonly`, or a disabled control and a hidden input where HTML has no `readonly`)."),
         Prop::new("help", PropKind::Value, "help: &'a str").doc("Help text under the field."),
         Prop::new("maxlength", PropKind::Number, "max: usize")
             .attr("maxlength")
@@ -282,7 +451,7 @@ impl Input<'_> {
             .attr("type")
             .doc("`type=\"search\"`."),
         Prop::new("hide_label", PropKind::Switch, "")
-            .doc("Only the control, the label kept as its `aria-label`."),
+            .doc("Only the control, the label kept as its `aria-label`; help, counter and error still follow it."),
         Prop::new("list", PropKind::Value, "id: &'a str")
             .attr("list")
             .doc("`list`."),
@@ -295,7 +464,7 @@ impl Input<'_> {
         Prop::new("inputmode", PropKind::Value, "mode: &'a str")
             .attr("inputmode")
             .doc("`inputmode` (`\"numeric\"`), the on-screen keyboard to show."),
-        Prop::new("step", PropKind::Number, "step: i64")
+        Prop::new("step", PropKind::Number, "step: impl Into<f64>")
             .attr("step")
             .doc("`step` of a number field."),
         Prop::new("aria_controls", PropKind::Value, "id: &'a str")
@@ -316,6 +485,20 @@ impl Input<'_> {
             .doc("An icon or text inside the field's border, before the text."),
         Prop::new("trailing", PropKind::Value, "slot: impl Into<Glyph<'a>>")
             .doc("An icon or text inside the field's border, after the text."),
+        Prop::new("prefix", PropKind::Value, "addon: impl Into<Glyph<'a>>")
+            .doc("An addon joined to the field's start (`\"https://\"`, `\"$\"`), outside its border."),
+        Prop::new("suffix", PropKind::Value, "addon: impl Into<Glyph<'a>>")
+            .doc("An addon joined to the field's end (`\"kg\"`, `\".com\"`), outside its border."),
+        Prop::new("addon_button", PropKind::Value, "button: Button<'a>")
+            .doc("A button joined to the field's end (Copy, Send)."),
+        Prop::new("reveal", PropKind::Switch, "")
+            .doc("A password field's show/hide button, which only the enhancement script shows."),
+        Prop::new(
+            "width",
+            PropKind::Choice { of: Size::NAMES },
+            "width: impl Into<Size>",
+        )
+        .doc("A narrower control: 1 (8rem), 2 (16rem) or 3 (24rem); the container's width by default."),
         Prop::new(
             "size",
             PropKind::Choice { of: Size::NAMES },
@@ -336,19 +519,19 @@ impl Input<'_> {
 impl Ui {
     /// A single-line text field named `name` under `label`; the setters change its type.
     pub fn input<'a>(&self, name: &'a str, label: &'a str) -> Input<'a> {
-        Input(Field::new(name, label, FieldKind::Text))
+        Input(Field::new(name, label, FieldKind::Text).of(self))
     }
 
     /// A checkbox posting `true` when ticked and nothing when not (so a `bool` with
     /// `#[serde(default)]` reads it), its label beside it.
     pub fn checkbox<'a>(&self, name: &'a str, label: &'a str) -> Input<'a> {
-        Input(Field::new(name, label, FieldKind::Checkbox))
+        Input(Field::new(name, label, FieldKind::Checkbox).of(self))
     }
 
     /// A checkbox drawn as an on/off switch, with `role="switch"`; posts like
     /// [`Ui::checkbox`].
     pub fn switch<'a>(&self, name: &'a str, label: &'a str) -> Input<'a> {
-        Input(Field::new(name, label, FieldKind::Switch))
+        Input(Field::new(name, label, FieldKind::Switch).of(self))
     }
 }
 
@@ -357,8 +540,8 @@ impl<'a> Input<'a> {
     pub(crate) fn number_within(
         name: &'a str,
         label: &'a str,
-        min: Option<i64>,
-        max: Option<i64>,
+        min: Option<f64>,
+        max: Option<f64>,
     ) -> Self {
         Input(Field::new(name, label, FieldKind::Number { min, max }))
     }
@@ -377,6 +560,17 @@ impl<'a> Input<'a> {
             .value(value)
     }
 
+    /// The same field speaking `ui`'s language and knowing its browser.
+    pub(crate) fn of(self, ui: &Ui) -> Self {
+        Input(self.0.of(ui))
+    }
+
+    /// Steppers on a number field ([`crate::number`]).
+    pub(crate) fn steppers(mut self) -> Self {
+        self.0.extra.steppers = true;
+        self
+    }
+
     fn kind(mut self, kind: FieldKind<'a>) -> Self {
         self.0.kind = kind;
         self
@@ -392,11 +586,23 @@ impl<'a> Input<'a> {
         self.kind(FieldKind::Password)
     }
 
-    /// A whole number from `min` to `max`, inclusive.
-    pub fn number(self, min: i64, max: i64) -> Self {
+    /// `type="tel"`: a phone number, the phone keypad on a touch screen. The browser checks
+    /// nothing; give it a `.pattern(..)` of your own if you need one.
+    pub fn tel(self) -> Self {
+        self.kind(FieldKind::Tel)
+    }
+
+    /// `type="url"`: the browser checks it is an absolute URL (`https://..`).
+    pub fn url(self) -> Self {
+        self.kind(FieldKind::Url)
+    }
+
+    /// A number from `min` to `max`, inclusive: any number (`0`, `2.5`), or `None::<f64>` for
+    /// no bound. Steps by 1 unless `.step(..)` says otherwise.
+    pub fn number(self, min: impl Into<Bound>, max: impl Into<Bound>) -> Self {
         self.kind(FieldKind::Number {
-            min: Some(min),
-            max: Some(max),
+            min: min.into().0,
+            max: max.into().0,
         })
     }
 
@@ -414,10 +620,7 @@ impl<'a> Input<'a> {
     /// A file picker; `accept` lists MIME types or extensions, empty for any. The form
     /// around it needs `enctype="multipart/form-data"`.
     pub fn file(self, accept: &'a str) -> Self {
-        self.kind(FieldKind::File {
-            accept,
-            multiple: false,
-        })
+        self.kind(FieldKind::File { accept })
     }
 
     /// `type="date"`, bounds as `YYYY-MM-DD`; an empty bound is left out.
@@ -435,11 +638,21 @@ impl<'a> Input<'a> {
         self.kind(FieldKind::DateTime { min, max })
     }
 
-    /// The file picker takes several files.
+    /// `type="month"`, bounds as `YYYY-MM`; an empty bound is left out. Firefox and Safari
+    /// show a text field (FINDINGS), so give it a `.help(..)` with the format.
+    pub fn month(self, min: &'a str, max: &'a str) -> Self {
+        self.kind(FieldKind::Month { min, max })
+    }
+
+    /// `type="week"`, bounds as `YYYY-Www` (`2026-W40`); an empty bound is left out. Firefox
+    /// and Safari show a text field (FINDINGS).
+    pub fn week(self, min: &'a str, max: &'a str) -> Self {
+        self.kind(FieldKind::Week { min, max })
+    }
+
+    /// The file picker takes several files, before or after `.file(..)`.
     pub fn multiple(mut self) -> Self {
-        if let FieldKind::File { multiple, .. } = &mut self.0.kind {
-            *multiple = true;
-        }
+        self.0.multiple = true;
         self
     }
 
@@ -447,6 +660,26 @@ impl<'a> Input<'a> {
     /// attribute already makes a screen reader say "required", in the browser's language.
     pub fn required(mut self) -> Self {
         self.0.required = true;
+        self
+    }
+
+    /// "(optional)" after the label, for a form whose fields are mostly required; a required
+    /// field shows its star instead.
+    pub fn optional(mut self) -> Self {
+        self.0.optional = true;
+        self
+    }
+
+    /// `disabled` and `aria-disabled`: shown greyed and not posted.
+    pub fn disabled(mut self) -> Self {
+        self.0.disabled = true;
+        self
+    }
+
+    /// Shown and posted, not editable: `readonly` on a text field; a checkbox, which HTML
+    /// cannot make read-only, is disabled and posts its value from a hidden input.
+    pub fn readonly(mut self) -> Self {
+        self.0.readonly = true;
         self
     }
 
@@ -493,7 +726,8 @@ impl<'a> Input<'a> {
     }
 
     /// Only the control, the label kept as its `aria-label`: a filter box in a toolbar, a
-    /// number beside buttons. Help, counter and error are left out.
+    /// number beside buttons. Help, counter and error still follow the control, so its
+    /// `aria-describedby` points at them.
     pub fn hide_label(mut self) -> Self {
         self.0.extra.hide_label = true;
         self
@@ -524,8 +758,8 @@ impl<'a> Input<'a> {
     }
 
     /// `step` of a number field.
-    pub fn step(mut self, step: i64) -> Self {
-        self.0.extra.step = Some(step);
+    pub fn step(mut self, step: impl Into<f64>) -> Self {
+        self.0.extra.step = Some(step.into());
         self
     }
 
@@ -589,6 +823,42 @@ impl<'a> Input<'a> {
         self.0.extra.trailing = Some(slot.into());
         self
     }
+
+    /// An addon joined to the field's start, outside its border on a gray fill (`"https://"`,
+    /// `"$"`): text is read out with the field, an icon is decoration. Single-line fields only.
+    pub fn prefix(mut self, addon: impl Into<Glyph<'a>>) -> Self {
+        self.0.extra.prefix = Some(addon.into());
+        self
+    }
+
+    /// An addon joined to the field's end (`"kg"`, `".com"`), like [`Self::prefix`].
+    pub fn suffix(mut self, addon: impl Into<Glyph<'a>>) -> Self {
+        self.0.extra.suffix = Some(addon.into());
+        self
+    }
+
+    /// A button joined to the field's end (Copy, Send, Apply): it submits the form unless
+    /// given a command.
+    pub fn addon_button(mut self, button: Button<'a>) -> Self {
+        self.0.extra.addon = Some(button.render());
+        self
+    }
+
+    /// A show/hide button on a password field. An input's type cannot change without script,
+    /// so the button carries `hidden` and only the enhancement script shows it and switches
+    /// the field between `password` and `text`; without the script the field is the same,
+    /// with no button.
+    pub fn reveal(mut self) -> Self {
+        self.0.extra.reveal = true;
+        self
+    }
+
+    /// A narrower control: 1 (8rem), 2 (16rem) or 3 (24rem), never wider than its container;
+    /// the container's width by default. For a postcode, a year, an amount.
+    pub fn width(mut self, width: impl Into<Size>) -> Self {
+        self.0.extra.width = Some(width.into());
+        self
+    }
 }
 
 /// A server message under a field, after a warning icon; `role="alert"` so it is read out.
@@ -596,9 +866,28 @@ pub(crate) fn error_line(id: &str, message: &str) -> Markup {
     html! { p id=(id) class="lui-error" role="alert" { (Icon::TriangleAlert) (message) } }
 }
 
-/// A slot's text is read out with the field (`aria-describedby`); an icon is decoration.
+/// A slot's or addon's text is read out with the field (`aria-describedby`); an icon is
+/// decoration.
 fn slot_id(id: &str, side: &str, glyph: Option<Glyph>) -> Option<String> {
     matches!(glyph, Some(Glyph::Text(_))).then(|| format!("{id}-{side}"))
+}
+
+/// The ids of what describes a control (its help, counter and error), joined for
+/// `aria-describedby`, `None` when there are none.
+pub(crate) fn described_by(ids: &[Option<String>]) -> Option<String> {
+    let found: Vec<&str> = ids.iter().flatten().map(String::as_str).collect();
+    (!found.is_empty()).then(|| found.join(" "))
+}
+
+/// Help, counter and error, in that order: what follows a control, labelled or not.
+fn after(id: &str, help: Option<&str>, count: Option<(usize, usize)>, error: Option<&str>) -> Markup {
+    html! {
+        @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
+        @if let Some((n, max)) = count {
+            output id={ (id) "-count" } for=(id) class="lui-field-count" { (n) " / " (max) }
+        }
+        @if let Some(e) = error { (error_line(&format!("{id}-error"), e)) }
+    }
 }
 
 impl Render for Input<'_> {
@@ -607,109 +896,209 @@ impl Render for Input<'_> {
     }
 }
 
+impl Field<'_> {
+    /// A select field, drawn by [`crate::select`].
+    fn select(&self, options: &[SelectOption<'_>]) -> Markup {
+        let mut s = crate::select::Select::bare(self.caps, self.strings, self.name, self.label)
+            .options(options.iter().cloned())
+            .id_from(self.id);
+        s.selected = if self.values.is_empty() {
+            vec![self.value]
+        } else {
+            self.values.clone()
+        };
+        s.error = self.error;
+        s.help = self.help;
+        s.required = self.required;
+        s.optional = self.optional;
+        s.disabled = self.disabled;
+        s.readonly = self.readonly;
+        s.multiple = self.multiple;
+        s.placeholder = self.placeholder;
+        s.hide_label = self.extra.hide_label;
+        s.autocomplete = self.extra.autocomplete;
+        s.autofocus = self.extra.autofocus;
+        s.form = self.extra.form;
+        s.class = self.extra.class;
+        s.size = self.extra.size;
+        s.variant = self.extra.variant;
+        s.render()
+    }
+
+    /// The fields that delegate to another component, drawn by it; `None` for the rest.
+    fn delegated(&self) -> Option<Markup> {
+        let picked = || -> Vec<&str> {
+            if self.values.is_empty() {
+                vec![self.value]
+            } else {
+                self.values.clone()
+            }
+        };
+        Some(match &self.kind {
+            FieldKind::Markup(m) => m.clone(),
+            FieldKind::Hidden => keep(self.name, self.value),
+            FieldKind::Select(options) => self.select(options),
+            FieldKind::Radio(picks) => RadioGroup {
+                options: picks.clone(),
+                ..RadioGroup::of(self)
+            }
+            .render(),
+            FieldKind::Checkboxes(picks) => {
+                let mut g = crate::checkbox_group::CheckboxGroup::of(self);
+                g.options = picks.clone();
+                g.value = picked();
+                g.render()
+            }
+            FieldKind::Range { min, max } => {
+                let mut r = crate::range::Range::bare(self.strings, self.name, self.label)
+                    .min(*min)
+                    .max(*max);
+                if let Some(step) = self.extra.step {
+                    r = r.step(step);
+                }
+                if let Ok(v) = self.value.trim().parse::<f64>() {
+                    r = r.value(v);
+                }
+                r.disabled = self.disabled;
+                r.readonly = self.readonly;
+                r.render()
+            }
+            FieldKind::Color => {
+                let mut c = crate::color::Color::bare(self.strings, self.name, self.label);
+                if !self.value.is_empty() {
+                    c = c.value(self.value);
+                }
+                c.disabled = self.disabled;
+                c.readonly = self.readonly;
+                c.render()
+            }
+            _ => return None,
+        })
+    }
+
+    /// A checkbox or switch, its label beside it.
+    fn check(&self, id: &str, help: Option<&str>, described: Option<&str>) -> Markup {
+        let checked = matches!(self.value, "true" | "on" | "1");
+        let switch = matches!(self.kind, FieldKind::Switch);
+        let invalid = self.error.map(|_| "true");
+        let off = self.disabled || self.readonly;
+        html! {
+            div class={ "lui-field lui-field-check" @if switch { " lui-field-switch" } } {
+                label for=(id) {
+                    input id=(id) name=[(!self.readonly).then_some(self.name)] type="checkbox" value="true" checked[checked] required[self.required]
+                        disabled[off] aria-disabled=[self.disabled.then_some("true")]
+                        role=[switch.then_some("switch")] class=[switch.then_some("lui-switch")]
+                        aria-invalid=[invalid] aria-describedby=[described];
+                    " " (self.label) (self.marks())
+                }
+                @if self.readonly && checked { (keep(self.name, "true")) }
+                (after(id, help, None, self.error))
+            }
+        }
+    }
+}
+
 impl Render for Field<'_> {
     fn render(&self) -> Markup {
-        if let FieldKind::Markup(m) = &self.kind {
-            return m.clone();
+        if let Some(m) = self.delegated() {
+            return m;
         }
-        let id = self
-            .id
-            .map_or_else(|| format!("f-{}", self.name), str::to_string);
+        let id = self.control_id();
+        let extra = &self.extra;
         let help = self.help.or(match self.kind {
             FieldKind::Pattern { hint, .. } => Some(hint),
             _ => None,
         });
-        let slotted = !matches!(self.kind, FieldKind::Textarea { .. } | FieldKind::Select(_));
-        let (lead, trail) = if slotted {
-            (self.extra.leading, self.extra.trailing)
+        let textarea = matches!(self.kind, FieldKind::Textarea { .. });
+        let (lead, trail, prefix, suffix) = if textarea {
+            (None, None, None, None)
         } else {
-            (None, None)
+            (extra.leading, extra.trailing, extra.prefix, extra.suffix)
         };
-        let ids = [
+        let count = self.maxlength.map(|max| (self.value.chars().count(), max));
+        let described = described_by(&[
+            slot_id(&id, "prefix", prefix),
             slot_id(&id, "leading", lead),
             slot_id(&id, "trailing", trail),
+            slot_id(&id, "suffix", suffix),
             help.map(|_| format!("{id}-help")),
-            self.maxlength.map(|_| format!("{id}-count")),
+            count.map(|_| format!("{id}-count")),
             self.error.map(|_| format!("{id}-error")),
-        ];
-        let described: Vec<&str> = ids.iter().flatten().map(String::as_str).collect();
-        let described = (!described.is_empty()).then(|| described.join(" "));
+        ]);
+        if let FieldKind::Checkbox | FieldKind::Switch = self.kind {
+            return self.check(&id, help, described.as_deref());
+        }
         let bound = |s: &str| (!s.is_empty()).then(|| s.to_string());
-        let (kind, min, max, pattern, accept, multiple) = match self.kind {
-            FieldKind::Text | FieldKind::Textarea { .. } | FieldKind::Select(_) => {
-                ("text", None, None, None, None, false)
-            }
-            FieldKind::Search => ("search", None, None, None, None, false),
-            FieldKind::Email => ("email", None, None, None, None, false),
-            FieldKind::Password => ("password", None, None, None, None, false),
+        let (kind, min, max, pattern, accept) = match self.kind {
+            FieldKind::Search => ("search", None, None, None, None),
+            FieldKind::Email => ("email", None, None, None, None),
+            FieldKind::Password => ("password", None, None, None, None),
+            FieldKind::Tel => ("tel", None, None, None, None),
+            FieldKind::Url => ("url", None, None, None, None),
             FieldKind::Number { min, max } => (
                 "number",
                 min.map(|m| m.to_string()),
                 max.map(|m| m.to_string()),
                 None,
                 None,
-                false,
             ),
-            FieldKind::Pattern { pattern, .. } => ("text", None, None, Some(pattern), None, false),
-            FieldKind::File { accept, multiple } => (
-                "file",
-                None,
-                None,
-                None,
-                (!accept.is_empty()).then_some(accept),
-                multiple,
-            ),
-            FieldKind::Date { min, max } => ("date", bound(min), bound(max), None, None, false),
-            FieldKind::Time { min, max } => ("time", bound(min), bound(max), None, None, false),
+            FieldKind::Pattern { pattern, .. } => ("text", None, None, Some(pattern), None),
+            FieldKind::File { accept } => {
+                ("file", None, None, None, (!accept.is_empty()).then_some(accept))
+            }
+            FieldKind::Date { min, max } => ("date", bound(min), bound(max), None, None),
+            FieldKind::Time { min, max } => ("time", bound(min), bound(max), None, None),
             FieldKind::DateTime { min, max } => {
-                ("datetime-local", bound(min), bound(max), None, None, false)
+                ("datetime-local", bound(min), bound(max), None, None)
             }
-            FieldKind::Checkbox | FieldKind::Switch | FieldKind::Hidden | FieldKind::Markup(_) => {
-                ("", None, None, None, None, false)
-            }
+            FieldKind::Month { min, max } => ("month", bound(min), bound(max), None, None),
+            FieldKind::Week { min, max } => ("week", bound(min), bound(max), None, None),
+            _ => ("text", None, None, None, None),
         };
         let invalid = self.error.map(|_| "true");
-        if let FieldKind::Hidden = self.kind {
-            return html! { input type="hidden" name=(self.name) value=(self.value); };
-        }
-        if let FieldKind::Checkbox | FieldKind::Switch = self.kind {
-            let checked = matches!(self.value, "true" | "on" | "1");
-            let switch = matches!(self.kind, FieldKind::Switch);
-            return html! {
-                div class={ "lui-field lui-field-check" @if switch { " lui-field-switch" } } {
-                    label for=(id) {
-                        input id=(id) name=(self.name) type="checkbox" value="true" checked[checked] required[self.required]
-                            role=[switch.then_some("switch")] class=[switch.then_some("lui-switch")]
-                            aria-invalid=[invalid] aria-describedby=[described.as_deref()];
-                        " " (self.label)
-                    }
-                    @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                    @if let Some(e) = self.error { (error_line(&format!("{id}-error"), e)) }
-                }
-            };
-        }
         let echo = !matches!(self.kind, FieldKind::File { .. } | FieldKind::Password);
-        let extra = &self.extra;
-        // Size and variant go on the root: the field, or the control when its label is hidden.
+        let multiple = self.multiple && matches!(self.kind, FieldKind::File { .. });
+        // Size and variant go on the root: the field, or the outermost part of the control
+        // when its label is hidden.
         let size = (extra.size != Size::S2).then(|| extra.size.as_str());
         let variant = extra.variant.map(Variant::as_str);
+        let width = extra.width.map(Size::as_str);
         let slots = lead.is_some() || trail.is_some();
-        let bare = extra.hide_label
-            && !matches!(self.kind, FieldKind::Textarea { .. } | FieldKind::Select(_));
-        let on_input = bare && !slots;
+        let steppers = extra.steppers && matches!(self.kind, FieldKind::Number { .. });
+        let reveal = extra.reveal && matches!(self.kind, FieldKind::Password);
+        let group = prefix.is_some() || suffix.is_some() || extra.addon.is_some() || steppers || reveal;
+        let bare = extra.hide_label;
         let gradient = extra.gradient_border.then_some("lui-input-gradient-border");
         let class = match (extra.class, gradient) {
             (Some(c), Some(g)) => Some(format!("{c} {g}")),
             (c, g) => c.or(g).map(str::to_string),
         };
-        let control = html! {
-            input id=(id) class=[class.as_deref()] data-size=[size.filter(|_| on_input)] data-variant=[variant.filter(|_| on_input)]
-                name=(self.name) type=(kind) value=[echo.then_some(self.value)]
-                required[self.required] min=[min] max=[max] step=[extra.step] pattern=[pattern] title=[pattern.and(help)]
-                accept=[accept] multiple[multiple] maxlength=[self.maxlength] placeholder=[self.placeholder]
-                form=[extra.form] list=[extra.list] autocomplete=[extra.autocomplete] autofocus[extra.autofocus] inputmode=[extra.inputmode]
-                aria-label=[extra.hide_label.then_some(self.label)] aria-controls=[extra.aria_controls]
-                aria-invalid=[invalid] aria-describedby=[described.as_deref()];
+        let on = |layer: u8| {
+            let outer = if group { 2 } else if slots { 1 } else { 0 };
+            bare && layer == outer
+        };
+        let step = extra.step;
+        let disabled = self.disabled.then_some("true");
+        let control = if let FieldKind::Textarea { rows } = self.kind {
+            html! {
+                textarea id=(id) class=[class.as_deref()] data-size=[size.filter(|_| bare)] data-variant=[variant.filter(|_| bare)]
+                    name=(self.name) rows=(rows) required[self.required] disabled[self.disabled] aria-disabled=[disabled] readonly[self.readonly]
+                    maxlength=[self.maxlength] placeholder=[self.placeholder]
+                    form=[extra.form] autocomplete=[extra.autocomplete] autofocus[extra.autofocus] inputmode=[extra.inputmode]
+                    aria-label=[bare.then_some(self.label)] aria-controls=[extra.aria_controls]
+                    aria-invalid=[invalid] aria-describedby=[described.as_deref()] { (self.value) }
+            }
+        } else {
+            html! {
+                input id=(id) class=[class.as_deref()] data-size=[size.filter(|_| on(0))] data-variant=[variant.filter(|_| on(0))]
+                    name=(self.name) type=(kind) value=[echo.then_some(self.value)]
+                    required[self.required] disabled[self.disabled] aria-disabled=[disabled] readonly[self.readonly && kind != "file"]
+                    min=[min] max=[max] step=[step] pattern=[pattern] title=[pattern.and(help)]
+                    accept=[accept] multiple[multiple] maxlength=[self.maxlength] placeholder=[self.placeholder]
+                    form=[extra.form] list=[extra.list] autocomplete=[extra.autocomplete] autofocus[extra.autofocus] inputmode=[extra.inputmode]
+                    aria-label=[bare.then_some(self.label)] aria-controls=[extra.aria_controls]
+                    aria-invalid=[invalid] aria-describedby=[described.as_deref()];
+            }
         };
         let slot = |side: &str, glyph: Option<Glyph>| {
             html! { @if let Some(g) = glyph {
@@ -717,33 +1106,91 @@ impl Render for Field<'_> {
             } }
         };
         let control = if slots {
-            html! { div class="lui-input-slots" data-size=[size.filter(|_| bare)] data-variant=[variant.filter(|_| bare)] {
+            html! { div class="lui-input-slots" data-size=[size.filter(|_| on(1))] data-variant=[variant.filter(|_| on(1))] {
                 (slot("leading", lead)) (control) (slot("trailing", trail))
             } }
         } else {
             control
         };
+        let control = if group {
+            let addon = |side: &str, glyph: Option<Glyph>| {
+                html! { @if let Some(g) = glyph {
+                    span id=[slot_id(&id, side, glyph)] class={ "lui-input-group-" (side) } { (g) }
+                } }
+            };
+            html! {
+                div class="lui-input-group" data-size=[size.filter(|_| on(2))] data-variant=[variant.filter(|_| on(2))] {
+                    @if steppers { (self.steppers()) }
+                    (addon("prefix", prefix)) (control) (addon("suffix", suffix))
+                    @if let Some(b) = &extra.addon { span class="lui-input-group-button" { (b) } }
+                    @if reveal {
+                        span class="lui-input-reveal" data-lui="reveal" hidden {
+                            (Button::new(self.caps, "").ghost().icon_only().aria_label(self.strings.get(Text::ShowPassword)).body(html! { (Icon::Eye) }))
+                        }
+                    }
+                }
+            }
+        } else {
+            control
+        };
+        let tail = after(&id, help, count, self.error);
         if bare {
-            return control;
+            return html! { (control) (tail) };
         }
         html! {
-            div class="lui-field" data-size=[size] data-variant=[variant] {
-                label for=(id) { (self.label) @if self.required { " " (REQUIRED) } }
-                @if let FieldKind::Textarea { rows } = self.kind {
-                    textarea id=(id) class=[gradient] name=(self.name) rows=(rows) required[self.required] maxlength=[self.maxlength] placeholder=[self.placeholder]
-                        aria-invalid=[invalid] aria-describedby=[described.as_deref()] { (self.value) }
-                } @else if let FieldKind::Select(options) = &self.kind {
-                    select id=(id) name=(self.name) required[self.required] aria-invalid=[invalid] aria-describedby=[described.as_deref()] {
-                        @for o in options { option value=(o.value) selected[o.value == self.value] { (o.label) } }
-                    }
-                } @else {
-                    (control)
-                }
-                @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                @if let Some(max) = self.maxlength {
-                    output id={ (id) "-count" } for=(id) class="lui-field-count" { (self.value.chars().count()) " / " (max) }
-                }
-                @if let Some(e) = self.error { (error_line(&format!("{id}-error"), e)) }
+            div class="lui-field" data-size=[size] data-variant=[variant] data-width=[width] {
+                label for=(id) { (self.label) (self.marks()) }
+                (control)
+                (tail)
+            }
+        }
+    }
+}
+
+impl Field<'_> {
+    /// A number field's bounds.
+    fn number_bounds(&self) -> (Option<f64>, Option<f64>) {
+        match self.kind {
+            FieldKind::Number { min, max } => (min, max),
+            _ => (None, None),
+        }
+    }
+
+    /// Two buttons posting the field's value one step down and up, before the control so
+    /// the pressed one's value is the first posted under the field's name (what
+    /// [`crate::Posted::get`] and [`Ui::param`] read); CSS shows them after it. The
+    /// enhancement script steps the field in place instead (`stepUp`/`stepDown`).
+    fn steppers(&self) -> Markup {
+        let (min, max) = self.number_bounds();
+        let step = self.extra.step.unwrap_or(1.0);
+        let base = min.unwrap_or(0.0);
+        let now: f64 = self.value.trim().parse().unwrap_or(base.max(0.0));
+        let at = |n: f64| {
+            let n = tidy(n, step, base);
+            let n = max.map_or(n, |m| n.min(m));
+            min.map_or(n, |m| n.max(m))
+        };
+        let (down, up) = (at(now - step).to_string(), at(now + step).to_string());
+        let off = self.disabled || self.readonly;
+        let button = |value: &str, label: Text, icon: Icon, stop: bool| {
+            let b = Button::new(self.caps, "")
+                .ghost()
+                .icon_only()
+                .name(self.name)
+                .value(value)
+                .formnovalidate()
+                .aria_label(self.strings.get(label))
+                .body(html! { (icon) });
+            let b = match self.extra.form {
+                Some(form) => b.form(form),
+                None => b,
+            };
+            if stop || off { b.disabled() } else { b }
+        };
+        html! {
+            span class="lui-input-steppers" data-lui="steppers" {
+                (button(&up, Text::Increment, Icon::ChevronUp, max.is_some_and(|m| now >= m)))
+                (button(&down, Text::Decrement, Icon::ChevronDown, min.is_some_and(|m| now <= m)))
             }
         }
     }
@@ -753,17 +1200,19 @@ impl Render for Field<'_> {
 /// [`RadioGroup::option`].
 ///
 /// **Setters.** Values and items: `.option(..)`, `.description(..)`, `.value(..)`, `.help(..)`,
-/// `.error(..)`; switches: `.required()`, `.cards()`.
+/// `.error(..)`; switches: `.required()`, `.cards()`, `.disabled()`.
 #[derive(Clone, Debug)]
 pub struct RadioGroup<'a> {
     name: &'a str,
     legend: &'a str,
-    options: Vec<(&'a str, &'a str, Option<&'a str>)>,
+    options: Vec<Pick<'a>>,
     cards: bool,
     value: &'a str,
     required: bool,
+    optional: bool,
     help: Option<&'a str>,
     error: Option<&'a str>,
+    strings: &'static Strings,
 }
 
 impl RadioGroup<'_> {
@@ -772,8 +1221,13 @@ impl RadioGroup<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("option", PropKind::Item, "value: &'a str, label: &'a str")
             .doc("One choice posting `value`, labelled `label`."),
-        Prop::new("description", PropKind::Value, "text: &'a str")
+        Prop::new("description", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["option"])
             .doc("A line under the choice added last, read out with it."),
+        Prop::new("disabled", PropKind::Modifier, "")
+            .applies_to(&["option"])
+            .attr("disabled")
+            .doc("The choice added last cannot be picked."),
         Prop::new("cards", PropKind::Switch, "")
             .doc("Each choice a selectable card, 1, 2 or 3 across by the container's width."),
         Prop::new("value", PropKind::Value, "value: &'a str")
@@ -798,24 +1252,58 @@ impl Ui {
             cards: false,
             value: "",
             required: false,
+            optional: false,
             help: None,
             error: None,
+            strings: self.strings,
         }
     }
 }
 
 impl<'a> RadioGroup<'a> {
+    /// A form's radio field drawn as a group.
+    pub(crate) fn of(f: &Field<'a>) -> Self {
+        RadioGroup {
+            name: f.name,
+            legend: f.label,
+            options: Vec::new(),
+            cards: f.extra.cards,
+            value: f.value,
+            required: f.required,
+            optional: f.optional,
+            help: f.help,
+            error: f.error,
+            strings: f.strings,
+        }
+    }
+
     /// One choice posting `value`, labelled `label`.
     pub fn option(mut self, value: &'a str, label: &'a str) -> Self {
-        self.options.push((value, label, None));
+        self.options.push(Choice { value, label }.into());
         self
     }
 
     /// A line under the choice added last, read out with it (`aria-describedby`); shown in
     /// both layouts, and what a card holds under its title.
     pub fn description(mut self, text: &'a str) -> Self {
+        debug_assert!(
+            !self.options.is_empty(),
+            "RadioGroup::description() applies to an option, but there is none yet"
+        );
         if let Some(o) = self.options.last_mut() {
-            o.2 = Some(text);
+            o.description = Some(text);
+        }
+        self
+    }
+
+    /// The choice added last cannot be picked: `disabled`, greyed.
+    pub fn disabled(mut self) -> Self {
+        debug_assert!(
+            !self.options.is_empty(),
+            "RadioGroup::disabled() applies to an option, but there is none yet"
+        );
+        if let Some(o) = self.options.last_mut() {
+            o.disabled = true;
         }
         self
     }
@@ -856,35 +1344,38 @@ impl<'a> RadioGroup<'a> {
 impl Render for RadioGroup<'_> {
     fn render(&self) -> Markup {
         let id = format!("f-{}", self.name);
-        let ids = [
+        let described = described_by(&[
             self.help.map(|_| format!("{id}-help")),
             self.error.map(|_| format!("{id}-error")),
-        ];
-        let described: Vec<&str> = ids.iter().flatten().map(String::as_str).collect();
-        let described = (!described.is_empty()).then(|| described.join(" "));
+        ]);
+        // The first choice that can be picked carries `required`, which covers the group.
+        let first = self.options.iter().position(|o| !o.disabled);
         html! {
             fieldset class={ "lui-field lui-radio-group" @if self.cards { " lui-radio-cards" } }
                 aria-describedby=[described.as_deref()] aria-invalid=[self.error.map(|_| "true")] {
-                legend { (self.legend) @if self.required { " " (REQUIRED) } }
+                legend {
+                    (self.legend) @if self.required { " " (REQUIRED) }
+                    @if self.optional && !self.required { " " span class="lui-field-optional" { (self.strings.get(Text::Optional)) } }
+                }
                 div class="lui-radio-group-options" {
-                    @for (i, (value, label, description)) in self.options.iter().enumerate() {
+                    @for (i, o) in self.options.iter().enumerate() {
                         @let oid = format!("{id}-{i}");
-                        @let did = description.map(|_| format!("{oid}-description"));
+                        @let did = o.description.map(|_| format!("{oid}-description"));
                         label for=(oid) class="lui-radio-group-option" {
-                            input id=(oid) type="radio" name=(self.name) value=(value)
-                                checked[*value == self.value] required[self.required && i == 0]
+                            input id=(oid) type="radio" name=(self.name) value=(o.value)
+                                checked[o.value == self.value] required[self.required && Some(i) == first]
+                                disabled[o.disabled] aria-disabled=[o.disabled.then_some("true")]
                                 aria-describedby=[did.as_deref()];
                             span class="lui-radio-group-text" {
-                                span class="lui-radio-group-title" { (label) }
-                                @if let (Some(d), Some(did)) = (description, &did) {
+                                span class="lui-radio-group-title" { (o.label) }
+                                @if let (Some(d), Some(did)) = (o.description, &did) {
                                     span id=(did) class="lui-radio-group-description" { (d) }
                                 }
                             }
                         }
                     }
                 }
-                @if let Some(h) = self.help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
-                @if let Some(e) = self.error { (error_line(&format!("{id}-error"), e)) }
+                (after(&id, self.help, None, self.error))
             }
         }
     }
@@ -893,7 +1384,7 @@ impl Render for RadioGroup<'_> {
 /// The visual mark of a required field. Hidden from screen readers, since the `required`
 /// attribute says it already; [`Text::RequiredHint`](crate::i18n::Text::RequiredHint)
 /// explains the star under a form.
-const REQUIRED: maud::PreEscaped<&str> =
+pub(crate) const REQUIRED: maud::PreEscaped<&str> =
     maud::PreEscaped(r#"<span class="lui-field-required" aria-hidden="true">*</span>"#);
 
 /// Styles for this component; included in [`crate::stylesheet`].
@@ -1036,14 +1527,172 @@ input.lui-switch::before {
 input.lui-switch:checked { background: var(--lui-primary); box-shadow: none; }
 input.lui-switch:checked::before { translate: calc(2.1875rem - 1.125rem - 2px) 0; }
 input.lui-switch:disabled { background: var(--lui-gray-4); }
+/* .optional(): a quiet note after the label. */
+.lui-field-optional { color: var(--lui-muted); font-weight: 400; }
+/* .width(..): a narrower control for a short value, never wider than its container. */
+.lui-field[data-width="1"] > :is(input, textarea, .lui-input-slots, .lui-input-group, .lui-select) { max-width: 8rem; }
+.lui-field[data-width="2"] > :is(input, textarea, .lui-input-slots, .lui-input-group, .lui-select) { max-width: 16rem; }
+.lui-field[data-width="3"] > :is(input, textarea, .lui-input-slots, .lui-input-group, .lui-select) { max-width: 24rem; }
+/* .prefix(..) / .suffix(..) / .addon_button(..): the Origin UI inputs with add-ons. One border
+   around the row; an addon is a --lui-gray-2 cell split from the field by a hairline, and a
+   button sits flush at the end. The steppers (a number field's) and the reveal button live
+   here too. The control inside drops its own border and takes the row's focus ring. */
+.lui-input-group {
+  display: flex; align-items: stretch; box-sizing: border-box; width: 100%; min-width: 0;
+  min-height: var(--lui-control-h); border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
+  font-size: 0.875rem; transition: border-color var(--lui-duration-fast);
+}
+.lui-input-group > :is(input, .lui-input-slots) { order: 3; flex: 1; min-width: 0; min-height: calc(var(--lui-control-h) - 2px); border: 0; border-radius: 0; background: transparent; }
+.lui-input-group > :is(input, .lui-input-slots):focus-visible { outline: none; }
+.lui-input-group:has(input:focus-visible) { border-color: var(--lui-ring); outline: 3px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); }
+.lui-input-group:has(input[aria-invalid=true]) { border-color: var(--lui-danger); }
+.lui-input-group:has(input:user-invalid) { border-color: var(--lui-danger); }
+.lui-input-group:has(input:disabled) { background: var(--lui-gray-2); border-color: var(--lui-gray-6); }
+.lui-input-group-prefix, .lui-input-group-suffix {
+  display: inline-flex; align-items: center; flex: none; padding-inline: 0.75rem; white-space: nowrap;
+  color: var(--lui-muted); background: var(--lui-gray-2);
+}
+.lui-input-group-prefix { order: 1; border-right: 1px solid var(--lui-input); border-radius: calc(var(--lui-radius-sm) - 1px) 0 0 calc(var(--lui-radius-sm) - 1px); }
+.lui-input-group-suffix { order: 5; border-left: 1px solid var(--lui-input); border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
+.lui-input-group-button { order: 6; display: flex; flex: none; border-left: 1px solid var(--lui-input); }
+.lui-input-group-button > .lui-button { min-height: 100%; border: 0; border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
+/* A number's steppers: Origin UI's chevrons stacked at the end. They come first in the
+   markup (the pressed one's value posts first) and show last. */
+.lui-input-steppers { order: 4; display: flex; flex-direction: column; flex: none; border-left: 1px solid var(--lui-input); }
+.lui-input-steppers > .lui-button { flex: 1; min-height: 0; height: auto; width: 1.75rem; padding: 0; border: 0; border-radius: 0; }
+.lui-input-steppers > .lui-button + .lui-button { border-top: 1px solid var(--lui-input); }
+.lui-input-steppers .lui-icon { width: 0.75rem; height: 0.75rem; }
+.lui-input-reveal { order: 6; display: flex; flex: none; }
+.lui-input-reveal[hidden] { display: none; }
+.lui-input-reveal > .lui-button { min-height: 100%; border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
 /* Touch: a whole row (label and control) is at least 44px tall. */
-@media (pointer: coarse) { .lui-field-check label, .lui-radio-group-option { min-height: var(--lui-hit); } }
+@media (pointer: coarse) {
+  .lui-field-check label, .lui-radio-group-option { min-height: var(--lui-hit); }
+  .lui-input-group { min-height: var(--lui-hit); }
+  .lui-input-steppers { flex-direction: row; }
+  .lui-input-steppers > .lui-button { width: var(--lui-hit); }
+  .lui-input-steppers > .lui-button + .lui-button { border-top: 0; border-left: 1px solid var(--lui-input); }
+}
 "#;
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
+    /// Every id an `aria-describedby` names is the id of an element in `html`.
+    pub(crate) fn assert_described_ids_exist(html: &str) {
+        for part in html.split("aria-describedby=\"").skip(1) {
+            let ids = &part[..part.find('"').unwrap()];
+            for id in ids.split(' ') {
+                assert!(
+                    html.contains(&format!("id=\"{id}\"")),
+                    "aria-describedby names `{id}`, which is not in: {html}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_hidden_label_keeps_what_describes_the_control() {
+        let ui = Ui::default();
+        let fields = [
+            ui.input("q", "Search").hide_label().help("Words.").error("Too short.").maxlength(9),
+            ui.input("q", "Search").hide_label().leading("in:").prefix("$").suffix("kg"),
+            ui.input("bio", "Bio").textarea(2).hide_label().help("Short."),
+            ui.input("n", "N").number(0, 9).steppers().hide_label().error("No."),
+        ];
+        for f in fields {
+            let html = f.render().into_string();
+            assert!(!html.contains("<label"), "{html}");
+            assert_described_ids_exist(&html);
+        }
+        let s = ui.select("s", "Sort").options([("a", "A")]).hide_label().help("h").error("e");
+        let html = s.render().into_string();
+        assert!(html.contains(r#"aria-label="Sort""#) && !html.contains("<label"));
+        assert_described_ids_exist(&html);
+    }
+
+    #[test]
+    fn multiple_before_file_keeps_the_flag() {
+        let ui = Ui::default();
+        let html = ui.input("cv", "CV").multiple().file(".pdf").render().into_string();
+        assert!(html.contains(r#"accept=".pdf" multiple"#), "{html}");
+        let text = ui.input("t", "T").multiple().render().into_string();
+        assert!(!text.contains("multiple"), "only a file picker takes several");
+    }
+
+    #[test]
+    fn textarea_and_select_honour_the_control_attributes() {
+        let ui = Ui::default();
+        let t = ui
+            .input("bio", "Bio")
+            .textarea(3)
+            .autocomplete("off")
+            .form("other")
+            .inputmode("text")
+            .autofocus()
+            .class("x")
+            .render()
+            .into_string();
+        for a in [r#"autocomplete="off""#, r#"form="other""#, r#"inputmode="text""#, "autofocus", r#"class="x""#] {
+            assert!(t.contains(a), "{a} in {t}");
+        }
+        let s = ui
+            .fields()
+            .select("plan", "Plan", ["a", "b"])
+            .autocomplete("off")
+            .render()
+            .into_string();
+        assert!(s.contains(r#"autocomplete="off""#), "{s}");
+    }
+
+    #[test]
+    fn disabled_and_readonly_controls() {
+        let ui = Ui::default();
+        let d = ui.input("a", "A").disabled().render().into_string();
+        assert!(d.contains(r#"disabled aria-disabled="true""#), "{d}");
+        let r = ui.input("a", "A").value("x").readonly().render().into_string();
+        assert!(r.contains("readonly") && !r.contains("disabled"), "{r}");
+        let c = ui.checkbox("ok", "OK").checked(true).readonly().render().into_string();
+        assert!(c.contains("disabled") && c.contains(r#"<input type="hidden" name="ok" value="true">"#), "{c}");
+        let s = ui.select("s", "S").options([("a", "A")]).value("a").readonly().render().into_string();
+        assert!(s.contains("disabled") && s.contains(r#"<input type="hidden" name="s" value="a">"#), "{s}");
+    }
+
+    #[test]
+    fn numbers_take_any_bound_and_drop_a_trailing_zero() {
+        let ui = Ui::default();
+        let n = ui.input("w", "Weight").number(0.5, None::<f64>).step(0.5).render().into_string();
+        assert!(n.contains(r#"min="0.5" step="0.5""#) && !n.contains("max="), "{n}");
+        let n = ui.input("n", "N").number(1, 10).render().into_string();
+        assert!(n.contains(r#"min="1" max="10""#), "{n}");
+        assert_eq!(tidy(0.1 + 0.2, 0.1, 0.0), 0.3);
+    }
+
+    #[test]
+    fn new_kinds_and_marks() {
+        let ui = Ui::default();
+        for (f, t) in [
+            (ui.input("p", "Phone").tel(), "tel"),
+            (ui.input("u", "Site").url(), "url"),
+            (ui.input("m", "Month").month("2026-01", ""), "month"),
+            (ui.input("w", "Week").week("", "2026-W52"), "week"),
+        ] {
+            assert!(f.render().into_string().contains(&format!(r#"type="{t}""#)));
+        }
+        let o = ui.input("nick", "Nickname").optional().render().into_string();
+        assert!(o.contains(r#"<span class="lui-field-optional">(optional)</span>"#), "{o}");
+    }
+
+    #[test]
+    fn addons_and_the_reveal_button() {
+        let ui = Ui::default();
+        let a = ui.input("price", "Price").prefix("$").suffix("USD").render().into_string();
+        assert!(a.contains(r#"<div class="lui-input-group"><span id="f-price-prefix" class="lui-input-group-prefix">$</span>"#), "{a}");
+        assert_described_ids_exist(&a);
+        let p = ui.input("pw", "Password").password().reveal().render().into_string();
+        assert!(p.contains(r#"class="lui-input-reveal" data-lui="reveal" hidden"#), "{p}");
+    }
     #[test]
     fn passwords_and_files_are_never_echoed() {
         let ui = Ui::default();

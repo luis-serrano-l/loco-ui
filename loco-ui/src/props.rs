@@ -79,6 +79,10 @@ pub struct Prop {
     pub attr: &'static str,
     /// The first sentence of the setter's documentation.
     pub doc: &'static str,
+    /// For a [`PropKind::Modifier`], the kinds of item it changes (`["field"]`); empty for
+    /// every other kind. A modifier called after an item it does not apply to fails a
+    /// `debug_assert!` naming the builder, the method and the item it found.
+    pub applies_to: &'static [&'static str],
 }
 
 impl Prop {
@@ -95,7 +99,14 @@ impl Prop {
             default,
             attr: "",
             doc: "",
+            applies_to: &[],
         }
+    }
+
+    /// The kinds of item a modifier changes (`&["field"]`).
+    pub const fn applies_to(mut self, kinds: &'static [&'static str]) -> Self {
+        self.applies_to = kinds;
+        self
     }
 
     /// The value when the setter is not called.

@@ -822,6 +822,55 @@ pub fn landing<'a>(ui: &'a crate::Ui, home: &'a str) -> &'a str {
         .unwrap_or(home)
 }
 
+/// The router with a form's `_method` honoured: a urlencoded POST whose `_method` field is
+/// `put`, `patch` or `delete` (what [`crate::form::Form::method_override`] adds) reaches the
+/// route for that method. HTML forms send only GET and POST; Rails and Laravel read the same
+/// field. The rewrite happens before routing (the router is wrapped, not layered), so
+/// `.route("/notes/{id}", delete(destroy))` answers the form. A multipart post keeps POST.
+///
+/// ```rust
+/// # use axum::{Router, routing::delete};
+/// let app: Router = loco_ui::loco::method_override(Router::new().route("/notes/1", delete(|| async { "gone" })));
+/// ```
+pub fn method_override(router: Router) -> Router {
+    // The outer router sends everything to its fallback, so its layer runs before the inner
+    // router picks a route.
+    Router::new()
+        .fallback_service(router)
+        .layer(axum::middleware::from_fn(override_method))
+}
+
+
+/// [`method_override`]'s middleware: read the body of a urlencoded POST, take its `_method`,
+/// and pass the same body on.
+async fn override_method(req: Request, next: axum::middleware::Next) -> axum::response::Response {
+    use axum::http::{Method, header::CONTENT_TYPE};
+    use axum::response::IntoResponse;
+    let urlencoded = req
+        .headers()
+        .get(CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|v| v.starts_with("application/x-www-form-urlencoded"));
+    if req.method() != Method::POST || !urlencoded {
+        return next.run(req).await;
+    }
+    let (mut parts, body) = req.into_parts();
+    let Ok(bytes) = axum::body::to_bytes(body, 2 * 1024 * 1024).await else {
+        return axum::http::StatusCode::PAYLOAD_TOO_LARGE.into_response();
+    };
+    let wanted = form_urlencoded::parse(&bytes)
+        .find(|(k, _)| k == "_method")
+        .map(|(_, v)| v.to_ascii_uppercase());
+    match wanted.as_deref() {
+        Some("PUT") => parts.method = Method::PUT,
+        Some("PATCH") => parts.method = Method::PATCH,
+        Some("DELETE") => parts.method = Method::DELETE,
+        _ => {}
+    }
+    next.run(Request::from_parts(parts, axum::body::Body::from(bytes)))
+        .await
+}
+
 /// What [`Initializer`] does, for a test or an app that builds its router by hand.
 pub fn mount(router: Router) -> Router {
     router
@@ -848,7 +897,30 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_result_of_page_answers_with_the_page_or_locos_error() {
+    async fn a_method_field_reaches_the_route_for_its_method() {
+        use axum::routing::post;
+        let app = method_override(Router::new().route(
+            "/n",
+            post(|| async { "post" }).delete(|| async { "delete" }),
+        ));
+        for (body, want) in [
+            ("_method=delete&x=1", "delete"),
+            ("x=1", "post"),
+            ("_method=get", "post"),
+        ] {
+            let req = Request::post("/n")
+                .header("content-type", "application/x-www-form-urlencoded")
+                .body(Body::from(body))
+                .unwrap();
+            let res = app.clone().oneshot(req).await.unwrap();
+            let got = axum::body::to_bytes(res.into_body(), 1024).await.unwrap();
+            assert_eq!(got, want, "{body}");
+        }
+    }
+
+    #[tokio::test]
+    async fn a_result_of_page_answers
+_with_the_page_or_locos_error() {
         let app = Router::new().route("/notes/{id}", get(show));
         for (path, status) in [("/notes/1", 200), ("/notes/0", 404)] {
             let req = Request::get(path).body(Body::empty()).unwrap();
