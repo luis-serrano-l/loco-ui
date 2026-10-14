@@ -2239,3 +2239,584 @@ Decisions, asked and answered on 2026-09-28:
   Done: this entry, CHANGELOG, FINDINGS (Blitz paints a `position: relative; z-index`
   element at the page origin), the app's README and CLAUDE.md.
 
+
+## M37 to M46 · The top-tier push
+Planned on 2026-10-14 from three audits (library API, DX and tooling, a survey of
+shadcn/ui, Radix Themes, Mantine, Base UI, templUI and Flux). The owner decided the same day:
+break the API freely (unpublished; the first publish is 0.2.0), build `cargo lui add`, and
+spend effort on all four areas (API, CSS, components, docs and tooling). Milestones run in
+parallel worktrees and merge in the order M37, M38, M41, M45, M40a-d, M39, M42, M46, M43,
+M44. Shared lists (`lib.rs`, `props::COMPONENTS`, `SPECS`, `PATHS`, `SOURCES`, the index
+`COMPONENTS`, `Text`) are append-only; `layout.rs` belongs to M39 and `table.rs` to M41.
+
+## M37 · Ready for docs.rs and crates.io (small, first, blocks nothing)
+
+Goal: the publish, when the owner says yes, works the first time.
+
+- [ ] Replace `#![cfg_attr(docsrs, feature(doc_auto_cfg))]` with
+  `#![cfg_attr(docsrs, feature(doc_cfg))]` in `loco-ui/src/lib.rs:50` and
+  `loco-ui-caps/src/lib.rs:50` (nightly 1.92 merged `doc_auto_cfg` into `doc_cfg`; auto
+  cfg annotations are on by default under `doc_cfg` now). Add a CI job `docsrs` that runs
+  `RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --no-deps --all-features -p loco-ui -p loco-ui-caps`.
+- [ ] `rust-version = "1.88"` in all three published manifests (let-chains at
+  `demo/src/site.rs:495`; verify with `cargo msrv find` or `cargo +1.88 check --workspace`),
+  and an `msrv` CI job on that toolchain.
+- [ ] `#![forbid(unsafe_code)]` and `#![deny(rustdoc::broken_intra_doc_links)]` in the
+  three crates. Fix the 10 default-feature rustdoc warnings: links to feature-gated items
+  (`crate::Saved` at `ui.rs:32`, `wizard.rs:221`; `Look::layer` `ui.rs:130`;
+  `crate::enhance::csp` `ui.rs:301`; stream header) become plain code spans with the
+  feature named, or `#[cfg_attr(feature = "axum", doc = "[`Saved`](crate::Saved)")]`.
+  Verify: `cargo doc --no-deps -p loco-ui` clean with no features, with `axum`, with `loco`.
+- [ ] Manifests: `homepage` (Pages URL), `documentation` (docs.rs), `include`/`exclude`
+  so each crate packages its own `LICENSE` (copy to each crate dir, or `license-file`),
+  `loco-ui-macros` gets a short `README.md` of its own instead of `../README.md`.
+  `cargo package -p loco-ui-caps -p loco-ui-macros -p loco-ui --allow-dirty` in CI
+  (`publish-dry-run` job; `loco-ui` needs the path deps to have `version`, already set).
+- [ ] `cargo-deny` (`deny.toml`: licenses allow-list, advisories) and `cargo semver-checks`
+  as CI jobs (semver one `continue-on-error` until 0.2 is tagged).
+- [ ] `.github/`: `CONTRIBUTING.md` (the nine conventions in short, `scripts/verify.sh`,
+  how to add a component — points at the new skill, M44), `SECURITY.md`,
+  `ISSUE_TEMPLATE/{bug,component}.md`, `PULL_REQUEST_TEMPLATE.md`, `dependabot.yml`
+  (cargo + npm in `scripts/`, monthly).
+- [ ] README head: badges (crates.io, docs.rs, CI, MSRV, license) under the title; an
+  `## Install` heading right after the first paragraph with three tabs' worth of text
+  (Axum, Loco, any server); note that `cargo add loco-ui` works only after the publish and
+  show the git form until then. Fix the stale `pages.yml` mention at `README.md:524` and
+  `BLOCKED.md:37`.
+- [ ] CHANGELOG: rewrite `[0.1.0]` as "unpublished prototype" and move every Unreleased
+  item into `[0.2.0] - unreleased`, since the API described under 0.1.0 no longer exists.
+  Decision recorded: first publish is 0.2.0.
+
+Key files: both `lib.rs:50`, three `Cargo.toml`, `.github/workflows/rust.yml`, README,
+CHANGELOG. Verify: new CI jobs green locally (`cargo +nightly doc` with the flag,
+`cargo package`), `scripts/verify.sh`. Parallel: yes with everything (touches only
+lib.rs line 50 and manifests).
+
+
+
+## M38 · One variant system: typed Size, Tone, Variant, Radius; loud modifier misfires
+
+Goal: every builder speaks the same vocabulary, typed, listable in `PROPS`, and a wrong
+call fails in a test instead of silently rendering.
+
+Decisions (to confirm with the owner, defaults chosen):
+- **Enums, not typestate.** `enum Size { S1, S2, S3 }` (`Size::ONE`.. with `From<u8>`
+  saturating), `enum Tone { Neutral, Brand, Ok, Warn, Danger, Info }`,
+  `enum Variant { Solid, Soft, Surface, Outline, Ghost }`, `enum Radius { None, Small,
+  Medium, Large, Full }` in a new `loco-ui/src/variant.rs`, re-exported from the prelude.
+  The switch setters stay as sugar (`.primary()` = `.tone(Tone::Brand).variant(Solid)`,
+  `.danger()` = `.tone(Danger)`, `.ghost()` = `.variant(Ghost)`), so tone and variant
+  compose: `Button("Delete") danger ghost` works. In `lui!` an enum prop is written
+  `size=2`, `tone="danger"` or `tone=(Tone::Danger)`: the macro passes a literal int
+  through `From<u8>`, a string literal through `FromStr` at compile time (macro change:
+  a `PropKind::Choice` with its variant list).
+- **Modifier misfires: runtime `debug_assert!` plus a test, not typestate.** Typestate
+  (`Form<HasField>`) would make `lui!` expansion and the `let mut k = ..` loop pattern
+  impossible and double every builder type. Instead each adder records `last: Last::{None,
+  Field, Group, Separator, Column, Keep, ..}` and each modifier `debug_assert!`s the kinds
+  it applies to, naming the builder and the method; release builds keep today's silent
+  behaviour. `Prop` gets `applies_to: &'static [&'static str]` so the props table and the
+  spec say it, and `props_follow_the_conventions` checks that every Modifier lists at
+  least one item kind.
+
+- [ ] `variant.rs` with the four enums, `Display` (the class suffix), `FromStr`, `From<u8>`
+  for `Size`, and `PropKind::Choice { of: &'static [&'static str] }` in `props.rs`;
+  `spec write` emits the choices; the demo props table shows them as a `<select>` in the
+  playground (`demo/src/playground.rs` already turns props into a form).
+- [ ] Button, LinkButton, Badge, Alert, Avatar, Dialog, Card, Tabs, Input, Select,
+  ToggleGroup, Progress, Flash, Toast, Stat: `.size(Size)`, `.tone(Tone)`,
+  `.variant(Variant)`, `.radius(Radius)` where the reference library has them (Radix
+  Themes: Button/Badge/Card/TextField/Select/Tabs/Dialog/Callout/Avatar/Progress). CSS:
+  one `[data-size]`/`[data-tone]`/`[data-variant]`/`[data-radius]` contract **in addition
+  to** the classes, written in the component's own CSS from tokens (M39 provides
+  `--lui-size-{1,2,3}-h`, `--lui-radius-{none,1,2,3,full}`, `--lui-info-*`). Until M39
+  merges, use the existing tokens and literal rems, then rebase.
+  Deprecated numeric `.size(u8)` keeps working through `From<u8>`.
+- [ ] `data-state` contract: open/closed, checked, selected, disabled, invalid, busy,
+  current, sorted as `data-state` / `data-disabled` / `data-invalid` on the root and the
+  part they describe (Radix/Base UI convention); documented in `docs/api.md` as the
+  styling API an app may rely on; a test greps each component's CSS for the attribute it
+  sets so class and attribute never drift.
+- [ ] Controls: `.disabled()` and `.readonly()` on Input/Field, Select, Combobox, Range,
+  Color, Counter, DatePicker, ToggleGroup option, RadioGroup option, SelectOption; a
+  disabled form field renders `disabled` plus `aria-disabled`, and `Form` skips its value
+  on `values()` only when readonly (a readonly value still posts). `Input::number(min,
+  max)` takes `impl Into<Option<f64>>` for each bound and `step(f64)`; Range/Meter/Counter
+  values become `f64` with `{}` formatting that drops `.0`. Add `tel`, `url`, `month`,
+  `week` kinds, `.autocomplete` per Form adder, `.optional()` marker (text "optional" via
+  `Text::Optional`).
+- [ ] Fix `Input::hide_label` (`input.rs:678-682`): render help/count/error after the
+  bare control (visually-hidden label only), so `aria-describedby` points at real
+  elements; a unit test asserts every id in `aria-describedby` exists in the output.
+  Fix `.multiple()` then `.file()` losing `multiple` (`input.rs:393-421`): `file` keeps the
+  flag. Textarea and select honour `autocomplete`, `form`, `inputmode`, `autofocus`,
+  `class` (`input.rs:686-692`).
+- [ ] Ids: `slug()` keeps Unicode letters and digits (`char::is_alphanumeric`), lowercases
+  with `to_lowercase`, strips combining marks is out of scope; derived ids for Dialog,
+  Menu, Drawer, Tooltip, Palette get a `lui-` prefix (**Breaking** for deep links
+  `?dialog=confirm`: `UiState` reads both for one release); a form control's id is
+  `f-<slug(name)>` so `user[email]` is `f-user-email`. Test: `slug("Configuración") ==
+  "configuración"`, two CJK labels differ.
+- [ ] Modifier misfires loud: `Last` enum on Form, Menu, ContextMenu, Table, Kanban,
+  Sortable, Palette, Sidebar, AppShell, Tabs, Accordion; `debug_assert!` with the message
+  `Form::required() applies to a field, but the last item was a group`; a `#[should_panic]`
+  test per builder in debug. `Form::group("x").required()` and
+  `Table::column(..).keep(..).numeric()` are the pinned cases.
+- [ ] Shared vocabulary cleanups: `ui.badge(impl Display)`; `id: &'a str` everywhere
+  (Dialog, Drawer, Menu lose their `to_string`); Calendar `today/min/max/value: &'a str`;
+  `Button::style` stays `Into<String>` but every other text setter becomes
+  `impl Into<Cow<'a, str>>` **only if** a 30-minute spike shows `lui!` and `PROPS` arg
+  strings survive it; otherwise record the decision in `docs/api.md` and keep `&'a str`.
+  Add `Button::large()`, `.leading(Glyph)`/`.trailing(Glyph)`, `.block()`; `Glyph::Svg(Markup)`
+  so an app's icon set works everywhere `.icon(..)` is accepted.
+- [ ] Dialog, Menu, Tooltip, Drawer accept a styled trigger: `.trigger(Button)` (takes the
+  builder, forces `command`/`popovertarget`) and `.no_trigger()` for a dialog opened by a
+  link elsewhere. Dialog root gets the `lui-dialog` class (convention 4).
+- [ ] Remove the ~25 `#[deprecated]` shims and the bare `q/sort/dir/page/cols` table keys
+  (unpublished crate; **Breaking**, listed in CHANGELOG), and the legacy
+  `TableOptions`/`table_with` path (`table.rs:658-728`) once M41 lands or in M41.
+- [ ] Docs: `docs/api.md` "Variants" section with the four enums and a table of which
+  builder takes which; `docs/ergonomics.md` trimmed to the current API (move the M17 history
+  under a `<details>` or delete it); demo `/button`, `/badge`, `/alert`, `/inputs` snippets
+  show tone+variant composition; README matrix regenerated.
+
+Key files: new `variant.rs`, `props.rs`, `loco-ui-macros/src/lib.rs` (Choice literal),
+every builder listed, `input.rs`, `lib.rs` (`slug`, tests), `docs/api.md`.
+Verify: `cargo test --workspace`, `props_follow_the_conventions`, the new
+describedby test, `scripts/verify.sh`, `scripts/look.sh --only button --only inputs`
+(look, then `rm -rf target/look`).
+Parallel: **merge order 2** (right after M37). It touches most builder files, so M40's
+new components should be written against the enums from the start (M40 agents read
+`variant.rs` from this branch; cherry-pick the first box's commit into their worktrees).
+Conflicts with M41 (table.rs) and M42 (input.rs is not in M42; fine).
+
+
+
+## M39 · CSS that an app can own: layers, light-dark, tokens, subsets, modes
+
+Goal: the stylesheet behaves like a library's (overridable, cacheable, partial) and the
+theme covers type, motion, depth, density, RTL and forced colours.
+
+- [ ] `@layer lui.reset, lui.tokens, lui.components, lui.blocks;` wrapping the four parts
+  of `stylesheet()` (`lib.rs:234-245`); app CSS (`Look.css`) is emitted unlayered after
+  it, so it always wins. `minify_css` keeps `@layer` intact (test). Document in
+  `docs/theming.md`: "your CSS wins without `!important`".
+- [ ] `light-dark()`: `Tokens::css()` emits `color-scheme: light dark` and one
+  `--lui-x: light-dark(<light>, <dark>)` per role instead of a duplicated dark block;
+  `data-theme="light|dark"` sets `color-scheme` only. Baseline 2024, so unconditional;
+  the `Cap::LightDark` beacon is not needed (FINDINGS note). Size test: stylesheet shrinks
+  (assert the budget, record before/after in FINDINGS).
+- [ ] Move demo-only CSS out: `.lui-site*`, `.lui-props*`, `.lui-index*`, `.lui-snippet`,
+  `.lui-hl-*`, `.lui-theme-builder`, `.lui-layout-tile` (`layout.rs:709-837`) into
+  `demo/src/site.rs` as `pub const CSS`, applied through `Look.css`. The default header
+  text (`layout.rs:601-608`) becomes `Page::header` with no default header at all (the
+  demo sets its own). Global bare-element rules (`main`, `p`, `li`, `h1-h3`, `a`, `code`,
+  `table` at `layout.rs:652-702`, bare `button` at `button.rs:609`) move under
+  `.lui-prose` (M40's Prose component) or into the `lui.reset` layer as a minimal
+  normalisation. **Breaking** (apps that relied on styled bare `<table>`); test:
+  `stylesheet()` contains no `.lui-site`.
+- [ ] Tokens that exist: `Tokens` gains `font: Fonts { sans, mono, serif }`,
+  `type_scale` (`--lui-text-1..9` Radix ramp), `size` (`--lui-size-1..3` control heights),
+  `radius` becomes a `Radius` ramp (`--lui-radius-{none,1,2,3,full}` with a factor),
+  `shadow: Depth` (the `DEPTH_*` consts become fields), `motion: Motion { fast, base,
+  slow, ease }`, `z: ZIndex { sticky, drawer, dialog, popover, toast, tooltip }`,
+  `density: Density { Compact, Comfortable }` (scales `--lui-space-*` and control heights
+  by 0.85/1). The 142 literal `font-size`s become `var(--lui-text-n)`; the z-index
+  literals become tokens; a `no_literal_font_size_or_z_outside_tokens` test joins
+  `no_colour_literal_outside_tokens`. `--lui-info-*` role joins the palette (M38 needs it).
+- [ ] `Tokens` owns `Cow<'static, str>` for every value so a per-tenant palette from a
+  database is a `Tokens` value, not a leak; `Tokens::DEFAULT` stays `const` via `Cow::Borrowed`.
+  `Look` keeps `&'static` (it is an app-level static) but gains `Look::with_tokens(Tokens)`
+  for the per-request case via `Ui::tokens(..)`.
+- [ ] Per-page subset and cacheable sheet: `stylesheet_for(&[Component::Button, ..])`
+  (a `Component` enum generated from `COMPONENT_CSS` order) and `Page::subset()` that
+  records which builders rendered (each `Render` impl marks a thread-local or a `Cell` in
+  `Ui`; pick the `Cell<u64>` bitset on `Ui` since builders hold `&Ui`), emitting only
+  their CSS plus layout. Plus `/lui.css` route (axum feature; `loco::Initializer` mounts
+  it) serving the full sheet with `ETag` + `immutable` and `Page::linked_stylesheet()`
+  switching the inline `<style>` to a `<link>`; `enhance::csp` then drops
+  `'unsafe-inline'` for `style-src` and offers `csp_hash()` (sha256 of the inline sheet)
+  for the inline mode. Bench: `cargo bench -p loco-ui` stylesheet/layout before and after,
+  recorded in FINDINGS (the `bench` skill).
+- [ ] Modes: `@media (forced-colors: active)` rules for checkbox, radio, switch, range
+  thumb, progress, badge borders (everything drawn with `appearance: none`);
+  `@media (prefers-contrast: more)` thickens borders and focus rings;
+  `@media print` hides drawer, toasts, sidebar nav, palette, and unsticks the table
+  header; a demo page `/modes` shows the component stage under each via `?forced=1`
+  (emulated by a class, since media cannot be forced server-side) and `look.sh --tag modes`
+  screenshots it.
+- [ ] RTL: every physical `left/right/margin-left/padding-right/text-align: left/border-left`
+  (≈53) becomes its logical twin; `Strings` gets `dir()`; `<html dir>` set from it;
+  a `dir="rtl"` demo (`?dir=rtl` query handled by `Ui`, or an Arabic strings table in the
+  demo with three strings translated) and a Blitz shot; a test greps component CSS for
+  physical properties (allow-list: `translate`, transforms, `inset` shorthand).
+- [ ] Skip link: `layout::page` emits `<a class="lui-skip" href="#main">Skip to content</a>`
+  (`Text::SkipToContent`) as the first child of `<body>`, visible on focus; `<main id="main"
+  tabindex="-1">`; AppShell gets the same. The enhancement script, after a swap, moves
+  focus to the swapped root (or `h1`) and announces `document.title` through a
+  `role=status` live region it owns (`enhance.rs:135-156`); `browser-check.mjs` asserts
+  the announcement.
+- [ ] `docs/theming.md` rewritten around the new `Tokens` (every field, every `--lui-*`),
+  `/theme` builder edits density, radius ramp and fonts and shows the live tokens table
+  with swatches; CHANGELOG, FINDINGS (size table), README "What a page weighs" updated.
+
+Key files: `layout.rs` (owned), `lib.rs` `stylesheet*`, `enhance.rs` (csp + focus),
+`ui.rs` (`Page` setters), every component's `CSS` const (mechanical token replacement).
+Verify: `cargo test --workspace`, `stylesheet_stays_under_its_budget`, new lint tests,
+`node scripts/browser-check.mjs` (axe both themes, 320px), `scripts/look.sh` (every page,
+both themes; delete after), `cargo bench -p loco-ui` numbers in FINDINGS.
+Parallel: yes, but the mechanical `font-size`/physical-property replacement across every
+`CSS` const conflicts with every other branch's CSS edits. Mitigation: M39 does the
+mechanical sweep LAST, as a single commit right before its merge, after M38 and M40 are
+merged; everything before that stays in `layout.rs`, `lib.rs`, `ui.rs`, `enhance.rs`.
+
+
+
+## M40 · The missing HTML/CSS-only components (4 parallel agents by group)
+
+Goal: close the catalogue gaps that need no script, each by the nine conventions, each
+copying one named reference (Radix Themes by default), each with `PROPS`, `lui!` twin,
+spec entry, demo route + `PATHS` + `SOURCES` marker + `site.rs` `COMPONENTS` entry,
+i18n keys, container queries, Blitz shot, README matrix.
+
+Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` line, one
+`props::COMPONENTS` entry, one `SPECS` entry. Agents append at the end of each list.
+
+**M40a · Typography and layout** (demo group `primitives.rs`)
+- [ ] `ui.heading(text)`: `size(Size1..9)`, `.as_h(1..6)`, `.weight()`, `.trim()`
+  (Radix Heading). `ui.text(text)`: size, weight, `.muted()`, `.as_p()/.as_span()`,
+  `.truncate()`, `.color(Tone)`. `ui.link(text, href)`: `.external()` (rel + icon),
+  `.muted()`, `.underline(Always|Hover|None)`. `ui.kbd("⌘K")`, `ui.code("x")` (inline),
+  `ui.code_block(text).lang("rust")`: plain `<pre><code>` (the library stays
+  dependency-free; the demo keeps syntect), `.copy()` renders a `data-lui="copy"` button
+  that only enhance.rs shows and wires, absent without script: "Fallback: select
+  the text"). `ui.blockquote(markup).cite(..)`. `ui.prose(markup)`: the former global
+  element styles, scoped (M39 moves them; coordinate: M40a creates `.lui-prose` CSS, M39
+  deletes the globals).
+- [ ] `ui.container(markup).size(1..4)`, `ui.section(markup)`, `ui.inset(markup)`,
+  `ui.aspect_ratio(markup).ratio(16, 9)`, `ui.scroll_area(markup).height(..)` (CSS
+  `overflow: auto` + `scrollbar-gutter`, `scroll-state()` sticky shadow where supported),
+  `ui.center(markup)`, `ui.spacer()`. Stack/Cluster gain `.align()`, `.justify()`,
+  `.wrap()`, `.padding()`.
+- [ ] `ui.spinner().size().label(..)` (extracted from Button's spinner, Button reuses it),
+  `ui.indicator(count|dot)` (notification badge on a wrapped child).
+
+**M40b · Navigation** (demo group `navigation.rs`)
+- [ ] `ui.pagination(href)`: numbered pages with ellipsis, prev/next, `.page()` read from
+  `?page=` (or `<id>.page`), `.total(n)`, `.per_page()`, `.window(2)`, `aria-current`;
+  `Table.paged` and `paged_table.rs` reuse it (delete their own numbering). `rel=prev/next`
+  links in `<head>` via `Page::link_rel`.
+- [ ] `ui.steps(..)`: standalone stepper (`.step(label)`, `.done()`, `.current()`,
+  `.optional()`, `.vertical()`); Wizard renders its progress through it.
+- [ ] `ui.timeline()`: `.event(title).when(..).description(..).icon(..).tone(..)`,
+  `<ol>`, line via `::before`, container query to two-column from 30rem (Flowbite Timeline).
+- [ ] `ui.tree()`: nested `<details>`/`<summary>` with `.node(label).link(href)` adders and
+  nesting via a closure or `lui!` block; `?open=` state through `UiState` like accordion;
+  current node `aria-current`; indentation via `--lui-tree-depth`.
+- [ ] `ui.collapsible(trigger, body)`: single `<details>` with the button look and
+  `::details-content` animation under `@supports`; `ui.hover_card(trigger, body)`:
+  `interestfor` + `popover=hint` behind a new `Cap::InterestInvokers` beacon
+  (`loco-ui-caps`: `@supports selector(:interest-source)`), fallback: the same popover
+  opened by click via `popovertarget`. Doc the fallback.
+- [ ] Sidebar/NavMenu/AppShell: `.current_prefix()` so `/projects/42` marks `/projects`
+  (`sidebar.rs:114`, `nav_menu.rs:143`); Breadcrumbs `.max(n)` and `.separator(Glyph)`.
+
+**M40c · Inputs** (demo group `input.rs`)
+- [ ] `ui.checkbox_group(name, legend)`: `.option(value, label).description().disabled()`,
+  `.cards()`, `.value(&[..])`, error/help, posts `name[]`; Form adder `.checkboxes(..)`.
+- [ ] Password reveal: `Input::password().reveal()` renders a `data-lui="reveal"` button
+  with the `hidden` attribute; enhance.rs unhides it and toggles the input's `type`. An
+  input type cannot change without script, so the no-script page is the same field
+  without the button (same pattern as the copy button). Document in the header.
+- [ ] `ui.number(name, label)`: `<input type=number>` with `.min/.max/.step(f64)`,
+  `.prefix("$")`/`.suffix("kg")` addons (`.lui-input-group`), `.steppers()` rendering two
+  buttons that post `name=value±step` through a `formaction` (no script; works) and are
+  upgraded by enhance.rs to `stepUp()/stepDown()` in place. Counter becomes a thin wrapper.
+- [ ] `ui.search(name, label)`: `<search>` landmark, clear via a plain `href` link
+  without the param, `.results_id()` for `aria-controls`.
+- [ ] Input group addons for every Input: `.prefix(Glyph|text)`, `.suffix(..)`,
+  `.addon_button(Button)`; Select gains `required`, `help`, `disabled`, `multiple`,
+  `.placeholder("Choose…")`, `.hide_label()`, disabled options; `FieldKind::Select` in
+  `input.rs` delegates to `select.rs` (one implementation, **Breaking** only internally).
+- [ ] `ui.rating(name, label).max(5).value(3)`: radios + CSS stars (Origin UI), `.readonly()`.
+- [ ] `ui.tag_input(name, label)`: chips from `.tags(&[..])` with remove links and an add
+  form, posting `tags[]`; Combobox `.multiple()` reuses its chip CSS.
+- [ ] DatePicker `.range()` (two names, one calendar), Calendar `.weeks()` numbers,
+  `disabled_dates` takes `&'a dyn Fn(Date) -> bool` (captures allowed), `Date::today`
+  takes `Ui::today()` which the app may set (`Ui::with_today(date)`), UTC default.
+- [ ] Form: adders `radio`, `checkboxes`, `search`, `url`, `tel`, `color`, `range`,
+  `number`; `.action_secondary("Cancel", href)`, `.method_override("delete")`
+  (hidden `_method`, Loco/Axum reads it via a small layer in `loco.rs`), per-field
+  `.autocomplete()`, `.disabled()`, `.readonly()`, `.width(Size)`.
+
+**M40d · Feedback and overlays** (demo groups `feedback.rs`, `overlays.rs`)
+- [ ] `ui.banner(text)`: full-width top bar, `.tone()`, `.link(..)`, `.dismiss()` via a
+  cookie-backed form (`lui-dismiss-<id>`) so it stays closed without script; AppShell
+  `.banner(..)` slot.
+- [ ] `ui.popover(trigger, body)`: generic non-menu popover (`popover=auto`, anchor
+  positioning with `position-try` fallbacks, `.side(Top|Bottom|Start|End)`, `.align()`,
+  `.arrow()`), Menu/Tooltip/HoverCard reuse its positioning CSS; Tooltip gains `.side()`
+  and `.delay()`.
+- [ ] Menu: `.checkbox(label, name, checked)` and `.radio(label, name, value)` items that
+  post a form on change (no script: a submit button per item; with script: auto-submit
+  via enhance.rs `data-lui="autosubmit"`), `.trigger(Button)`.
+- [ ] Toasts: `.position(TopEnd|BottomEnd|..)`, `.duration(ms)`, `.action(label, href)`,
+  `.max(n)`; Flash: `.title()`, `.action()`; Alert: `.dismiss()` (cookie form, as banner),
+  `.action(Button)`, `info` tone; Skeleton: `.circle()`, `.rect(w, h)`, `.avatar_lines(n)`;
+  EmptyState: several actions; Progress: `.indeterminate()` instead of `max = 0`,
+  `.size()`, `.tone()`, `.show_value()`.
+- [ ] `ui.carousel()`: `scroll-snap` + `.item(markup)`, prev/next as `::scroll-button()`
+  under `@supports`, else anchor links to `#item-n` targets; dots via `::scroll-marker`
+  with the same fallback. Document the Chromium-only parts in FINDINGS with the spec link.
+- [ ] Drawer `.side(Start|End|Top|Bottom)` and `.size()`; Dialog `.description()`
+  (`aria-describedby`), `.footer(markup)`, `.fullscreen()`; ErrorPage for 401, 403, 422,
+  503 with `Text` keys.
+
+Verify (each agent): `cargo test --workspace`, `cargo test -p loco-ui --doc`,
+`cargo test -p demo pages_ship_only_the_enhancement_script`, `cargo test -p loco-ui-test`
+(commit the new shot only), `scripts/look.sh --only <name>` then delete, `node
+scripts/browser-check.mjs` (axe on the new routes; 320px). `cargo run -p demo -- spec
+write` and commit the regenerated matrix at merge time only.
+Parallel: the four agents run at once in four worktrees; they conflict only on the
+append-only lists (trivial). M40c conflicts with M38 on `input.rs`/`select.rs`: M40c
+starts from the M38 branch (M38's first two boxes must be committed before M40c starts;
+the orchestrator sequences it: M38 box 1–2 first, then spawn M40c on top).
+
+
+
+## M41 · Data table that competes with TanStack-table pages, without script
+
+Goal: the table page is the one visitors compare; make its feature table win.
+
+- [ ] Multi-column sort: `?files.sort=name,-size` (comma list, `-` for descending), header
+  shows the sort index badge; `t.sort()` returns `&[(key, desc)]` (**Breaking**: was one
+  pair); `Table::paged_from` and the Loco `paged` helper order by every key.
+- [ ] Per-column filters: `.column(..).filter()` renders an input in a filter row (shown via
+  `<details>` "Filters"), keys `files.f.<col>`; `t.filters()` for the route; `filter_select`
+  joins the row. Select-all: a checkbox that submits `all=1` for the current filter (the
+  bulk form carries the query), documented as "all matching", since a client-side
+  select-all needs script (enhance.rs upgrades it to tick the visible boxes).
+- [ ] `<caption>` (`.caption(text)`, visually hidden by default), `<tfoot>` via
+  `.total(col, text)`/`.footer(Row)`, `.striped()`, `.density(Density)` (from M39 tokens),
+  `.frozen_first()` (`position: sticky; inset-inline-start: 0`), `.group_by(col)` rendering
+  group header rows, `.empty(markup)` slot, `Row::disabled()` (no checkbox), row
+  `.href()` whole-row link (Radix Table doesn't; copy Tremor), row tone.
+- [ ] Column resize/reorder: declared out of scope without script; `.width(col, css)` and
+  `cols` order from `?files.cols=` already reorder; FINDINGS records the decision.
+- [ ] Export: `.json()` beside `.csv()`; a `table.rs` split: move the 258-line `table_in`
+  into `table/{head,body,foot,toolbar}.rs` (pure refactor, same HTML, a golden test pins
+  the output of `/table` before the split).
+- [ ] Delete the legacy `TableOptions` + `table_with` path; delete bare query keys (if
+  M38 has not); `docs/api.md` table section; `/table` demo gets a "Features" matrix
+  (what works without script, what the script adds, what is out of scope) and the
+  `/table/minimal` snippet stays small.
+
+Key files: `table.rs` (owned by this agent), `paged_table.rs`, `loco.rs` (`paged_from`),
+`demo/src/routes/table.rs`, `scripts/browser-check.mjs` (sort test).
+Verify: golden test before refactor, `cargo test`, browser-check sort/filter, Blitz
+shots of `/table`, `cargo bench -p loco-ui` (table 1 000 rows, paged) unchanged ±5%.
+Parallel: yes; sole owner of `table.rs`. Conflicts with M38 only on the `TableOptions`
+deletion (M41 does it; M38 leaves it).
+
+
+
+## M42 · A docs site, not a demo
+
+Goal: the site answers "how do I install, what does this component do, what keys work,
+what can I style" without leaving it, with script off, and feeds AI tools.
+
+- [ ] Getting started: `/start`, `/start/axum`, `/start/loco`, `/start/any-server`,
+  rendered from `docs/start/*.md` through a small `demo/src/docs.rs` (pulldown-cmark,
+  demo-only dependency; code blocks through the existing syntect highlighter; headings get
+  ids for a right-hand TOC built from the headings). The same renderer serves
+  `docs/{api,theming,components,state,caps,loco,comparison,audiences}.md` at
+  `/docs/<name>`; a demo test renders every `docs/*.md` and fails on a broken relative
+  link (link check for free).
+- [ ] Per-component page sections from data: "Platform" (baselines from `spec::SPECS`,
+  `needs_js`), "Accessibility", "Without script", "Fallback" (parsed from the `//!` header
+  at build time, as `code.rs` reads sources), "Keyboard" (new `KEYS: &[(&str, &str)]` const
+  per component, listed by `props()`, enforced by a test like `PROPS`), "Anatomy" (the
+  `lui-<c>-<part>` classes scraped from the component's CSS, with the tokens each part
+  reads), "When to use" (one paragraph in `site.rs` `COMPONENTS`, test: non-empty).
+- [ ] Search: `/search?q=` over components, props, docs headings; the site header shows
+  `ui.palette` fed from the same index (`?q=` exact lands on the page), so the component
+  demonstrates itself.
+- [ ] Stage: a "Both themes" toggle (`?themes=both`) renders the stage twice under
+  `data-theme=light` and `dark`; a "Script off" toggle already exists; add a width toggle
+  (narrow/medium/wide stage via `container` width class) so container queries are visible.
+  Copy button on snippets: `data-lui="copy"` upgraded by enhance.rs (absent without script).
+- [ ] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
+  `.meta(name, content)`, `.og(..)`, `.link_rel(rel, href)`, `.stylesheet(href)` (for apps
+  with their own CSS), `.head(markup)` escape hatch; `layout::meta()` emits them; the demo
+  sets description + OG per page and a favicon (an inline SVG data URI of the mark).
+- [ ] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
+  (index), `docs/llms-full.txt` (every component: constructor, props table, keyboard,
+  anatomy, the doc header, the `lui!` example) and `docs/components/<name>.md`; the demo
+  serves them at `/llms.txt`, `/llms-full.txt`, `/<component>.md` (content negotiation:
+  `Accept: text/markdown` on a component page returns the `.md`); the snapshot exports
+  them. A `/changelog` page renders CHANGELOG.md.
+- [ ] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
+  `tests/pages.rs` writes, copied into `docs/examples/`), each linked to the source file.
+  Blocks gallery grows with M40's banner/steps/timeline and three new blocks
+  (pricing page from `demo/src/pricing.rs` promoted into `blocks/`, inbox/list-detail,
+  billing/invoice) — only if time allows, last box.
+
+Key files: `demo/src/site.rs`, new `demo/src/docs.rs`, `demo/src/main.rs` (spec write),
+`demo/src/snapshot.rs`, `ui.rs`/`layout.rs` (head setters: coordinate with M39, which
+owns layout.rs: M42 adds `Head` struct in `ui.rs` and one call in `layout::meta`),
+`spec.rs`, every component (the `KEYS` const: append-only, one small commit per file).
+Verify: demo tests (every PATH, one script, CSP), the new link-check test, snapshot
+builds, browser-check axe on new routes, `scripts/look.sh --only start`.
+Parallel: yes. The `KEYS` const per component touches every file (small, append after
+`PROPS`): do it as the last commit before merge, after M38/M40 merged.
+
+
+
+## M43 · `cargo lui add`, `cargo lui new`, and a scaffold that searches and sorts
+
+Owner question (BLOCKED.md "Copy-paste mode"): assumed **yes, option 1** (vendor the
+component file verbatim; the app's copy keeps `PROPS` and the doc header, drops nothing).
+Confirm before merging; the work is isolated in `cargo-lui.rs` either way.
+
+- [ ] `cargo lui add <name>…`: copies `loco-ui/src/<name>.rs` (from the dependency's
+  source via `cargo metadata` → the crate's path, or from the spec JSON registry URL) into
+  `src/ui/<name>.rs`, rewrites `crate::` paths to `loco_ui::`, adds `pub mod` to
+  `src/ui/mod.rs`, appends its `CSS` to the app's `Look.css` list, and registers an
+  extension trait `UiExt` so `ui.<name>()` and `lui!` keep working (`docs/components.md`
+  pattern). `--dry-run`, `--diff` (against the vendored copy), `--view`, `--force`,
+  `list`, `info <name>` (prints the props table), `eject` (vendor everything + replace
+  the dep by a path).
+- [ ] `cargo lui new <app> [--axum|--loco]`: a starter with the app shell, auth (Loco),
+  settings page, a seeded demo account, the strict CSP layer, a theme toggle, the 404
+  fallback, `scripts/verify.sh`-style check; from a template dir
+  `loco-ui/loco-templates/new/`. The `install.rs` test builds it.
+- [ ] Scaffold: `controller.t` `list` reads `table.filter()`/`table.sort()` into a
+  SeaORM `Condition`/`order_by` (text columns `LIKE`), columns `sortable`, so the search
+  box the view already shows works; `.csv()` export route; a delete confirmation `Dialog`
+  on the record page (if `RecordPage.delete()` lacks one, add it there); nested
+  `--parent notebook` option generating `/notebooks/:id/notes`; generated controller test.
+- [ ] `install`: adds the csp layer and the 404 fallback; `--help`, `--version`,
+  `--dry-run`; pins the git dep to the current commit (`rev=`) until the publish; edits
+  tolerate CRLF and a dotted `[dependencies]` table (parse with `toml_edit`: one new dep
+  for the binary only, behind a `cli` feature so the library stays dependency-free).
+  Generated strings go through `Text` keys (`Text::New`, `Created`, `Saved`).
+- [ ] README "Install", `docs/loco.md`, CHANGELOG, `tests/install.rs` covers `add`,
+  `new`, `--dry-run`; `examples/loco-app` regenerates nothing (hand-edited), but a
+  throwaway scaffold proves the search/sort.
+
+Key files: `loco-ui/src/bin/cargo-lui.rs`, `loco-ui/loco-templates/**`,
+`loco-ui/tests/install.rs`, `docs/loco.md`. Verify: `cargo test -p loco-ui --test install
+-- --ignored` (needs sea-orm-cli; CI job), clippy with `cli` feature.
+Parallel: yes, fully isolated. Needs `sea-orm-cli` 2 in the scratchpad (M35 note).
+
+
+
+## M44 · Repo tooling: skills, an agent, hooks
+
+- [ ] `.claude/skills/new-component/SKILL.md`: the nine conventions as a checklist with
+  the exact lists to append to (`lib.rs` ×3, `props.rs`, `spec.rs`, `PATHS`, `SOURCES`,
+  `site.rs COMPONENTS`, i18n keys + `spanish.rs`, Blitz test, `look.sh`, FINDINGS,
+  README matrix via `spec write`), the reference-library rule, the tests that will fail
+  otherwise, and the done-criteria (`verify.sh`, look, delete shots). Points at the
+  template file `loco-ui/src/_template.rs.txt` (new: a skeleton component with every
+  section and a TODO per convention; excluded from the package).
+- [ ] `.claude/agents/component-reviewer.md`: read-only reviewer (tools: Read, Grep,
+  Glob, Bash) that takes a component name and checks the nine conventions, the
+  container-query rule, 44px coarse targets, one variant per caps branch, `PROPS`/`KEYS`
+  completeness, no English outside `i18n`, the doc header's four sections, reports a
+  pass/fail list. The `new-component` skill ends by invoking it.
+- [ ] `.claude/skills/look-check/SKILL.md`: `scripts/look.sh --only <name>` (plus `--tag`),
+  read each PNG at the three widths and both themes, compare with the reference, list
+  deltas, then `rm -rf target/look`.
+- [ ] `.claude/skills/release/SKILL.md`: cut CHANGELOG, bump the three versions
+  together, `cargo package` dry-run, `cargo +nightly doc --cfg docsrs`, regenerate spec +
+  README matrix, check BLOCKED.md gates; **stops before publish and says so**.
+- [ ] `.claude/skills/roadmap-tick/SKILL.md`: how to write the "Done:" note, the
+  CHANGELOG Unreleased bullet, the FINDINGS entry (issue link), and the README matrix
+  step; backfill the three M32 boxes without a Done note (`ROADMAP.md:1324-1343`) and the
+  missing snippet line count (box "Less code in the demo") by measuring now.
+- [ ] Hooks in `.claude/settings.json` (project, committed): PostToolUse on Edit/Write of
+  `*.rs` → `cargo fmt --all` (quiet); PreToolUse on `git commit` → the `<script>` grep
+  from `verify.sh` (extract it to `scripts/check-script.sh` so `verify.sh`, `rust.yml`
+  and the hook share one copy). Use the `update-config` skill's format.
+- [ ] `CLAUDE.md`: a line per new skill/agent and the hook, and "Repo tooling" in README
+  Layout.
+
+Key files: `.claude/**`, `scripts/check-script.sh`, `verify.sh`, `rust.yml`, CLAUDE.md.
+Verify: run the `new-component` skill on a throwaway component in a worktree and
+delete it; run `look-check` on `/button`. Parallel: yes, no code conflicts.
+
+
+
+## M45 · i18n that survives a second language
+
+- [ ] `Strings::dir()` (`ltr`/`rtl`), set on `<html>`; `Text::Plural { one, other }` or a
+  `Strings::count(Text, n)` with a per-language plural rule fn (`PluralRule::{One, Few,
+  Many, Other}` CLDR categories for en/es/fr/de/ar/ru/pl as data; an app language passes
+  its own fn in `i18n::languages`); `OneMatch/Matches` migrate to it.
+- [ ] Numbers: `Strings::number(f64)` with grouping and decimal separators per language
+  (data in `Strings`), used by paged table range, stat, meter, counter, pagination.
+  Dates: `Strings::date(Date)` long/short, weekday abbreviations as explicit arrays
+  (`weekdays_short`) instead of the 2-char slice (`calendar.rs:373`); week start per
+  language (`first_day`), `.sunday_first()` overrides.
+- [ ] App keys: `Text` stays `#[non_exhaustive]`; add `Strings::custom(key: &'static str)`
+  with an app table (`i18n::languages` takes `&[(&str, &str)]` extras), so an app's own
+  component reads `ui.text_key("notes.pinned")`; `Box::leak` in `from_lookup`
+  (`i18n.rs:687-704`) replaced by a `OnceLock<Vec<Strings>>` registry.
+- [ ] Required marker: `Text::Required` ("required") rendered as `<span aria-hidden>*</span>`
+  plus a visually-hidden word, or `aria-required` only (the `required` attribute already
+  says it): pick aria-only plus the visual star, translatable `Text::RequiredHint` in the
+  form's description ("* required"). Validator fallback messages (`loco.rs:372-385`) go
+  through `Text`. `Text::month(0)` guarded. Deprecated `layout()` deleted (hardcoded "en").
+- [ ] Demo: Spanish table completed for every new key (test exists:
+  `components_write_no_english_outside_the_string_table`); add a `?dir=rtl` showcase
+  shared with M39's RTL box (one of them owns `Ui` parsing of `dir`; M45 owns it, M39
+  only the CSS).
+
+Key files: `i18n.rs`, `calendar.rs`, `paged_table.rs`, `input.rs` (marker),
+`demo/src/spanish.rs`. Verify: unit tests for plural categories and number formats,
+`cargo test --workspace`, `/calendar?lang=es` shot.
+Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
+
+
+
+## M46 · Tests that would have caught the audit's bugs
+
+- [ ] `proptest` (dev-dep) on `state::from_request` / `decode`, `Caps::from_query` /
+  `from_cookie_header`, `Date::parse`, `href()`, `TableQuery::parse`, `slug`, the
+  `lui!` token walker (random token streams must not panic: `proc_macro2` in a unit test),
+  `minify_css` (idempotent, never drops a `{`). A `cargo fuzz` dir is optional; proptest
+  runs in `cargo test`.
+- [ ] HTML conformance over `PATHS`: `html5ever` (dev-dep in `demo`) parses every route
+  with `&caps=all` and `&caps=none`, light and dark, and fails on parse errors, duplicate
+  `id`s, `aria-describedby`/`aria-controls`/`for`/`commandfor`/`popovertarget` ids that
+  do not exist, `<button>` inside `<a>`, nested `<form>`, interactive content in
+  `<summary>`, missing `alt`. This catches the `hide_label` class of bug for every
+  component at once.
+- [ ] Unit tests for the 42 untested files: one `#[cfg(test)] mod tests` per file with at
+  least: default render shape, each switch changes the class or attribute it claims
+  (`PROPS` attr ↔ output, generated from `PROPS` where `attr` is set: a generic test in
+  `lib.rs` renders each builder with each attr-setting prop through a small per-builder
+  "example call" table), the caps branch (`Caps::all()` vs `Caps::none()` render different
+  markup where the header says so), and `lui!` ↔ builder equality (already in doctests).
+- [ ] `insta` HTML snapshots (dev-dep): `loco-ui/tests/snapshots/<component>.snap` for
+  the header example of every component under both caps, reviewed with `cargo insta`;
+  M38/M39 changes then show as diffs rather than surprises. CI runs `cargo insta test
+  --check`.
+- [ ] Keyboard tests in `browser-check.mjs` per component that claims keys in `KEYS`
+  (M42): tab order, Escape on dialog/popover/palette, arrows on tabs/menu/calendar with
+  the script; without the script, Tab reaches every control (count focusable = expected).
+- [ ] Test timing: `cargo test --workspace -- -Z unstable-options --report-time` once,
+  recorded in FINDINGS; `verify.sh` skips the Blitz crate by default (`--full` runs it),
+  matching the CLAUDE.md "quick verify" intent.
+
+Key files: `loco-ui/tests/{prop,snapshots}.rs`, `demo/src/tests.rs` (conformance),
+every component (test module append), `scripts/browser-check.mjs`, `verify.sh`.
+Verify: the suites themselves; run the conformance test against `main` first and file
+each failure as a bug fixed in the owning milestone (expect: hide_label, dialog class).
+Parallel: yes, but the per-file test modules conflict with M38/M40 edits in the same
+files. Mitigation: M46 writes the generic/`PROPS`-driven and conformance tests first
+(touching only `lib.rs` tests, `demo/src/tests.rs`, new test files), and the per-file
+modules after M38 and M40 merge.
+
+

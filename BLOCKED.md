@@ -129,3 +129,14 @@ and `lui!` only returns `Markup`. The options:
 3. Keep the chain on these two pages, and let the snippet test allow it.
 
 The demo test that stops snippets drifting back waits on this answer.
+
+## Copy-paste mode (M29 / M43), answered
+
+Answered 2026-10-14: **yes, build `cargo lui add <component>`**, option 1: the vendored
+file is the component's own `loco-ui/src/<name>.rs` kept whole (header, `PROPS`, CSS,
+doctests), registered in the app through an extension trait on `Ui`. M43 holds the boxes.
+
+## First published version, answered
+
+Answered 2026-10-14: the API under `[0.1.0]` in CHANGELOG no longer exists, so the first
+publish is **0.2.0**; M37 rewrites the entry. The publish itself stays with the owner.
