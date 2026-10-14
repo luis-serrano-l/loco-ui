@@ -1,8 +1,9 @@
 //! The theme builder: one brand colour and one gray, each grown into a 12-step scale
-//! (`layout::Scale::derive`) for light and dark, and a radius, sent as a GET form so the theme
-//! is in the URL; a preview of a few components, their shadows and the primary gradient under
-//! those values in both schemes; and `theme.css`, the overrides as a file to paste after the
-//! stylesheet. No script: the form posts back and the page renders the new values.
+//! (`layout::Scale::derive`) for light and dark, a radius ramp, a density and a font, sent
+//! as a GET form so the theme is in the URL; a preview of a few components, their shadows,
+//! radii and the primary gradient under those values in both schemes; every token with a
+//! swatch per scheme; and `theme.css`, the tokens as a file to paste after the stylesheet.
+//! No script: the form posts back and the page renders the new values.
 
 use crate::site::page;
 use axum::{
@@ -11,17 +12,22 @@ use axum::{
     response::{IntoResponse, Response},
     routing::get,
 };
-use loco_ui::layout::{DEPTH_DARK, DEPTH_LIGHT, DerivedScale, Scale, Tokens};
+use loco_ui::layout::{Density, Depth, Fonts, Palette, Radius, Scale, Tokens};
 use loco_ui::prelude::*;
+use std::borrow::Cow;
 
 pub(crate) fn routes() -> Router {
     Router::new()
         .route("/theme", get(builder).post(crate::site::theme_submit))
         .route("/theme.css", get(download))
+        .route("/modes", get(modes_page))
 }
 
 /// The page's live component, which the index shows too (`site::preview`).
-pub(crate) const PREVIEWS: &[super::Preview] = &[("/theme", |ui| pickers(ui, &chosen(ui)))];
+pub(crate) const PREVIEWS: &[super::Preview] = &[
+    ("/theme", |ui| pickers(ui, &chosen(ui), html! {})),
+    ("/modes", modes),
+];
 
 /// Radix Colors' step 9 of a few brand scales, offered as swatches.
 const BRANDS: [&str; 7] = [
@@ -31,15 +37,31 @@ const BRANDS: [&str; 7] = [
 const GRAYS: [&str; 6] = [
     "#8b8d98", "#8d8d8d", "#8e8c99", "#868e8b", "#898e87", "#8d8d86",
 ];
+/// The radius factors offered: Radix Themes' none, small, medium and large.
+const FACTORS: [(&str, &str); 4] = [
+    ("0", "None (0)"),
+    ("0.75", "Small (0.75)"),
+    ("1", "Medium (1)"),
+    ("1.5", "Large (1.5)"),
+];
+const DENSITIES: [(&str, &str); 2] = [("comfortable", "Comfortable"), ("compact", "Compact")];
+/// The body fonts offered: the system stacks only, so nothing is downloaded.
+const FONTS: [(&str, &str); 3] = [
+    ("sans", "System sans"),
+    ("serif", "System serif"),
+    ("mono", "System mono"),
+];
 
 /// The chosen theme, read from the query: a clicked swatch (`brand-preset`) wins over the
-/// picker, and anything not a `#rrggbb` colour is the default.
+/// picker, and anything not offered is the default.
 struct Chosen {
     brand: String,
     gray: String,
     radius: u32,
-    brand_scale: DerivedScale,
-    gray_scale: DerivedScale,
+    factor: &'static str,
+    density: Density,
+    font: &'static str,
+    tokens: Tokens,
 }
 
 fn chosen(ui: &Ui) -> Chosen {
@@ -59,62 +81,110 @@ fn chosen(ui: &Ui) -> Chosen {
             .find_map(|value| Some((Scale::derive(&value, like)?, value)))
             .expect("the default is a #rrggbb colour")
     };
+    let offered = |list: &[(&'static str, &str)], key: &str, default: &'static str| {
+        let asked = ui.param(key).unwrap_or(default);
+        list.iter()
+            .map(|(v, _)| *v)
+            .find(|v| *v == asked)
+            .unwrap_or(default)
+    };
     let (brand_scale, brand) = pick("brand", BRANDS[0], &Scale::INDIGO);
     let (gray_scale, gray) = pick("gray", GRAYS[0], &Scale::SLATE);
+    let radius = ui
+        .param("radius")
+        .and_then(|r| r.parse().ok())
+        .unwrap_or(8)
+        .min(24);
+    let factor = offered(&FACTORS, "factor", "1");
+    let density = Density::parse(offered(&DENSITIES, "density", "comfortable"));
+    let font = offered(&FONTS, "font", "sans");
+    // White or near-black text on the solid step; with near-black text the gradient ends on
+    // step 10, which keeps it readable.
+    let on: Cow<'static, str> = Cow::Borrowed(brand_scale.on_solid());
+    let gradient = if on == "#ffffff" {
+        Depth::DEFAULT.gradient_primary
+    } else {
+        Cow::Borrowed(
+            "linear-gradient(in oklch to bottom, var(--lui-brand-9), var(--lui-brand-10))",
+        )
+    };
+    let sans = match font {
+        "serif" => Fonts::DEFAULT.serif,
+        "mono" => Fonts::DEFAULT.mono,
+        _ => Fonts::DEFAULT.sans,
+    };
+    let tokens = Tokens {
+        gray: gray_scale.into(),
+        brand: brand_scale.into(),
+        light: Palette {
+            on_primary: on.clone(),
+            ..Tokens::DEFAULT.light
+        },
+        dark: Palette {
+            on_primary: on,
+            ..Tokens::DEFAULT.dark
+        },
+        font: Fonts {
+            sans,
+            ..Fonts::DEFAULT
+        },
+        radius: Radius {
+            base: Cow::Owned(format!("{radius}px")),
+            factor: Cow::Borrowed(factor),
+        },
+        shadow: Depth {
+            gradient_primary: gradient,
+            ..Depth::DEFAULT
+        },
+        density,
+        ..Tokens::DEFAULT
+    };
     Chosen {
-        brand_scale,
-        gray_scale,
         brand,
         gray,
-        radius: ui
-            .param("radius")
-            .and_then(|r| r.parse().ok())
-            .unwrap_or(8)
-            .min(24),
+        radius,
+        factor,
+        density,
+        font,
+        tokens,
     }
 }
 
-/// The scales of one scheme, plus what follows from the brand in both: white or near-black
-/// text on its solid step, and a gradient that keeps near-black text readable.
-fn declarations(chosen: &Chosen, dark: bool) -> String {
-    let on = chosen.brand_scale.on_solid();
-    let mut out = chosen.gray_scale.css("gray", dark) + &chosen.brand_scale.css("brand", dark);
-    out.push_str(&format!("  --lui-on-primary: {on};\n"));
-    if on != "#ffffff" {
-        out.push_str("  --lui-gradient-primary: linear-gradient(in oklch to bottom, var(--lui-brand-9), var(--lui-brand-10));\n");
-    }
+/// The tokens as a stylesheet: `Tokens::css`, to paste after the stylesheet.
+fn css(chosen: &Chosen) -> String {
+    format!(
+        "/* loco-ui theme from /theme: paste after the stylesheet (Page::css), or build the same\n   layout::Tokens and pass it to Page::tokens. */\n{}",
+        chosen.tokens.css()
+    )
+}
+
+/// The chosen tokens declared on one element, in one scheme: a role such as
+/// `--lui-bg: var(--lui-gray-1)` resolves where it is declared (on `:root`), so the preview
+/// declares the tokens again; `color-scheme` picks the side of each `light-dark()`. Type,
+/// motion, effects and stacking are left out: the builder does not change them.
+fn scoped(chosen: &Chosen, scheme: &str) -> String {
+    const KEPT: [&str; 10] = [
+        "text-", "leading-", "z-", "duration", "ease", "shimmer", "glow", "beam", "marquee",
+        "overlay",
+    ];
+    let declarations = chosen.tokens.declarations();
+    let mut out: String = (declarations.split(';'))
+        .map(str::trim)
+        .filter(|d| {
+            (d.strip_prefix("--lui-")).is_some_and(|d| !KEPT.iter().any(|k| d.starts_with(k)))
+        })
+        .map(|d| format!("{d}; "))
+        .collect();
+    out.push_str("color-scheme: ");
+    out.push_str(scheme);
     out
 }
 
-/// The overrides as a stylesheet, in the cascade order of `layout::Tokens::css`.
-fn css(chosen: &Chosen) -> String {
-    let (light, dark) = (declarations(chosen, false), declarations(chosen, true));
-    format!(
-        "/* loco-ui theme from /theme: paste after the stylesheet (Page::css), or put the same\n   scales in a layout::Tokens and pass it to Page::tokens. */\n\
-         :root {{\n{light}  --lui-radius: {}px;\n}}\n\
-         @media (prefers-color-scheme: dark) {{\n  :root:not([data-theme=\"light\"]) {{\n{dark}  }}\n}}\n\
-         :root[data-theme=\"dark\"] {{\n{dark}}}\n",
-        chosen.radius
-    )
-}
-
-/// A few components under one scheme's values: the preview. The roles and depth tokens are
-/// declared again on it, since `--lui-bg: var(--lui-gray-1)` resolves where it is declared
-/// (on `:root`); the chosen scales come last so their `--lui-on-primary` wins.
-fn preview(ui: &Ui, chosen: &Chosen, dark: bool) -> Markup {
-    let (tokens, scheme) = (Tokens::default(), if dark { "dark" } else { "light" });
-    let roles = if dark { tokens.dark } else { tokens.light };
-    let depth = if dark { DEPTH_DARK } else { DEPTH_LIGHT };
-    let style = format!(
-        "{}{}{} --lui-radius: {}px; color-scheme: {scheme};",
-        roles.declarations(),
-        depth,
-        declarations(chosen, dark),
-        chosen.radius
-    )
-    .replace('\n', " ");
+/// A few components under one scheme's values: the preview.
+fn preview(ui: &Ui, dark: bool) -> Markup {
+    let scheme = if dark { "dark" } else { "light" };
     html! {
-        div class="lui-theme-preview" style=(style) {
+        div class="lui-theme-preview" style={ "color-scheme: " (scheme) } {
             (ui.card().title("Invite a teammate").description("They get an email with a link.").body(html! {
                 (ui.input(&format!("preview-{scheme}-email"), "Email").email().placeholder("ada@example.com"))
                 (ui.cluster().body(html! {
@@ -128,17 +198,46 @@ fn preview(ui: &Ui, chosen: &Chosen, dark: bool) -> Markup {
                 @for size in ["xs", "sm", "md", "lg"] { span style={ "box-shadow: var(--lui-shadow-" (size) "), var(--lui-highlight)" } { (size) } }
                 span class="lui-theme-gradient" {}
             }
+            div class="lui-theme-depth" aria-label="The radius ramp: none, 1, 2, 3 and full" role="img" {
+                @for step in ["none", "1", "2", "3", "full"] { span class="lui-theme-corner" style={ "border-radius: var(--lui-radius-" (step) ")" } { (step) } }
+            }
         }
     }
 }
 
-/// The form that picks the theme, and the previews in both schemes.
-fn pickers(ui: &Ui, chosen: &Chosen) -> Markup {
-    let download = format!(
-        "/theme.css?brand={}&gray={}&radius={}",
-        chosen.brand.replace('#', "%23"),
-        chosen.gray.replace('#', "%23"),
-        chosen.radius
+/// Every colour role of the chosen theme with its value and a swatch in each scheme. Each
+/// row sets `--lui-swatch` to its role; a cell's `color-scheme` picks the side of its
+/// `light-dark()`. The tokens are declared on the previews around it.
+fn table(chosen: &Chosen) -> Markup {
+    let (light, dark) = (chosen.tokens.light.roles(), chosen.tokens.dark.roles());
+    html! {
+        details class="lui-theme-tokens" {
+            summary { "Colour roles" }
+            div tabindex="0" role="region" aria-label="Colour roles" { table {
+                thead { tr { th { "Token" } th { "Light" } th { "Dark" } } }
+                tbody { @for ((name, l), (_, d)) in light.iter().zip(&dark) { tr style={ "--lui-swatch: var(--lui-" (name) ")" } {
+                    td { code { "--lui-" (name) } }
+                    td class="lui-theme-light" { i {} (l) }
+                    td class="lui-theme-dark" { i {} (d) }
+                } } }
+            } }
+        }
+    }
+}
+
+/// The form that picks the theme, the previews in both schemes, and `extra` under them
+/// (the colour roles on the builder's own page).
+fn pickers(ui: &Ui, chosen: &Chosen, extra: Markup) -> Markup {
+    let download = loco_ui::href(
+        "/theme.css",
+        [
+            ("brand", chosen.brand.as_str()),
+            ("gray", chosen.gray.as_str()),
+            ("radius", &chosen.radius.to_string()),
+            ("factor", chosen.factor),
+            ("density", chosen.density.as_str()),
+            ("font", chosen.font),
+        ],
     );
     lui! {
         // code: /theme
@@ -150,16 +249,25 @@ fn pickers(ui: &Ui, chosen: &Chosen) -> Markup {
                     Color("gray", "Gray") value=(&chosen.gray) presets=(&GRAYS);
                 }
             }
-            Range("radius", "Radius (px)") value=(i64::from(chosen.radius)) min=0 max=24;
+            fieldset {
+                legend { "Shape and type" }
+                div {
+                    Range("radius", "Radius (px)") value=(i64::from(chosen.radius)) min=0 max=24;
+                    Select("factor", "Radius ramp") value=(chosen.factor) options=(FACTORS);
+                    Select("density", "Density") value=(chosen.density.as_str()) options=(DENSITIES);
+                    Select("font", "Font") value=(chosen.font) options=(FONTS);
+                }
+            }
             Cluster {
                 Button("Preview") primary;
                 LinkButton("Download theme.css", &download);
                 a href="/theme" { "Reset" }
             }
         }
-        div class="lui-theme-previews" {
-            (preview(ui, chosen, false))
-            (preview(ui, chosen, true))
+        div class="lui-theme-previews" style=(scoped(chosen, "light dark")) {
+            (preview(ui, false))
+            (preview(ui, true))
+            (extra)
         }
         // end code
     }
@@ -167,16 +275,13 @@ fn pickers(ui: &Ui, chosen: &Chosen) -> Markup {
 
 async fn builder(ui: Ui) -> Page {
     let chosen = chosen(&ui);
-    let rust = chosen.brand_scale.rust("BRAND") + &chosen.gray_scale.rust("GRAY");
     let body = lui! {
-        (pickers(&ui, &chosen))
-        details { summary { "theme.css" } pre tabindex="0" aria-label="theme.css" { code { (css(&chosen)) } } }
-        details { summary { "The scales in Rust" } pre tabindex="0" aria-label="The scales in Rust" { code { (rust) } } }
+        (pickers(&ui, &chosen, table(&chosen)))
     };
     page(&ui, "Theme builder", body)
 }
 
-/// The chosen overrides as a file.
+/// The chosen tokens as a file.
 async fn download(ui: Ui) -> Response {
     (
         [
@@ -191,20 +296,78 @@ async fn download(ui: Ui) -> Response {
         .into_response()
 }
 
+/// The controls drawn with `appearance: none`, plus badges: what the forced-colours rules
+/// keep visible.
+fn stage(ui: &Ui, key: &str) -> Markup {
+    let (check, switch, range) = (
+        format!("{key}-check"),
+        format!("{key}-switch"),
+        format!("{key}-range"),
+    );
+    lui! {
+        Stack gap=3 {
+            Checkbox(&check, "Checked") checked=(true);
+            Switch(&switch, "Switch on") checked=(true);
+            Range(&range, "Volume") value=60;
+            Progress(40, 100) label="Upload";
+            Cluster { Badge("Draft"); Badge("Live") ok; }
+        }
+    }
+}
+
+/// The modes page: the same stage as drawn and under an emulated mode, `?forced=1` (forced
+/// colours) or `?contrast=1` (more contrast), applied by a class since a media query cannot
+/// be forced from the server. Print hides toasts, drawers and sidebars: the browser's print
+/// preview shows it.
+fn modes(ui: &Ui) -> Markup {
+    let class = match (ui.param("forced"), ui.param("contrast")) {
+        (Some("1"), _) => "lui-forced",
+        (_, Some("1")) => "lui-contrast",
+        _ => "lui-forced",
+    };
+    lui! {
+        // code: /modes
+        Cluster {
+            a href="/modes?forced=1" { "Forced colours" }
+            a href="/modes?contrast=1" { "More contrast" }
+        }
+        div class="lui-modes" {
+            section { h2 { "As drawn" } (stage(ui, "plain")) }
+            section class=(class) { h2 { "Under ." (class) } (stage(ui, "mode")) }
+        }
+        // end code
+    }
+}
+
+async fn modes_page(ui: Ui) -> Page {
+    page(&ui, "Modes", modes(&ui))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn only_colours_reach_the_css() {
-        let ui = Ui::from_request("/theme", "brand=%2312a594&gray=red;x&radius=99", "");
+        let ui = Ui::from_request(
+            "/theme",
+            "brand=%2312a594&gray=red;x&radius=99&factor=9",
+            "",
+        );
         let out = css(&chosen(&ui));
         assert!(out.contains("--lui-brand-9: #12a594;"), "{out}");
         assert!(
             out.contains("--lui-gray-9: #8b8d98;") && !out.contains("red;x"),
             "{out}"
         );
-        assert!(out.contains("--lui-radius: 24px;"), "{out}");
+        assert!(
+            out.contains("calc(24px * var(--lui-radius-factor))"),
+            "{out}"
+        );
+        assert!(
+            out.contains("--lui-radius-factor: 1;"),
+            "an unoffered factor is the default"
+        );
     }
 
     #[test]
@@ -213,5 +376,13 @@ mod tests {
         let out = css(&chosen(&ui));
         assert!(out.contains("--lui-brand-9: #ffe629;"), "{out}");
         assert!(out.contains("--lui-on-primary: #111113;"), "{out}");
+    }
+
+    #[test]
+    fn density_and_font_reach_the_tokens() {
+        let ui = Ui::from_request("/theme", "density=compact&font=serif", "");
+        let out = css(&chosen(&ui));
+        assert!(out.contains("--lui-space: calc(8px * 0.85);"), "{out}");
+        assert!(out.contains("--lui-font-sans: ui-serif"), "{out}");
     }
 }

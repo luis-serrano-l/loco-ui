@@ -2,39 +2,34 @@
 //! rounder corners, a wider main column for the app shell, and a reading column for notes.
 //! Only `--lui-*` tokens, like the library's own CSS.
 
-use loco_ui::layout::{Look, Scale, Tokens};
-use maud::{Markup, html};
+use loco_ui::layout::{Look, Radius, Scale, Tokens};
 
 /// The seed the brand scale is derived from (`Scale::derive(SEED, &Scale::INDIGO)`).
 pub const SEED: &str = "#0f766e";
 
 /// `Scale::derive(SEED, &Scale::INDIGO)` written out, so the look can be a `static`; a test
 /// checks it still matches.
-pub const BRAND: Scale = Scale {
-    light: [
+pub const BRAND: Scale = Scale::new(
+    [
         "#fdfdfd", "#f7faf9", "#edf4f3", "#e0edeb", "#d0e4e1", "#bcd9d5", "#a4c8c3", "#84b3ad",
         "#0f766e", "#006d65", "#22746d", "#173734",
     ],
-    dark: [
+    [
         "#0e1615", "#111a19", "#132c29", "#143936", "#1c4641", "#25514d", "#2e5f5a", "#356f69",
         "#0f766e", "#31827a", "#91c1bb", "#d4e6e3",
     ],
-};
+);
 
 pub static LOOK: Look = Look {
     tokens: Tokens {
         brand: BRAND,
-        radius: "0.625rem",
+        radius: Radius::new("0.625rem"),
         ..Tokens::DEFAULT
     },
     css: &[CSS],
-    header: Some(no_header),
+    // The app shell names the app, so pages carry no site header above it.
+    header: None,
 };
-
-/// The app shell names the app, so pages carry no site header above it.
-fn no_header() -> Markup {
-    html! {}
-}
 
 const CSS: &str = r#"
 main { max-width: 76rem; padding-top: var(--lui-space-6); }
@@ -82,7 +77,6 @@ mod tests {
     #[test]
     fn the_brand_is_the_seed_derived() {
         let derived = Scale::derive(SEED, &Scale::INDIGO).unwrap();
-        assert_eq!(BRAND.light.map(String::from), derived.light);
-        assert_eq!(BRAND.dark.map(String::from), derived.dark);
+        assert_eq!(BRAND, derived.into());
     }
 }

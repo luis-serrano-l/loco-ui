@@ -1,29 +1,98 @@
 # Theming
 
-Every colour, corner and gap in `loco-ui` is a `--lui-*` custom property. The components never
-name a colour of their own (a test in `loco-ui/src/lib.rs` fails if one does), so a theme is
-two colour scales and a handful of values, not a stylesheet. `layout::Tokens` holds them; `ui.page(..).tokens(&t)` emits them once
-per page.
+Every colour, size, corner, shadow, duration and stacking level in `loco-ui` is a `--lui-*`
+custom property. The components never name a colour of their own (a test in
+`loco-ui/src/lib.rs` fails if one does), so a theme is a value, not a stylesheet:
+`layout::Tokens` holds every token, `ui.page(..).tokens(&t)` emits them once per page, and
+`Ui::tokens(t)` or a `Look` does it for every page.
 
-To pick them by eye, the demo's theme builder (`/theme`, `cargo run -p demo`) asks for two
-colours, a brand and a gray (a picker, or a swatch of Radix Colors' step 9), and a radius. Each
-colour becomes step 9 of a 12-step scale for light and dark (`layout::Scale::derive`, shaped
-like `Scale::INDIGO` and `Scale::SLATE`), so the roles that alias the scales follow. Text on
-the brand fill turns near-black when white would fall under 4.5:1. The builder previews a
-card, a form, buttons, a badge, an alert, the four shadows and the primary gradient in both
-schemes, downloads the result as `theme.css`, and shows the two scales as `Scale` consts to
-paste into a `Tokens`. Paste the file after the stylesheet (`page.css(include_str!("theme.css"))`).
-It needs no script: the form sends the colours in the URL, so a theme can be shared as a link.
+## Your CSS wins without `!important`
+
+`loco_ui::stylesheet()` is five cascade layers, declared once at its top:
+
+```css
+@layer lui.reset, lui.tokens, lui.components, lui.blocks, lui.modes;
+```
+
+| Layer | What it holds |
+|---|---|
+| `lui.reset` | `layout::RESET`: box sizing, body colours and font, `main`'s width, headings on the type ramp, links, `<code>`, bare tables. A minimal normalisation. |
+| `lui.tokens` | `Tokens::DEFAULT.css()`: every `--lui-*` token on `:root`. A page's own tokens (`Page::tokens`, `Ui::tokens`, a `Look`) go in a second `<style class="lui-tokens">` in the same layer, later in source order, so they win. |
+| `lui.components` | the layout's own rules, then each component's `CSS` const. |
+| `lui.blocks` | the whole-page blocks (app shell, auth, settings, record, dashboard, error pages). |
+| `lui.modes` | `layout::MODES`: forced colours, more contrast and print. Last, so a mode beats a component. |
+
+Anything not in a layer beats everything in one, whatever its specificity. `Look::css` and
+`Page::css` are emitted unlayered after the stylesheet, so an app rule such as
+`.lui-button { border-radius: 0 }` wins over the library's `.lui-button:is(...)` without
+`!important` or a longer selector. Put your own CSS in a layer only if you want the library to
+beat it. Cascade layers are Baseline 2022 (Chrome 99, Firefox 97, Safari 15.4); older browsers
+ignore the whole sheet, the same as a browser without `light-dark()` below.
+
+## Both schemes in one declaration
+
+Each colour token is declared once, with both schemes in `light-dark()`:
+
+```css
+:root { color-scheme: light dark; --lui-bg: light-dark(#fcfcfd, #111113); ... }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
+```
+
+`color-scheme` picks the side: the visitor's `prefers-color-scheme` by default, or the
+`data-theme` that `theme_toggle` puts on `<html>` from a cookie, so a theme is server state like
+everything else. A value the same in both schemes is written once, without `light-dark()`.
+Any element can carry its own `color-scheme: dark` and its subtree turns dark: the theme
+builder's previews and the token table do that. `light-dark()` is Baseline 2024 (Chrome 123,
+Firefox 120, Safari 17.5) and used unconditionally: an older browser drops every colour token
+and shows the page in its default black on white, readable but unthemed (FINDINGS, M39).
+
+## The builder
+
+To pick the tokens by eye, the demo's theme builder (`/theme`, `cargo run -p demo`) asks for a
+brand and a gray (a picker, or a swatch of Radix Colors' step 9), a radius and its ramp factor,
+the density and the font. Each colour becomes step 9 of a 12-step scale for light and dark
+(`layout::Scale::derive`, shaped like `Scale::INDIGO` and `Scale::SLATE`), so the roles that
+alias the scales follow; text on the brand fill turns near-black when white would fall under
+4.5:1. The builder previews a card, a form, buttons, a badge, an alert, the four shadows, the
+primary gradient and the radius ramp in both schemes, lists every colour role with its light
+and dark value and a swatch of each, and downloads the result as `theme.css`. Paste the file
+after the stylesheet (`page.css(include_str!("theme.css"))`), or the two `Scale` consts it
+prints into a `Tokens`. It needs no script: the form sends its choices in the URL, so a theme
+can be shared as a link.
 
 ## The tokens
 
-Colour starts from two 12-step scales after Radix Colors, `Tokens::gray` and
-`Tokens::brand` (`layout::Scale`), written in oklch and emitted as hex (Chrome 109 has no
-`oklch()`). Each step has one job: 1–2 backgrounds, 3–5 component surfaces (normal, hover,
-pressed), 6–8 borders and the focus ring, 9–10 solid fills, 11–12 text. The default is a
+`Tokens` has one field per group. Every value is a `Cow<'static, str>`, so a palette read from
+a database is a `Tokens` value (`primary: tenant.colour.into()`), while `Tokens::DEFAULT` stays
+a `const` built from `Cow::Borrowed`.
+
+| Field | Type | Tokens it sets |
+|---|---|---|
+| `gray`, `brand` | `Scale` (12 light and 12 dark steps) | `--lui-gray-1` … `-12`, `--lui-brand-1` … `-12` |
+| `light`, `dark` | `Palette` (21 roles) | `--lui-bg` … `--lui-on-info`, one `light-dark()` each |
+| `font` | `Fonts { sans, mono, serif }` | `--lui-font-sans`, `--lui-font-mono`, `--lui-font-serif` |
+| `type_scale` | `TypeScale { size, leading }` (9 steps each) | `--lui-text-1` … `-9`, `--lui-leading-1` … `-9` |
+| `size` | `Sizes { height }` (3 steps) | `--lui-size-1` … `-3`, aliased as `--lui-control-h-sm`, `--lui-control-h`, `--lui-control-h-lg` |
+| `radius` | `Radius { base, factor }` | `--lui-radius-factor`, `--lui-radius-none`, `-1`, `-2`, `-3`, `-full`, aliased as `--lui-radius-sm`, `--lui-radius`, `--lui-radius-lg` |
+| `shadow` | `Depth { xs, sm, md, lg, highlight, gradient_primary, gradient_ring }` | `--lui-shadow-xs` … `-lg`, `--lui-highlight`, `--lui-gradient-primary`, `--lui-gradient-ring` |
+| `motion` | `Motion { fast, base, slow, ease }` | `--lui-duration-fast`, `--lui-duration`, `--lui-duration-slow`, `--lui-ease-out` |
+| `z` | `ZIndex { sticky, drawer, dialog, popover, toast, tooltip }` | `--lui-z-sticky` … `--lui-z-tooltip` |
+| `density` | `Density::{Comfortable, Compact}` | multiplies `--lui-space` and `--lui-size-*` by 1 or 0.85 |
+| `space` | a length | `--lui-space` and the derived `--lui-space-1` … `-16` |
+
+Change one group and keep the rest: `Tokens { radius: Radius::new("0px"), ..Tokens::DEFAULT }`,
+`Tokens { density: Density::Compact, ..Tokens::DEFAULT }`, or one role,
+`Palette { primary: "#7a3b1e".into(), ..Tokens::DEFAULT.light }`.
+
+### Colour
+
+Colour starts from two 12-step scales after Radix Colors, `gray` and `brand`, written in oklch
+and emitted as hex. Each step has one job: 1–2 backgrounds, 3–5 component surfaces (normal,
+hover, pressed), 6–8 borders and the focus ring, 9–10 solid fills, 11–12 text. The default is a
 Linear-like theme: Radix slate for the grays (`Scale::SLATE`) and indigo for the brand
-(`Scale::INDIGO`). Swap a scale and every role built on it follows:
-`Tokens { brand: my_scale, ..Default::default() }`.
+(`Scale::INDIGO`). Swap a scale and every role built on it follows. `Scale::new(light, dark)`
+builds one from two arrays of 12 colours in a `const`.
 
 The roles are shadcn/ui's, under `--lui-*` names, and by default each is an alias onto a step
 (`--lui-bg: var(--lui-gray-1)`). The status colours are Radix Colors step 11, the step made for
@@ -35,10 +104,10 @@ every surface in both schemes clears 4.5:1.
 | `--lui-gray-1` … `-12` | slate | The neutral scale the roles below alias. |
 | `--lui-brand-1` … `-12` | indigo | The brand scale: `primary` is step 9, `ring` step 8, `link` step 11. |
 | `--lui-bg` | gray 1: `#fcfcfd` / `#111113` | The page background. The sticky table header and the popover fallback paint it too, so they cover rows that scroll under them. |
-| `--lui-fg` | gray 12: `#1c2024` / `#edeef0` | Body text, headings, tab titles, sorted column header, the dialog and flash text, the wordmark. |
-| `--lui-muted` | gray 11: `#60646c` / `#b0b4ba` | Secondary text: notes, table headers, the wizard's step list and legends, streamed placeholders, the "built on" line, the tagline. |
+| `--lui-fg` | gray 12: `#1c2024` / `#edeef0` | Body text, headings, tab titles, sorted column header, the dialog and flash text. |
+| `--lui-muted` | gray 11: `#60646c` / `#b0b4ba` | Secondary text: notes, table headers, the wizard's step list and legends, streamed placeholders. |
 | `--lui-line` | gray 6: `#d9d9e0` / `#363a3f` | Every 1px rule: dialogs, popovers, cards, accordion and wizard fieldsets, table rules, the pager list. |
-| `--lui-surface` | gray 2: `#f9f9fb` / `#18191b` | Quiet raised areas: `<code>`, the demo stage, open accordion panels, streamed slots. |
+| `--lui-surface` | gray 2: `#f9f9fb` / `#18191b` | Quiet raised areas: `<code>`, open accordion panels, streamed slots. |
 | `--lui-card` | gray 1 / gray 2 | Cards and stat tiles. |
 | `--lui-popover` | gray 1 / gray 2 | Floating layers: dialogs, drawers, popovers, menus, the command palette, toasts. |
 | `--lui-secondary` | gray 3: `#f0f0f3` / `#212225` | Secondary buttons, the tab list, chips and badges, skeleton blocks. |
@@ -46,36 +115,174 @@ every surface in both schemes clears 4.5:1.
 | `--lui-on-accent` | gray 12 | Text on the accent surface. |
 | `--lui-primary` | brand 9: `#3e63dd` | Primary buttons, the current page, the current wizard step, the range slider, checked controls. |
 | `--lui-on-primary` | `#ffffff` | Text on the primary colour. |
-| `--lui-link` | brand 11: `#3a5bc7` / `#9eb1ff` | Link text: the brand's text step, since the solid step 9 is too dark to read on the dark background. |
 | `--lui-input` | gray 7: `#cdced6` / `#43484e` | Borders of inputs, selects, textareas, checkboxes and outline buttons. |
-| `--lui-ring` | brand 8: `#8da4ef` / `#435db1` | The focus ring: 3px at 50% opacity, plus the focused control's border at full strength. Where `in oklch` gradients work, a focused outline button draws that border in `--lui-gradient-ring` instead. |
-| `--lui-danger` | `#ce2c31` / `#ff9592` | Form validation messages and `aria-invalid` / `:user-invalid` rings, danger buttons, the "no" cells on `/caps`, danger flashes. |
+| `--lui-ring` | brand 8: `#8da4ef` / `#435db1` | The focus ring: 3px at 50% opacity, plus the focused control's border at full strength. |
+| `--lui-link` | brand 11: `#3a5bc7` / `#9eb1ff` | Link text: the brand's text step, since step 9 is too dark to read on the dark background. |
+| `--lui-danger` | `#ce2c31` / `#ff9592` | Validation messages and `aria-invalid` / `:user-invalid` rings, danger buttons, danger flashes. |
 | `--lui-on-danger` | gray 1 | Text on danger buttons and badges. |
-| `--lui-ok` | `#1f7d53` / `#3dd68c` | The "yes" cells on `/caps`, ok flashes; free for your own success states. |
+| `--lui-ok` | `#1f7d53` / `#3dd68c` | Ok flashes; free for your own success states. |
 | `--lui-warn` | `#9c5b00` / `#ffca16` | Warning flashes. |
-| `--lui-radius` | `0.5rem` | Corners of cards, dialogs and popovers. |
-| `--lui-radius-sm` | radius − 2px | Not a `Tokens` field, derived: corners of buttons, inputs, chips, `<code>`. |
-| `--lui-radius-lg` | radius + 4px | Not a `Tokens` field, derived: corners of cards, sheets and large panels. |
-| `--lui-shadow-xs` … `-lg` | stacked | Not `Tokens` fields, per scheme (`layout::DEPTH_LIGHT`, `DEPTH_DARK`): a tight contact shadow over soft ambient ones. `xs` under controls (buttons, inputs, selects, switches), `sm` under cards, stat tiles and kanban cards, `md` under popovers, menus, the select picker, combobox results and the date picker panel, `lg` under dialogs, drawers, the command palette and toasts. Ghost buttons have none. Dark ones are deeper, since a soft shadow barely shows on a near-black page. |
-| `--lui-highlight` | inset top edge | Not a `Tokens` field: `inset 0 1px 0` white at 60% (light) or 7% (dark), added to a raised surface's `box-shadow` so it reads as lit from above: primary and danger buttons, cards, stat tiles, and every floating layer. Outline, ghost and secondary controls stay flat. |
-| `--lui-gradient-primary` | brand 9 → 11 / 9 → 8 | Not a `Tokens` field: an oklch gradient for primary fills: primary buttons, whose hover lays a 12% veil of `--lui-on-primary` over it. Use it as `background-image` over `background-color: var(--lui-primary)`, so Chrome before 111 (no `in oklch`) keeps the flat fill. White text clears 4.5:1 over both stops (tested). |
-| `--lui-gradient-ring` | brand 11 → 8 | Not a `Tokens` field: the gradient of focus rings and gradient borders. An outline can't take a gradient, so the 3px ring stays solid `--lui-ring`; a focused outline button paints its 1px border with this gradient (a `padding-box` fill over a `border-box` gradient, so nothing moves), inside `@supports` so Chrome before 111 keeps the solid border. Inputs keep the solid border: their fill is transparent over whatever surface they sit on, and a select's chevron already uses `background-image`. |
-| `--lui-shimmer` | white 45% / 30% | Not a `Tokens` field, per scheme (`layout::EFFECTS_LIGHT`, `EFFECTS_DARK`): the light that `.shimmer()` sweeps across a filled button or badge (primary, danger). |
-| `--lui-shimmer-surface` | brand 9 at 18% / white 10% | Not a `Tokens` field: the `.shimmer()` sweep over an outline, ghost, secondary or tinted button or badge, where white would not show. |
-| `--lui-glow` | brand 9 at 22% / 40% | Not a `Tokens` field: the spotlight of a card's `.glow()`, a radial light at the top centre that brightens and grows on hover. |
-| `--lui-beam` | brand 9 / brand 11 | Not a `Tokens` field: the lit arc of a card's `.beam()` running round its border. |
-| `--lui-shimmer-duration`, `--lui-beam-duration`, `--lui-marquee-duration` | `2.5s`, `6s`, `40s` | Not `Tokens` fields, one value for both schemes: one sweep, one lap of the beam, one loop of `ui.marquee` (a marquee's `.duration(..)` sets its own). |
-| `--lui-space` | `8px` | The unit every gap, margin and padding is a multiple of (`calc(var(--lui-space) * 3)`). |
-| `--lui-space-1` … `-16` | 4px steps | Not `Tokens` fields, derived from `--lui-space`: steps 1, 2, 3, 4, 6, 8, 10, 12 and 16 are that many halves of it (4, 8, 12, 16, 24, 32, 40, 48, 64px by default, Radix's nine spacing values). The gaps of `ui.stack`, `ui.cluster`, `ui.grid` and `ui.split` (`.gap(n)`). |
-| `--lui-busy` | `0.6` | Not a `Tokens` field: the opacity of a swap root or form while the enhancement script has a request in flight (`[data-lui-busy]`). Set it to `1` on `:root` or on one root to turn the fade off. |
-| `--lui-control-h` / `--lui-control-h-sm` / `--lui-control-h-lg` / `--lui-hit` | `2.25rem` / `2rem` / `2.5rem` / `2.25rem` | Not `Tokens` fields, on `:root` in `layout.rs`: the height of buttons, fields and toggles, of small and large buttons, and the least hit area of a small inline target (a toast's ×, a menu item). Under `@media (pointer: coarse)` all four become `2.75rem` (44px). |
-| `--lui-duration-fast` / `--lui-duration` / `--lui-duration-slow` | `150ms` / `200ms` / `250ms` | Not `Tokens` fields, on `:root` in `layout.rs`: how long menus, dialogs, toasts and sheets take to come and go. `prefers-reduced-motion: reduce` sets all three to `0s` (and every other transition and animation too). |
-| `--lui-ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Not a `Tokens` field: the curve of fades and of the sheet's slide. |
-| `--lui-ease-spring` | `linear(…)`, else `ease-out` | Not a `Tokens` field: a damped spring (about 5% overshoot) sampled into `linear()`, for the small scale and rise of dialogs, menus and toasts and the slide of the open tab's chip. Browsers without `linear()` (Chrome before 113, Safari before 17.2) get `ease-out`: the token is `ease-out` on `:root` and becomes the spring under `@supports (transition-timing-function: linear(0, 1))`. |
+| `--lui-info` | `#0d74ce` / `#70b8ff` | Informational callouts and badges (Radix blue step 11). |
+| `--lui-on-info` | gray 1 | Text on an info fill. |
 
-The dark palette applies under `prefers-color-scheme: dark` unless `<html data-theme="light">`,
-and always under `data-theme="dark"`. `theme_toggle` sets that attribute through a cookie, so a
-theme is server state like everything else; the components never know which palette is live.
+### Type, size, shape and space
+
+| Token | Default | What it affects |
+|---|---|---|
+| `--lui-font-sans`, `--lui-font-mono`, `--lui-font-serif` | system stacks (`ui-sans-serif`, `ui-monospace`, `ui-serif` and fallbacks) | Body and controls; `<code>`, `<kbd>` and snippets; long-form text for an app that wants it (no component uses serif). No web font is loaded. |
+| `--lui-text-1` … `-9` | 12, 14, 16, 18, 20, 24, 28, 35, 60px (in rem) | Radix Themes' type ramp: step 2 controls, tables and menus; step 3 body text; `h3` step 4, `h2` step 6, `h1` step 8. |
+| `--lui-leading-1` … `-9` | 16, 20, 24, 26, 28, 30, 36, 40, 60px | The line height that goes with each step. |
+| `--lui-size-1` … `-3` | 2rem, 2.25rem, 2.5rem | Control heights: small, default and large buttons, fields and toggles. Under `@media (pointer: coarse)` all three become 2.75rem (44px). |
+| `--lui-hit` | 2.25rem (2.75rem on a coarse pointer) | The least hit area of a small inline target (a toast's ×, a menu item). |
+| `--lui-radius-factor` | `1` | Every radius step is multiplied by it: `0` squares every corner, `1.5` rounds more. |
+| `--lui-radius-none`, `-1`, `-2`, `-3`, `-full` | 0, base − 2px, base, base + 4px, 9999px | `-1` buttons, inputs, chips and `<code>`; `-2` dialogs and popovers; `-3` cards, sheets and large panels; `-full` pills. The base is `Radius::base` (`0.5rem`). |
+| `--lui-space` | `8px` | The unit every gap, margin and padding is a multiple of; `Density::Compact` makes it `calc(8px * 0.85)`. |
+| `--lui-space-1` … `-16` | 4px steps | Steps 1, 2, 3, 4, 6, 8, 10, 12 and 16 are that many halves of the unit (Radix's nine spacing values): the `.gap(n)` of `ui.stack`, `ui.cluster`, `ui.grid` and `ui.split`. |
+
+### Depth, motion and stacking
+
+| Token | Default | What it affects |
+|---|---|---|
+| `--lui-shadow-xs` … `-lg` | stacked, darker in the dark scheme | A tight contact shadow over soft ambient ones; one geometry for both schemes, the shadow colours in `light-dark()`. `xs` under controls, `sm` under cards and stat tiles, `md` under popovers, menus and pickers, `lg` under dialogs, drawers, the palette and toasts. |
+| `--lui-highlight` | inset top edge, white at 60% / 7% | Added to a raised surface's `box-shadow` so it reads as lit from above: primary and danger buttons, cards, floating layers. |
+| `--lui-gradient-primary` | brand 9 → 11 / 9 → 8, `in oklch` | Primary fills, as `background-image` over `background-color: var(--lui-primary)`, so Chrome before 111 keeps the flat fill. White text clears 4.5:1 over both stops (tested). |
+| `--lui-gradient-ring` | brand 11 → 8 | The 1px border of a focused outline button, inside `@supports`. |
+| `--lui-shimmer`, `--lui-shimmer-surface`, `--lui-glow`, `--lui-beam` | `layout::EFFECTS` | Not `Tokens` fields: the opt-in effects (`.shimmer()`, `.glow()`, `.beam()`), each colour in `light-dark()`. |
+| `--lui-shimmer-duration`, `--lui-beam-duration`, `--lui-marquee-duration` | `2.5s`, `6s`, `40s` | Not `Tokens` fields: one sweep, one lap of the beam, one loop of `ui.marquee`. |
+| `--lui-duration-fast` / `--lui-duration` / `--lui-duration-slow` | `150ms` / `200ms` / `250ms` | How long menus, dialogs, toasts and sheets take to come and go. `prefers-reduced-motion: reduce` zeroes them (and every other transition and animation). |
+| `--lui-ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | The curve of fades and of the sheet's slide. |
+| `--lui-ease-spring` | `linear(…)`, else `ease-out` | Not a field: a damped spring (about 5% overshoot) for the scale and rise of dialogs, menus and toasts, under `@supports (transition-timing-function: linear(0, 1))`. |
+| `--lui-z-sticky` | `2` | Sticky table headers and columns. |
+| `--lui-z-drawer`, `--lui-z-dialog`, `--lui-z-popover` | `10` | The drawer panel; a dialog or menu drawn without the top layer (their fallbacks). |
+| `--lui-z-toast` | `20` | The toast stack. |
+| `--lui-z-tooltip` | `30` | Tooltips, above everything else. |
+| `--lui-overlay` | black at 50% | Not a field: the backdrop behind dialogs and drawers. |
+| `--lui-busy` | `0.6` | Not a field: the opacity of a swap root or form while the enhancement script has a request in flight (`[data-lui-busy]`). Set it to `1` to turn the fade off. |
+
+A test (`no_literal_font_size_or_z_outside_tokens`) holds component CSS to `var(--lui-text-n)`
+and `var(--lui-z-*)`; the files that still write literals are listed in it until the sweep
+that follows M39 (ROADMAP).
+
+## A different palette
+
+This one is "linen and copper": warm paper, near-black text, a copper primary that turns to
+amber in the dark scheme. It sets both palettes and the radius and keeps the rest.
+
+```rust
+use std::borrow::Cow::Borrowed as B;
+use loco_ui::prelude::*;
+use loco_ui::layout::{Palette, Radius, Tokens};
+
+const LINEN: Tokens = Tokens {
+    light: Palette {
+        bg: B("#f4efe6"), fg: B("#1d1a17"), muted: B("#5d574f"), line: B("#d6cdbf"),
+        surface: B("#fffdf9"), card: B("#fffdf9"), popover: B("#fffdf9"),
+        secondary: B("#ebe3d6"), accent: B("#ebe3d6"), on_accent: B("#1d1a17"),
+        primary: B("#8a3b12"), on_primary: B("#ffffff"), input: B("#d6cdbf"),
+        ring: B("#b5764f"), link: B("#8a3b12"), danger: B("#a0261c"), on_danger: B("#ffffff"),
+        ok: B("#2f6b3a"), warn: B("#7a5500"), info: B("#245f8f"), on_info: B("#ffffff"),
+    },
+    dark: Palette {
+        bg: B("#161311"), fg: B("#ece6dc"), muted: B("#a59c90"), line: B("#3a332c"),
+        surface: B("#1f1b18"), card: B("#1f1b18"), popover: B("#1f1b18"),
+        secondary: B("#2b2521"), accent: B("#2b2521"), on_accent: B("#ece6dc"),
+        primary: B("#e8965a"), on_primary: B("#1a0f06"), input: B("#4a4038"),
+        ring: B("#a8683a"), link: B("#e8965a"), danger: B("#ff8f85"), on_danger: B("#1a0f06"),
+        ok: B("#8fd39a"), warn: B("#f0c060"), info: B("#8cc4f0"), on_info: B("#1a0f06"),
+    },
+    radius: Radius::new("3px"),
+    ..Tokens::DEFAULT
+};
+
+let page = Ui::default().page("Hello", html! { p { "Warm." } }).tokens(&LINEN);
+assert!(page.into_string().contains("--lui-bg: light-dark(#f4efe6, #161311);"));
+```
+
+Its ratios: `fg`/`bg` 15.1 and 14.9, `muted`/`bg` 6.2 and 6.8, `primary`/`bg` 6.8 and 7.9,
+`on-primary`/`primary` 7.7 and 8.0, `ok`/`bg` 5.6 and 10.5. Every text pair clears 4.5. The
+demo shows the pair: `/` is the default, `/?palette=linen` is this one.
+
+`.tokens(..)` puts a second `<style class="lui-tokens">` right after the stylesheet, in the
+`lui.tokens` layer; it declares every
+token again, so it wins by source order and nothing else changes.
+
+## One look for every page
+
+`.tokens(..)` themes one page. An app wants every page themed, including those it does not
+write: the account pages `cargo lui auth` writes and the 404 fallback. `layout::Look` holds
+the tokens, any extra stylesheets and the header shown above `<main>`; `Ui::look(&LOOK)` makes
+every `ui.page(..)` of that request apply them, and with the `axum` feature one layer does it
+for every route, since the `Ui` extractor reads the look from the request extensions:
+
+```rust,ignore
+use loco_ui::layout::{Look, Radius, Tokens};
+
+static LOOK: Look = Look {
+    tokens: Tokens { radius: Radius::new("0.75rem"), ..Tokens::DEFAULT },
+    css: &[".notes-article { max-width: 68ch; }"],
+    header: None,
+};
+
+let router = router.fallback(loco_ui::blocks::not_found).layer(LOOK.layer());
+```
+
+`Look::css` is unlayered, so it beats the library (see the top of this page). `header: None`
+shows nothing above `<main>`: since M39 the library has no header of its own, and the demo's
+"loco-ui" header is its own `Look` (`demo/src/site.rs`). `Page::header(markup)` sets one for a
+single page.
+
+Tokens that change per request, such as a tenant's palette read from a database, go through
+`Ui::tokens(tokens)`: every page of that `Ui` renders under them, over the look's. A page that
+calls `.tokens(..)` itself still wins for that page. `examples/loco-app` installs its look in
+`after_routes`.
+
+## A cacheable, strict stylesheet
+
+By default each page inlines the stylesheet in a `<style>`, which needs
+`style-src 'unsafe-inline'`. `Page::linked_stylesheet()` writes
+`<link rel="stylesheet" href="/lui.css?v=<hash>">` instead; `enhance::router()` (and so
+`loco::Initializer`) serves `/lui.css` with an `ETag`, `Cache-Control: immutable` and a 304 on
+`If-None-Match`. The page's remaining inline styles (its token overrides and the app's CSS)
+are answered by hash: `enhance::csp` then sends
+`style-src 'self' 'sha256-…'; style-src-attr 'unsafe-inline'`, dropping `'unsafe-inline'` for
+`<style>` elements (`style=""` attributes, which components use for computed widths, keep it
+through `style-src-attr`). `Page::style_hashes()` and `enhance::csp_hash(text)` give the
+hashes for a policy of your own. The demo serves any page this way with `?css=linked`.
+
+## Only the CSS a page uses
+
+`loco_ui::stylesheet_for(&[Component::Dialog, Component::Table])` is the stylesheet with only
+those components' CSS, plus the layout, the primitives every component builds on
+(`Component::BASE`: button, input, badge, card, icon and the four layouts) and the modes, in
+the same layers. `Page::subset(&[..])` inlines that instead of the whole sheet. A component
+left out renders unstyled, so list every one the page shows. Each subset is computed once and
+kept. The base alone is about 32 KB (7 KB gzipped) against 111 KB (19.5 KB) for everything.
+
+## Modes
+
+`layout::MODES`, the last layer, adjusts the components to the reader's settings:
+
+- `@media (forced-colors: active)`: checkboxes, radios, switches, range sliders, progress and
+  meter bars are drawn with `appearance: none`, so forced colours would erase them; these rules
+  repaint them in system colours (`ButtonText`, `Highlight`, `Canvas`), and badges keep a
+  border.
+- `@media (prefers-contrast: more)`: lines and input borders a step darker, muted text at full
+  strength, a 3px solid focus ring.
+- `@media print`: the skip link, drawers, toasts, the sidebar, the command palette and the
+  capability beacons are hidden, and sticky table headers print in place.
+
+A media query cannot be forced from the server, so the classes `.lui-forced` and
+`.lui-contrast` emulate the first two on a subtree; the demo's `/modes` page shows the stage
+of controls as drawn and under each (`?forced=1`, `?contrast=1`).
+
+## The skip link and focus
+
+Every page starts with `<a class="lui-skip" href="#main">Skip to content</a>` (the words are
+`Text::SkipToContent`, translated with the rest), hidden until it takes the focus, and the
+content is `<main id="main" tabindex="-1">`. With the enhancement script, a swap that replaces
+the focused element moves the focus to the new root's `h1` (or the root), and a swap that
+changes the URL or title announces the new `document.title` through a `role=status` region
+the script owns.
 
 ## Container breakpoints
 
@@ -130,89 +337,10 @@ contrasts with it on both sides, so pick the primary dark (light scheme) or ligh
 scheme), never in the middle. The ratios above come from the standard relative-luminance
 formula; any contrast checker gives the same numbers.
 
-## A different palette
-
-`Tokens` is a plain struct with `Default`, so a theme is a value. This one is "linen and
-copper": warm paper, near-black text, a copper primary that turns to amber in the dark scheme.
-
-```rust
-use loco_ui::prelude::*;
-use loco_ui::layout::{Palette, Scale, Tokens};
-
-const LINEN: Tokens = Tokens {
-    gray: Scale::SLATE,
-    brand: Scale::INDIGO,
-    light: Palette {
-        bg: "#f4efe6", fg: "#1d1a17", muted: "#5d574f", line: "#d6cdbf", surface: "#fffdf9",
-        card: "#fffdf9", popover: "#fffdf9", secondary: "#ebe3d6", accent: "#ebe3d6",
-        on_accent: "#1d1a17", primary: "#8a3b12", on_primary: "#ffffff", input: "#d6cdbf",
-        ring: "#b5764f", link: "#8a3b12", danger: "#a0261c", on_danger: "#ffffff",
-        ok: "#2f6b3a", warn: "#7a5500",
-    },
-    dark: Palette {
-        bg: "#161311", fg: "#ece6dc", muted: "#a59c90", line: "#3a332c", surface: "#1f1b18",
-        card: "#1f1b18", popover: "#1f1b18", secondary: "#2b2521", accent: "#2b2521",
-        on_accent: "#ece6dc", primary: "#e8965a", on_primary: "#1a0f06", input: "#4a4038",
-        ring: "#a8683a", link: "#e8965a", danger: "#ff8f85", on_danger: "#1a0f06",
-        ok: "#8fd39a", warn: "#f0c060",
-    },
-    radius: "3px",
-    space: "8px",
-};
-
-let page = Ui::default().page("Hello", html! { p { "Warm." } }).tokens(&LINEN);
-```
-
-Its ratios: `fg`/`bg` 15.1 and 14.9, `muted`/`bg` 6.2 and 6.8, `primary`/`bg` 6.8 and 7.9,
-`on-primary`/`primary` 7.7 and 8.0, `ok`/`bg` 5.6 and 10.5. Every text pair clears 4.5.
-
-To change one value, spread the default: `Tokens { radius: "0px", ..Default::default() }` (keep the unit: `--lui-radius-sm` subtracts 2px from it) or
-`Palette { primary: "#7a3b1e", ..Tokens::default().light }`.
-
-`.tokens(..)` puts a second `<style class="lui-tokens">` right after the stylesheet with the
-same three rule blocks the default palette uses, so it wins by source order and nothing else
-changes. The demo shows the pair: `/` is the default, `/?palette=linen` is this one.
-
-## One look for every page
-
-`.tokens(..)` themes one page. An app wants every page themed, including those it does not
-write: the account pages `cargo lui auth` writes and the 404 fallback. `layout::Look` holds
-the tokens and any extra stylesheets; `Ui::look(&LOOK)` makes every `ui.page(..)` of that
-request apply them, and with the `axum` feature one layer does it for every route, since the
-`Ui` extractor reads the look from the request extensions:
-
-```rust,ignore
-use loco_ui::layout::{Look, Tokens};
-
-static LOOK: Look = Look {
-    tokens: Tokens { radius: "0.75rem", ..Tokens::DEFAULT },
-    css: &[".notes-article { max-width: 68ch; }"],
-    header: None,
-};
-
-let router = router.fallback(loco_ui::blocks::not_found).layer(LOOK.layer());
-```
-
-`Tokens::DEFAULT` is `Tokens::default()` as a constant, so a look can be a `static`. A page
-that calls `.tokens(..)` itself still wins: it replaces the look's tokens for that page.
-`header` replaces loco-ui's own site header above `<main>` (`None` keeps it); a function
-returning empty markup drops it, which suits an app whose shell names the app.
-`Page::header(markup)` does the same for one page. `examples/loco-app` installs its look this
-way in `after_routes`.
-
 ## Beyond the tokens
 
-Motion is the three duration tokens and two curves above. Dialogs, sheets, menus and toasts
-come in through `@starting-style` and leave through `transition-behavior: allow-discrete` on
-`display` and `overlay`; set `--lui-duration: 0s` (or any of them) on `:root` to switch a
-kind of motion off, or give `--lui-ease-spring` your own `linear()` curve.
-
-Fonts are the system stack in two custom properties on `:root`, `--lui-font-sans` and
-`--lui-font-mono`; set either to change every component. The type scale and the page width are
-base rules in `layout.rs`, not tokens; the look of buttons and native form controls lives in
-one place each, `button.rs` and `input.rs`, and every component draws its buttons and fields
-through them, so one override there reaches every dialog, table and form. To change
-them, put your own `<style>` after `layout`'s (or use your own shell and call
-`loco_ui::stylesheet()` for the component CSS). A component's parts are addressable by class,
-`lui-<component>` on the root and `lui-<component>-<part>` inside, so overriding a single part is
-one selector.
+The look of buttons and native form controls lives in one place each, `button.rs` and
+`input.rs`, and every component draws its buttons and fields through them, so one override
+reaches every dialog, table and form. A component's parts are addressable by class,
+`lui-<component>` on the root and `lui-<component>-<part>` inside, so overriding a single part
+is one unlayered selector in `Look::css`.
