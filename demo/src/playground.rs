@@ -8,6 +8,7 @@
 
 use loco_ui::prelude::*;
 use loco_ui::props::{Component, Prop, PropKind};
+use maud::PreEscaped;
 
 /// A builder the playground can build: its `lui!` call as written, the props it offers, what
 /// follows the attributes (a body block or `;`), and the function that builds it.
@@ -565,7 +566,8 @@ pub(crate) fn playground(
                 (table(&|prop| control(ui, &query, entry, prop)))
                 p { (ui.button("Try").primary().small()) " " a href=(action) { "Reset" } }
             }
-            div class="lui-playground-preview" { ((entry.build)(&query)) }
+            // A second copy of the stage's component: its ids get the playground's prefix.
+            div class="lui-playground-preview" { (PreEscaped(crate::ids::scope(&(entry.build)(&query).0, &format!("{id}-"), |_| true))) }
             pre tabindex="0" aria-label={ (component.builder) " in lui!" } { code { (snippet(&query, entry, component.props)) } }
         }
     }

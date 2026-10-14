@@ -29,7 +29,10 @@ async fn index_under_another_palette() {
 async fn every_group_on_the_index_has_a_live_component() {
     let page = Page::render_at(demo::router(), "/", MODERN, 1280, 900).await;
     let groups = page.count(".lui-index > ul");
-    assert_eq!(groups, page.count(".lui-site-nav .lui-sidebar-heading"));
+    // The components sidebar heads its overview link "Components" (M42), then one per group.
+    let headings =
+        page.count(".lui-site-nav .lui-sidebar[aria-label=Components] .lui-sidebar-heading");
+    assert_eq!(groups + 1, headings);
     assert!(groups >= 10, "{groups} groups");
     for i in 1..=groups {
         let live = format!(".lui-index > ul:nth-of-type({i}) .lui-index-stage > [class*='lui-']");
@@ -355,7 +358,7 @@ async fn combobox_chips_results_and_create_row() {
         Some("2 matches")
     );
     let chip = page.bbox(".lui-combobox-chip").unwrap();
-    let input = page.bbox("input[type=search]").unwrap();
+    let input = page.bbox("main input[type=search]").unwrap();
     assert!(
         (chip.y + chip.height / 2.0 - (input.y + input.height / 2.0)).abs() < 6.0
             && chip.x < input.x,
@@ -1046,9 +1049,9 @@ async fn buttons_badges_and_icons() {
         format!("{:?}", style.clone_background_color())
     };
     let outline = page
-        .bbox(".lui-cluster > .lui-button:nth-child(2)")
+        .bbox("main .lui-cluster > .lui-button:nth-child(2)")
         .unwrap();
-    let primary = page.bbox(".lui-button-primary").unwrap();
+    let primary = page.bbox("main .lui-button-primary").unwrap();
     assert!(
         (outline.height - 36.0).abs() < 1.0,
         "h-9 buttons: {outline:?}"
@@ -1058,21 +1061,24 @@ async fn buttons_badges_and_icons() {
         "same height in every tone"
     );
     assert_ne!(
-        bg(".lui-button-primary"),
-        bg(".lui-cluster > .lui-button:nth-child(2)"),
+        bg("main .lui-button-primary"),
+        bg("main .lui-cluster > .lui-button:nth-child(2)"),
         "primary is filled, outline is not"
     );
-    assert_ne!(bg(".lui-button-danger"), bg(".lui-button-primary"));
+    assert_ne!(
+        bg("main .lui-button-danger"),
+        bg("main .lui-button-primary")
+    );
     // The cluster stretches nothing (align-items: center), so small and icon keep their size.
-    let small = page.bbox(".lui-button-small").unwrap();
+    let small = page.bbox("main .lui-button-small").unwrap();
     assert!((small.height - 32.0).abs() < 1.0, "small is h-8: {small:?}");
-    let icon = page.bbox(".lui-button-icon").unwrap();
+    let icon = page.bbox("main .lui-button-icon").unwrap();
     assert!(
         (icon.width - icon.height).abs() < 1.0,
         "an icon button is square: {icon:?}"
     );
     assert!(
-        page.is_visible(".lui-button-primary .lui-spinner"),
+        page.is_visible("main .lui-button-primary .lui-spinner"),
         "?loading=1 shows the spinner"
     );
     assert!(page.html.contains(r#"aria-busy="true" disabled"#));

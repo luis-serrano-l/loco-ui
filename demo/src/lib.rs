@@ -8,7 +8,11 @@ pub mod snapshot;
 pub mod spanish;
 
 mod code;
+mod docs;
+mod ids;
+mod reference;
 mod routes;
+mod search;
 mod site;
 
 use axum::Router;
@@ -19,7 +23,7 @@ use tower_http::compression::{
 };
 
 /// Every demo path the no-script test and the screenshot test visit.
-pub const PATHS: [&str; 74] = [
+pub const PATHS: [&str; 91] = [
     "/",
     "/caps",
     "/button?loading=1",
@@ -94,6 +98,23 @@ pub const PATHS: [&str; 74] = [
     "/search?find=rust",
     "/rating?stars=4",
     "/tag-input?tags%5B%5D=rust&tags%5B%5D=web",
+    "/start",
+    "/start/axum",
+    "/start/loco",
+    "/start/any-server",
+    "/docs/api",
+    "/docs/components",
+    "/docs/theming",
+    "/docs/state",
+    "/docs/caps",
+    "/docs/loco",
+    "/docs/ergonomics",
+    "/docs/latency",
+    "/docs/comparison",
+    "/docs/audiences",
+    "/changelog",
+    "/find?q=sort",
+    "/button?themes=both&stage=narrow",
 ];
 
 /// The whole demo app.
@@ -103,6 +124,8 @@ pub fn router() -> Router {
     loco_ui::i18n::languages(&spanish::LANGUAGES);
     Router::new()
         .merge(site::routes())
+        .merge(docs::routes())
+        .merge(search::routes())
         .merge(routes::primitives::routes())
         .merge(routes::theme::routes())
         .merge(routes::blocks::routes())

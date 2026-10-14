@@ -69,7 +69,7 @@ fn palette(ui: &Ui) -> loco_ui::palette::Palette<'_> {
     ui.palette("/palette")
         .id("cmd")
         .group("Components")
-        .links(COMPONENTS.iter().map(|c| (c.1, c.0)))
+        .links(COMPONENTS.iter().map(|c| (c.title, c.href)))
         .group("Shortcuts")
         .link("Notification settings", "/settings?tab.settings=1")
         .keywords("email releases")

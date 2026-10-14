@@ -89,6 +89,11 @@ timeline|/timeline|https://flowbite.com/docs/components/timeline/
 tree|/tree?open.files=2|$origin/tree
 collapsible|/collapsible|$shadcn/collapsible
 hover-card|/hover-card|$radix/hover-card
+start|/start|https://ui.shadcn.com/docs/installation
+docs|/docs/theming|https://ui.shadcn.com/docs/theming
+find|/find?q=sort|
+changelog|/changelog|
+stage-both|/button?themes=both&stage=narrow|
 "
 if [ -n "$only" ] && ! echo "$pages" | grep -q "^$only|"; then
   echo "no page named $only in scripts/look.sh" >&2; exit 2

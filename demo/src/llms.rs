@@ -56,12 +56,12 @@ static PAGES: LazyLock<Vec<(&'static str, Vec<&'static str>)>> = LazyLock::new(|
     (COMPONENTS.iter())
         .map(|c| {
             let mut modules: Vec<&'static str> = Vec::new();
-            for b in crate::code::called(&crate::code::snippet(c.0).1) {
+            for b in crate::code::called(&crate::code::snippet(c.href).1) {
                 if !modules.contains(&b.module) {
                     modules.push(b.module);
                 }
             }
-            (c.0, modules)
+            (c.href, modules)
         })
         .collect()
 });

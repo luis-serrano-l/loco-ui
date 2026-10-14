@@ -438,6 +438,13 @@ try {
   await until(async () => (await js("return document.documentElement.dataset.theme")) === "dark", "theme");
   assert(await navigations() === 1, "theme: switched without a reload");
 
+  // Copy buttons (M42): the script adds one to each `data-lui="copy"` block (the markup has
+  // none), on a component's snippet and on a docs page's code blocks.
+  await go("/dialog");
+  assert(await js("return document.querySelectorAll('.lui-snippet[data-lui=copy] > .lui-copy').length") === 1, "copy: the snippet has its button");
+  await go("/start/axum");
+  assert(await js("const b = document.querySelectorAll('.lui-doc-code'); return b.length > 0 && [...b].every((f) => f.querySelector('.lui-copy'))"), "copy: every docs code block has its button");
+
   // Index prefetch: a component page opens from the cache with the current theme. (A copy
   // prefetched before a theme change is not reused: Vary: Cookie; checked by hand, see FINDINGS.)
   await go("/");

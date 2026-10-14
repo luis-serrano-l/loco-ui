@@ -2977,27 +2977,77 @@ deletion (M41 does it; M38 leaves it).
 Goal: the site answers "how do I install, what does this component do, what keys work,
 what can I style" without leaving it, with script off, and feeds AI tools.
 
-- [ ] Getting started: `/start`, `/start/axum`, `/start/loco`, `/start/any-server`,
+- [x] Getting started: `/start`, `/start/axum`, `/start/loco`, `/start/any-server`,
   rendered from `docs/start/*.md` through a small `demo/src/docs.rs` (pulldown-cmark,
   demo-only dependency; code blocks through the existing syntect highlighter; headings get
   ids for a right-hand TOC built from the headings). The same renderer serves
   `docs/{api,theming,components,state,caps,loco,comparison,audiences}.md` at
   `/docs/<name>`; a demo test renders every `docs/*.md` and fails on a broken relative
   link (link check for free).
+  Done: `demo/src/docs.rs` renders `docs::DOCS` (four `docs/start/*.md` pages written for
+  this box, ten guides at `/docs/<name>`, and the changelog) with pulldown-cmark, a demo-only
+  dependency. Code blocks go through `code::highlight_as` (the snippets' highlighter, now
+  given a language: Rust, shell, CSS, HTML, YAML; anything else plain), Rust's hidden doctest
+  lines left out. Headings get GitHub's ids (`use-with-loco`, `-1` for a repeat) so links
+  written for GitHub still land; h2/h3 make the "On this page" column beside the body from
+  48rem of its container, above it narrower. A link to another served file becomes its page,
+  any other repository path a GitHub link. Tests: `every_doc_renders_and_its_links_resolve`
+  (every `docs/*.md`, `docs/start/*.md` and the changelog: each relative link names a file
+  that exists, and a `#fragment` into a Markdown file a heading it has) and
+  `every_doc_is_served_or_listed_as_not` (`docs/launch-post.md` is not served: it is the
+  owner's draft). `docs/start/any-server.md` and `axum.md` run as doctests (`lib.rs`).
+  Kept different: the guides list adds `ergonomics` and `latency`; the sidebar gains a
+  "Docs" navigation above the components'.
 - [ ] Per-component page sections from data: "Platform" (baselines from `spec::SPECS`,
   `needs_js`), "Accessibility", "Without script", "Fallback" (parsed from the `//!` header
   at build time, as `code.rs` reads sources), "Keyboard" (new `KEYS: &[(&str, &str)]` const
   per component, listed by `props()`, enforced by a test like `PROPS`), "Anatomy" (the
   `lui-<c>-<part>` classes scraped from the component's CSS, with the tokens each part
   reads), "When to use" (one paragraph in `site.rs` `COMPONENTS`, test: non-empty).
-- [ ] Search: `/search?q=` over components, props, docs headings; the site header shows
+  Partly done (the box stays open for the `KEYS` const): `demo/src/reference.rs` puts
+  "When to use" (a new `when` field: `site::COMPONENTS` is now a list of `Entry` structs,
+  tested non-empty), "Platform" (each feature's Chrome/Firefox/Safari version from
+  `spec::SPECS`, the `needs_js` verdict, what the layout answers to), "Accessibility",
+  "Without script" (the header's "What it does not do without script" plus "Without
+  script") and "Fallback" (cut from each module's `//!` header, sources included at compile
+  time; `every_module_has_its_source` keeps the list whole) and "Anatomy" (each class the
+  module's `CSS` styles, with the `--lui-*` tokens its rules read; a class shared between
+  modules is listed under the one whose CSS styles it most) under the props. The modules
+  are those of the builders the page's code calls, without the layouts and primitives it
+  only uses as parts. "Keyboard" is built and renders as soon as `reference::keys` returns
+  something: point it at `props()` once each component carries `KEYS` (left for the last
+  commit before merge, as the box says, since other milestones were editing every
+  component file).
+- [x] Search: `/find?q=` over components, props, docs headings; the site header shows
   `ui.palette` fed from the same index (`?q=` exact lands on the page), so the component
   demonstrates itself.
-- [ ] Stage: a "Both themes" toggle (`?themes=both`) renders the stage twice under
+  Done: `demo/src/search.rs`: one index of every component page, every docs page and
+  h2/h3 heading, and every prop of the builders each page calls (linked to
+  `#props-<builder>`, a new id on each props `<details>`). Matches hold every word, names
+  that start with the query first; an exact component or docs name redirects. The header
+  shows `ui.palette("/find")` with the components and docs pages, drawn from a `Ui`
+  without the request's query so a page's own `?q=` never fills it; `site::page` sets it
+  with `Page::header`, so pages not drawn through it (the 404) keep the plain header.
+  Kept different: props and headings are found by `/search` but not listed in the header's
+  palette, which would add about 40 KB to every page.
+- [x] Stage: a "Both themes" toggle (`?themes=both`) renders the stage twice under
   `data-theme=light` and `dark`; a "Script off" toggle already exists; add a width toggle
   (narrow/medium/wide stage via `container` width class) so container queries are visible.
   Copy button on snippets: `data-lui="copy"` upgraded by enhance.rs (absent without script).
 - [x] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
+  Done: above every component's stage a row of links that keep the rest of the query:
+  theme (this page's, or both: the stage twice, `data-theme=light` and `dark`, which set
+  `color-scheme` so the `light-dark()` tokens follow), width (`?stage=medium|narrow`, a
+  40rem or 20rem frame the components' container queries answer to) and script (on, or
+  `?script=off`). The dark copy goes through `ids::scope`, which prefixes every id in a
+  copy and every attribute that points at one (`for`, `aria-*`, `commandfor`,
+  `popovertarget`, `href="#…"`, `data-lui-target`). The same function gives the index's
+  previews (an id an earlier preview used gets the later one's prefix) and the props
+  playground's copy their own ids: the M42 entries left `CONFORMANCE_BUGS`. The modes page
+  gives each stage's progress bar an id. `data-lui="copy"` on the snippets and the docs'
+  code blocks: `enhance.rs` adds a ghost "Copy" button to each (`navigator.clipboard`), so
+  without the script there is none; the script's budget is 14 KB served, 17 KB of source.
+- [ ] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
   `.meta(name, content)`, `.og(..)`, `.link_rel(rel, href)`, `.stylesheet(href)` (for apps
   with their own CSS), `.head(markup)` escape hatch; `layout::meta()` emits them; the demo
   sets description + OG per page and a favicon (an inline SVG data URI of the mark).
@@ -3040,6 +3090,8 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   per-component sections box adds `KEYS` and the anatomy (they are data `llms.rs` can
   read then), and the `/changelog` page goes with `docs.rs`, the Markdown renderer that box
   adds.
+  Partly done (the rest belongs to the agent writing the llms files): the `/changelog` page
+  renders CHANGELOG.md through `docs.rs`.
 - [ ] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
   `tests/pages.rs` writes, copied into `docs/examples/`), each linked to the source file.
   Blocks gallery grows with M40's banner/steps/timeline and three new blocks

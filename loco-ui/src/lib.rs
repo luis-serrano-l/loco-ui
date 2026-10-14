@@ -187,6 +187,16 @@ pub struct ComponentsGuide;
 #[doc = include_str!("../../docs/api.md")]
 pub struct ApiGuide;
 
+/// `docs/start/any-server.md`, the getting-started page without a framework, run as doctests.
+#[cfg(doctest)]
+#[doc = include_str!("../../docs/start/any-server.md")]
+pub struct StartAnyServerGuide;
+
+/// `docs/start/axum.md`, the Axum getting-started page, run as doctests.
+#[cfg(all(doctest, feature = "axum"))]
+#[doc = include_str!("../../docs/start/axum.md")]
+pub struct StartAxumGuide;
+
 /// Everything a handler needs, in one import: `use loco_ui::prelude::*;`.
 pub mod prelude {
     #[cfg(feature = "axum")]
@@ -938,7 +948,8 @@ mod tests {
                             || source.contains(&format!("impl std::fmt::{t} for {name}"))
                             || source.contains(&format!("impl fmt::{t} for {name}"))
                     };
-                    let guide = name == "ComponentsGuide" || name == "ApiGuide";
+                    // The doctest holders for `docs/*.md` (`ComponentsGuide`, `StartAxumGuide`..).
+                    let guide = name.ends_with("Guide");
                     let exempt_clone = name == "Streamed" || guide;
                     if (!has("Clone") && !exempt_clone) || (!has("Debug") && !guide) {
                         missing.push(format!("{}: {name}", path.display()));

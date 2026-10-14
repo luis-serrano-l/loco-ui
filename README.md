@@ -175,6 +175,15 @@ props and writes the matching `lui!` line (`demo/src/playground.rs`). It works w
 (the choice is in the URL, `?pg.Button.primary=true`), and the enhancement script swaps it in
 place. Builders fed lists, rows or markup keep a read-only table.
 
+Below the props, each component page says when to use it and, from the library itself, the
+browser versions it needs (`spec::SPECS`), its accessibility, what it does without script
+and its fallback (its `//!` header) and its anatomy (the classes its CSS styles, with the
+tokens each reads). Links above the stage show it in both themes, at a narrower width, or
+without the script. The demo is also the docs site: getting started at `/start`, the guides
+in `docs/` at `/docs/<name>` and `CHANGELOG.md` at `/changelog`, rendered from the Markdown
+(`demo/src/docs.rs`, pulldown-cmark), and `/search` over components, props and docs
+headings, which the command palette in the header searches from every page.
+
 `loco-ui-test` renders every route through [Blitz](https://github.com/DioxusLabs/blitz)
 (Stylo + Taffy + vello_cpu, no script engine) and writes a PNG per route and capability level
 to `tests/shots/`, which is also the proof that every route works with no script. What Blitz
@@ -322,12 +331,12 @@ inlines only the components a page lists.
 | `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 249 KB | 41.8 KB |
 | The index, every component live on it | 292 KB | 47.1 KB |
 | JavaScript required | 0 | 0 |
-| The optional script, `/lui/enhance.js` (cached forever) | 12.6 KB | 4.3 KB |
+| The optional script, `/lui/enhance.js` (cached forever) | 13.8 KB | 4.6 KB |
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
 stylesheet stays under 112 KB (128 KB until M39, 88 KB until M34), and every demo page's markup, the inlined stylesheet not
-counted (nor the demo's own CSS, its `Look` since M39), under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
+counted (nor the demo's own CSS, its `Look` since M39), under 80 KB (224 KB for the index with every component live on it; 48 and 184 until M42 added the header search, the docs sidebar and each component page's reference sections) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
