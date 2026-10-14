@@ -142,15 +142,12 @@ impl Date {
 
     /// `"24 September 2026"`, the date as a button or a sentence shows it.
     pub(crate) fn long(self, strings: &Strings) -> String {
-        let month = strings.get(Text::month(u32::from(self.month)));
-        strings.fill(Text::DayMonthYear, &[&self.day, &month, &self.year])
+        strings.date(self)
     }
 
     /// `"Thursday, 24 September 2026"`, what a screen reader says for the day.
     pub(crate) fn spoken(self, strings: &Strings) -> String {
-        let weekday = strings.get(Text::weekday(u32::from(self.weekday())));
-        let month = strings.get(Text::month(u32::from(self.month)));
-        strings.fill(Text::LongDate, &[&weekday, &self.day, &month, &self.year])
+        strings.date_long(self)
     }
 }
 
@@ -209,7 +206,7 @@ impl Calendar<'_> {
         Prop::new("event", PropKind::Item, "date: &str, text: &'a str")
             .doc("A dot under the day `date` (`YYYY-MM-DD`), with `text` for screen readers and as the day's tooltip."),
         Prop::new("sunday_first", PropKind::Switch, "")
-            .doc("Weeks start on Sunday instead of Monday."),
+            .doc("Weeks start on Sunday, whatever the language's first day."),
         Prop::new("radio", PropKind::Switch, "")
             .doc("Each day is a radio button named after the calendar, to post inside a form, instead of a link."),
         Prop::new("value", PropKind::Value, "date: &str").attr("value")
@@ -280,7 +277,8 @@ impl<'a> Calendar<'a> {
         self
     }
 
-    /// Weeks start on Sunday instead of Monday.
+    /// Weeks start on Sunday, whatever the language's first day ([`Strings::first_day`]:
+    /// Monday in English and Spanish, Sunday in `en-US` and Hebrew, Saturday in Arabic).
     pub fn sunday_first(mut self) -> Self {
         self.sunday_first = true;
         self
@@ -333,7 +331,11 @@ impl Render for Calendar<'_> {
         let next = shown.add_months(1);
         let has_prev = self.min.is_none_or(|m| shown.add_days(-1) >= m);
         let has_next = self.max.is_none_or(|m| next <= m);
-        let start = if self.sunday_first { 6 } else { 0 };
+        let start = if self.sunday_first {
+            6
+        } else {
+            i64::from(ui.strings.first_day())
+        };
         let lead = (i64::from(shown.weekday()) - start).rem_euclid(7);
         let first = shown.add_days(-lead);
         let len = i64::from(days_in_month(shown.year, shown.month));
@@ -359,7 +361,13 @@ impl Render for Calendar<'_> {
                 button.disabled().render()
             }
         };
-        let weekdays = (0..7).map(|i| ui.text(Text::weekday((i + start) as u32)));
+        let weekdays = (0..7).map(|i| {
+            let day = ((i + start) % 7) as u32;
+            (
+                ui.text(Text::weekday(day)),
+                ui.text(Text::weekday_short(day)),
+            )
+        });
         html! {
             div id=(root) data-lui="swap" class="lui-calendar"
                 role=(if self.radio { "radiogroup" } else { "group" }) aria-labelledby=(title_id)
@@ -370,7 +378,7 @@ impl Render for Calendar<'_> {
                     (nav(&next_href, ui.text(Text::NextMonth), Icon::ChevronRight, has_next))
                 }
                 table class="lui-calendar-grid" aria-labelledby=(title_id) {
-                    thead { tr { @for w in weekdays { th scope="col" abbr=(w) { (w.chars().take(2).collect::<String>()) } } } }
+                    thead { tr { @for (w, short) in weekdays { th scope="col" abbr=(w) { (short) } } } }
                     tbody {
                         @for week in 0..weeks { tr {
                             @for i in 0..7 {

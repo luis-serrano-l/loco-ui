@@ -167,7 +167,7 @@ impl Render for Counter<'_> {
         html! {
             form id=(enhance::swap_id("lui-counter", action)) data-lui="swap" class="lui-counter" method="post" action=(action) {
                 (op("dec", at_min).icon_only().aria_label(self.strings.get(Text::Decrement)).body(html! { (Icon::Minus) }))
-                output style=[vt] { (value) }
+                output style=[vt] { (self.strings.digits(value)) }
                 (op("inc", at_max).icon_only().aria_label(self.strings.get(Text::Increment)).body(html! { (Icon::Plus) }))
                 (op("reset", false).ghost().body(html! { (self.strings.get(Text::Reset)) }))
                 @if typed {
@@ -177,12 +177,12 @@ impl Render for Counter<'_> {
                 @if min.is_some() || max.is_some() {
                     small class="lui-counter-bounds" {
                         @match (min, max) {
-                            (Some(a), Some(b)) => { (self.strings.fill(Text::FromTo, &[&a, &b])) },
-                            (Some(a), None) => { (self.strings.fill(Text::AtLeast, &[&a])) },
-                            (None, Some(b)) => { (self.strings.fill(Text::AtMost, &[&b])) },
+                            (Some(a), Some(b)) => { (self.strings.fill(Text::FromTo, &[&self.strings.digits(a), &self.strings.digits(b)])) },
+                            (Some(a), None) => { (self.strings.fill(Text::AtLeast, &[&self.strings.digits(a)])) },
+                            (None, Some(b)) => { (self.strings.fill(Text::AtMost, &[&self.strings.digits(b)])) },
                             _ => {},
                         }
-                        @if step != 1 { (self.strings.fill(Text::InStepsOf, &[&step])) }
+                        @if step != 1 { (self.strings.fill(Text::InStepsOf, &[&self.strings.digits(step)])) }
                     }
                 }
             }
