@@ -476,7 +476,7 @@ fn vendor(source: &str, names: &Names, crate_name: &str) -> Result<String, Strin
         );
         text = text.replacen(IMPL_MARK, &block, 1);
     }
-    let text = doctests_import(&text, crate_name);
+    let text = doctests_import(&text, crate_name, &names.file);
     Ok(allow_unused_helpers(&add_note(&text, names)))
 }
 
@@ -804,8 +804,19 @@ fn class_root(source: &str, module: &str) -> Option<String> {
         .find(|c| source.contains(&format!(".lui-{c}")))
 }
 
-/// Each doctest imports the app's copies (`# use <app>::ui::*;`).
-fn doctests_import(text: &str, crate_name: &str) -> String {
+/// Each doctest imports the app's copies (`# use <app>::ui::*;`), and by name the enums the
+/// copy defines (`toast::Position`), which would otherwise be loco-ui's from the prelude.
+fn doctests_import(text: &str, crate_name: &str, file: &str) -> String {
+    let enums: Vec<&str> = text
+        .lines()
+        .filter_map(|l| l.strip_prefix("pub enum "))
+        .filter_map(|r| r.split([' ', '<', '{']).next())
+        .collect();
+    let own = if enums.is_empty() {
+        String::new()
+    } else {
+        format!(" # use {crate_name}::ui::{file}::{{{}}};", enums.join(", "))
+    };
     let mut out = String::with_capacity(text.len());
     let mut open = false;
     for line in text.split_inclusive('\n') {
@@ -831,6 +842,9 @@ fn doctests_import(text: &str, crate_name: &str) -> String {
             let indent = &line[..line.len() - trimmed.len()];
             let marker = marker.trim_end();
             out.push_str(&format!("{indent}{marker} # use {crate_name}::ui::*;\n"));
+            if !own.is_empty() {
+                out.push_str(&format!("{indent}{marker}{own}\n"));
+            }
         }
     }
     out

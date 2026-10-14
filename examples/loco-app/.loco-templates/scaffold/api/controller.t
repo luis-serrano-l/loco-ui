@@ -399,7 +399,6 @@ pub fn nested_routes() -> Routes {
 
 #[cfg(test)]
 mod tests {
-    use loco_ui::prelude::*;
     use sea_orm::{DbBackend, QueryTrait};
 
     use super::*;
@@ -407,7 +406,7 @@ mod tests {
     /// The list's search{% if texts %} looks in the text columns{% endif %} and its sort follows the URL.
     #[test]
     fn the_list_searches_and_sorts() {
-        let ui = Ui::from_request("/{{ snake_plural }}", "q.{{ snake_plural }}=ada&sort.{{ snake_plural }}={{ sorts | last }}&dir.{{ snake_plural }}=desc", "");
+        let ui = Ui::from_request("/{{ snake_plural }}", "q.{{ snake_plural }}=ada&sort.{{ snake_plural }}=-{{ sorts | last }}", "");
         let table = ui.table_query(TABLE, SORTABLE);
         let sql = query(&table{% if owned %}, 7{% endif %}{% if parent %}, Some(3){% endif %}).build(DbBackend::Sqlite).to_string();
 {%- for t in texts %}
