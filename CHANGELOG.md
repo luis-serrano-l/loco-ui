@@ -6,7 +6,28 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
+Everything below also ships in 0.2.0, the first publish.
+
+#### M37
+
+- Ready for crates.io and docs.rs, nothing published: `rust-version = "1.88"` (the `loco`
+  feature needs 1.94, as loco-rs 1.2 does), `homepage` and `documentation` in the three
+  manifests, a `LICENSE` in each crate, `loco-ui-macros` with a README of its own. The
+  docs.rs build uses `doc_cfg` (nightly merged `doc_auto_cfg` into it), and the three
+  crates `forbid(unsafe_code)` and deny broken intra-doc links at every feature level.
+- CI: `docsrs`, `msrv`, `publish-dry-run` (`cargo package`), `deny` (`deny.toml`) and
+  `semver` (reports only, until 0.2.0 is tagged). `.github/` has a contributing guide, a
+  security policy, issue and pull request templates and dependabot.
+
+## [0.2.0] - unreleased
+
+The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
+from `ui` (M18) instead of functions taking options structs, so this section lists changes
+by milestone, newest first, rather than against 0.1.0.
+
 ### `loco-ui`
+
+#### After M36: input hardening, `lui!` templates, sign-in redirects
 
 - Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
   (`?x=%aé`) no longer panics while it is decoded. A redirect whose target holds a control
@@ -54,40 +75,50 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   signed-out visitor lands on the page they wanted after signing in.
 - Fix: the enhancement script no longer copies a urlencoded POST's fields into the URL
   (a sign-up put the password in the request line and the server log).
-- M36, a description list that lines up, and one look per app:
-  - The description list puts every term in one shared column (subgrid) from 30rem, both
-    tops on one line, rows split by hairlines; narrower, each term sits above its detail.
-    An empty detail shows a dash. **Visual change.**
-  - `ui.record_page` renders a description list; its `.lui-record-field` class is gone.
-  - `layout::Look { tokens, css, header }`, `Ui::look` and `Look::layer()`: one layer themes
-    every page of an app. `Tokens::DEFAULT` is the default tokens as a constant.
-  - `Page::header(markup)` replaces loco-ui's site header on a page.
-  - `ui.app_shell` takes `.group`, `.icon` and `.badge` like `ui.sidebar`; its links are
-    now a sidebar's markup.
-  - Templates: the scaffold's show page is `ui.record_page`; the account pages are
-    `ui.auth_page` cards.
-- M35, cookies and cross-site posts:
-  - `cookie::SetCookie` writes every cookie (`Path=/`, `SameSite=Lax`, optional `HttpOnly`),
-    adding `Secure` when the request was HTTPS. The extractors decide that with
-    `caps::is_https`; other servers call `Ui::secure(bool)`, and `Ui::is_secure()` reads it.
-  - The `Ui` extractor refuses a cross-site non-GET request with `403`
-    (`cookie::same_origin`: `Origin`, then `Sec-Fetch-Site`). **Breaking:** its `Rejection`
-    is `Response`, no longer `Infallible`.
-  - `lui-ui` is capped at `state::MAX_COOKIE` (3 KB). Remembered keys this request did not
-    set are dropped first.
-  - `Saved<T>` names its cookie after serde's container name, so `#[serde(rename = "..")]`
-    separates two types with one short name; unrenamed types keep their cookie. **Breaking:**
-    `Redirect::save` and `forget` need `T: DeserializeOwned`.
-  - Scaffold templates: with auth and a `user_id` field, the owner comes from the session and
-    every query is scoped to it (another user's row is a 404). Without one, the generated
-    header says every signed-in user sees every row. The auth template's `auth` cookie is
-    `Secure` over HTTPS.
-- M33: a table's query keys carry its id, `<key>.<id>` like `per.<id>` and `edit.<id>`:
+
+#### M36 · A description list that lines up, and one look per app
+
+- The description list puts every term in one shared column (subgrid) from 30rem, both
+  tops on one line, rows split by hairlines; narrower, each term sits above its detail.
+  An empty detail shows a dash. **Visual change.**
+- `ui.record_page` renders a description list; its `.lui-record-field` class is gone.
+- `layout::Look { tokens, css, header }`, `Ui::look` and `Look::layer()`: one layer themes
+  every page of an app. `Tokens::DEFAULT` is the default tokens as a constant.
+- `Page::header(markup)` replaces loco-ui's site header on a page.
+- `ui.app_shell` takes `.group`, `.icon` and `.badge` like `ui.sidebar`; its links are
+  now a sidebar's markup.
+- Templates: the scaffold's show page is `ui.record_page`; the account pages are
+  `ui.auth_page` cards.
+
+#### M35 · Cookies and cross-site posts
+
+- `cookie::SetCookie` writes every cookie (`Path=/`, `SameSite=Lax`, optional `HttpOnly`),
+  adding `Secure` when the request was HTTPS. The extractors decide that with
+  `caps::is_https`; other servers call `Ui::secure(bool)`, and `Ui::is_secure()` reads it.
+- The `Ui` extractor refuses a cross-site non-GET request with `403`
+  (`cookie::same_origin`: `Origin`, then `Sec-Fetch-Site`). **Breaking:** its `Rejection`
+  is `Response`, no longer `Infallible`.
+- `lui-ui` is capped at `state::MAX_COOKIE` (3 KB). Remembered keys this request did not
+  set are dropped first.
+- `Saved<T>` names its cookie after serde's container name, so `#[serde(rename = "..")]`
+  separates two types with one short name; unrenamed types keep their cookie. **Breaking:**
+  `Redirect::save` and `forget` need `T: DeserializeOwned`.
+- Scaffold templates: with auth and a `user_id` field, the owner comes from the session and
+  every query is scoped to it (another user's row is a 404). Without one, the generated
+  header says every signed-in user sees every row. The auth template's `auth` cookie is
+  `Secure` over HTTPS.
+
+#### M33 · Follow-ups from M32
+
+- A table's query keys carry its id, `<key>.<id>` like `per.<id>` and `edit.<id>`:
   `q.files`, `sort.files`, `dir.files`, `page.files`, `cols.files`, so two tables on one page
   sort, filter and page on their own. `table::Keys::new(id)` spells them. The bare `q`, `sort`,
   `dir`, `page` and `cols` are deprecated and still read, for one release, when the table's own
   key is absent. The load-more `Pager` keeps its bare `page`.
-- M32, less code per page: `Form` holds any control (`.body(markup)` among its fields,
+
+#### M32 · An easy, simple and consistent API
+
+- Less code per page: `Form` holds any control (`.body(markup)` among its fields,
   `.switch(name, label)`) and `.get()` makes it a filter; `Page::invalid()` answers 422, so a
   POST handler returns `Result<Redirect, Page>`; `Posted` (feature `axum`) reads an urlencoded
   or multipart post by name (`get`, `all`, `pairs`, `files`, and a wizard's `step`/`skip`;
@@ -96,7 +127,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   (`footer={ .. }`) and `body { .. }` among items, and names the fix when an item is given a
   component. **Breaking:** `ui.stack()`, `ui.cluster()` and `ui.grid(min)` take their content
   as `.body(..)` (`Stack gap=6 { .. }` in `lui!`).
-- M32, one word per concept (`docs/api.md` has the table): `multiple` (was `multi`),
+- One word per concept (`docs/api.md` has the table): `multiple` (was `multi`),
   `description` (`summary`, `note`, `message`), `help` (`hint`), `body` (`content`, EmptyState
   `text`), `action` (EmptyState `post`), `group` (Menu `heading`), `option` (ToggleGroup
   `item`), `link`/`links` (Palette `command`/`commands`), `accesskey` (Palette `key`, now a
@@ -111,6 +142,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 - ContextMenu takes Menu's adders and modifiers (`.items(..)` is deprecated); `.id(..)` on
   Meter, Progress, Sidebar and NavMenu; `ErrorSummary::field(name, label)` writes "Label:
   message" as a form's summary does. `props_follow_the_conventions` keeps the API to the rules.
+
+#### M14 to M16 · Enhancement script, component depth, latency
+
+Written when components took options structs; M18 replaced those with builders, so the
+names below are the old ones.
+
 - Latency: `stylesheet()` built once and minified (`minify_css`); `enhance::slim` middleware
   answers an enhanced request without the inline stylesheet and sets `Vary: Lui-Enhance, Cookie`
   (`enhance::slim_html` without a framework); the script sends `Accept: text/html`, fetches
@@ -196,52 +233,17 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui-caps`
 
-- M35: `is_https(scheme, x_forwarded_proto, forwarded)`; the beacon cookie is `Secure` over
+#### M35
+
+- `is_https(scheme, x_forwarded_proto, forwarded)`; the beacon cookie is `Secure` over
   HTTPS. **Breaking:** `beacon_cookie(query, secure)` and `cookie_for(cap, secure)` take the
   flag. The header now says the first view gets `Caps::ASSUMED`, not the bare fallback.
 
-## [0.1.0] - 2026-09-23
+## [0.1.0] - 2026-09-23 (unpublished prototype)
 
-First release. Nothing here is published to crates.io yet.
-
-### `loco-ui-caps`
-
-- `Caps` / `Cap` bitset of what a browser supports, learned with no script: `@supports` beacons
-  in the page load one image each, the `/lui/caps?flag=x` route sets one cookie per capability.
-- Plain functions for any server: `Caps::from_cookie_header`, `Caps::from_query` (`?caps=a,b`
-  forces a set), `beacon_cookie`, `beacons`, `beacon_css`.
-- `axum` feature: `Caps` extractor and `router()` for the beacon route.
-- `examples/hyper.rs`: the whole protocol on raw hyper.
-
-### `loco-ui`
-
-- Components, each one file with a doc header (platform features with browser baselines,
-  fallback, doctest) and its CSS beside it: `dialog`, `popover_menu`, `tabs`, `accordion`,
-  `combobox`, `pager`, `form`, `counter`, `theme_toggle`, `flash`, `select`, `range`, `color`,
-  `table`, `paged_table`, `wizard`, `slot` (streaming).
-- Every page works with script disabled. One optional script, `enhance::JS` at
-  `/lui/enhance.js`, makes forms and links inside a swap root (`id` + `data-lui="swap"`) update in
-  place; a test proves no route ships any other `<script>`.
-- `layout` page shell with cross-document view transitions, light/dark through
-  `prefers-color-scheme` and `data-theme`; `layout::Tokens` (light and dark `Palette`, radius,
-  space) and `layout_with` for another palette; every component colour is a `--lui-*` token.
-- `UiState`: tabs, accordions, dialogs and wizard steps as `?tab.x=n`-style query keys mirrored
-  in one `lui-ui` cookie; `prg_parts` / `prg` for Post/Redirect/Get with a one-shot flash.
-- `Streamed`: out-of-order streaming through declarative shadow DOM slots, in-order fallback
-  chosen from `Caps`.
-- Options structs with `Default` and builder setters (`DialogOptions`, `PagerOptions`,
-  `RangeOptions`, `TableOptions`, `PagedTableOptions`, `WizardOptions`).
-- `spec::SPECS`: machine-readable component spec; `spec/components.json` and the README matrix
-  are generated from it.
-- Feature levels: none (Maud only), `http` (`prg` as `http::Response`, `Streamed` as a chunk
-  stream), `axum` (extractors, `IntoResponse`, beacon route). `examples/hyper_server.rs` and
-  `examples/axum_server.rs` show each.
-- Docs: `docs/caps.md`, `docs/state.md`, `docs/theming.md`, `FINDINGS.md` (what works with no
-  script, what needs a fallback, what is impossible, Blitz gaps with issue links).
-
-### Test harness (not published)
-
-- `loco-ui-test`: every demo route rendered through Blitz, layout assertions and a PNG per
-  route and capability level under `tests/shots/`.
-- `scripts/browser-check.mjs`: headless Firefox through geckodriver proves the enhancement
-  script does its job; `scripts/verify.sh` runs everything.
+Never published to crates.io. 0.1.0 named the first working prototype: `loco-ui-caps`
+(capability beacons, one cookie per feature), out-of-order streaming through declarative
+shadow DOM, query-and-cookie UI state, the optional enhancement script with the test that
+allows no other `<script>`, seventeen components as functions taking options structs, the
+machine-readable spec, and the Blitz test harness. The guarantees carried over to 0.2.0;
+the API did not.
