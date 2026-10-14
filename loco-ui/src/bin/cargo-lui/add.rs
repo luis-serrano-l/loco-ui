@@ -31,24 +31,40 @@ use toml_edit::{DocumentMut, InlineTable, Item, Value};
 
 use crate::{Options, edit::add_line, is_word};
 
-/// Modules in `loco_ui::props()` that are not components to copy, and why.
-const NOT_COPYABLE: [(&str, &str); 7] = [
-    ("caps", "it is the loco-ui-caps crate, not a file"),
-    ("enhance", "it is the enhancement script and its routes"),
-    (
-        "layout",
-        "it is the tokens every component reads; change them through `Look`",
-    ),
-    ("state", "it is the request state `Ui` carries"),
-    ("stream", "it is the response streaming `Ui` hands out"),
-    (
-        "icon",
-        "every component draws its icons from `loco_ui::Icon`",
-    ),
-    (
-        "button",
-        "every component builds its buttons from `loco_ui::Button`",
-    ),
+/// The components a copy of builds on loco-ui's public API alone, so it compiles in an app.
+/// The others call helpers loco-ui keeps to itself (the shared search box, `labelled`, the
+/// menu placement, `gap_class`, ..); copying one of those copies its use of them too, which
+/// does not compile outside the crate. `flash` is left out too: its cookie is named
+/// `lui-flash` like its class, and the copy's renamed class would rename the cookie the
+/// redirects set. `tests/install.rs` copies every one of these into a
+/// fresh Loco app and builds it.
+pub const COPYABLE: [&str; 26] = [
+    "accordion",
+    "avatar",
+    "badge",
+    "breadcrumbs",
+    "card",
+    "chart",
+    "dialog",
+    "drawer",
+    "error_summary",
+    "input",
+    "marquee",
+    "meter",
+    "progress",
+    "separator",
+    "skeleton",
+    "stat",
+    "tabs",
+    "toast",
+    "tooltip",
+    "description_list",
+    "input_otp",
+    "blocks/auth_page",
+    "blocks/dashboard_page",
+    "blocks/error_page",
+    "blocks/record_page",
+    "blocks/settings_page",
 ];
 
 /// The copy's names, from the module and the prefix.
@@ -260,9 +276,13 @@ fn unknown(module: &str) -> String {
 }
 
 fn copyable(module: &str) -> Result<(), String> {
-    match NOT_COPYABLE.iter().find(|(m, _)| *m == module) {
-        Some((_, why)) => Err(format!("`{module}` is not copied: {why}")),
-        None => Ok(()),
+    if COPYABLE.contains(&module) {
+        Ok(())
+    } else {
+        Err(format!(
+            "`{module}` cannot be copied yet: it uses loco-ui helpers that are private to the \
+             crate (`cargo lui list` names the ones that can); `cargo lui eject` copies all of loco-ui"
+        ))
     }
 }
 
@@ -425,13 +445,22 @@ fn vendor(source: &str, names: &Names, crate_name: &str) -> Result<String, Strin
     };
     let mut text = rename(&text);
     if !methods.is_empty() {
+        // A module inside the file that imports the builder calls its constructor too.
+        let builder = format!("use super::{}{main};", names.upper);
+        let both = format!("use super::{{{}{main}, {ext}}};", names.upper);
+        text = text.replace(&builder, &both);
+    }
+    if !methods.is_empty() {
         let mut declarations = String::new();
         let mut definitions = String::new();
         for m in &methods {
             let new = format!("{}_{}", names.prefix, m.name);
             let signature =
                 rename(&m.signature).replacen(&format!("fn {}", m.name), &format!("fn {new}"), 1);
-            let body = rename(&m.body);
+            let body = methods.iter().fold(rename(&m.body), |body, other| {
+                let call = format!("self.{}(", other.name);
+                body.replace(&call, &format!("self.{}_{}(", names.prefix, other.name))
+            });
             declarations.push_str(&declaration(&signature));
             if !definitions.is_empty() {
                 definitions.push('\n');
@@ -449,7 +478,25 @@ fn vendor(source: &str, names: &Names, crate_name: &str) -> Result<String, Strin
         text = text.replacen(IMPL_MARK, &block, 1);
     }
     let text = doctests_import(&text, crate_name);
-    Ok(add_note(&text, names))
+    Ok(allow_unused_helpers(&add_note(&text, names)))
+}
+
+/// `#![allow(dead_code)]` after the header: the copy keeps helpers loco-ui's other
+/// components call (`pub(crate)` there), which nothing in the app may call.
+fn allow_unused_helpers(text: &str) -> String {
+    if !text.contains("pub(crate)") {
+        return text.to_string();
+    }
+    let header = text
+        .split_inclusive('\n')
+        .take_while(|l| l.starts_with("//!"))
+        .map(str::len)
+        .sum::<usize>();
+    format!(
+        "{}\n#![allow(dead_code)] // helpers loco-ui's other components call\n{}",
+        &text[..header],
+        &text[header..]
+    )
 }
 
 const IMPL_MARK: &str = "\u{0}impl Ui\u{0}\n";
@@ -697,10 +744,11 @@ fn is_ident(c: char) -> bool {
 }
 
 /// Rename the word `from` (a type, or a `lui!` name) to `to`, but not a path's last segment
-/// (`loco_ui::badge::Badge` stays loco-ui's).
+/// (`loco_ui::badge::Badge` stays loco-ui's; `super::Badge` is the copy's).
 fn rename_word(text: &str, from: &str, to: &str) -> String {
     replace_where(text, from, to, |before, after| {
-        !before.ends_with(is_ident) && !before.ends_with("::") && !after.starts_with(is_ident)
+        let path = before.ends_with("::") && !before.ends_with("super::");
+        !before.ends_with(is_ident) && !path && !after.starts_with(is_ident)
     })
 }
 
@@ -794,7 +842,7 @@ fn add_note(text: &str, names: &Names) -> String {
     let method = main_builder(names.module).and_then(method_of);
     let call = match method {
         Some(m) => format!(
-            " It is `ui.{}_{m}(..)` (`{}(..)` in `lui!`) after `use crate::ui::*;`; loco-ui's own\n//! `ui.{m}(..)` is unchanged.",
+            "\n//! It is `ui.{}_{m}(..)` (`{}(..)` in `lui!`) after `use crate::ui::*;`; loco-ui's own\n//! `ui.{m}(..)` is unchanged.",
             names.prefix,
             upper_camel(&format!("{}_{m}", names.prefix))
         ),

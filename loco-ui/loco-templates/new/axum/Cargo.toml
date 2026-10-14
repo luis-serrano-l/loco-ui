@@ -1,0 +1,19 @@
+[package]
+name = "{{name}}"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# Its own workspace, so it builds wherever it is created.
+[workspace]
+
+[dependencies]
+loco-ui = {{dep}}
+# `html!` and `lui!` expand to `maud::` paths, so the app names maud too.
+maud = "0.27"
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
