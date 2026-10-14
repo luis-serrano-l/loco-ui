@@ -1,0 +1,634 @@
+<div id="lui-paged-table-files" data-lui="swap" class="lui-paged-table">
+<div id="lui-table-files" class="lui-table">
+<div class="lui-table-toolbar">
+<search class="lui-table-filter">
+<form method="get" action="/table">
+<input type="hidden" name="per.files" value="10">
+<input id="lui-table-files-q" class="lui-table-filter-input" name="q.files" type="search" value="" placeholder="Filter rows…" autocomplete="off" aria-label="Filter rows">
+<button type="submit" class="lui-button">Filter</button>
+</form>
+</search>
+<details class="lui-table-cols">
+<summary class="lui-button">Columns<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</summary>
+<ul>
+<li>
+<a href="/table?per.files=10&amp;cols.files=size%2Ckind" aria-pressed="true">
+<span class="lui-table-cols-mark" aria-hidden="true">☑</span> Name</a>
+</li>
+<li>
+<a href="/table?per.files=10&amp;cols.files=name%2Ckind" aria-pressed="true">
+<span class="lui-table-cols-mark" aria-hidden="true">☑</span> Size</a>
+</li>
+<li>
+<a href="/table?per.files=10&amp;cols.files=name%2Csize" aria-pressed="true">
+<span class="lui-table-cols-mark" aria-hidden="true">☑</span> Kind</a>
+</li>
+</ul>
+</details>
+<a class="lui-button lui-button-small lui-table-csv" href="/table.csv?per.files=10" download>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="download">
+<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+<path d="m7 10 5 5 5-5"/>
+<path d="M12 15V3"/>
+</svg>Download CSV</a>
+</div>
+<div class="lui-table-scroll lui-table-has-select">
+<table>
+<colgroup>
+<col class="lui-table-select-col">
+<col>
+<col class="lui-table-p2" style="width: 7rem">
+<col class="lui-table-p3" style="width: 9rem">
+<col class="lui-table-edit-col">
+<col class="lui-table-menu-col">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="lui-table-select">
+<span class="lui-sr">Select</span>
+</th>
+<th scope="col" class="">
+<a href="/table?sort.files=name&amp;dir.files=asc&amp;per.files=10">Name</a>
+</th>
+<th scope="col" class=" lui-table-num lui-table-p2">
+<a href="/table?sort.files=size&amp;dir.files=asc&amp;per.files=10">Size</a>
+</th>
+<th scope="col" class=" lui-table-p3">
+<a href="/table?sort.files=kind&amp;dir.files=asc&amp;per.files=10">Kind</a>
+</th>
+<th scope="col" class="lui-table-edit">
+<span class="lui-sr">Edit</span>
+</th>
+<th scope="col" class="lui-table-menu">
+<span class="lui-sr">Actions</span>
+</th>
+</tr>
+</thead>
+<tbody style="view-transition-name: lui-table-files">
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/archive.tar" form="lui-table-files-bulk" aria-label="Select src/archive.tar">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/archive.tar</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A backup of 122880 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>120 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>backup</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">120 KB</td>
+<td class="lui-table-p3">backup</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Farchive.tar">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-archive-tar">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-archive-tar" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-archive-tar" popover style="position-anchor: --lui-table-files-src-archive-tar; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/build.rs" form="lui-table-files-bulk" aria-label="Select src/build.rs">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/build.rs</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A script of 3600 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>3 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>script</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">3 KB</td>
+<td class="lui-table-p3">script</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Fbuild.rs">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-build-rs">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-build-rs" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-build-rs" popover style="position-anchor: --lui-table-files-src-build-rs; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/cargo.lock" form="lui-table-files-bulk" aria-label="Select src/cargo.lock">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/cargo.lock</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A generated of 26400 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>25 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>generated</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">25 KB</td>
+<td class="lui-table-p3">generated</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Fcargo.lock">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-cargo-lock">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-cargo-lock" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-cargo-lock" popover style="position-anchor: --lui-table-files-src-cargo-lock; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/index.html" form="lui-table-files-bulk" aria-label="Select src/index.html">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/index.html</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A page of 6300 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>6 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>page</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">6 KB</td>
+<td class="lui-table-p3">page</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Findex.html">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-index-html">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-index-html" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-index-html" popover style="position-anchor: --lui-table-files-src-index-html; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/logo.svg" form="lui-table-files-bulk" aria-label="Select src/logo.svg">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/logo.svg</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A image of 10200 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>9 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>image</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">9 KB</td>
+<td class="lui-table-p3">image</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Flogo.svg">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-logo-svg">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-logo-svg" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-logo-svg" popover style="position-anchor: --lui-table-files-src-logo-svg; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/main.rs" form="lui-table-files-bulk" aria-label="Select src/main.rs">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/main.rs</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A source of 16800 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>16 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>source</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">16 KB</td>
+<td class="lui-table-p3">source</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Fmain.rs">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-main-rs">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-main-rs" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-main-rs" popover style="position-anchor: --lui-table-files-src-main-rs; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/notes.md" form="lui-table-files-bulk" aria-label="Select src/notes.md">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/notes.md</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A text of 2700 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>2 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>text</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">2 KB</td>
+<td class="lui-table-p3">text</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Fnotes.md">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-notes-md">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-notes-md" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-notes-md" popover style="position-anchor: --lui-table-files-src-notes-md; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/photo.jpg" form="lui-table-files-bulk" aria-label="Select src/photo.jpg">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/photo.jpg</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A image of 750000 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>732 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>image</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">732 KB</td>
+<td class="lui-table-p3">image</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Fphoto.jpg">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-photo-jpg">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-photo-jpg" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-photo-jpg" popover style="position-anchor: --lui-table-files-src-photo-jpg; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/readme.md" form="lui-table-files-bulk" aria-label="Select src/readme.md">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/readme.md</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A text of 12300 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>12 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>text</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">12 KB</td>
+<td class="lui-table-p3">text</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Freadme.md">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-readme-md">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-readme-md" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-readme-md" popover style="position-anchor: --lui-table-files-src-readme-md; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+<tr>
+<td class="lui-table-select">
+<input type="checkbox" class="lui-table-check" name="row" value="src/style.css" form="lui-table-files-bulk" aria-label="Select src/style.css">
+</td>
+<td>
+<details class="lui-table-detail">
+<summary>
+<code>src/style.css</code>
+</summary>
+<div class="lui-table-detail-body">
+<p>A stylesheet of 4500 bytes, in <code>src</code>.</p>
+</div>
+</details>
+<dl class="lui-table-more">
+<div class="lui-table-more-p2">
+<dt>Size</dt>
+<dd>4 KB</dd>
+</div>
+<div class="lui-table-more-p3">
+<dt>Kind</dt>
+<dd>stylesheet</dd>
+</div>
+</dl>
+</td>
+<td class="lui-table-num lui-table-p2">4 KB</td>
+<td class="lui-table-p3">stylesheet</td>
+<td class="lui-table-edit">
+<a class="lui-button lui-button-ghost lui-button-small" href="/table?edit.files=src%2Fstyle.css">Edit</a>
+</td>
+<td class="lui-table-menu">
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-src-style-css">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="lui-table-files-src-style-css" aria-label="Row actions" aria-haspopup="menu">⋯</button>
+<nav id="lui-table-files-src-style-css" popover style="position-anchor: --lui-table-files-src-style-css; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/table">
+<span class="lui-popover-text">Open</span>
+</a>
+</li>
+<li role="none">
+<form method="post" action="/table/bulk">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<form method="post" action="/table/bulk" id="lui-table-files-bulk" class="lui-table-bulk">
+<span>With the selected rows:</span>
+<button type="submit" class="lui-button lui-button-small" name="action" value="archive">Archive</button>
+<button type="submit" class="lui-button lui-button-small" name="action" value="delete">Delete</button>
+</form>
+</div>
+<nav class="lui-paged-table-nav" aria-label="Pages">
+<output class="lui-paged-table-range">1–10 of 36</output>
+<ul class="lui-paged-table-pages">
+<li class="lui-paged-table-of" aria-hidden="true">Page 1 of 4</li>
+<li class="lui-paged-table-num">
+<a class="lui-button" href="/table?per.files=10&amp;page.files=1" aria-current="page">1</a>
+</li>
+<li class="lui-paged-table-num">
+<a class="lui-button lui-button-ghost" href="/table?per.files=10&amp;page.files=2">2</a>
+</li>
+<li class="lui-paged-table-num">
+<a class="lui-button lui-button-ghost" href="/table?per.files=10&amp;page.files=3">3</a>
+</li>
+<li class="lui-paged-table-num">
+<a class="lui-button lui-button-ghost" href="/table?per.files=10&amp;page.files=4">4</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost" href="/table?per.files=10&amp;page.files=2" rel="next">Next<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost lui-paged-table-end" href="/table?per.files=10&amp;page.files=4">Last</a>
+</li>
+</ul>
+<form method="get" action="/table" class="lui-paged-table-jump">
+<input type="hidden" name="per.files" value="10">
+<span>Page</span>
+<input id="lui-paged-table-files-page" class="lui-paged-table-page" name="page.files" type="number" value="1" min="1" max="4" inputmode="numeric" aria-label="Page">
+<span>of 4</span>
+<button type="submit" class="lui-button">Go</button>
+</form>
+<form method="get" action="/table" class="lui-paged-table-per">
+<label>Rows per page <select name="per.files">
+<option value="5">5</option>
+<option value="10" selected>10</option>
+<option value="25">25</option>
+<option value="50">50</option>
+</select>
+</label>
+<button type="submit" class="lui-button">Show</button>
+</form>
+</nav>
+</div>

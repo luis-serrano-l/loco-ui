@@ -934,3 +934,58 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
     let page = html("/table?q=zzz").await;
     assert!(page.contains("No files match this filter."));
 }
+
+/// The markup of the `/table` and `/table/minimal` tables, pinned for a set of requests in
+/// `demo/tests/golden/`: a refactor of the table must not change a byte. After an intended
+/// change, `GOLDEN=write cargo test -p demo tables_render_their_golden_markup` rewrites the
+/// files, and the diff is the review.
+#[test]
+fn tables_render_their_golden_markup() {
+    use crate::routes::table::PREVIEWS;
+    const CASES: &[(&str, &str, &str, &str)] = &[
+        ("table-default", "/table", "", ""),
+        (
+            "table-sorted-filtered-paged",
+            "/table",
+            "sort.files=size&dir.files=desc&q.files=s&page.files=2",
+            "lui-ui=per.files=5",
+        ),
+        (
+            "table-columns-edit",
+            "/table",
+            "cols.files=name,kind&edit.files=src/main.rs&sort.files=kind",
+            "",
+        ),
+        ("table-loading", "/table", "loading=1", ""),
+        ("table-empty", "/table", "q.files=zzz", ""),
+        ("minimal-default", "/table/minimal", "", ""),
+        (
+            "minimal-sorted",
+            "/table/minimal",
+            "sort.minimal=size&dir.minimal=desc&q.minimal=s&page.minimal=2",
+            "lui-ui=per.minimal=5",
+        ),
+    ];
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden");
+    let write = std::env::var("GOLDEN").as_deref() == Ok("write");
+    let mut changed = Vec::new();
+    for (name, path, query, cookie) in CASES {
+        let draw = PREVIEWS.iter().find(|(p, _)| p == path).unwrap().1;
+        for (caps, suffix) in [(Caps::NONE, "none"), (Caps::all(), "all")] {
+            let mut ui = Ui::from_request(path, query, cookie);
+            ui.caps = caps;
+            let html = draw(&ui).into_string().replace("><", ">\n<") + "\n";
+            let file = dir.join(format!("{name}-{suffix}.html"));
+            if write {
+                std::fs::create_dir_all(&dir).unwrap();
+                std::fs::write(&file, &html).unwrap();
+            } else if std::fs::read_to_string(&file).ok().as_deref() != Some(html.as_str()) {
+                changed.push(file.display().to_string());
+            }
+        }
+    }
+    assert!(
+        changed.is_empty(),
+        "the table markup changed (GOLDEN=write rewrites it): {changed:#?}"
+    );
+}
