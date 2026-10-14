@@ -1,0 +1,42 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<ol class="lui-timeline">
+<li data-tone="ok">
+<span class="lui-timeline-dot lui-timeline-icon" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<time class="lui-timeline-when" datetime="2026-10-12">12 October</time>
+<p class="lui-timeline-title">Deployed</p>
+<p class="lui-timeline-description">Version 0.2 is live.</p>
+</li>
+<li data-tone="danger">
+<span class="lui-timeline-dot" aria-hidden="true">
+</span>
+<span class="lui-timeline-when">13 October</span>
+<p class="lui-timeline-title">Rolled back</p>
+</li>
+</ol>
+
+caps: none
+<ol class="lui-timeline">
+<li data-tone="ok">
+<span class="lui-timeline-dot lui-timeline-icon" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<time class="lui-timeline-when" datetime="2026-10-12">12 October</time>
+<p class="lui-timeline-title">Deployed</p>
+<p class="lui-timeline-description">Version 0.2 is live.</p>
+</li>
+<li data-tone="danger">
+<span class="lui-timeline-dot" aria-hidden="true">
+</span>
+<span class="lui-timeline-when">13 October</span>
+<p class="lui-timeline-title">Rolled back</p>
+</li>
+</ol>

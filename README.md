@@ -513,6 +513,12 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Drawer | shadcn Sheet and Drawer | viewport | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
 | Command palette | shadcn Command | viewport | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
 | Marquee | Magic UI Marquee | content | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
+| Pagination | shadcn/ui Pagination | container | `<nav>`, `aria-current="page"`, `rel="prev"`, `<link rel>`, `@container` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 105 / 110 / 16 | none needed: every page is a link | No |
+| Steps | Origin UI Stepper | container | `<ol>`, `aria-current="step"`, `@container` | 1 / 1 / 1; 1 / 1 / 1; 105 / 110 / 16 | none needed: a list of links | No |
+| Timeline | Flowbite Timeline | container | `<ol>`, `<time datetime>`, `@container` | 1 / 1 / 1; 62 / 22 / 7; 105 / 110 / 16 | none needed | No |
+| Tree | Origin UI Tree | content | `<details>`, `aria-current="page"`, `--lui-tree-depth` | 12 / 49 / 6; 1 / 1 / 1; 49 / 31 / 9.1 | none needed: <details> works everywhere | Partly: arrow keys between nodes (the WAI-ARIA tree pattern) need script |
+| Collapsible | shadcn/ui Collapsible | - | `<details>`, `<details name`, `::details-content` | 12 / 49 / 6; 120 / 130 / 17.2; 131 / 143 / 18.4 | opens and closes at once without ::details-content | No |
+| Hover card | Radix Themes HoverCard | - | `interestfor`, `popover="hint"`, `popovertarget`, `position-area` | 142 / no / no; 133 / no / no; 114 / 125 / 17; 125 / 147 / 26 | without interestfor a click opens the card (popovertarget); without popover a <details> | No |
 <!-- matrix:end -->
 
 ## Findings

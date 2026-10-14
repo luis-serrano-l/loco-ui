@@ -108,8 +108,9 @@ impl Sidebar<'_> {
             .doc("The prefix of the group headings' ids instead of `lui-sidebar-<label>`."),
         Prop::new("collapsible", PropKind::Switch, "")
             .doc("A toggle that folds it to an icon rail, the labels shown as tooltips."),
-        Prop::new("current_prefix", PropKind::Switch, "")
-            .doc("Mark a link current also when the path is under it (`/projects` on `/projects/42`)."),
+        Prop::new("current_prefix", PropKind::Switch, "").doc(
+            "Mark a link current also when the path is under it (`/projects` on `/projects/42`).",
+        ),
     ];
 }
 

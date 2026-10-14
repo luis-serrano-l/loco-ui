@@ -339,7 +339,7 @@ impl Render for Wizard<'_> {
             list = list.step(s.title);
             list = match i.cmp(&current) {
                 std::cmp::Ordering::Less => list.done().href(&links[i]),
-                std::cmp::Ordering::Equal if failed(i) => list.current().error(),
+                std::cmp::Ordering::Equal if failed(i) => list.current().invalid(),
                 std::cmp::Ordering::Equal => list.current(),
                 std::cmp::Ordering::Greater => list,
             };

@@ -1,0 +1,64 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<ol class="lui-steps lui-steps-vertical">
+<li class="lui-steps-done">
+<span class="lui-steps-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">
+<a href="/signup?step=0">Account</a>
+<span class="lui-sr"> completed</span>
+</span>
+</span>
+</li>
+<li class="lui-steps-current" aria-current="step">
+<span class="lui-steps-dot" aria-hidden="true">2</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Profile <small>(optional)</small>
+</span>
+<span class="lui-steps-description">A photo and a bio.</span>
+</span>
+</li>
+<li>
+<span class="lui-steps-dot" aria-hidden="true">3</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Review</span>
+</span>
+</li>
+</ol>
+
+caps: none
+<ol class="lui-steps lui-steps-vertical">
+<li class="lui-steps-done">
+<span class="lui-steps-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">
+<a href="/signup?step=0">Account</a>
+<span class="lui-sr"> completed</span>
+</span>
+</span>
+</li>
+<li class="lui-steps-current" aria-current="step">
+<span class="lui-steps-dot" aria-hidden="true">2</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Profile <small>(optional)</small>
+</span>
+<span class="lui-steps-description">A photo and a bio.</span>
+</span>
+</li>
+<li>
+<span class="lui-steps-dot" aria-hidden="true">3</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Review</span>
+</span>
+</li>
+</ol>

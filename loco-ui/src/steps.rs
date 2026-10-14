@@ -72,7 +72,7 @@ struct Step<'a> {
 /// A row (or column) of numbered steps, made by [`Ui::steps`].
 ///
 /// **Setters.** Values and items: `.step(..)`, `.href(..)`, `.description(..)`; switches:
-/// `.done()`, `.current()`, `.error()`, `.optional()`, `.vertical()`.
+/// `.done()`, `.current()`, `.invalid()`, `.optional()`, `.vertical()`.
 #[derive(Clone, Debug)]
 pub struct Steps<'a> {
     strings: &'static Strings,
@@ -88,9 +88,8 @@ impl Steps<'_> {
         Prop::new("done", PropKind::Modifier, "")
             .doc("The step added last is done: a check in its dot, the connector after it filled."),
         Prop::new("current", PropKind::Modifier, "")
-            .attr("aria-current")
             .doc("The step added last is the one the visitor is on (`aria-current=\"step\"`)."),
-        Prop::new("error", PropKind::Modifier, "")
+        Prop::new("invalid", PropKind::Modifier, "")
             .doc("The step added last needs attention: a \"!\" in a danger dot."),
         Prop::new("optional", PropKind::Modifier, "")
             .doc("The step added last can be skipped: \"Optional\" beside its title."),
@@ -144,7 +143,7 @@ impl<'a> Steps<'a> {
 
     /// The step added last needs attention: a "!" in a danger dot, its title in the danger
     /// colour, and "has errors" for assistive tech.
-    pub fn error(self) -> Self {
+    pub fn invalid(self) -> Self {
         self.last(|s| s.error = true)
     }
 
@@ -213,12 +212,12 @@ pub const CSS: &str = r#"
 .lui-steps { container: lui-steps / inline-size; display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; --lui-steps-dot: 2rem; }
 .lui-steps > li {
   position: relative; flex: 1 0 100%; display: grid; grid-template-columns: var(--lui-steps-dot) minmax(0, 1fr); align-items: start;
-  column-gap: var(--lui-space-3); padding-bottom: var(--lui-space-6); max-width: none; color: var(--lui-muted); font-size: 0.875rem;
+  column-gap: var(--lui-space-3); padding-bottom: var(--lui-space-6); max-width: none; color: var(--lui-muted); font-size: var(--lui-text-2);
 }
 .lui-steps > li:last-child { padding-bottom: 0; }
 .lui-steps-dot {
   display: grid; place-items: center; width: var(--lui-steps-dot); height: var(--lui-steps-dot); border-radius: 50%;
-  background: var(--lui-gray-3); color: var(--lui-gray-11); font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  background: var(--lui-gray-3); color: var(--lui-gray-11); font-size: var(--lui-text-1); font-weight: 600; font-variant-numeric: tabular-nums;
 }
 .lui-steps-dot > .lui-icon { width: 0.875rem; height: 0.875rem; }
 .lui-steps-done .lui-steps-dot, .lui-steps-current .lui-steps-dot { background: var(--lui-primary); color: var(--lui-on-primary); }
@@ -226,15 +225,15 @@ pub const CSS: &str = r#"
 .lui-steps-error .lui-steps-dot { background: var(--lui-danger); color: var(--lui-on-danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lui-danger) 25%, transparent); }
 .lui-steps-label { display: grid; align-content: center; min-height: var(--lui-steps-dot); min-width: 0; overflow-wrap: anywhere; }
 .lui-steps-title { font-weight: 500; }
-.lui-steps-title small { font-size: 0.75rem; font-weight: 400; color: var(--lui-muted); }
-.lui-steps-description { font-size: 0.8125rem; color: var(--lui-muted); }
+.lui-steps-title small { font-size: var(--lui-text-1); font-weight: 400; color: var(--lui-muted); }
+.lui-steps-description { font-size: var(--lui-text-1); color: var(--lui-muted); }
 .lui-steps-current .lui-steps-title, .lui-steps-done .lui-steps-title { color: var(--lui-fg); }
 .lui-steps-error .lui-steps-title { color: var(--lui-danger); }
 .lui-steps-title a { color: inherit; text-decoration: none; }
 .lui-steps-title a:hover { text-decoration: underline; }
 /* Connectors: down from each dot to the next (narrow), across (wide). */
 .lui-steps > li:not(:last-child)::after {
-  content: ""; position: absolute; left: calc(var(--lui-steps-dot) / 2 - 1px); top: calc(var(--lui-steps-dot) + var(--lui-space-1));
+  content: ""; position: absolute; inset-inline-start: calc(var(--lui-steps-dot) / 2 - 1px); top: calc(var(--lui-steps-dot) + var(--lui-space-1));
   bottom: var(--lui-space-1); width: 2px; border-radius: 1px; background: var(--lui-gray-6);
 }
 .lui-steps > .lui-steps-done::after { background: var(--lui-primary); }
@@ -243,7 +242,7 @@ pub const CSS: &str = r#"
   .lui-steps:not(.lui-steps-vertical) .lui-steps-label { min-height: 0; align-content: start; padding-inline: var(--lui-space-2); }
   .lui-steps:not(.lui-steps-vertical) > li:not(:last-child)::after {
     top: calc(var(--lui-steps-dot) / 2 - 1px); bottom: auto; width: auto; height: 2px;
-    left: calc(50% + var(--lui-steps-dot) / 2 + var(--lui-space-2)); right: calc(-50% + var(--lui-steps-dot) / 2 + var(--lui-space-2));
+    inset-inline-start: calc(50% + var(--lui-steps-dot) / 2 + var(--lui-space-2)); inset-inline-end: calc(-50% + var(--lui-steps-dot) / 2 + var(--lui-space-2));
   }
 }
 "#;

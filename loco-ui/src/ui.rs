@@ -300,7 +300,7 @@ impl Ui {
             links: None,
             body,
             cookies: self.state.set_cookies().into(),
-            css: Vec::new(),
+            css: Box::default(),
             script: true,
             status: 200,
         };
@@ -367,7 +367,8 @@ pub struct Page {
     header: Option<Box<Markup>>,
     body: Markup,
     cookies: Box<[String]>,
-    css: Vec<&'static str>,
+    // A boxed slice, not a `Vec`: 8 bytes fewer, for the limit above.
+    css: Box<[&'static str]>,
     script: bool,
     status: u16,
     // The sheet as two small fields, not a `Sheet`, to stay under the 128 bytes above.
@@ -417,7 +418,9 @@ impl Page {
     /// each is minified and inlined once.
     pub fn css(mut self, css: &'static str) -> Self {
         if !self.css.contains(&css) {
-            self.css.push(css);
+            let mut list = std::mem::take(&mut self.css).into_vec();
+            list.push(css);
+            self.css = list.into_boxed_slice();
         }
         self
     }

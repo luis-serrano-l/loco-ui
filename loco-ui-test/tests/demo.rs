@@ -835,10 +835,7 @@ async fn wizard_marks_steps() {
     );
     assert!(page.exists("a.lui-wizard-back[href='/wizard?step.signup=0']"));
     let steps: Vec<_> = (1..=3)
-        .map(|i| {
-            page.bbox(&format!(".lui-steps li:nth-child({i})"))
-                .unwrap()
-        })
+        .map(|i| page.bbox(&format!(".lui-steps li:nth-child({i})")).unwrap())
         .collect();
     // A row from 30rem is a container query, which Blitz lacks (FINDINGS, M34): here the
     // narrow base, a column; `scripts/browser-check.mjs` checks the row in Firefox.

@@ -81,8 +81,9 @@ impl AppShell<'_> {
         Prop::new("user", PropKind::Value, "name: &'a str, signout: &'a str")
             .doc("Who is signed in, and where the sign-out button posts."),
         Prop::new("body", PropKind::Value, "body: Markup").doc("The page's content."),
-        Prop::new("current_prefix", PropKind::Switch, "")
-            .doc("Mark a link current also when the path is under it (`/projects` on `/projects/42`)."),
+        Prop::new("current_prefix", PropKind::Switch, "").doc(
+            "Mark a link current also when the path is under it (`/projects` on `/projects/42`).",
+        ),
     ];
 }
 

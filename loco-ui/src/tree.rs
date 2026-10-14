@@ -22,7 +22,7 @@
 //!
 //! **Server state:** the folders are numbered in document order from 0, and
 //! `?open.<id>=0,2` (a comma list, see [`crate::UiState::opens`], remembered in the `lui-ui`
-//! cookie like an accordion) opens them; so do `.open()` and holding the current page.
+//! cookie like an accordion) opens them; so do `.open(true)` and holding the current page.
 //!
 //! ```rust
 //! use loco_ui::prelude::*;
@@ -81,7 +81,7 @@ impl Node<'_> {
 /// Nested links in folders, made by [`Ui::tree`].
 ///
 /// **Setters.** Values and items: `.node(..)`, `.link(..)`, `.icon(..)`, `.children(..)`,
-/// `.id(..)`; switches: `.open()`.
+/// `.id(..)`; conditions: `.open(..)`.
 #[derive(Clone, Debug)]
 pub struct Tree<'a> {
     ui: &'a Ui,
@@ -96,7 +96,6 @@ impl Tree<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("node", PropKind::Item, "label: &'a str").doc("A node reading `label`."),
         Prop::new("link", PropKind::Modifier, "href: &'a str")
-            .attr("href")
             .doc("The node added last is a link; the one to the current path is marked current."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
             .doc("An icon before the label of the node added last."),
@@ -106,9 +105,9 @@ impl Tree<'_> {
             "nodes: impl FnOnce(Tree<'a>) -> Tree<'a>",
         )
         .doc("The nodes under the node added last, which makes it a folder."),
-        Prop::new("open", PropKind::Modifier, "")
+        Prop::new("open", PropKind::Modifier, "open: bool")
             .attr("open")
-            .doc("The folder added last starts open."),
+            .doc("The folder added last starts open while `open` holds."),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .doc("The key in `?open.<id>=` instead of the label's slug."),
     ];
@@ -169,9 +168,10 @@ impl<'a> Tree<'a> {
         self.last(|n| n.children = inner.nodes)
     }
 
-    /// The folder added last starts open.
-    pub fn open(self) -> Self {
-        self.last(|n| n.open = true)
+    /// The folder added last starts open while `open` holds (a route that knows which
+    /// folder the visitor wants).
+    pub fn open(self, open: bool) -> Self {
+        self.last(|n| n.open = open)
     }
 
     /// The key in `?open.<id>=` instead of the label's slug.
@@ -180,7 +180,13 @@ impl<'a> Tree<'a> {
         self
     }
 
-    fn list(&self, nodes: &[Node<'a>], depth: usize, folder: &Cell<usize>, opened: &[usize]) -> Markup {
+    fn list(
+        &self,
+        nodes: &[Node<'a>],
+        depth: usize,
+        folder: &Cell<usize>,
+        opened: &[usize],
+    ) -> Markup {
         let here = self.ui.state.path();
         html! {
             ul {
@@ -240,7 +246,7 @@ pub const CSS: &str = r#"
    accent on hover and on the current page, a chevron that turns when its folder opens,
    1.25rem of indent per level (--lui-tree-depth on each item). A folder that is also a link
    puts its summary, the chevron alone, over the start of the link's row. */
-.lui-tree { font-size: 0.875rem; }
+.lui-tree { font-size: var(--lui-text-2); }
 .lui-tree ul { list-style: none; margin: 0; padding: 0; }
 .lui-tree li { position: relative; max-width: none; }
 .lui-tree-row {

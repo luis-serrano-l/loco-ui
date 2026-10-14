@@ -107,7 +107,12 @@ impl<'a> HoverCard<'a> {
 impl Render for HoverCard<'_> {
     fn render(&self) -> Markup {
         let id = self.id.map_or_else(
-            || format!("lui-hover-card-{}", slug(self.trigger.trim_start_matches('@'))),
+            || {
+                format!(
+                    "lui-hover-card-{}",
+                    slug(self.trigger.trim_start_matches('@'))
+                )
+            },
             str::to_string,
         );
         let card = |kind: &str| html! { span id=(id) popover=(kind) class="lui-hover-card-content" { (self.body) } };
@@ -122,13 +127,15 @@ impl Render for HoverCard<'_> {
                         } @else {
                             summary class="lui-button lui-button-ghost lui-hover-card-trigger" { (self.trigger) }
                         }
-                        span class="lui-hover-card-content" { (self.body) }
+                        span id=(id) class="lui-hover-card-content" { (self.body) }
                     }
                 }
             };
         }
         let hover = self.caps.has(Cap::InterestInvokers);
-        let button = Button::new(self.caps, self.trigger).ghost().popovertarget(&id);
+        let button = Button::new(self.caps, self.trigger)
+            .ghost()
+            .popovertarget(&id);
         html! {
             span class="lui-hover-card" {
                 @match (self.href, hover) {
@@ -156,7 +163,7 @@ pub const CSS: &str = r#"
 .lui-hover-card-trigger { color: var(--lui-link); padding-inline: var(--lui-space-1); }
 .lui-hover-card-content {
   display: block; box-sizing: border-box; width: max-content; max-width: min(20rem, calc(100vw - 2rem)); margin: 0; padding: var(--lui-space-4);
-  font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-fg); text-align: start; overflow-wrap: anywhere;
+  font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-fg); text-align: start; overflow-wrap: anywhere;
   background: var(--lui-popover); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
   box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
@@ -170,6 +177,6 @@ pub const CSS: &str = r#"
 .lui-hover-card details { display: inline-block; }
 .lui-hover-card details > summary { list-style: none; }
 .lui-hover-card details > summary::-webkit-details-marker { display: none; }
-.lui-hover-card details > .lui-hover-card-content { position: absolute; z-index: 30; top: calc(100% + var(--lui-space-2)); inset-inline-start: 0; }
+.lui-hover-card details > .lui-hover-card-content { position: absolute; z-index: var(--lui-z-popover); top: calc(100% + var(--lui-space-2)); inset-inline-start: 0; }
 @media (pointer: coarse) { .lui-hover-card-trigger { min-height: var(--lui-hit); } }
 "#;

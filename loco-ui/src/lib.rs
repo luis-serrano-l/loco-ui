@@ -1427,6 +1427,18 @@ mod tests {
             "body",
             "a component's main markup; Form's is an item, markup placed among its fields",
         ),
+        (
+            "current",
+            "Button marks the link to this page from a condition; Steps marks the step added last",
+        ),
+        (
+            "event",
+            "Calendar adds an event on a date (date, title); Timeline an event by its title, its date a modifier",
+        ),
+        (
+            "separator",
+            "the menus add a rule between items; Breadcrumbs sets the glyph between crumbs",
+        ),
     ];
 
     /// Setters that take a whole list in one call instead of an adder per item, each with the
@@ -1637,6 +1649,7 @@ mod tests {
         "class",
         "closedby",
         "command",
+        "datetime",
         "disabled",
         "form",
         "formaction",
@@ -1646,6 +1659,7 @@ mod tests {
         "href",
         "id",
         "inputmode",
+        "interestfor",
         "list",
         "low",
         "max",
@@ -2068,9 +2082,11 @@ mod tests {
         // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
         // (README: "What a page weighs"). 128 KB until M39 folded the dark palette into
         // light-dark() and moved the demo's CSS out: 117 240 bytes then, 111 358 after; 124 KB
-        // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens.
+        // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens;
+        // 132 KB once M40b's six navigation components joined (about 9 KB more, after the
+        // wizard's step list moved into Steps).
         assert!(
-            stylesheet().len() < 124 * 1024,
+            stylesheet().len() < 132 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2275,7 +2291,10 @@ mod tests {
                 "color",
                 "a row of picker, value chip and presets that wraps",
             ),
-            ("tree", "one column of rows; the depth is an indent, not a width"),
+            (
+                "tree",
+                "one column of rows; the depth is an indent, not a width",
+            ),
         ];
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.
@@ -2350,6 +2369,62 @@ mod tests {
     type AttrExample = (&'static str, &'static str, fn(&Ui) -> [Markup; 2]);
 
     const ATTR_EXAMPLES: &[AttrExample] = &[
+        ("Button", "interestfor", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").interestfor("card").render(),
+            ]
+        }),
+        ("Steps", "href", |ui| {
+            [
+                ui.steps().step("A").render(),
+                ui.steps().step("A").href("/a").render(),
+            ]
+        }),
+        ("Timeline", "datetime", |ui| {
+            [
+                ui.timeline().event("A").when("May").render(),
+                ui.timeline()
+                    .event("A")
+                    .when("May")
+                    .datetime("2026-05")
+                    .render(),
+            ]
+        }),
+        ("Tree", "open", |ui| {
+            [
+                ui.tree("T").node("A").children(|t| t.node("B")).render(),
+                ui.tree("T")
+                    .node("A")
+                    .children(|t| t.node("B"))
+                    .open(true)
+                    .render(),
+            ]
+        }),
+        ("Collapsible", "open", |ui| {
+            [
+                ui.collapsible("More", maud::html! {}).render(),
+                ui.collapsible("More", maud::html! {}).open(true).render(),
+            ]
+        }),
+        ("Collapsible", "name", |ui| {
+            [
+                ui.collapsible("More", maud::html! {}).render(),
+                ui.collapsible("More", maud::html! {}).name("g").render(),
+            ]
+        }),
+        ("HoverCard", "href", |ui| {
+            [
+                ui.hover_card("Ada", maud::html! {}).render(),
+                ui.hover_card("Ada", maud::html! {}).href("/ada").render(),
+            ]
+        }),
+        ("HoverCard", "id", |ui| {
+            [
+                ui.hover_card("Ada", maud::html! {}).render(),
+                ui.hover_card("Ada", maud::html! {}).id("card").render(),
+            ]
+        }),
         ("Avatar", "src", |ui| {
             [
                 ui.avatar("Ada").render(),

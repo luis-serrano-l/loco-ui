@@ -947,7 +947,9 @@ pub const SPECS: &[ComponentSpec] = &[
             f("--lui-tree-depth", b("49", "31", "9.1")),
         ],
         fallback: "none needed: <details> works everywhere",
-        needs_js: NeedsJs::Partial("arrow keys between nodes (the WAI-ARIA tree pattern) need script"),
+        needs_js: NeedsJs::Partial(
+            "arrow keys between nodes (the WAI-ARIA tree pattern) need script",
+        ),
     },
     ComponentSpec {
         name: "Collapsible",

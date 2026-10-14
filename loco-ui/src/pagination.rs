@@ -35,11 +35,11 @@
 //! // An id of its own, 25 a page, two neighbours each side, first and last links, and the
 //! // filter carried along.
 //! let ui = Ui::from_request("/posts", "page.posts=3&q=rust", "");
-//! let m = ui.pagination("/posts").id("posts").total(400).per_page(25).window(2).first_last().keep(&[("q", "rust")]);
+//! let m = ui.pagination("/posts").id("posts").total(400).per_page(25).window(2).first_last().param("q", "rust");
 //! let html = m.render().into_string();
 //! assert!(html.contains(r#"href="/posts?q=rust&amp;page.posts=16">"#));
 //! // The same in `lui!`:
-//! let same = lui! { Pagination("/posts") id="posts" total=400 per_page=25 window=2 first_last keep=(&[("q", "rust")]); };
+//! let same = lui! { Pagination("/posts") id="posts" total=400 per_page=25 window=2 first_last param=("q", "rust"); };
 //! assert_eq!(same.into_string(), html);
 //! ```
 
@@ -55,7 +55,7 @@ use crate::{Icon, Page, Ui};
 /// of the current page unless told otherwise.
 ///
 /// **Setters.** Values and items: `.id(..)`, `.page(..)`, `.total(..)`, `.per_page(..)`,
-/// `.window(..)`, `.keep(..)`; switches: `.first_last()`.
+/// `.window(..)`, `.param(..)`; switches: `.first_last()`.
 #[derive(Clone, Debug)]
 pub struct Pagination<'a> {
     ui: &'a Ui,
@@ -65,7 +65,7 @@ pub struct Pagination<'a> {
     total: usize,
     per_page: usize,
     window: usize,
-    keep: &'a [(&'a str, &'a str)],
+    keep: Vec<(&'a str, &'a str)>,
     first_last: bool,
 }
 
@@ -86,8 +86,8 @@ impl Pagination<'_> {
         Prop::new("window", PropKind::Number, "neighbours: usize")
             .default("1")
             .doc("How many pages to number on each side of the current one."),
-        Prop::new("keep", PropKind::Value, "pairs: &'a [(&'a str, &'a str)]")
-            .doc("Query pairs every link carries (a filter, a sort)."),
+        Prop::new("param", PropKind::Item, "key: &'a str, value: &'a str")
+            .doc("A query pair every link carries (a filter, a sort)."),
         Prop::new("first_last", PropKind::Switch, "")
             .doc("\"First\" and \"Last\" links outside Previous and Next."),
     ];
@@ -104,7 +104,7 @@ impl Ui {
             total: 0,
             per_page: 10,
             window: 1,
-            keep: &[],
+            keep: Vec::new(),
             first_last: false,
         }
     }
@@ -143,9 +143,10 @@ impl<'a> Pagination<'a> {
         self
     }
 
-    /// Query pairs every link carries (a filter, a sort), before the page key.
-    pub fn keep(mut self, pairs: &'a [(&'a str, &'a str)]) -> Self {
-        self.keep = pairs;
+    /// A query pair every link carries (a filter, a sort), before the page key; one call
+    /// per pair.
+    pub fn param(mut self, key: &'a str, value: &'a str) -> Self {
+        self.keep.push((key, value));
         self
     }
 
@@ -157,7 +158,8 @@ impl<'a> Pagination<'a> {
 
     /// The query key the page travels in: `page`, or `page.<id>`.
     pub fn key(&self) -> String {
-        self.id.map_or_else(|| "page".to_string(), |id| format!("page.{id}"))
+        self.id
+            .map_or_else(|| "page".to_string(), |id| format!("page.{id}"))
     }
 
     /// How many pages there are; at least one.
@@ -179,13 +181,16 @@ impl<'a> Pagination<'a> {
         start.min(self.total)..(start + self.per_page).min(self.total)
     }
 
-    /// The link to page `n`, keeping the [`Pagination::keep`] pairs.
+    /// The link to page `n`, keeping the [`Pagination::param`] pairs.
     pub fn link(&self, n: usize) -> String {
         let key = self.key();
         let n = n.to_string();
         crate::href(
             self.href,
-            self.keep.iter().copied().chain([(key.as_str(), n.as_str())]),
+            self.keep
+                .iter()
+                .copied()
+                .chain([(key.as_str(), n.as_str())]),
         )
     }
 
@@ -243,7 +248,10 @@ impl Render for Pagination<'_> {
         let narrow = |n: usize| n == 1 || n == page || n == pages;
         let edge = |n: usize, text: Text, off: bool| {
             let href = self.link(n);
-            let b = ui.link_button(ui.text(text), &href).ghost().class("lui-pagination-link lui-pagination-step");
+            let b = ui
+                .link_button(ui.text(text), &href)
+                .ghost()
+                .class("lui-pagination-link lui-pagination-step");
             let b = if off { b.disabled() } else { b };
             html! { li class="lui-pagination-wide" { (b) } }
         };
@@ -327,7 +335,10 @@ mod tests {
 
     #[test]
     fn slots_keep_their_length_and_match_the_table() {
-        assert_eq!(slots(1, 5, 1), [Some(1), Some(2), Some(3), Some(4), Some(5)]);
+        assert_eq!(
+            slots(1, 5, 1),
+            [Some(1), Some(2), Some(3), Some(4), Some(5)]
+        );
         assert_eq!(
             slots(1, 20, 1),
             [Some(1), Some(2), Some(3), Some(4), Some(5), None, Some(20)]
@@ -338,7 +349,15 @@ mod tests {
         );
         assert_eq!(
             slots(19, 20, 1),
-            [Some(1), None, Some(16), Some(17), Some(18), Some(19), Some(20)]
+            [
+                Some(1),
+                None,
+                Some(16),
+                Some(17),
+                Some(18),
+                Some(19),
+                Some(20)
+            ]
         );
         assert_eq!(slots(10, 20, 2).len(), 9);
         assert_eq!(slots(1, 1, 2), [Some(1)]);

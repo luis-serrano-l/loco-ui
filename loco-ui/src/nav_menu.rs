@@ -93,8 +93,9 @@ impl NavMenu<'_> {
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The prefix of the panels' ids instead of `nav-<label>`."),
-        Prop::new("current_prefix", PropKind::Switch, "")
-            .doc("Mark a link current also when the path is under it (`/projects` on `/projects/42`)."),
+        Prop::new("current_prefix", PropKind::Switch, "").doc(
+            "Mark a link current also when the path is under it (`/projects` on `/projects/42`).",
+        ),
     ];
 }
 

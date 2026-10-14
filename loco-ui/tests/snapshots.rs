@@ -540,7 +540,7 @@ const EXAMPLES: &[Example] = &[
             .per_page(25)
             .window(2)
             .first_last()
-            .keep(&[("q", "rust")])
+            .param("q", "rust")
             .render()
     }),
     example("Steps", |ui| {

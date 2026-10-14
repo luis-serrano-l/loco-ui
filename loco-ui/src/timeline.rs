@@ -74,12 +74,14 @@ impl Timeline<'_> {
             .doc("When the event added last happened, as the reader should see it."),
         Prop::new("datetime", PropKind::Modifier, "iso: &'a str")
             .attr("datetime")
-            .doc("The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`."),
+            .doc(
+                "The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`.",
+            ),
         Prop::new("description", PropKind::Modifier, "text: &'a str")
             .doc("A muted line under the title of the event added last."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
             .doc("An icon in a ring on the line instead of the dot, for the event added last."),
-        Prop::new("tone", PropKind::Modifier, "tone: Tone")
+        Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
             .doc("The colour of the event added last's dot or icon (neutral by default)."),
     ];
 }
@@ -188,7 +190,7 @@ pub const CSS: &str = r#"
   background: var(--lui-timeline-dot); box-shadow: 0 0 0 3px var(--lui-bg);
 }
 .lui-timeline-icon {
-  display: grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-top: 0; font-size: 0.75rem;
+  display: grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-top: 0; font-size: var(--lui-text-1);
   background: color-mix(in srgb, var(--lui-timeline-dot) 18%, var(--lui-bg)); color: var(--lui-timeline-dot);
   box-shadow: 0 0 0 4px var(--lui-bg);
 }
@@ -198,9 +200,9 @@ pub const CSS: &str = r#"
 .lui-timeline > li[data-tone=warn] { --lui-timeline-dot: var(--lui-warn); }
 .lui-timeline > li[data-tone=danger] { --lui-timeline-dot: var(--lui-danger); }
 .lui-timeline > li[data-tone=neutral] { --lui-timeline-dot: var(--lui-gray-9); }
-.lui-timeline-when { margin-bottom: var(--lui-space-1); font-size: 0.875rem; line-height: 1.5rem; color: var(--lui-muted); font-variant-numeric: tabular-nums; }
-.lui-timeline-title { margin: 0; font-size: 1rem; line-height: 1.5rem; font-weight: 600; color: var(--lui-fg); max-width: none; }
-.lui-timeline-description { margin: var(--lui-space-1) 0 0; font-size: 0.875rem; color: var(--lui-muted); max-width: none; }
+.lui-timeline-when { margin-bottom: var(--lui-space-1); font-size: var(--lui-text-2); line-height: 1.5rem; color: var(--lui-muted); font-variant-numeric: tabular-nums; }
+.lui-timeline-title { margin: 0; font-size: var(--lui-text-3); line-height: 1.5rem; font-weight: 600; color: var(--lui-fg); max-width: none; }
+.lui-timeline-description { margin: var(--lui-space-1) 0 0; font-size: var(--lui-text-2); color: var(--lui-muted); max-width: none; }
 @container lui-timeline (width >= 30rem) {
   .lui-timeline > li { grid-template-columns: 8rem 1.5rem minmax(0, 1fr); }
   .lui-timeline > li::before { inset-inline-start: calc(8rem + var(--lui-space-3) + 0.75rem - 0.5px); }

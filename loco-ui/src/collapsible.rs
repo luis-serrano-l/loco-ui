@@ -28,7 +28,7 @@
 //! let html = m.render().into_string();
 //! assert!(html.contains(r#"<details class="lui-collapsible" name="settings" open>"#));
 //! // The same in `lui!`:
-//! let same = lui! { Collapsible("Advanced", html! { p { "Options." } }) open[true] ghost name="settings"; };
+//! let same = lui! { Collapsible("Advanced", html! { p { "Options." } }) open=(true) ghost name="settings"; };
 //! assert_eq!(same.into_string(), html);
 //! ```
 
