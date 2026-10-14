@@ -333,15 +333,15 @@ pub const CSS: &str = r#"
 .lui-tabs-panel { padding: 1rem 0; }
 /* Vertical: a plain list with a rule, the open title marked by a bar on the rule; the open
    panel beside the titles. */
-.lui-tabs.lui-tabs-vertical { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; }
-.lui-tabs-vertical .lui-tabs-select { grid-column: 1 / -1; }
-.lui-tabs-vertical .lui-tabs-list {
+.lui-tabs[data-orientation=vertical] { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-select { grid-column: 1 / -1; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-list {
   grid-column: 1; flex-direction: column; flex-wrap: nowrap; align-self: stretch; padding: 0;
   background: none; border-radius: 0; border-right: 1px solid var(--lui-line);
 }
-.lui-tabs-vertical .lui-tabs-trigger { padding: 0.5rem 1rem; border-radius: 0; }
-.lui-tabs-vertical .lui-tabs-mark { inset: 0 -1px 0 auto; width: 2px; border-radius: 0; background: var(--lui-fg); box-shadow: none; }
-.lui-tabs-vertical .lui-tabs-panel { grid-column: 2; padding: 0 0 0 calc(var(--lui-space) * 3); }
+.lui-tabs[data-orientation=vertical] .lui-tabs-trigger { padding: 0.5rem 1rem; border-radius: 0; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-mark { inset: 0 -1px 0 auto; width: 2px; border-radius: 0; background: var(--lui-fg); box-shadow: none; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-panel { grid-column: 2; padding: 0 0 0 calc(var(--lui-space) * 3); }
 /* .underline() (Radix Tabs/TabNav): no pill; the list carries the full-width hairline and the
    open title is marked by a 2px primary bar on it, the chip element restyled, so it slides the
    same way. Titles are muted, fg when open. */
@@ -355,8 +355,8 @@ pub const CSS: &str = r#"
 @container lui-tabs (width < 30rem) {
   .lui-tabs-select ~ .lui-tabs-list { display: none; }
   .lui-tabs-select { display: flex; }
-  .lui-tabs.lui-tabs-vertical { display: block; }
-  .lui-tabs-vertical .lui-tabs-panel { padding: 1rem 0; }
+  .lui-tabs[data-orientation=vertical] { display: block; }
+  .lui-tabs[data-orientation=vertical] .lui-tabs-panel { padding: 1rem 0; }
 }
 "#;
 

@@ -4,7 +4,7 @@ source: loco-ui/tests/snapshots.rs
 caps: all
 <div id="lui-calendar-due" data-lui="swap" class="lui-calendar" role="radiogroup" aria-labelledby="lui-calendar-due-title" aria-required="true">
 <div class="lui-calendar-head">
-<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" role="link" aria-disabled="true" aria-label="Previous month">
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" role="link" aria-disabled="true" data-disabled aria-label="Previous month">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
 <path d="m15 18-6-6 6-6"/>
 </svg>
@@ -295,7 +295,7 @@ caps: all
 caps: none
 <div id="lui-calendar-due" data-lui="swap" class="lui-calendar" role="radiogroup" aria-labelledby="lui-calendar-due-title" aria-required="true">
 <div class="lui-calendar-head">
-<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" role="link" aria-disabled="true" aria-label="Previous month">
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" role="link" aria-disabled="true" data-disabled aria-label="Previous month">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
 <path d="m15 18-6-6 6-6"/>
 </svg>

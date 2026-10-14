@@ -9,7 +9,7 @@ caps: all
 </svg>
 </button>
 <output style="view-transition-name: lui-counter">10</output>
-<button type="submit" class="lui-button lui-button-icon" name="op" value="inc" aria-label="increment" disabled>
+<button type="submit" class="lui-button lui-button-icon" name="op" value="inc" aria-label="increment" disabled data-disabled>
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="plus">
 <path d="M5 12h14"/>
 <path d="M12 5v14"/>
@@ -29,7 +29,7 @@ caps: none
 </svg>
 </button>
 <output>10</output>
-<button type="submit" class="lui-button lui-button-icon" name="op" value="inc" aria-label="increment" disabled>
+<button type="submit" class="lui-button lui-button-icon" name="op" value="inc" aria-label="increment" disabled data-disabled>
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="plus">
 <path d="M5 12h14"/>
 <path d="M12 5v14"/>

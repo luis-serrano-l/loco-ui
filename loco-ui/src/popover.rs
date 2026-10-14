@@ -489,14 +489,14 @@ fn item(menu_id: &str, it: &MenuItem, popover: bool, anchor: bool) -> Markup {
             Kind::Separator => li role="separator" class="lui-popover-sep" {},
             Kind::Link(href) => li role="none" {
                 @if it.disabled {
-                    a class=(class) role="menuitem" aria-disabled="true" { (inner) }
+                    a class=(class) role="menuitem" aria-disabled="true" data-disabled { (inner) }
                 } @else {
                     a class=(class) role="menuitem" href=(href) { (inner) }
                 }
             },
             Kind::Action(action) => li role="none" {
                 form method="post" action=(action) {
-                    button type="submit" class=(class) role="menuitem" disabled[it.disabled] { (inner) }
+                    button type="submit" class=(class) role="menuitem" disabled[it.disabled] data-disabled[it.disabled] { (inner) }
                 }
             },
             Kind::Submenu(ref items) => li role="none" class="lui-popover-sub" {
@@ -558,8 +558,8 @@ pub const CSS: &str = r#"
 .lui-popover-danger { color: var(--lui-danger); }
 .lui-popover-danger:hover, .lui-popover-danger:focus-visible { color: var(--lui-danger); background: color-mix(in srgb, var(--lui-danger) 10%, transparent); }
 .lui-popover-danger .lui-popover-icon { color: inherit; }
-.lui-popover-disabled { opacity: 0.5; cursor: default; }
-.lui-popover-disabled:hover { background: none; color: inherit; }
+.lui-popover-item[data-disabled] { opacity: 0.5; cursor: default; }
+.lui-popover-item[data-disabled]:hover { background: none; color: inherit; }
 .lui-popover-heading { display: flex; align-items: center; min-height: 1.5rem; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
 .lui-popover-sep { margin: var(--lui-space-1) 0.5rem; border-top: 1px solid var(--lui-line); }
 .lui-popover-sub { position: relative; }

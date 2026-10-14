@@ -656,7 +656,7 @@ impl Render for Button<'_> {
             let off = self.disabled || self.loading;
             return html! {
                 a class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius] href=[(!off).then_some(href)] role=[attrs.role.or(off.then_some("link"))]
-                    aria-disabled=[off.then_some("true")] aria-busy=[self.loading.then_some("true")]
+                    aria-disabled=[off.then_some("true")] data-disabled[off] aria-busy=[self.loading.then_some("true")]
                     aria-label=[self.label] aria-describedby=[attrs.aria_describedby] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
                     rel=[attrs.rel] aria-current=[attrs.current.then_some("page")]
                     accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts] { (spinner) (text) }
@@ -683,9 +683,10 @@ impl Render for Button<'_> {
                 command=[command.map(|c| c.0)] commandfor=[command.map(|c| c.1)]
                 popovertarget=[target] popovertargetaction=[fallback.map(|(_, a)| a)]
                 form=[self.form] name=[self.name] value=[self.value] aria-label=[self.label] aria-describedby=[attrs.aria_describedby]
-                aria-busy=[self.loading.then_some("true")] disabled[self.disabled || self.loading]
+                aria-busy=[self.loading.then_some("true")] disabled[self.disabled || self.loading] data-disabled[self.disabled || self.loading]
                 id=[attrs.id] role=[attrs.role] title=[attrs.title] style=[attrs.style.as_deref()]
                 aria-haspopup=[attrs.aria_haspopup] aria-pressed=[attrs.aria_pressed.map(|p| if p { "true" } else { "false" })]
+                data-state=[attrs.aria_pressed.map(|p| if p { "on" } else { "off" })]
                 accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts]
                 formmethod=[attrs.formmethod] formaction=[attrs.formaction] formnovalidate[attrs.formnovalidate]
                 { (spinner) (text) }
@@ -733,7 +734,7 @@ button:hover, .lui-button:hover { background: var(--lui-accent); color: var(--lu
 .lui-button:is([data-variant=surface], [data-variant=outline]):hover { background: var(--lui-button-tint); color: var(--lui-button-text); }
 .lui-button[data-variant=outline] { background: transparent; color: var(--lui-button-text); border-color: var(--lui-button-line); box-shadow: none; }
 .lui-button[data-variant=ghost] { background: transparent; color: var(--lui-button-text); border-color: transparent; box-shadow: none; }
-.lui-button:where([data-variant]):is(:active:not(:disabled), [aria-pressed=true]) { filter: brightness(0.94); }
+.lui-button:where([data-variant]):is(:active:not(:disabled), [data-state=on]) { filter: brightness(0.94); }
 /* Primary: the brand gradient over the flat fill (Chrome before 111 keeps the fill), lit from
    above; hover lays a veil of the text colour over both so it still visibly changes. */
 button.lui-primary, .lui-button.lui-button-primary {
@@ -755,10 +756,10 @@ button.lui-danger:hover, .lui-button.lui-button-danger:hover { background: color
 .lui-button.lui-button-surface { background: var(--lui-brand-2); color: var(--lui-brand-11); border-color: var(--lui-brand-7); }
 .lui-button.lui-button-surface:hover { background: var(--lui-brand-3); color: var(--lui-brand-11); border-color: var(--lui-brand-8); }
 /* Pressed (held down, or a toggle that is on): one step deeper, no lift. */
-.lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface, [data-variant])):is(:active:not(:disabled), [aria-pressed=true]) { background: var(--lui-gray-4); box-shadow: none; }
-.lui-button.lui-button-ghost:active:not(:disabled), .lui-button.lui-button-ghost[aria-pressed=true] { background: var(--lui-gray-4); }
-.lui-button.lui-button-soft:active:not(:disabled), .lui-button.lui-button-soft[aria-pressed=true] { background: var(--lui-brand-5); }
-.lui-button.lui-button-surface:active:not(:disabled), .lui-button.lui-button-surface[aria-pressed=true] { background: var(--lui-brand-4); }
+.lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface, [data-variant])):is(:active:not(:disabled), [data-state=on]) { background: var(--lui-gray-4); box-shadow: none; }
+.lui-button.lui-button-ghost:active:not(:disabled), .lui-button.lui-button-ghost[data-state=on] { background: var(--lui-gray-4); }
+.lui-button.lui-button-soft:active:not(:disabled), .lui-button.lui-button-soft[data-state=on] { background: var(--lui-brand-5); }
+.lui-button.lui-button-surface:active:not(:disabled), .lui-button.lui-button-surface[data-state=on] { background: var(--lui-brand-4); }
 .lui-button:is(.lui-button-primary, .lui-button-danger):active:not(:disabled) { background-image: none; filter: brightness(0.92); }
 /* Sizes: Radix 1 to 3, on the shared control heights (all 2.75rem on a touch screen). */
 .lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; font-size: 0.8125rem; }
@@ -783,12 +784,12 @@ button:focus-visible, .lui-button:focus-visible { border-color: var(--lui-ring);
 /* Disabled (Radix): a --lui-gray-3 fill, --lui-gray-8 text, no border colour, gradient or shadow. A busy
    button is disabled too but keeps its own look under the spinner. */
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-.lui-button:is(:disabled, [aria-disabled=true]):not([aria-busy=true]) {
+.lui-button:is(:disabled, [data-disabled]):not([aria-busy=true]) {
   opacity: 1; cursor: not-allowed; background: var(--lui-gray-3); background-image: none; color: var(--lui-gray-8);
   border-color: transparent; box-shadow: none; filter: none;
 }
-.lui-button:is(.lui-button-ghost, [data-variant=ghost]):is(:disabled, [aria-disabled=true]):not([aria-busy=true]) { background: transparent; }
-.lui-button[aria-disabled=true] { pointer-events: none; }
+.lui-button:is(.lui-button-ghost, [data-variant=ghost]):is(:disabled, [data-disabled]):not([aria-busy=true]) { background: transparent; }
+.lui-button[data-disabled] { pointer-events: none; }
 /* Busy: the label keeps its place (and the button's width and name) under a centred spinner. */
 .lui-button[aria-busy=true] { position: relative; cursor: progress; opacity: 1; }
 .lui-button[aria-busy=true] > .lui-button-label { opacity: 0; }

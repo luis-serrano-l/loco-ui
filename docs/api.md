@@ -37,12 +37,98 @@ assert_eq!(a.into_string(), b.into_string());
 
 ## Ids
 
-- An id you do not care about is derived from the label with `loco_ui::slug`:
-  `ui.menu("Account")` is `#account`, `ui.meter(..).label("Disk")` is `#lui-meter-disk`.
+- An id you do not care about is derived from the label with `loco_ui::slug`, behind the
+  component's own `lui-` prefix so it cannot collide with an app's: `ui.dialog("Delete")` is
+  `#lui-dialog-delete`, `ui.menu("Account")` `#lui-menu-account`, `ui.drawer("Menu")`
+  `#lui-drawer-menu`, `ui.tooltip("Copy")` `#lui-tooltip-copy`, the palette `#lui-palette`,
+  `ui.meter(..).label("Disk")` `#lui-meter-disk`.
+- `slug` keeps letters and digits in any script and lowercases them (`"Configuración"` is
+  `configuración`, two Japanese labels get two ids); everything else becomes one `-`.
+- `?dialog=<id>` opens a dialog or drawer from a link. A link written before the prefix
+  (`?dialog=confirm` for a derived `lui-dialog-confirm`) still opens it for one release
+  (`UiState::dialog_is`).
 - A form control's id is `f-<name>` (`#f-email`, `#f-plan`); the error summary links there.
 - `.id(..)` overrides a derived id wherever there is one (Menu, ContextMenu, Palette, Dialog,
   Drawer, Tooltip, Chart, Card, Button, Input, Form, Meter, Progress, Sidebar, NavMenu). Two
-  components with the same label on one page need it.
+  components with the same label on one page need it, and so do two forms posting to the same
+  action (a form's id comes from its action).
+
+## Variants
+
+Four enums in `loco_ui::variant` (in the prelude) give the components one look vocabulary,
+after Radix Themes. A value that is not the component's default is written on the root as a
+`data-*` attribute beside the classes, so an app's CSS can select it too. In `lui!` each is a
+string literal checked at compile time (`tone="danger"`, `size=1`).
+
+| Enum | Values | Attribute | Means |
+|---|---|---|---|
+| `Size` | `1`, `2`, `3` (`.size(1)`, or `Size::S1`; `.small()` and `.large()` on Button) | `data-size` | the control height and type scale |
+| `Tone` | `neutral`, `brand`, `ok`, `warn`, `danger`, `info` | `data-tone` | which colour scale |
+| `Variant` | `solid`, `soft`, `surface`, `outline`, `ghost` | `data-variant` | how the tone is painted: fill, tint, tint in a border, border, nothing until hovered |
+| `Radius` | `none`, `small`, `medium`, `large`, `full` | `data-radius` | corner rounding |
+
+| Builder | `size` | `tone` | `variant` | `radius` |
+|---|---|---|---|---|
+| Button, LinkButton | yes | yes | yes | yes |
+| Badge | yes | yes | yes | yes |
+| Progress | yes | yes | yes | yes |
+| Alert | yes | yes | yes | |
+| Avatar | its own `u8` (1 to 5) | yes | yes | yes |
+| Card | yes | | yes | |
+| Input, Select | yes | | yes | |
+| ToggleGroup | yes | | | yes |
+| Tabs | yes | | | |
+| Flash | | | yes | |
+| Dialog | its own `u8` (1 to 4) | | | |
+
+The switches are shorthand that composes with them: `.primary()` is brand solid, `.danger()`
+the danger tone (solid unless a variant is given), `.ghost()`, `.soft()` and `.surface()`
+variants. So a red ghost button is either spelling:
+
+```rust
+use loco_ui::prelude::*;
+let ui = Ui::from_request("/", "", "");
+let a = lui! { Button("Delete") danger ghost; };
+let b = lui! { Button("Delete") tone="danger" variant="ghost"; };
+assert_eq!(a.into_string(), b.into_string());
+let badge = lui! { Badge("Failed") tone="danger" variant="solid"; }.into_string();
+assert!(badge.contains(r#"data-tone="danger" data-variant="solid""#));
+```
+
+## State attributes
+
+What a component knows about its own state when it renders is written as an attribute an app
+may style, on the root and on the part it describes (the Radix and Base UI convention). The
+component's own CSS selects the same attribute, and a test
+(`state_attributes_are_styled_where_they_are_set`) fails when one is set but not styled.
+
+| Attribute | Values | Where |
+|---|---|---|
+| `data-state` | `active` / `inactive` | a tab's link and its panel |
+| `data-state` | `open` / `closed` | an accordion item, its link and its body |
+| `data-state` | `on` / `off` | a toggle button (`.pressed(..)`, beside `aria-pressed`) |
+| `data-disabled` | present | a disabled or busy button, a disabled menu item |
+| `data-orientation` | `vertical` | vertical tabs |
+| `aria-busy` | `true` | a loading button; a form the script is posting |
+| `aria-current` | `page` / `true` | the current link in a sidebar, nav menu or breadcrumbs; the active tab |
+| `aria-invalid` | `true` | a form control with an error |
+| `aria-sort` | `ascending` / `descending` | a table's sorted column |
+
+What the browser changes on its own, without script, is not mirrored: a server cannot know
+it. Style a dialog or drawer by `[open]`, a popover menu by `:popover-open`, a `<details>` by
+`[open]`, a checkbox by `:checked`.
+
+## Text arguments borrow (`&'a str`, not `Cow`)
+
+Text setters take `&'a str`, and a component holds the borrow until it renders inside the same
+`html!`. A `impl Into<Cow<'a, str>>` setter was tried on `Dialog::title` (M38): it compiles
+and `lui!` is unaffected, but `PROPS` then lists two spellings of one argument
+(`props_follow_the_conventions` fails on `.title` taking `Cow` on Dialog and `&str` on Button)
+and every builder would have to change at once to stay consistent, across files several
+milestones edit. An owned string is one `&format!(..)` or `&s` away in the handler, which
+lives as long as the page, so text stays `&'a str`. The exceptions take `impl Display` where
+the value is usually a number (`ui.badge(3)`, `.badge(..)` on items) and `impl Into<String>`
+for a style string (`Button::style`).
 
 ## Kinds of setter
 

@@ -2141,6 +2141,42 @@ mod tests {
         }
     }
 
+    /// M38: the state attributes of `docs/api.md` ("State attributes") are a styling API, so
+    /// a component that writes `data-state`, `data-disabled`, `data-invalid` or
+    /// `data-orientation` in its markup selects the same attribute in its own CSS: the class
+    /// and the attribute cannot drift apart.
+    #[test]
+    fn state_attributes_are_styled_where_they_are_set() {
+        const STATE: [&str; 4] = [
+            "data-state",
+            "data-disabled",
+            "data-invalid",
+            "data-orientation",
+        ];
+        let mut drift = Vec::new();
+        for path in library_sources() {
+            let source = std::fs::read_to_string(&path).unwrap();
+            let (code, css) = source
+                .split_once("pub const CSS: &str")
+                .unwrap_or((source.as_str(), ""));
+            let code: String = code
+                .lines()
+                .filter(|l| !l.trim_start().starts_with("//"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            for attr in STATE {
+                let set = [format!("{attr}="), format!("{attr}["), format!("{attr} ")]
+                    .iter()
+                    .any(|s| code.contains(s.as_str()));
+                if set && !css.contains(&format!("[{attr}")) {
+                    let name = path.file_name().unwrap().to_string_lossy().to_string();
+                    drift.push(format!("{name} sets {attr} but its CSS never selects it"));
+                }
+            }
+        }
+        assert!(drift.is_empty(), "{drift:#?}");
+    }
+
     /// M34: components respond to the box they sit in, not the viewport (`layout.rs` header).
     /// A component whose CSS sets a layout (`display: grid`, wrapping flex, `grid-template-*`)
     /// needs an `@container` rule, and no component CSS asks the viewport's size: media

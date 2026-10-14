@@ -18,7 +18,7 @@ caps: all
 </a>
 </li>
 <li role="none">
-<a class="lui-popover-item lui-popover-disabled" role="menuitem" aria-disabled="true">
+<a class="lui-popover-item lui-popover-disabled" role="menuitem" aria-disabled="true" data-disabled>
 <span class="lui-popover-text">Billing</span>
 </a>
 </li>
@@ -72,7 +72,7 @@ caps: none
 </a>
 </li>
 <li role="none">
-<a class="lui-popover-item lui-popover-disabled" role="menuitem" aria-disabled="true">
+<a class="lui-popover-item lui-popover-disabled" role="menuitem" aria-disabled="true" data-disabled>
 <span class="lui-popover-text">Billing</span>
 </a>
 </li>
