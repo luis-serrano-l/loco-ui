@@ -447,8 +447,7 @@ impl<'a> Form<'a> {
         label: &'a str,
         options: impl IntoIterator<Item = O>,
     ) -> Self {
-        let options: Vec<SelectOption<'a>> =
-            options.into_iter().map(|o| o.into().into()).collect();
+        let options: Vec<SelectOption<'a>> = options.into_iter().map(|o| o.into().into()).collect();
         self.add(name, label, FieldKind::Select(options))
     }
 
@@ -694,7 +693,11 @@ impl<'a> Form<'a> {
                     });
                     Field {
                         value,
-                        values: if posted.is_empty() { f.values.clone() } else { posted },
+                        values: if posted.is_empty() {
+                            f.values.clone()
+                        } else {
+                            posted
+                        },
                         error,
                         ..f.clone()
                     }
@@ -718,7 +721,8 @@ impl<'a> Form<'a> {
                     // A group's first choice, which the summary's link focuses.
                     FieldKind::Radio(_) => format!("f-{}-0", f.name),
                     FieldKind::Checkboxes(_) => {
-                        f.id.map_or_else(|| format!("f-{}", crate::slug(f.name)), str::to_string) + "-0"
+                        f.id.map_or_else(|| format!("f-{}", crate::slug(f.name)), str::to_string)
+                            + "-0"
                     }
                     _ => f.control_id(),
                 };

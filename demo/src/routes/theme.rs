@@ -252,7 +252,7 @@ fn pickers(ui: &Ui, chosen: &Chosen, extra: Markup) -> Markup {
             fieldset {
                 legend { "Shape and type" }
                 div {
-                    Range("radius", "Radius (px)") value=(i64::from(chosen.radius)) min=0 max=24;
+                    Range("radius", "Radius (px)") value=(f64::from(chosen.radius)) min=0 max=24;
                     Select("factor", "Radius ramp") value=(chosen.factor) options=(FACTORS);
                     Select("density", "Density") value=(chosen.density.as_str()) options=(DENSITIES);
                     Select("font", "Font") value=(chosen.font) options=(FONTS);

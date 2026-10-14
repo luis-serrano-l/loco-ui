@@ -83,9 +83,9 @@ async fn handle(req: Request<Incoming>) -> Result<Reply, Infallible> {
             .body(Full::default())
             .unwrap());
     }
-    let count: i64 = cookie(&cookies, "count")
+    let count: f64 = cookie(&cookies, "count")
         .and_then(|v| v.parse().ok())
-        .unwrap_or(0);
+        .unwrap_or(0.0);
 
     let reply = match (req.method(), path.as_str()) {
         (&Method::GET, "/") => {

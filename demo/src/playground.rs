@@ -201,9 +201,9 @@ pub(crate) const ENTRIES: &[Entry] = &[
             let builder = with(query.ui.meter(83, 0, 100), query.text("label"), |b, v| {
                 b.label(v)
             });
-            let builder = with(builder, query.num("low"), |b, v| b.low(v));
-            let builder = with(builder, query.num("high"), |b, v| b.high(v));
-            with(builder, query.num("optimum"), |b, v| b.optimum(v)).render()
+            let builder = with(builder, query.num::<f64>("low"), |b, v| b.low(v));
+            let builder = with(builder, query.num::<f64>("high"), |b, v| b.high(v));
+            with(builder, query.num::<f64>("optimum"), |b, v| b.optimum(v)).render()
         },
     },
     Entry {
@@ -367,12 +367,12 @@ pub(crate) const ENTRIES: &[Entry] = &[
         build: |query| {
             let builder = with(
                 query.ui.range("volume", "Volume"),
-                query.num("value"),
+                query.num::<f64>("value"),
                 |b, v| b.value(v),
             );
-            let builder = with(builder, query.num("min"), |b, v| b.min(v));
-            let builder = with(builder, query.num("max"), |b, v| b.max(v));
-            with(builder, query.num("step"), |b, v| b.step(v)).render()
+            let builder = with(builder, query.num::<f64>("min"), |b, v| b.min(v));
+            let builder = with(builder, query.num::<f64>("max"), |b, v| b.max(v));
+            with(builder, query.num::<f64>("step"), |b, v| b.step(v)).render()
         },
     },
     Entry {

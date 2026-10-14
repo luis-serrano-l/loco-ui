@@ -252,14 +252,14 @@ async fn form_submit(ui: Ui, posted: Posted) -> Result<Redirect, Page> {
 #[serde(default)]
 struct Inputs {
     size: String,
-    volume: i64,
+    volume: f64,
     accent: String,
     #[serde(rename = "accent-alpha")]
     alpha: u8,
     #[serde(rename = "accent-preset")]
     preset: Option<String>,
-    price_min: i64,
-    price_max: i64,
+    price_min: f64,
+    price_max: f64,
     country: String,
 }
 
@@ -267,12 +267,12 @@ impl Default for Inputs {
     fn default() -> Self {
         Inputs {
             size: "m".into(),
-            volume: 40,
+            volume: 40.0,
             accent: ACCENTS[0].into(),
             alpha: 100,
             preset: None,
-            price_min: 20,
-            price_max: 80,
+            price_min: 20.0,
+            price_max: 80.0,
             country: "es".into(),
         }
     }
@@ -369,8 +369,10 @@ async fn inputs_submit(ui: Ui, Form(form): Form<Inputs>) -> Redirect {
         .flat_map(|(_, cs)| cs)
         .any(|(v, ..)| *v == form.country);
     let accent = form.preset.filter(hex).or(Some(form.accent).filter(hex));
-    let (lo, hi) =
-        loco_ui::range::order(form.price_min.clamp(0, 100), form.price_max.clamp(0, 100));
+    let (lo, hi) = loco_ui::range::order(
+        form.price_min.clamp(0.0, 100.0),
+        form.price_max.clamp(0.0, 100.0),
+    );
     let clean = Inputs {
         size: if size { form.size } else { defaults.size },
         country: if country {
@@ -380,7 +382,7 @@ async fn inputs_submit(ui: Ui, Form(form): Form<Inputs>) -> Redirect {
         },
         accent: accent.unwrap_or(defaults.accent),
         alpha: form.alpha.min(100),
-        volume: form.volume.clamp(0, 100),
+        volume: form.volume.clamp(0.0, 100.0),
         price_min: lo,
         price_max: hi,
         preset: None,

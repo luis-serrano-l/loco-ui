@@ -154,7 +154,7 @@ pub fn form(
             datetime "remind_at" "Remind at" "" "";
             pattern "price" "Price" "-?[0-9]+([.][0-9]+)?" "A number, like 12.50.";
             select "status" "Status" (["todo", "doing", "done"]) required;
-            number "size" "Size" (i32::MIN.into()) (i32::MAX.into());
+            number "size" "Size" (i32::MIN) (i32::MAX);
         }
     }
 }

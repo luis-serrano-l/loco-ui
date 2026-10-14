@@ -54,70 +54,93 @@ use crate::{Cap, Caps, Icon, Ui, enhance};
 /// A number with buttons posting `op` to `action`, made by [`Ui::counter`]. Unbounded and
 /// stepping by 1 unless told otherwise.
 ///
-/// **Setters.** Values and items: `.min(..)`, `.max(..)`, `.step(..)`; switches: `.typed()`.
+/// **Setters.** Values and items: `.min(..)`, `.max(..)`, `.step(..)`; switches: `.typed()`,
+/// `.disabled()`, `.readonly()`.
 #[derive(Clone, Debug)]
 pub struct Counter<'a> {
     caps: Caps,
     strings: &'static Strings,
     action: &'a str,
-    value: i64,
-    min: Option<i64>,
-    max: Option<i64>,
-    step: i64,
+    value: f64,
+    min: Option<f64>,
+    max: Option<f64>,
+    step: f64,
     typed: bool,
+    disabled: bool,
+    readonly: bool,
 }
 
 impl Counter<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
-        Prop::new("min", PropKind::Number, "min: i64")
+        Prop::new("min", PropKind::Number, "min: impl Into<f64>")
             .attr("min")
             .doc("Lowest value."),
-        Prop::new("max", PropKind::Number, "max: i64")
+        Prop::new("max", PropKind::Number, "max: impl Into<f64>")
             .attr("max")
             .doc("Highest value."),
-        Prop::new("step", PropKind::Number, "step: i64")
+        Prop::new("step", PropKind::Number, "step: impl Into<f64>")
             .default("1")
             .attr("step")
-            .doc("How far one click moves (at least 1)."),
+            .doc("How far one click moves (above 0)."),
         Prop::new("typed", PropKind::Switch, "")
             .doc("A number field and a Set button posting `op=set&value=n`."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("Every button and the number field disabled."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("The value shown, its buttons off and the number field `readonly`."),
     ];
 }
 
 impl Ui {
     /// A counter showing `value`, its buttons posting to `action`.
-    pub fn counter<'a>(&self, action: &'a str, value: i64) -> Counter<'a> {
+    pub fn counter<'a>(&self, action: &'a str, value: impl Into<f64>) -> Counter<'a> {
         Counter {
             caps: self.caps,
             strings: self.strings,
             action,
-            value,
+            value: value.into(),
             min: None,
             max: None,
-            step: 1,
+            step: 1.0,
             typed: false,
+            disabled: false,
+            readonly: false,
         }
     }
 }
 
 impl Counter<'_> {
     /// Lowest value; the decrement button is disabled at it.
-    pub fn min(mut self, min: i64) -> Self {
-        self.min = Some(min);
+    pub fn min(mut self, min: impl Into<f64>) -> Self {
+        self.min = Some(min.into());
         self
     }
 
     /// Highest value; the increment button is disabled at it.
-    pub fn max(mut self, max: i64) -> Self {
-        self.max = Some(max);
+    pub fn max(mut self, max: impl Into<f64>) -> Self {
+        self.max = Some(max.into());
         self
     }
 
-    /// How far one click moves (at least 1).
-    pub fn step(mut self, step: i64) -> Self {
-        self.step = step.max(1);
+    /// How far one click moves (above 0; 1 when given 0 or less).
+    pub fn step(mut self, step: impl Into<f64>) -> Self {
+        let step = step.into();
+        self.step = if step > 0.0 { step } else { 1.0 };
+        self
+    }
+
+    /// Every button and the number field disabled: shown, not changeable, nothing posted.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+
+    /// The value shown and its buttons off; the number field is `readonly`, so it still posts.
+    pub fn readonly(mut self) -> Self {
+        self.readonly = true;
         self
     }
 
@@ -129,15 +152,16 @@ impl Counter<'_> {
 
     /// The value after a posted `op` (`inc`, `dec`, `reset`, `set` with the typed value),
     /// clamped to the bounds: the handler's half of the component.
-    pub fn apply(&self, op: &str, typed: Option<i64>) -> i64 {
+    pub fn apply(&self, op: &str, typed: Option<f64>) -> f64 {
         let (value, min, max) = (self.value, self.min, self.max);
         let next = match op {
-            "inc" => value.saturating_add(self.step),
-            "dec" => value.saturating_sub(self.step),
-            "set" => typed.unwrap_or(value),
-            _ => min.unwrap_or(0).max(0).min(max.unwrap_or(i64::MAX)),
+            "inc" => value + self.step,
+            "dec" => value - self.step,
+            "set" => typed.filter(|t| t.is_finite()).unwrap_or(value),
+            _ => min.unwrap_or(0.0).max(0.0).min(max.unwrap_or(f64::MAX)),
         };
-        next.clamp(min.unwrap_or(i64::MIN), max.unwrap_or(i64::MAX))
+        let next = crate::input::tidy(next, self.step, min.unwrap_or(0.0));
+        next.clamp(min.unwrap_or(f64::MIN), max.unwrap_or(f64::MAX))
     }
 }
 
@@ -152,7 +176,10 @@ impl Render for Counter<'_> {
             max,
             step,
             typed,
+            disabled,
+            readonly,
         } = *self;
+        let off = disabled || readonly;
         let vt = caps
             .has(Cap::ViewTransitions)
             .then_some("view-transition-name: lui-counter");
@@ -160,9 +187,13 @@ impl Render for Counter<'_> {
         let at_max = max.is_some_and(|m| value >= m);
         let value_text = value.to_string();
         let typed_id = format!("{}-value", enhance::swap_id("lui-counter", action));
-        let op = |op: &'static str, off: bool| {
+        let op = |op: &'static str, stop: bool| {
             let button = Button::new(caps, "").name("op").value(op);
-            if off { button.disabled() } else { button }
+            if off || stop {
+                button.disabled()
+            } else {
+                button
+            }
         };
         html! {
             form id=(enhance::swap_id("lui-counter", action)) data-lui="swap" class="lui-counter" method="post" action=(action) {
@@ -171,7 +202,9 @@ impl Render for Counter<'_> {
                 (op("inc", at_max).icon_only().aria_label(self.strings.get(Text::Increment)).body(html! { (Icon::Plus) }))
                 (op("reset", false).ghost().body(html! { (self.strings.get(Text::Reset)) }))
                 @if typed {
-                    (Input::number_within("value", self.strings.get(Text::Value), min, max).hide_label().class("lui-counter-input").step(step).inputmode("numeric").id(&typed_id).value(&value_text))
+                    @let field = Input::number_within("value", self.strings.get(Text::Value), min, max).hide_label().class("lui-counter-input").step(step).inputmode("numeric").id(&typed_id).value(&value_text);
+                    @let field = if disabled { field.disabled() } else if readonly { field.readonly() } else { field };
+                    (field)
                     (op("set", false).body(html! { (self.strings.get(Text::Set)) }))
                 }
                 @if min.is_some() || max.is_some() {
@@ -182,7 +215,8 @@ impl Render for Counter<'_> {
                             (None, Some(b)) => { (self.strings.fill(Text::AtMost, &[&self.strings.digits(b)])) },
                             _ => {},
                         }
-                        @if step != 1 { (self.strings.fill(Text::InStepsOf, &[&self.strings.digits(step)])) }
+                        @if step != 1.0 { (self.strings.fill(Text::InStepsOf, &[&self.strings.digits(step)])) }
+
                     }
                 }
             }
@@ -204,7 +238,7 @@ mod tests {
     #[test]
     fn bounds_disable_and_clamp() {
         let ui = Ui::from(Caps::NONE);
-        let c = |n| ui.counter("/c", n).min(0).max(10).step(3);
+        let c = |n: i32| ui.counter("/c", n).min(0).max(10).step(3);
         let m = c(0).render().into_string();
         assert!(
             m.contains("aria-label=\"decrement\" disabled")
@@ -212,10 +246,10 @@ mod tests {
             "{m}"
         );
         assert!(m.contains("0 to 10, in steps of 3"));
-        assert_eq!(c(9).apply("inc", None), 10);
-        assert_eq!(c(1).apply("dec", None), 0);
-        assert_eq!(c(5).apply("set", Some(42)), 10);
-        assert_eq!(c(5).apply("reset", None), 0);
-        assert_eq!(ui.counter("/c", 9).min(5).apply("reset", None), 5);
+        assert_eq!(c(9).apply("inc", None), 10.0);
+        assert_eq!(c(1).apply("dec", None), 0.0);
+        assert_eq!(c(5).apply("set", Some(42.0)), 10.0);
+        assert_eq!(c(5).apply("reset", None), 0.0);
+        assert_eq!(ui.counter("/c", 9).min(5).apply("reset", None), 5.0);
     }
 }

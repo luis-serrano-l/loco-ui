@@ -273,7 +273,7 @@ pub(crate) fn paged_table_with(
                     form method="get" action=[action] class="lui-paged-table-jump" {
                         @for (k, v) in carried("") { input type="hidden" name=(k) value=(v); }
                         span { (t(Text::Page)) }
-                        (Input::number_within(&keys.page, t(Text::Page), Some(1), Some(pages as i64)).hide_label().class("lui-paged-table-page").inputmode("numeric").id(&jump_id).value(&page_text))
+                        (Input::number_within(&keys.page, t(Text::Page), Some(1.0), Some(pages as f64)).hide_label().class("lui-paged-table-page").inputmode("numeric").id(&jump_id).value(&page_text))
                         span { (strings.fill(Text::OfTotal, &[&strings.digits(pages)])) }
                         (Button::new(*caps, t(Text::Go)))
                     }

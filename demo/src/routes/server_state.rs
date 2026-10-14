@@ -27,7 +27,7 @@ pub(crate) const PAGES: &[super::Simple] = &[("/list", list, "")];
 /// The other pages' live components, which the index shows too (`site::preview`), with a
 /// visitor's saved values left out there, and the streamed page's section while it loads.
 pub(crate) const PREVIEWS: &[super::Preview] = &[
-    ("/counter", |ui| counter(ui, 0)),
+    ("/counter", |ui| counter(ui, 0.0)),
     ("/settings", |ui| settings(ui, &Settings::default())),
     ("/caps", caps),
     ("/stream", |ui| pending(ui, "fast", 100)),
@@ -44,15 +44,15 @@ fn list(ui: &Ui) -> Markup {
 
 #[derive(Default, Deserialize, Serialize)]
 struct Count {
-    n: i64,
+    n: f64,
 }
 
 /// The counter's rules, shared by the page (to render them) and the post (to apply them).
-const MIN: i64 = 0;
-const MAX: i64 = 20;
-const STEP: i64 = 2;
+const MIN: f64 = 0.0;
+const MAX: f64 = 20.0;
+const STEP: f64 = 2.0;
 
-fn counter(ui: &Ui, count: i64) -> Markup {
+fn counter(ui: &Ui, count: f64) -> Markup {
     lui! {
         // code: /counter
         Counter("/counter", count) min=(MIN) max=(MAX) step=(STEP) typed;
@@ -74,7 +74,7 @@ async fn counter_page(ui: Ui, Saved(count): Saved<Count>) -> Page {
 #[derive(Deserialize)]
 struct CounterOp {
     op: String,
-    value: Option<i64>,
+    value: Option<f64>,
 }
 
 async fn counter_submit(

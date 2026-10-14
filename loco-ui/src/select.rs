@@ -462,9 +462,7 @@ impl<'a> Select<'a> {
 impl Render for Select<'_> {
     fn render(&self) -> Markup {
         let name = self.name;
-        let id = self
-            .id
-            .map_or_else(|| format!("f-{name}"), str::to_string);
+        let id = self.id.map_or_else(|| format!("f-{name}"), str::to_string);
         let error_id = format!("{id}-error");
         let rich = self.caps.has(Cap::BaseSelect) && !self.multiple;
         let total: usize = self.groups.iter().map(|g| g.options.len()).sum();

@@ -55,7 +55,7 @@ Everything below also ships in 0.2.0, the first publish.
   `one:{} match|other:{} matches` holds one form per CLDR category (`Plural`), `other`
   standing in for a missing one. `Text::Matches` is written that way; `Text::OneMatch` is
   deprecated and no longer read.
-- `Strings::number(f64)` and `ui.number(..)` write `1,234.5`, `1.234,5`, `1234` / `12.345`
+- `Strings::number(f64)` and `ui.format_number(..)` (renamed from `ui.number` in M40c, which took the name for the number field) write `1,234.5`, `1.234,5`, `1234` / `12.345`
   (Spanish) or `1 234,5`. The paged table's range and page numbers, the pager, counter,
   meter and stat use them.
 - `Strings::date` and `Strings::date_long`. The calendar's column heads come from new texts

@@ -62,6 +62,7 @@ pub mod button;
 pub mod calendar;
 pub mod card;
 pub mod chart;
+pub mod checkbox_group;
 pub mod cluster;
 pub mod color;
 pub mod combobox;
@@ -89,6 +90,7 @@ pub mod loco;
 pub mod marquee;
 pub mod meter;
 pub mod nav_menu;
+pub mod number;
 mod oklch;
 pub mod paged_table;
 pub mod pager;
@@ -98,8 +100,10 @@ pub mod posted;
 pub mod progress;
 pub mod props;
 pub mod range;
+pub mod rating;
 #[cfg(feature = "axum")]
 pub mod saved;
+pub mod search;
 pub mod select;
 pub mod separator;
 pub mod sidebar;
@@ -114,6 +118,7 @@ pub mod state;
 pub mod stream;
 pub mod table;
 pub mod tabs;
+pub mod tag_input;
 pub mod theme;
 pub mod toast;
 pub mod toggle_group;
@@ -379,6 +384,11 @@ pub enum Component {
     Marquee,
     /// The shared `data-radius` rules of [`variant`].
     Variant,
+    CheckboxGroup,
+    Number,
+    Search,
+    Rating,
+    TagInput,
     Blocks,
 }
 
@@ -440,6 +450,11 @@ impl Component {
         Component::Palette,
         Component::Marquee,
         Component::Variant,
+        Component::CheckboxGroup,
+        Component::Number,
+        Component::Search,
+        Component::Rating,
+        Component::TagInput,
         Component::Blocks,
     ];
 
@@ -519,6 +534,11 @@ impl Component {
             Component::Palette => palette::CSS,
             Component::Marquee => marquee::CSS,
             Component::Variant => variant::CSS,
+            Component::CheckboxGroup => checkbox_group::CSS,
+            Component::Number => number::CSS,
+            Component::Search => search::CSS,
+            Component::Rating => rating::CSS,
+            Component::TagInput => tag_input::CSS,
             Component::Blocks => "",
         }
     }
@@ -641,6 +661,11 @@ pub const COMPONENT_CSS: &[&str] = &[
     palette::CSS,
     marquee::CSS,
     variant::CSS,
+    checkbox_group::CSS,
+    number::CSS,
+    search::CSS,
+    rating::CSS,
+    tag_input::CSS,
 ];
 
 #[cfg(test)]
@@ -2155,6 +2180,11 @@ mod tests {
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
             ("variant", variant::CSS),
+            ("checkbox_group", checkbox_group::CSS),
+            ("number", number::CSS),
+            ("search", search::CSS),
+            ("rating", rating::CSS),
+            ("tag_input", tag_input::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -2239,7 +2269,14 @@ mod tests {
                 "color",
                 "a row of picker, value chip and presets that wraps",
             ),
+            ("number", "one row: the field and its addons, as input"),
+            ("rating", "one row of stars that wraps"),
+            (
+                "tag_input",
+                "one box of chips and a text box that wraps as it fills",
+            ),
         ];
+
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.
         const VIEWPORT: &[(&str, &str)] = &[

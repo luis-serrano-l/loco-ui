@@ -111,6 +111,12 @@ impl From<i32> for Bound {
     }
 }
 
+impl From<i16> for Bound {
+    fn from(n: i16) -> Self {
+        Bound(Some(f64::from(n)))
+    }
+}
+
 impl From<u32> for Bound {
     fn from(n: u32) -> Self {
         Bound(Some(f64::from(n)))
@@ -297,6 +303,8 @@ pub(crate) struct Extra<'a> {
     pub(crate) reveal: bool,
     pub(crate) steppers: bool,
     pub(crate) cards: bool,
+    /// Ids of elements outside the field that describe it (a component's own help).
+    pub(crate) described: Option<&'a str>,
     pub(crate) width: Option<Size>,
     pub(crate) size: Size,
     pub(crate) variant: Option<Variant>,
@@ -350,11 +358,6 @@ impl<'a> Field<'a> {
             @if self.required { " " (REQUIRED) }
             @if self.optional && !self.required { " " span class="lui-field-optional" { (self.strings.get(Text::Optional)) } }
         }
-    }
-
-    /// The label with its marks, what a group's legend or a field's label reads.
-    pub(crate) fn legend(&self) -> Markup {
-        html! { (self.label) (self.marks()) }
     }
 }
 
@@ -563,6 +566,12 @@ impl<'a> Input<'a> {
     /// The same field speaking `ui`'s language and knowing its browser.
     pub(crate) fn of(self, ui: &Ui) -> Self {
         Input(self.0.of(ui))
+    }
+
+    /// `aria-describedby` for elements a component renders outside the field.
+    pub(crate) fn described(mut self, ids: Option<&'a str>) -> Self {
+        self.0.extra.described = ids;
+        self
     }
 
     /// Steppers on a number field ([`crate::number`]).
@@ -880,7 +889,12 @@ pub(crate) fn described_by(ids: &[Option<String>]) -> Option<String> {
 }
 
 /// Help, counter and error, in that order: what follows a control, labelled or not.
-fn after(id: &str, help: Option<&str>, count: Option<(usize, usize)>, error: Option<&str>) -> Markup {
+fn after(
+    id: &str,
+    help: Option<&str>,
+    count: Option<(usize, usize)>,
+    error: Option<&str>,
+) -> Markup {
     html! {
         @if let Some(h) = help { small id={ (id) "-help" } class="lui-field-help" { (h) } }
         @if let Some((n, max)) = count {
@@ -1024,6 +1038,7 @@ impl Render for Field<'_> {
             help.map(|_| format!("{id}-help")),
             count.map(|_| format!("{id}-count")),
             self.error.map(|_| format!("{id}-error")),
+            extra.described.map(str::to_string),
         ]);
         if let FieldKind::Checkbox | FieldKind::Switch = self.kind {
             return self.check(&id, help, described.as_deref());
@@ -1043,9 +1058,13 @@ impl Render for Field<'_> {
                 None,
             ),
             FieldKind::Pattern { pattern, .. } => ("text", None, None, Some(pattern), None),
-            FieldKind::File { accept } => {
-                ("file", None, None, None, (!accept.is_empty()).then_some(accept))
-            }
+            FieldKind::File { accept } => (
+                "file",
+                None,
+                None,
+                None,
+                (!accept.is_empty()).then_some(accept),
+            ),
             FieldKind::Date { min, max } => ("date", bound(min), bound(max), None, None),
             FieldKind::Time { min, max } => ("time", bound(min), bound(max), None, None),
             FieldKind::DateTime { min, max } => {
@@ -1066,7 +1085,8 @@ impl Render for Field<'_> {
         let slots = lead.is_some() || trail.is_some();
         let steppers = extra.steppers && matches!(self.kind, FieldKind::Number { .. });
         let reveal = extra.reveal && matches!(self.kind, FieldKind::Password);
-        let group = prefix.is_some() || suffix.is_some() || extra.addon.is_some() || steppers || reveal;
+        let group =
+            prefix.is_some() || suffix.is_some() || extra.addon.is_some() || steppers || reveal;
         let bare = extra.hide_label;
         let gradient = extra.gradient_border.then_some("lui-input-gradient-border");
         let class = match (extra.class, gradient) {
@@ -1074,7 +1094,13 @@ impl Render for Field<'_> {
             (c, g) => c.or(g).map(str::to_string),
         };
         let on = |layer: u8| {
-            let outer = if group { 2 } else if slots { 1 } else { 0 };
+            let outer = if group {
+                2
+            } else if slots {
+                1
+            } else {
+                0
+            };
             bare && layer == outer
         };
         let step = extra.step;
@@ -1172,7 +1198,7 @@ impl Field<'_> {
         };
         let (down, up) = (at(now - step).to_string(), at(now + step).to_string());
         let off = self.disabled || self.readonly;
-        let button = |value: &str, label: Text, icon: Icon, stop: bool| {
+        let button = |value: &str, label: Text, icon: Icon, stop: bool| -> Markup {
             let b = Button::new(self.caps, "")
                 .ghost()
                 .icon_only()
@@ -1185,8 +1211,9 @@ impl Field<'_> {
                 Some(form) => b.form(form),
                 None => b,
             };
-            if stop || off { b.disabled() } else { b }
+            if stop || off { b.disabled() } else { b }.render()
         };
+
         html! {
             span class="lui-input-steppers" data-lui="steppers" {
                 (button(&up, Text::Increment, Icon::ChevronUp, max.is_some_and(|m| now >= m)))
@@ -1596,17 +1623,37 @@ pub(crate) mod tests {
     fn a_hidden_label_keeps_what_describes_the_control() {
         let ui = Ui::default();
         let fields = [
-            ui.input("q", "Search").hide_label().help("Words.").error("Too short.").maxlength(9),
-            ui.input("q", "Search").hide_label().leading("in:").prefix("$").suffix("kg"),
-            ui.input("bio", "Bio").textarea(2).hide_label().help("Short."),
-            ui.input("n", "N").number(0, 9).steppers().hide_label().error("No."),
+            ui.input("q", "Search")
+                .hide_label()
+                .help("Words.")
+                .error("Too short.")
+                .maxlength(9),
+            ui.input("q", "Search")
+                .hide_label()
+                .leading("in:")
+                .prefix("$")
+                .suffix("kg"),
+            ui.input("bio", "Bio")
+                .textarea(2)
+                .hide_label()
+                .help("Short."),
+            ui.input("n", "N")
+                .number(0, 9)
+                .steppers()
+                .hide_label()
+                .error("No."),
         ];
         for f in fields {
             let html = f.render().into_string();
             assert!(!html.contains("<label"), "{html}");
             assert_described_ids_exist(&html);
         }
-        let s = ui.select("s", "Sort").options([("a", "A")]).hide_label().help("h").error("e");
+        let s = ui
+            .select("s", "Sort")
+            .options([("a", "A")])
+            .hide_label()
+            .help("h")
+            .error("e");
         let html = s.render().into_string();
         assert!(html.contains(r#"aria-label="Sort""#) && !html.contains("<label"));
         assert_described_ids_exist(&html);
@@ -1615,10 +1662,18 @@ pub(crate) mod tests {
     #[test]
     fn multiple_before_file_keeps_the_flag() {
         let ui = Ui::default();
-        let html = ui.input("cv", "CV").multiple().file(".pdf").render().into_string();
+        let html = ui
+            .input("cv", "CV")
+            .multiple()
+            .file(".pdf")
+            .render()
+            .into_string();
         assert!(html.contains(r#"accept=".pdf" multiple"#), "{html}");
         let text = ui.input("t", "T").multiple().render().into_string();
-        assert!(!text.contains("multiple"), "only a file picker takes several");
+        assert!(
+            !text.contains("multiple"),
+            "only a file picker takes several"
+        );
     }
 
     #[test]
@@ -1634,7 +1689,13 @@ pub(crate) mod tests {
             .class("x")
             .render()
             .into_string();
-        for a in [r#"autocomplete="off""#, r#"form="other""#, r#"inputmode="text""#, "autofocus", r#"class="x""#] {
+        for a in [
+            r#"autocomplete="off""#,
+            r#"form="other""#,
+            r#"inputmode="text""#,
+            "autofocus",
+            r#"class="x""#,
+        ] {
             assert!(t.contains(a), "{a} in {t}");
         }
         let s = ui
@@ -1651,19 +1712,49 @@ pub(crate) mod tests {
         let ui = Ui::default();
         let d = ui.input("a", "A").disabled().render().into_string();
         assert!(d.contains(r#"disabled aria-disabled="true""#), "{d}");
-        let r = ui.input("a", "A").value("x").readonly().render().into_string();
+        let r = ui
+            .input("a", "A")
+            .value("x")
+            .readonly()
+            .render()
+            .into_string();
         assert!(r.contains("readonly") && !r.contains("disabled"), "{r}");
-        let c = ui.checkbox("ok", "OK").checked(true).readonly().render().into_string();
-        assert!(c.contains("disabled") && c.contains(r#"<input type="hidden" name="ok" value="true">"#), "{c}");
-        let s = ui.select("s", "S").options([("a", "A")]).value("a").readonly().render().into_string();
-        assert!(s.contains("disabled") && s.contains(r#"<input type="hidden" name="s" value="a">"#), "{s}");
+        let c = ui
+            .checkbox("ok", "OK")
+            .checked(true)
+            .readonly()
+            .render()
+            .into_string();
+        assert!(
+            c.contains("disabled") && c.contains(r#"<input type="hidden" name="ok" value="true">"#),
+            "{c}"
+        );
+        let s = ui
+            .select("s", "S")
+            .options([("a", "A")])
+            .value("a")
+            .readonly()
+            .render()
+            .into_string();
+        assert!(
+            s.contains("disabled") && s.contains(r#"<input type="hidden" name="s" value="a">"#),
+            "{s}"
+        );
     }
 
     #[test]
     fn numbers_take_any_bound_and_drop_a_trailing_zero() {
         let ui = Ui::default();
-        let n = ui.input("w", "Weight").number(0.5, None::<f64>).step(0.5).render().into_string();
-        assert!(n.contains(r#"min="0.5" step="0.5""#) && !n.contains("max="), "{n}");
+        let n = ui
+            .input("w", "Weight")
+            .number(0.5, None::<f64>)
+            .step(0.5)
+            .render()
+            .into_string();
+        assert!(
+            n.contains(r#"min="0.5" step="0.5""#) && !n.contains("max="),
+            "{n}"
+        );
         let n = ui.input("n", "N").number(1, 10).render().into_string();
         assert!(n.contains(r#"min="1" max="10""#), "{n}");
         assert_eq!(tidy(0.1 + 0.2, 0.1, 0.0), 0.3);
@@ -1680,18 +1771,38 @@ pub(crate) mod tests {
         ] {
             assert!(f.render().into_string().contains(&format!(r#"type="{t}""#)));
         }
-        let o = ui.input("nick", "Nickname").optional().render().into_string();
-        assert!(o.contains(r#"<span class="lui-field-optional">(optional)</span>"#), "{o}");
+        let o = ui
+            .input("nick", "Nickname")
+            .optional()
+            .render()
+            .into_string();
+        assert!(
+            o.contains(r#"<span class="lui-field-optional">(optional)</span>"#),
+            "{o}"
+        );
     }
 
     #[test]
     fn addons_and_the_reveal_button() {
         let ui = Ui::default();
-        let a = ui.input("price", "Price").prefix("$").suffix("USD").render().into_string();
+        let a = ui
+            .input("price", "Price")
+            .prefix("$")
+            .suffix("USD")
+            .render()
+            .into_string();
         assert!(a.contains(r#"<div class="lui-input-group"><span id="f-price-prefix" class="lui-input-group-prefix">$</span>"#), "{a}");
         assert_described_ids_exist(&a);
-        let p = ui.input("pw", "Password").password().reveal().render().into_string();
-        assert!(p.contains(r#"class="lui-input-reveal" data-lui="reveal" hidden"#), "{p}");
+        let p = ui
+            .input("pw", "Password")
+            .password()
+            .reveal()
+            .render()
+            .into_string();
+        assert!(
+            p.contains(r#"class="lui-input-reveal" data-lui="reveal" hidden"#),
+            "{p}"
+        );
     }
     #[test]
     fn passwords_and_files_are_never_echoed() {

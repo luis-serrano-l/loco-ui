@@ -90,8 +90,12 @@ impl Range<'_> {
         Prop::new("value", PropKind::Number, "value: impl Into<f64>")
             .attr("value")
             .doc("The value (a pair's low one), instead of the query's."),
-        Prop::new("values", PropKind::Value, "low: impl Into<f64>, high: impl Into<f64>")
-            .doc("A pair's two values, put in order, instead of the query's."),
+        Prop::new(
+            "values",
+            PropKind::Value,
+            "low: impl Into<f64>, high: impl Into<f64>",
+        )
+        .doc("A pair's two values, put in order, instead of the query's."),
         Prop::new("min", PropKind::Number, "min: impl Into<f64>")
             .default("0")
             .attr("min")
@@ -107,8 +111,9 @@ impl Range<'_> {
         Prop::new("disabled", PropKind::Switch, "")
             .attr("disabled")
             .doc("`disabled` and `aria-disabled`: shown greyed and not posted."),
-        Prop::new("readonly", PropKind::Switch, "")
-            .doc("Shown and posted, not movable: a disabled slider and a hidden input with its value."),
+        Prop::new("readonly", PropKind::Switch, "").doc(
+            "Shown and posted, not movable: a disabled slider and a hidden input with its value.",
+        ),
         Prop::new("ticks", PropKind::Switch, "")
             .doc("The lowest, middle and highest values marked under the track."),
     ];

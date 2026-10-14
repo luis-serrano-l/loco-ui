@@ -222,7 +222,7 @@ impl Ui {
     }
 
     /// `n` with the visitor's language's separators ([`Strings::number`]).
-    pub fn number(&self, n: f64) -> String {
+    pub fn format_number(&self, n: f64) -> String {
         self.strings.number(n)
     }
 
@@ -247,7 +247,24 @@ impl Ui {
             .map(|(_, v)| v.as_str())
     }
 
+    /// Every query parameter as `(key, value)`, in order: what a component rebuilds a link
+    /// from when it drops one value of a repeated key.
+    pub(crate) fn param_pairs(&self) -> impl Iterator<Item = (&str, &str)> {
+        (self.params.iter()).map(|(k, v)| (k.as_str(), v.as_str()))
+    }
+
+    /// Every value of the query parameter `key`, in order, for a key built on the spot
+
+    /// (`tags[]`): [`Ui::params`] with the key borrowed only while it runs.
+    pub(crate) fn param_values(&self, key: &str) -> Vec<&str> {
+        (self.params.iter())
+            .filter(|(k, _)| k == key)
+            .map(|(_, v)| v.as_str())
+            .collect()
+    }
+
     /// This page's URL with the query parameter `key` set to `value` (added last when absent)
+
     /// and every other parameter kept in order: a link that changes one thing, the way the
     /// calendar's month links and the table's "Edit" links are built.
     ///

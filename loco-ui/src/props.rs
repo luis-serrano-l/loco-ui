@@ -283,7 +283,7 @@ pub(crate) const COMPONENTS: &[Component] = &[
     Component {
         module: "counter",
         builder: "Counter",
-        calls: &["ui.counter(action: &str, value: i64)"],
+        calls: &["ui.counter(action: &str, value: impl Into<f64>)"],
         props: crate::counter::Counter::PROPS,
         status: Status::Stable,
     },
@@ -392,7 +392,7 @@ pub(crate) const COMPONENTS: &[Component] = &[
     Component {
         module: "meter",
         builder: "Meter",
-        calls: &["ui.meter(value: i64, min: i64, max: i64)"],
+        calls: &["ui.meter(value: impl Into<f64>, min: impl Into<f64>, max: impl Into<f64>)"],
         props: crate::meter::Meter::PROPS,
         status: Status::Stable,
     },

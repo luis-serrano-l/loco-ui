@@ -840,7 +840,6 @@ pub fn method_override(router: Router) -> Router {
         .layer(axum::middleware::from_fn(override_method))
 }
 
-
 /// [`method_override`]'s middleware: read the body of a urlencoded POST, take its `_method`,
 /// and pass the same body on.
 async fn override_method(req: Request, next: axum::middleware::Next) -> axum::response::Response {
@@ -919,8 +918,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_result_of_page_answers
-_with_the_page_or_locos_error() {
+    async fn a_result_of_page_answers_with_the_page_or_locos_error() {
         let app = Router::new().route("/notes/{id}", get(show));
         for (path, status) in [("/notes/1", 200), ("/notes/0", 404)] {
             let req = Request::get(path).body(Body::empty()).unwrap();

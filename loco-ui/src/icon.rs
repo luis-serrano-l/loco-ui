@@ -54,6 +54,7 @@ pub enum Icon {
     Download,
     Ellipsis,
     ExternalLink,
+    Eye,
     File,
     GripVertical,
     House,
@@ -66,6 +67,7 @@ pub enum Icon {
     Pencil,
     Plus,
     Search,
+    Star,
     Sun,
     Trash,
     TriangleAlert,
@@ -76,7 +78,7 @@ pub enum Icon {
 
 impl Icon {
     /// Every icon, in the order the enum lists them.
-    pub const ALL: [Icon; 32] = [
+    pub const ALL: [Icon; 34] = [
         Icon::ArrowLeft,
         Icon::ArrowRight,
         Icon::Bold,
@@ -91,6 +93,7 @@ impl Icon {
         Icon::Download,
         Icon::Ellipsis,
         Icon::ExternalLink,
+        Icon::Eye,
         Icon::File,
         Icon::GripVertical,
         Icon::House,
@@ -103,6 +106,7 @@ impl Icon {
         Icon::Pencil,
         Icon::Plus,
         Icon::Search,
+        Icon::Star,
         Icon::Sun,
         Icon::Trash,
         Icon::TriangleAlert,
@@ -198,6 +202,14 @@ impl Icon {
             Icon::Search => (
                 "search",
                 r#"<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>"#,
+            ),
+            Icon::Star => (
+                "star",
+                r#"<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>"#,
+            ),
+            Icon::Eye => (
+                "eye",
+                r#"<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>"#,
             ),
             Icon::Sun => (
                 "sun",

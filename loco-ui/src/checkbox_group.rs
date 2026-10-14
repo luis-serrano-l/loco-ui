@@ -111,7 +111,7 @@ impl Ui {
     /// ticked ones are the query's `<name>[]` unless [`CheckboxGroup::value`] says otherwise.
     pub fn checkbox_group<'a>(&'a self, name: &'a str, legend: &'a str) -> CheckboxGroup<'a> {
         CheckboxGroup {
-            value: self.params(&format!("{name}[]")).collect(),
+            value: self.param_values(&format!("{name}[]")),
             ..CheckboxGroup::bare(self.strings, name, legend)
         }
     }
@@ -261,14 +261,14 @@ pub const CSS: &str = r#"
    ticked, 1, 2 or 3 across as the group's own width allows; the box stays visible in the
    card's corner, as Radix draws it. */
 .lui-checkbox-group { container: lui-checkbox-group / inline-size; margin: 0; padding: 0; border: 0; gap: 0.75rem; min-width: 0; }
-.lui-checkbox-group legend { padding: 0; margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 500; }
+.lui-checkbox-group legend { padding: 0; margin-bottom: 0.75rem; font-size: var(--lui-text-2); font-weight: 500; }
 .lui-checkbox-group[aria-invalid=true] legend { color: var(--lui-danger); }
 .lui-checkbox-group-options { display: grid; gap: 0.75rem; }
-.lui-checkbox-group-option { display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+.lui-checkbox-group-option { display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-weight: 500; }
 .lui-checkbox-group-option > input { margin-top: 0.125rem; }
 .lui-checkbox-group-option:has(> input:disabled) { color: var(--lui-gray-11); cursor: not-allowed; }
 .lui-checkbox-group-text { display: grid; gap: 0.125rem; min-width: 0; overflow-wrap: anywhere; }
-.lui-checkbox-group-description { color: var(--lui-muted); font-weight: 400; font-size: 0.8125rem; line-height: 1.25rem; }
+.lui-checkbox-group-description { color: var(--lui-muted); font-weight: 400; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
 .lui-checkbox-cards .lui-checkbox-group-options { grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-3); }
 @container lui-checkbox-group (width >= 30rem) { .lui-checkbox-cards .lui-checkbox-group-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container lui-checkbox-group (width >= 48rem) { .lui-checkbox-cards .lui-checkbox-group-options { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

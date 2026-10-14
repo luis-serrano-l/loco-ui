@@ -364,6 +364,22 @@ pub enum Text {
     CannotUndo,
     /// "Skip to content": the skip link every page starts with.
     SkipToContent,
+    /// "Show password": a password field's reveal button.
+    ShowPassword,
+    /// "one:{} star|other:{} stars": rating, one choice's name.
+    Stars,
+    /// "{} out of {}": rating, the value of a read-only rating.
+    RatingOf,
+    /// "Add": tag input, the add button.
+    Add,
+    /// "Wk": calendar, the week-number column's head.
+    WeekShort,
+    /// "Week {}": calendar, a week number as a screen reader hears it.
+    WeekNumber,
+    /// "Start date": date picker range, the first date's field.
+    StartDate,
+    /// "End date": date picker range, the last date's field.
+    EndDate,
 }
 
 /// How many texts there are.
@@ -372,7 +388,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 149] = [
+    pub const ALL: [Text; 157] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -522,6 +538,14 @@ impl Text {
         Text::DeleteConfirm,
         Text::CannotUndo,
         Text::SkipToContent,
+        Text::ShowPassword,
+        Text::Stars,
+        Text::RatingOf,
+        Text::Add,
+        Text::WeekShort,
+        Text::WeekNumber,
+        Text::StartDate,
+        Text::EndDate,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -704,6 +728,14 @@ const ENGLISH: [&str; N] = [
     "Delete {}?",
     "This cannot be undone.",
     "Skip to content",
+    "Show password",
+    "one:{} star|other:{} stars",
+    "{} out of {}",
+    "Add",
+    "Wk",
+    "Week {}",
+    "Start date",
+    "End date",
 ];
 
 /// Which way a language's text runs: `<html dir>`.
