@@ -460,12 +460,14 @@
             { "name": "today", "kind": "value", "args": "date: &str", "default": "", "attr": "", "doc": "The date to mark as today (`YYYY-MM-DD`), instead of the server's clock in UTC." },
             { "name": "min", "kind": "value", "args": "date: &str", "default": "", "attr": "", "doc": "The first day that can be picked (`YYYY-MM-DD`)." },
             { "name": "max", "kind": "value", "args": "date: &str", "default": "", "attr": "", "doc": "The last day that can be picked (`YYYY-MM-DD`)." },
-            { "name": "disabled_dates", "kind": "value", "args": "off: fn(Date) -> bool", "default": "", "attr": "", "doc": "Days for which `off` returns true cannot be picked." },
+            { "name": "disabled_dates", "kind": "value", "args": "off: &'a dyn Fn(Date) -> bool", "default": "", "attr": "", "doc": "Days for which `off` returns true cannot be picked." },
             { "name": "event", "kind": "item", "args": "date: &str, text: &'a str", "default": "", "attr": "", "doc": "A dot under the day `date` (`YYYY-MM-DD`), with `text` for screen readers and as the day's tooltip." },
             { "name": "sunday_first", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Weeks start on Sunday, whatever the language's first day." },
             { "name": "radio", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Each day is a radio button named after the calendar, to post inside a form, instead of a link." },
             { "name": "value", "kind": "value", "args": "date: &str", "default": "", "attr": "value", "doc": "The picked day (`YYYY-MM-DD`) when it does not come from the query string." },
-            { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "In radio mode, a day must be picked before the form submits." }
+            { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "In radio mode, a day must be picked before the form submits." },
+            { "name": "range", "kind": "value", "args": "end: &'a str", "default": "", "attr": "", "doc": "Pick a first and a last day: the first in the calendar's name, the last in `end`." },
+            { "name": "weeks", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A column of ISO 8601 week numbers before the days." }
           ]
         }
       ]
@@ -493,7 +495,10 @@
             { "name": "value", "kind": "value", "args": "date: &'a str", "default": "", "attr": "value", "doc": "The current value, `YYYY-MM-DD` (a saved date)." },
             { "name": "min", "kind": "value", "args": "date: &'a str", "default": "", "attr": "min", "doc": "The first day that can be picked, `YYYY-MM-DD`." },
             { "name": "max", "kind": "value", "args": "date: &'a str", "default": "", "attr": "max", "doc": "The last day that can be picked, `YYYY-MM-DD`." },
-            { "name": "disabled_dates", "kind": "value", "args": "off: fn(Date) -> bool", "default": "", "attr": "", "doc": "Days for which `off` returns true cannot be picked (the native control ignores this)." },
+            { "name": "disabled_dates", "kind": "value", "args": "off: &'a dyn Fn(Date) -> bool", "default": "", "attr": "", "doc": "Days for which `off` returns true cannot be picked (the native control ignores this)." },
+            { "name": "range", "kind": "value", "args": "end: &'a str", "default": "", "attr": "", "doc": "A first and a last day: the first in `name`, the last in `end`, one calendar in the page." },
+            { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "Shown, not changeable and not posted." },
+            { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Shown and posted, not changeable." },
             { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "A day must be picked before the form submits." },
             { "name": "native", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The browser's own `<input type=\"date\">` instead of the calendar." }
           ]
@@ -662,7 +667,9 @@
             { "name": "create", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "A \"Create\" row posting to `action` when the query matches nothing." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Search", "attr": "aria-label", "doc": "Accessible name of the input." },
             { "name": "placeholder", "kind": "value", "args": "placeholder: &'a str", "default": "Type to search…", "attr": "", "doc": "Placeholder of the input." },
-            { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page (`view`) carried, with the request's value, by the search form, every result and every chip's remove link." }
+            { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page (`view`) carried, with the request's value, by the search form, every result and every chip's remove link." },
+            { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "The box and its button disabled, the chips without remove links, no results." },
+            { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The box `readonly`, the chips without remove links, no results." }
           ]
         }
       ]
@@ -1605,6 +1612,7 @@
           "props": [
             { "name": "option", "kind": "item", "args": "value: &'a str, text: &'a str", "default": "", "attr": "value", "doc": "An option posting `value`, shown as `text`." },
             { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "The option added last shows this icon, its text becoming a hidden label." },
+            { "name": "disabled", "kind": "modifier", "args": "", "default": "", "attr": "disabled", "doc": "The option added last cannot be pressed." },
             { "name": "value", "kind": "value", "args": "value: &'a str", "default": "", "attr": "checked", "doc": "Press this option (again for more with `.multiple()`); the query's own values by default." },
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "Several options may be pressed (checkboxes, not radios)." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The items' height and text: Radix's sizes 1 to 3." },

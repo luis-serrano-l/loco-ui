@@ -3,7 +3,9 @@
 //! A month grid drawn on the server: previous and next month are links, each day is a link
 //! (pick a day and the page comes back with it) or a radio button (the day is a form field,
 //! for a date picker). Days before `.min()`, after `.max()` or ruled out by `.disabled_dates(..)`
-//! cannot be picked; `.event(..)` puts a dot under a day.
+//! cannot be picked; `.event(..)` puts a dot under a day. `.range(end)` picks two days, a
+//! first and a last, into two parameters; `.weeks()` numbers the weeks (ISO 8601). Today is
+//! [`Ui::today`], which the app may set to the visitor's own day ([`Ui::with_today`]).
 //!
 //! **Platform features:** a `<table>` of links or `<input type="radio">` inside `<label>`s,
 //! `aria-current="date"` on today, `role="radiogroup"` when the days are radios, `:has(:checked)`
@@ -15,6 +17,9 @@
 //! the month title is `aria-live`; arrow keys are not wired (Tab moves through days). Checked
 //! by axe-core in headless Firefox on every demo route, both capability variants, light and
 //! dark (no serious or critical violation).
+//!
+//! A range is links only: the first click sets the first day, the second the last, a third
+//! starts again; the days between are shaded.
 //!
 //! **What it does not do without script:** change month without a page load (the enhancement
 //! script swaps the calendar in place: it is a swap root), or move between days with the arrow
@@ -30,19 +35,28 @@
 //! let m = ui.calendar("due").today("2026-09-24").render().into_string();
 //! assert!(m.contains("September 2026") && m.contains(r#"aria-current="date""#));
 //! assert!(m.contains(r#"href="/book?month.due=2026-09&amp;due=2026-09-15""#));
-//! // Radios for a form, a window of days, weekends off, a deadline marked, Sunday first.
+//! // Radios for a form, a window of days, weekends and holidays off (the closure may
+//! // capture), a deadline marked, Sunday first, week numbers.
+//! let holidays = [loco_ui::calendar::Date::parse("2026-09-16").unwrap()];
+//! let off = |d: loco_ui::calendar::Date| d.weekday() >= 5 || holidays.contains(&d);
 //! let m = ui.calendar("due").radio().required()
 //!     .min("2026-09-10").max("2026-10-31")
-//!     .disabled_dates(|d| d.weekday() >= 5)
+//!     .disabled_dates(&off)
 //!     .event("2026-09-30", "Invoice due")
-//!     .sunday_first();
+//!     .sunday_first()
+//!     .weeks();
 //! let m = m.render().into_string();
 //! assert!(m.contains(r#"type="radio" name="due" value="2026-09-11""#));
 //! assert!(m.contains(r#"value="2026-09-12" disabled"#) && m.contains("Invoice due"));
+//! assert!(m.contains(r#"value="2026-09-16" disabled"#) && m.contains("Week 38"));
 //! // The same in `lui!`:
 //! let same = lui! { Calendar("due") radio required min="2026-09-10" max="2026-10-31"
-//!     disabled_dates=(|d| d.weekday() >= 5) event=("2026-09-30", "Invoice due") sunday_first; };
+//!     disabled_dates=(&off) event=("2026-09-30", "Invoice due") sunday_first weeks; };
 //! assert_eq!(same.into_string(), m);
+//! // A range: the first day is picked, so a later day's link sets the last one.
+//! let ui = Ui::from_request("/stay", "from=2026-09-10", "");
+//! let m = ui.calendar("from").range("to").render().into_string();
+//! assert!(m.contains(r#"href="/stay?from=2026-09-10&amp;to=2026-09-14""#));
 //! ```
 
 use std::fmt;
@@ -94,7 +108,16 @@ impl Date {
         Date::from_days((secs / 86_400) as i64)
     }
 
+    /// The ISO 8601 week number of the week holding this day (weeks start on Monday; week 1
+    /// holds the year's first Thursday).
+    pub fn iso_week(self) -> u32 {
+        let thursday = self.add_days(3 - i64::from(self.weekday()));
+        let first = Date::new(thursday.year, 1, 1).map_or(thursday.days(), Date::days);
+        ((thursday.days() - first) / 7 + 1) as u32
+    }
+
     /// 0 for Monday up to 6 for Sunday.
+
     pub fn weekday(self) -> u8 {
         // 1970-01-01 was a Thursday (3).
         (self.days() + 3).rem_euclid(7) as u8
@@ -175,7 +198,8 @@ fn parse_month(text: &str) -> Option<Date> {
 /// A month grid, made by [`Ui::calendar`].
 ///
 /// **Setters.** Values and items: `.disabled_dates(..)`, `.today(..)`, `.min(..)`, `.max(..)`,
-/// `.event(..)`, `.value(..)`; switches: `.sunday_first()`, `.radio()`, `.required()`.
+/// `.event(..)`, `.value(..)`, `.range(..)`; switches: `.sunday_first()`, `.radio()`,
+/// `.required()`, `.weeks()`.
 #[derive(Clone, Debug)]
 pub struct Calendar<'a> {
     ui: &'a Ui,
@@ -183,12 +207,24 @@ pub struct Calendar<'a> {
     today: Option<Date>,
     min: Option<Date>,
     max: Option<Date>,
-    disabled: Option<fn(Date) -> bool>,
+    disabled: Option<Off<'a>>,
     events: Vec<(Date, &'a str)>,
     sunday_first: bool,
     radio: bool,
     required: bool,
     value: Option<Date>,
+    end: Option<&'a str>,
+    weeks: bool,
+}
+
+/// The days a caller rules out, a closure that may capture (holidays read from a database).
+#[derive(Clone, Copy)]
+pub(crate) struct Off<'a>(pub(crate) &'a dyn Fn(Date) -> bool);
+
+impl fmt::Debug for Off<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Off(..)")
+    }
 }
 
 impl Calendar<'_> {
@@ -201,7 +237,7 @@ impl Calendar<'_> {
             .doc("The first day that can be picked (`YYYY-MM-DD`)."),
         Prop::new("max", PropKind::Value, "date: &str")
             .doc("The last day that can be picked (`YYYY-MM-DD`)."),
-        Prop::new("disabled_dates", PropKind::Value, "off: fn(Date) -> bool")
+        Prop::new("disabled_dates", PropKind::Value, "off: &'a dyn Fn(Date) -> bool")
             .doc("Days for which `off` returns true cannot be picked."),
         Prop::new("event", PropKind::Item, "date: &str, text: &'a str")
             .doc("A dot under the day `date` (`YYYY-MM-DD`), with `text` for screen readers and as the day's tooltip."),
@@ -213,6 +249,10 @@ impl Calendar<'_> {
             .doc("The picked day (`YYYY-MM-DD`) when it does not come from the query string."),
         Prop::new("required", PropKind::Switch, "").attr("required")
             .doc("In radio mode, a day must be picked before the form submits."),
+        Prop::new("range", PropKind::Value, "end: &'a str")
+            .doc("Pick a first and a last day: the first in the calendar's name, the last in `end`."),
+        Prop::new("weeks", PropKind::Switch, "")
+            .doc("A column of ISO 8601 week numbers before the days."),
     ];
 }
 
@@ -232,6 +272,8 @@ impl Ui {
             radio: false,
             required: false,
             value: None,
+            end: None,
+            weeks: false,
         }
     }
 }
@@ -256,16 +298,25 @@ impl<'a> Calendar<'a> {
         self
     }
 
-    /// Days for which `off` returns true cannot be picked: weekends, holidays, full days.
-    pub fn disabled_dates(mut self, off: fn(Date) -> bool) -> Self {
-        self.disabled = Some(off);
+    /// Days for which `off` returns true cannot be picked: weekends, holidays, full days. The
+    /// closure may capture (a list of holidays), so it is borrowed.
+    pub fn disabled_dates(mut self, off: &'a dyn Fn(Date) -> bool) -> Self {
+        self.disabled = Some(Off(off));
         self
     }
 
-    /// The old name of [`Self::disabled_dates`], kept for one release.
-    #[deprecated(note = "use .disabled_dates()")]
-    pub fn disabled(self, off: fn(Date) -> bool) -> Self {
-        self.disabled_dates(off)
+    /// Pick a first and a last day: the first in the calendar's name, the last in the query
+    /// parameter `end`. The days are links (a range has no radio form): the first click sets
+    /// the first day, a later one the last, and a click after both starts again.
+    pub fn range(mut self, end: &'a str) -> Self {
+        self.end = Some(end);
+        self
+    }
+
+    /// A column of ISO 8601 week numbers before the days ("Wk", each read as "Week 38").
+    pub fn weeks(mut self) -> Self {
+        self.weeks = true;
+        self
     }
 
     /// A dot under the day `date` (`YYYY-MM-DD`), with `text` for screen readers and as the
@@ -307,7 +358,28 @@ impl<'a> Calendar<'a> {
     fn off(&self, date: Date) -> bool {
         self.min.is_some_and(|m| date < m)
             || self.max.is_some_and(|m| date > m)
-            || self.disabled.is_some_and(|f| f(date))
+            || self.disabled.is_some_and(|f| (f.0)(date))
+    }
+
+    /// The last day of a range, when it is picked, after the first and allowed.
+    fn end_day(&self, start: Option<Date>) -> Option<Date> {
+        let end = self.ui.param(self.end?).and_then(Date::parse)?;
+        (start.is_some_and(|s| end >= s) && !self.off(end)).then_some(end)
+    }
+
+    /// A range day's link: the last day when the first is picked and this one is not before
+    /// it, else a new first day (the last dropped).
+    fn range_href(&self, date: Date, start: Option<Date>, end: Option<Date>, key: &str) -> String {
+        let ui = self.ui;
+        let end_key = self.end.unwrap_or("");
+        let value = date.to_string();
+        let kept = ui.param_pairs().filter(|(k, _)| *k != end_key);
+        if start.is_some_and(|s| date >= s) && end.is_none() {
+            crate::href(ui.state.path(), kept.chain([(end_key, value.as_str())]))
+        } else {
+            let kept = kept.filter(|(k, _)| *k != key);
+            crate::href(ui.state.path(), kept.chain([(key, value.as_str())]))
+        }
     }
 }
 
@@ -316,11 +388,13 @@ impl Render for Calendar<'_> {
         let ui = self.ui;
         let name = self.name;
         let month_key = format!("month.{name}");
-        let today = self.today.unwrap_or_else(Date::today);
+        let today = self.today.unwrap_or_else(|| ui.today());
         let picked = self
             .value
             .or_else(|| ui.param(name).and_then(Date::parse))
             .filter(|&d| !self.off(d));
+        let end = self.end_day(picked);
+        let radio = self.radio && self.end.is_none();
         let shown = ui
             .param(&month_key)
             .and_then(parse_month)
@@ -369,21 +443,32 @@ impl Render for Calendar<'_> {
             )
         });
         html! {
-            div id=(root) data-lui="swap" class="lui-calendar"
-                role=(if self.radio { "radiogroup" } else { "group" }) aria-labelledby=(title_id)
-                aria-required=[(self.radio && self.required).then_some("true")] {
+            div id=(root) data-lui="swap" class="lui-calendar" data-weeks[self.weeks]
+                role=(if radio { "radiogroup" } else { "group" }) aria-labelledby=(title_id)
+                aria-required=[(radio && self.required).then_some("true")] {
                 div class="lui-calendar-head" {
                     (nav(&prev_href, ui.text(Text::PreviousMonth), Icon::ChevronLeft, has_prev))
                     p id=(title_id) class="lui-calendar-title" aria-live="polite" { (title) }
                     (nav(&next_href, ui.text(Text::NextMonth), Icon::ChevronRight, has_next))
                 }
                 table class="lui-calendar-grid" aria-labelledby=(title_id) {
-                    thead { tr { @for (w, short) in weekdays { th scope="col" abbr=(w) { (short) } } } }
+                    thead { tr {
+                        @if self.weeks { th scope="col" class="lui-calendar-week" abbr=(ui.fill(Text::WeekNumber, &[&""]).trim()) { (ui.text(Text::WeekShort)) } }
+                        @for (w, short) in weekdays { th scope="col" abbr=(w) { (short) } }
+                    } }
                     tbody {
                         @for week in 0..weeks { tr {
+                            @if self.weeks {
+                                @let n = first.add_days(week * 7).iso_week();
+                                th scope="row" class="lui-calendar-week" {
+                                    span aria-hidden="true" { (n) }
+                                    span class="lui-sr" { (ui.fill(Text::WeekNumber, &[&n])) }
+                                }
+                            }
                             @for i in 0..7 {
                                 @let d = first.add_days(week * 7 + i);
-                                (self.day(d, d.month != shown.month, d == today, picked == Some(d)))
+                                @let between = picked.zip(end).is_some_and(|(s, e)| d > s && d < e);
+                                (self.day(d, Day { outside: d.month != shown.month, today: d == today, picked: picked == Some(d) || end == Some(d), between, radio, start: picked, end }))
                             }
                         } }
                     }
@@ -393,8 +478,28 @@ impl Render for Calendar<'_> {
     }
 }
 
+/// How one day of the grid is drawn.
+struct Day {
+    outside: bool,
+    today: bool,
+    picked: bool,
+    between: bool,
+    radio: bool,
+    start: Option<Date>,
+    end: Option<Date>,
+}
+
 impl Calendar<'_> {
-    fn day(&self, date: Date, outside: bool, today: bool, picked: bool) -> Markup {
+    fn day(&self, date: Date, day: Day) -> Markup {
+        let Day {
+            outside,
+            today,
+            picked,
+            between,
+            radio,
+            start,
+            end,
+        } = day;
         let off = self.off(date);
         let events: Vec<&str> = self
             .events
@@ -409,12 +514,17 @@ impl Calendar<'_> {
             if picked { " lui-calendar-picked" } else { "" },
             if off { " lui-calendar-off" } else { "" },
         );
+        let class = if between {
+            format!("{class} lui-calendar-between")
+        } else {
+            class
+        };
         let tip = (!events.is_empty()).then(|| events.join(", "));
         let face = html! {
             span aria-hidden="true" { (date.day) }
             span class="lui-sr" {
                 (date.spoken(self.ui.strings)) @for e in &events { ", " (e) }
-                @if picked && !self.radio { (self.ui.text(Text::IsSelected)) }
+                @if picked && !radio { (self.ui.text(Text::IsSelected)) }
             }
             @if !events.is_empty() {
                 span class="lui-calendar-dots" aria-hidden="true" { @for _ in events.iter().take(3) { span {} } }
@@ -424,7 +534,7 @@ impl Calendar<'_> {
         let value = date.to_string();
         html! {
             td {
-                @if self.radio {
+                @if radio {
                     label class=(class) title=[tip] aria-current=[current] {
                         input class="lui-calendar-radio" type="radio" name=(self.name) value=(value)
                             checked[picked] disabled[off] required[self.required && !off];
@@ -433,8 +543,8 @@ impl Calendar<'_> {
                 } @else if off {
                     span class=(class) aria-disabled="true" title=[tip] { (face) }
                 } @else {
-                    a class=(class) href=(self.ui.link_with(self.name, &value)) title=[tip]
-                        aria-current=[current] { (face) }
+                    @let href = if self.end.is_some() { self.range_href(date, start, end, self.name) } else { self.ui.link_with(self.name, &value) };
+                    a class=(class) href=(href) title=[tip] aria-current=[current] { (face) }
                 }
             }
         }
@@ -481,11 +591,30 @@ a.lui-calendar-day:hover, label.lui-calendar-day:not(.lui-calendar-off):hover { 
 .lui-calendar-dots span { width: 4px; height: 4px; border-radius: 50%; background: var(--lui-primary); }
 .lui-calendar-picked .lui-calendar-dots span { background: currentColor; }
 .lui-calendar-day:has(.lui-calendar-radio:checked) .lui-calendar-dots span { background: currentColor; }
+/* A range: the days between the first and the last on the accent surface, square-cornered
+   so they read as one band (shadcn Calendar mode="range"). */
+.lui-calendar-between { background: var(--lui-accent); color: var(--lui-on-accent); border-radius: 0; }
+/* Week numbers: a narrower first column in the muted colour. */
+.lui-calendar[data-weeks] { width: min(100%, 19.5rem); }
+.lui-calendar-grid .lui-calendar-week { width: 1.75rem; padding: 0; font-size: var(--lui-text-1); line-height: var(--lui-leading-1); font-weight: 400; color: var(--lui-muted); }
 "#;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn iso_weeks_start_on_monday_and_hold_the_first_thursday() {
+        let w = |s: &str| Date::parse(s).unwrap().iso_week();
+        assert_eq!(w("2026-01-01"), 1);
+        assert_eq!(
+            w("2021-01-01"),
+            53,
+            "a Friday belongs to the last week of 2020"
+        );
+        assert_eq!(w("2024-12-30"), 1, "a Monday in the first week of 2025");
+        assert_eq!(w("2026-09-24"), 39);
+    }
 
     #[test]
     fn dates_round_trip_through_day_numbers() {

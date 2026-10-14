@@ -1331,6 +1331,10 @@ mod tests {
     /// Names two or more builders use for setters of a different shape, each with the reason.
     const SAME_NAME_OTHER_SHAPE: &[(&str, &str)] = &[
         (
+            "range",
+            "Form adds a slider (name, label, min, max); Calendar and DatePicker pick a range into a second name",
+        ),
+        (
             "radio",
             "Form adds a radio group (name, legend, options); Calendar's days become radios",
         ),
@@ -2329,6 +2333,10 @@ mod tests {
                 "a row of picker, value chip and presets that wraps",
             ),
             ("number", "one row: the field and its addons, as input"),
+            (
+                "date_picker",
+                "a range's two dates are a row that wraps; the calendar adapts by itself",
+            ),
             ("rating", "one row of stars that wraps"),
             (
                 "tag_input",
@@ -3122,6 +3130,27 @@ mod tests {
                     .render(),
                 (ui.select("s", "S"))
                     .options([select::SelectOption::new("a", "A").disabled()])
+                    .render(),
+            ]
+        }),
+        ("Combobox", "disabled", |ui| {
+            [
+                ui.combobox("q", "/s").render(),
+                ui.combobox("q", "/s").disabled().render(),
+            ]
+        }),
+        ("DatePicker", "disabled", |ui| {
+            [
+                ui.date_picker("d", "D").render(),
+                ui.date_picker("d", "D").disabled().render(),
+            ]
+        }),
+        ("ToggleGroup", "disabled", |ui| {
+            [
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+                ui.toggle_group("a", "A")
+                    .option("l", "Left")
+                    .disabled()
                     .render(),
             ]
         }),

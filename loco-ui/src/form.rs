@@ -887,6 +887,85 @@ mod tests {
     }
 
     #[test]
+    fn readonly_keeps_its_own_value_and_groups_read_their_pairs() {
+        let ui = Ui::default();
+        let values = [
+            ("plan".to_string(), "posted".to_string()),
+            ("size".to_string(), "l".to_string()),
+            ("days[]".to_string(), "mon".to_string()),
+            ("days[]".to_string(), "fri".to_string()),
+        ];
+        let m = html(
+            (ui.form("/p"))
+                .text("plan", "Plan")
+                .value("free")
+                .readonly()
+                .radio("size", "Size", [("m", "M"), ("l", "L")])
+                .checkboxes(
+                    "days",
+                    "Days",
+                    [("mon", "Mon"), ("tue", "Tue"), ("fri", "Fri")],
+                )
+                .values(&values),
+        );
+        assert!(
+            m.contains(r#"value="free""#) && !m.contains("posted"),
+            "{m}"
+        );
+        assert!(m.contains(r#"value="l" checked"#), "{m}");
+        assert!(
+            m.contains(r#"value="mon" checked"#)
+                && m.contains(r#"value="fri" checked"#)
+                && !m.contains(r#"value="tue" checked"#),
+            "{m}"
+        );
+        crate::input::assert_described_ids_exist(&m);
+    }
+
+    #[test]
+    fn secondary_action_and_method_override() {
+        let ui = Ui::default();
+        let m = html(
+            (ui.form("/notes/1"))
+                .text("t", "T")
+                .disabled()
+                .autocomplete("off")
+                .action_secondary("Cancel", "/notes")
+                .method_override("delete"),
+        );
+        assert!(
+            m.contains(r#"<input type="hidden" name="_method" value="delete">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"href="/notes">Cancel</a>"#), "{m}");
+        assert!(
+            m.contains(" disabled") && m.contains(r#"aria-disabled="true""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"autocomplete="off""#), "{m}");
+    }
+
+    #[test]
+    #[should_panic(expected = "Form::required() applies to a field, but the last item was Group")]
+    fn a_field_modifier_after_a_group_is_loud() {
+        let _ = Ui::default().form("/f").group("G").required();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Form::description() applies to a group, but the last item was Field"
+    )]
+    fn a_description_after_a_field_is_loud() {
+        let _ = Ui::default().form("/f").text("n", "N").description("D");
+    }
+
+    #[test]
+    #[should_panic(expected = "Form::help() applies to a field, but the last item was Nothing")]
+    fn a_modifier_before_any_item_is_loud() {
+        let _ = Ui::default().form("/f").help("H");
+    }
+
+    #[test]
     fn help_counter_and_error_describe_the_field() {
         let f = Ui::default()
             .form("/p")

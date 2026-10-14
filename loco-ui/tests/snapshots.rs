@@ -87,7 +87,7 @@ const EXAMPLES: &[Example] = &[
             .required()
             .min("2026-09-10")
             .max("2026-10-31")
-            .disabled_dates(|d| d.weekday() >= 5)
+            .disabled_dates(&|d| d.weekday() >= 5)
             .event("2026-09-30", "Invoice due")
             .sunday_first()
             .render()

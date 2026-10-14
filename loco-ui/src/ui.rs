@@ -70,6 +70,8 @@ pub struct Ui {
     look: Option<&'static Look>,
     /// This request's own tokens, over the look's ([`Ui::tokens`]).
     tokens: Option<Box<Tokens>>,
+    /// The visitor's today, set by the app ([`Ui::with_today`]); UTC from the clock without.
+    today: Option<crate::calendar::Date>,
 }
 
 /// A request with no state: only what the browser supports.
@@ -119,6 +121,7 @@ impl Ui {
             params,
             look: None,
             tokens: None,
+            today: None,
         }
     }
 
@@ -160,7 +163,29 @@ impl Ui {
         self
     }
 
+    /// Today for this request: what [`Ui::with_today`] set (the visitor's day in their time
+    /// zone), else today in UTC from the server's clock. Calendars and date pickers mark it.
+    pub fn today(&self) -> crate::calendar::Date {
+        self.today.unwrap_or_else(crate::calendar::Date::today)
+    }
+
+    /// Set today for this request: the app knows the visitor's time zone (a profile setting,
+    /// a cookie) and the server's UTC day would be wrong near midnight; a test pins a day.
+    ///
+    /// ```rust
+    /// use loco_ui::{calendar::Date, prelude::*};
+    /// let day = Date::parse("2026-09-24").unwrap();
+    /// let ui = Ui::default().with_today(day);
+    /// assert_eq!(ui.today(), day);
+    /// assert!(ui.calendar("due").render().into_string().contains("September 2026"));
+    /// ```
+    pub fn with_today(mut self, date: crate::calendar::Date) -> Ui {
+        self.today = Some(date);
+        self
+    }
+
     /// The look this request renders under, if any.
+
     #[cfg(feature = "http")]
     pub(crate) fn current_look(&self) -> Option<&'static Look> {
         self.look

@@ -19,6 +19,11 @@
 //! change month without a page load. A month link comes back with the calendar laid out in the
 //! page instead of in the popover, because a popover cannot arrive open.
 //!
+//! `.range(end)` picks a first and a last day into two names with one calendar, laid out in
+//! the page (its days are links, so it cannot sit in a popover that a page load closes); the
+//! form carries both days as hidden fields. `.disabled()` shows the date without a way to
+//! change it and posts nothing; `.readonly()` shows it and posts it.
+//!
 //! **Fallback:** without `popover` the calendar is laid out in the form under the label.
 //!
 //! ```rust
@@ -36,20 +41,25 @@
 //! // The same in `lui!`:
 //! let same = lui! { DatePicker("due", "Due date") min="2026-01-01" max="2026-12-31" native; };
 //! assert_eq!(same.into_string(), m.render().into_string());
+//! // A stay: two names, one calendar; the form posts both.
+//! let ui = Ui::from_request("/stay", "from=2026-09-10&to=2026-09-14", "");
+//! let m = ui.date_picker("from", "Dates").range("to").render().into_string();
+//! assert!(m.contains(r#"<input type="hidden" name="to" value="2026-09-14">"#));
+//! assert!(m.contains("lui-calendar-between"));
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::button::Button;
-use crate::calendar::Date;
+use crate::calendar::{Date, Off};
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Icon, Ui};
 
 /// A date field, made by [`Ui::date_picker`].
 ///
-/// **Setters.** Values and items: `.disabled_dates(..)`, `.value(..)`, `.min(..)`, `.max(..)`;
-/// switches: `.required()`, `.native()`.
+/// **Setters.** Values and items: `.disabled_dates(..)`, `.value(..)`, `.min(..)`, `.max(..)`,
+/// `.range(..)`; switches: `.required()`, `.native()`, `.disabled()`, `.readonly()`.
 #[derive(Clone, Debug)]
 pub struct DatePicker<'a> {
     ui: &'a Ui,
@@ -58,9 +68,12 @@ pub struct DatePicker<'a> {
     value: Option<&'a str>,
     min: Option<&'a str>,
     max: Option<&'a str>,
-    disabled: Option<fn(Date) -> bool>,
+    off: Option<Off<'a>>,
+    end: Option<&'a str>,
     required: bool,
     native: bool,
+    disabled: bool,
+    readonly: bool,
 }
 
 impl DatePicker<'_> {
@@ -76,9 +89,16 @@ impl DatePicker<'_> {
         Prop::new("max", PropKind::Value, "date: &'a str")
             .attr("max")
             .doc("The last day that can be picked, `YYYY-MM-DD`."),
-        Prop::new("disabled_dates", PropKind::Value, "off: fn(Date) -> bool").doc(
+        Prop::new("disabled_dates", PropKind::Value, "off: &'a dyn Fn(Date) -> bool").doc(
             "Days for which `off` returns true cannot be picked (the native control ignores this).",
         ),
+        Prop::new("range", PropKind::Value, "end: &'a str")
+            .doc("A first and a last day: the first in `name`, the last in `end`, one calendar in the page."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("Shown, not changeable and not posted."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("Shown and posted, not changeable."),
         Prop::new("required", PropKind::Switch, "")
             .attr("required")
             .doc("A day must be picked before the form submits."),
@@ -98,9 +118,12 @@ impl Ui {
             value: None,
             min: None,
             max: None,
-            disabled: None,
+            off: None,
+            end: None,
             required: false,
             native: false,
+            disabled: false,
+            readonly: false,
         }
     }
 }
@@ -125,15 +148,29 @@ impl<'a> DatePicker<'a> {
     }
 
     /// Days for which `off` returns true cannot be picked (the native control ignores this).
-    pub fn disabled_dates(mut self, off: fn(Date) -> bool) -> Self {
-        self.disabled = Some(off);
+    /// The closure may capture (holidays), so it is borrowed.
+    pub fn disabled_dates(mut self, off: &'a dyn Fn(Date) -> bool) -> Self {
+        self.off = Some(Off(off));
         self
     }
 
-    /// The old name of [`Self::disabled_dates`], kept for one release.
-    #[deprecated(note = "use .disabled_dates()")]
-    pub fn disabled(self, off: fn(Date) -> bool) -> Self {
-        self.disabled_dates(off)
+    /// A first and a last day: the first posted as `name`, the last as `end`, picked in one
+    /// calendar laid out in the page ([`crate::calendar::Calendar::range`]).
+    pub fn range(mut self, end: &'a str) -> Self {
+        self.end = Some(end);
+        self
+    }
+
+    /// Shown, not changeable and not posted: the button is `disabled`, there is no calendar.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+
+    /// Shown and posted, not changeable: no calendar, the value in a hidden field.
+    pub fn readonly(mut self) -> Self {
+        self.readonly = true;
+        self
     }
 
     /// A day must be picked before the form submits.
@@ -162,7 +199,32 @@ impl Render for DatePicker<'_> {
             } else {
                 input
             };
+            let input = match (self.disabled, self.readonly) {
+                (true, _) => input.disabled(),
+                (_, true) => input.readonly(),
+                _ => input,
+            };
             return input.value(value).render();
+        }
+        let shown = Date::parse(value).map(|d| d.long(ui.strings));
+        let id = format!("f-{}", self.name);
+        if self.disabled || self.readonly {
+            let face = html! {
+                (Icon::Calendar)
+                span class=[shown.is_none().then_some("lui-date-picker-empty")] {
+                    @if let Some(s) = &shown { (s) } @else { (ui.text(Text::PickDate)) }
+                }
+            };
+            return html! {
+                div class="lui-field lui-date-picker" {
+                    label for=(id) { (self.label) }
+                    (Button::new(ui.caps, self.label).id(&id).class("lui-date-picker-trigger").body(face).disabled())
+                    @if self.readonly && !value.is_empty() { (crate::input::keep(self.name, value)) }
+                }
+            };
+        }
+        if let Some(end) = self.end {
+            return self.range_field(end, value);
         }
         let mut calendar = ui.calendar(self.name).radio().value(value);
         if let Some(m) = self.min {
@@ -171,19 +233,17 @@ impl Render for DatePicker<'_> {
         if let Some(m) = self.max {
             calendar = calendar.max(m);
         }
-        if let Some(off) = self.disabled {
-            calendar = calendar.disabled_dates(off);
+        if let Some(off) = self.off {
+            calendar = calendar.disabled_dates(off.0);
         }
         if self.required {
             calendar = calendar.required();
         }
-        let id = format!("f-{}", self.name);
         let panel = format!("{id}-calendar");
         // A month link comes back with the calendar in the page: a popover cannot arrive open.
         let browsing = ui.param(&format!("month.{}", self.name)).is_some();
         let popover = ui.has(Cap::Popover) && !browsing;
         let anchor = ui.has(Cap::Anchor);
-        let shown = Date::parse(value).map(|d| d.long(ui.strings));
         let face = html! {
             (Icon::Calendar)
             span class=[shown.is_none().then_some("lui-date-picker-empty")] {
@@ -214,6 +274,39 @@ impl Render for DatePicker<'_> {
     }
 }
 
+impl DatePicker<'_> {
+    /// A range: the label, the two days picked so far (posted as hidden fields) and the
+    /// calendar in the page.
+    fn range_field(&self, end: &str, start: &str) -> Markup {
+        let ui = self.ui;
+        let mut calendar = ui.calendar(self.name).range(end);
+        if let Some(m) = self.min {
+            calendar = calendar.min(m);
+        }
+        if let Some(m) = self.max {
+            calendar = calendar.max(m);
+        }
+        if let Some(off) = self.off {
+            calendar = calendar.disabled_dates(off.0);
+        }
+        let last = ui.param(end).unwrap_or("");
+        let legend = format!("f-{}-label", self.name);
+        let day = |v: &str| Date::parse(v).map(|d| d.long(ui.strings));
+        html! {
+            div class="lui-field lui-date-picker" role="group" aria-labelledby=(legend) {
+                span id=(legend) class="lui-date-picker-label" { (self.label) @if self.required { " *" } }
+                p class="lui-date-picker-range" {
+                    span { (ui.text(Text::StartDate)) ": " @if let Some(d) = day(start) { (d) } @else { "\u{2014}" } }
+                    span { (ui.text(Text::EndDate)) ": " @if let Some(d) = day(last) { (d) } @else { "\u{2014}" } }
+                }
+                @if !start.is_empty() { (crate::input::keep(self.name, start)) }
+                @if !last.is_empty() { (crate::input::keep(end, last)) }
+                (calendar)
+            }
+        }
+    }
+}
+
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn DatePicker: an outline
 /// button with a calendar icon, 15rem wide, the Calendar in a PopoverContent (p-0, no border).
 pub const CSS: &str = r#"
@@ -232,4 +325,6 @@ pub const CSS: &str = r#"
 .lui-date-picker-empty { color: var(--lui-muted); }
 .lui-date-picker-panel { margin: 0; margin-top: var(--lui-space-1); padding: 0; border: 0; background: none; overflow: visible; }
 .lui-date-picker-panel > .lui-calendar { width: 17.5rem; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
+.lui-date-picker-range { display: flex; flex-wrap: wrap; gap: var(--lui-space-1) var(--lui-space-4); margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
+
 "#;

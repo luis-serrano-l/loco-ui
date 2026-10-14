@@ -65,7 +65,7 @@ use crate::{Icon, Ui};
 /// [`Ui::combobox`]. Single choice, labelled "Search", unless told otherwise.
 ///
 /// **Setters.** Values and items: `.options(..)`, `.group(..)`, `.results(..)`, `.create(..)`,
-/// `.label(..)`, `.placeholder(..)`, `.keep(..)`; switches: `.multiple()`.
+/// `.label(..)`, `.placeholder(..)`, `.keep(..)`; switches: `.multiple()`, `.disabled()`, `.readonly()`.
 #[derive(Clone, Debug)]
 pub struct Combobox<'a> {
     ui: &'a Ui,
@@ -78,6 +78,8 @@ pub struct Combobox<'a> {
     label: &'a str,
     placeholder: &'a str,
     keep: Vec<&'a str>,
+    disabled: bool,
+    readonly: bool,
 }
 
 impl Combobox<'_> {
@@ -115,6 +117,11 @@ impl Combobox<'_> {
             .doc("Placeholder of the input."),
         Prop::new("keep", PropKind::Item, "name: &'a str")
             .doc("A query parameter of this page (`view`) carried, with the request's value, by the search form, every result and every chip's remove link."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("The box and its button disabled, the chips without remove links, no results."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("The box `readonly`, the chips without remove links, no results."),
     ];
 }
 
@@ -133,6 +140,8 @@ impl Ui {
             label: self.text(Text::Search),
             placeholder: self.text(Text::TypeToSearch),
             keep: Vec::new(),
+            disabled: false,
+            readonly: false,
         }
     }
 }
@@ -196,6 +205,20 @@ impl<'a> Combobox<'a> {
         self.placeholder = placeholder;
         self
     }
+
+    /// Shown, not usable: the box and its Search button are `disabled`, the chips keep no
+    /// remove link and no results are listed.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+
+    /// Shown and its text selectable, not changeable: the box is `readonly`, the Search
+    /// button off, the chips keep no remove link and no results are listed.
+    pub fn readonly(mut self) -> Self {
+        self.readonly = true;
+        self
+    }
 }
 
 impl Render for Combobox<'_> {
@@ -211,11 +234,15 @@ impl Render for Combobox<'_> {
             label,
             placeholder,
             ref keep,
+            disabled,
+            readonly,
         } = *self;
+        let still = disabled || readonly;
         let query = ui.param(name).unwrap_or("");
         let selected: Vec<&str> = ui.params("sel").collect();
         let needle = query.trim().to_lowercase();
         let results: Vec<&str> = match results {
+            _ if still => Vec::new(),
             Some(r) => r.clone(),
             None if needle.is_empty() => Vec::new(),
             None => suggestions
@@ -249,7 +276,20 @@ impl Render for Combobox<'_> {
             let chosen: Vec<&str> = selected.iter().copied().filter(|s| *s != v).collect();
             link(query, &chosen)
         };
-        let nothing = results.is_empty() && !query.is_empty();
+        let nothing = results.is_empty() && !query.is_empty() && !still;
+        let field = (Input::search_box(name, label, query).id(&input_id))
+            .list(&list_id)
+            .aria_controls(&results_id)
+            .placeholder(placeholder)
+            .autocomplete("off")
+            .class("lui-combobox-input");
+        let field = match (disabled, readonly) {
+            (true, _) => field.disabled(),
+            (_, true) => field.readonly(),
+            _ => field,
+        };
+        let search = ui.button(ui.text(Text::Search)).primary();
+        let search = if still { search.disabled() } else { search };
         html! {
             search class="lui-combobox" {
                 form method="get" action=(action) {
@@ -257,15 +297,17 @@ impl Render for Combobox<'_> {
                     @if !selected.is_empty() {
                         ul class="lui-combobox-chips" aria-label=(ui.text(Text::Selected)) {
                             @for v in &selected {
-                                li class="lui-combobox-chip" {
+                                li class="lui-combobox-chip lui-tag-input-chip" {
                                     (v)
                                     input type="hidden" name="sel" value=(v);
-                                    a href=(remove(v)) aria-label=(ui.fill(Text::RemoveValue, &[v])) { "\u{d7}" }
+                                    @if !still {
+                                        a href=(remove(v)) aria-label=(ui.fill(Text::RemoveValue, &[v])) { "\u{d7}" }
+                                    }
                                 }
                             }
                         }
                     }
-                    (Input::search_box(name, label, query).id(&input_id).list(&list_id).aria_controls(&results_id).placeholder(placeholder).autocomplete("off").class("lui-combobox-input"))
+                    (field)
                     datalist id=(list_id) {
                         @for (group, values) in suggestions {
                             @match group {
@@ -274,7 +316,7 @@ impl Render for Combobox<'_> {
                             }
                         }
                     }
-                    (ui.button(ui.text(Text::Search)).primary())
+                    (search)
                 }
                 div id=(results_id) class="lui-combobox-results" aria-live="polite" {
                     @if !results.is_empty() {
@@ -311,14 +353,9 @@ pub const CSS: &str = r#"
 .lui-combobox form { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); align-items: center; }
 .lui-combobox-input { flex: 1; min-width: min(10rem, 100%); }
 .lui-combobox-chips { display: contents; }
-/* Picked values are soft badges with a remove link. */
-.lui-combobox-chip {
-  display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.25rem 0.125rem 0.5rem;
-  border-radius: var(--lui-radius-sm); background: var(--lui-brand-3); color: var(--lui-brand-11);
-  font-size: 0.75rem; line-height: 1rem; font-weight: 500;
-}
-.lui-combobox-chip a { color: inherit; text-decoration: none; padding: 0 0.25rem; border-radius: var(--lui-radius-sm); line-height: 1rem; }
-.lui-combobox-chip a:hover { background: var(--lui-brand-5); }
+/* Picked values are the tag input's chips (.lui-tag-input-chip in tag_input.rs): soft
+   badges with a remove link. */
+
 /* Results take the Select picker's look (Radix Themes Select content): a raised panel of
    2rem rows, a check in the left gutter on the picked one, the primary colour on hover and
    focus, and an empty row when nothing matches. */
