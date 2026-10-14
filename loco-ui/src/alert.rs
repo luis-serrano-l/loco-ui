@@ -1,8 +1,10 @@
 //! # Alert
 //!
-//! A callout in the page: a title, a line or two of explanation and an icon, in a neutral,
-//! danger, warning or success tone. For a message that stays where it is, unlike a flash or a
-//! toast.
+//! A callout in the page, after Radix Themes Callout: a title, a line or two of explanation
+//! and an icon, in an info, danger, warning or success tone (or any
+//! [`Tone`](crate::variant::Tone) with `.tone(..)`), soft by default or `.surface()`,
+//! `.outline()` (`.variant(..)`), at Radix's sizes 1 to 3. For a message that stays where it
+//! is, unlike a flash or a toast.
 //!
 //! **Platform features:** a `role="alert"` box for the danger tone (read out when the page
 //! loads) and `role="status"` for the others; the icon is decorative.
@@ -21,7 +23,7 @@
 //! let m = ui.alert("Heads up").description("You can add components to your app.").render().into_string();
 //! assert!(m.contains(r#"role="status""#) && m.contains("Heads up"));
 //! let m = ui.alert("Payment failed").danger().description("Your card was declined.").render().into_string();
-//! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-danger" role="alert""#));
+//! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-danger" data-tone="danger" role="alert""#));
 //! // The same in `lui!`:
 //! let same = lui! { Alert("Payment failed") danger description="Your card was declined."; };
 //! assert_eq!(same.into_string(), m);
@@ -29,25 +31,32 @@
 //! let m = ui.alert("Heads up").surface().render().into_string();
 //! assert!(m.contains("lui-callout-info lui-callout-surface"));
 //! assert_eq!(lui! { Alert("Heads up") surface; }.into_string(), m);
+//! // The typed setters: a quiet gray note, smaller.
+//! let m = ui.alert("Draft").tone(Tone::Neutral).variant(Variant::Outline).size(1).render().into_string();
+//! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-neutral lui-callout-outline" data-size="1" data-tone="neutral" data-variant="outline""#));
+//! assert_eq!(lui! { Alert("Draft") tone="neutral" variant="outline" size=1; }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
+use crate::variant::{Size, Tone, Variant};
 use crate::{Icon, Ui};
 
 /// A callout, made by [`Ui::alert`].
 ///
-/// **Setters.** Values and items: `.description(..)`, `.body(..)`, `.icon(..)`; switches:
+/// **Setters.** Values and items: `.description(..)`, `.body(..)`, `.icon(..)`, `.size(..)`,
+/// `.tone(..)`, `.variant(..)`; switches:
 /// `.danger()`, `.warn()`, `.ok()`, `.surface()`, `.outline()`.
 #[derive(Clone, Debug)]
 pub struct Alert<'a> {
     title: &'a str,
     description: Option<&'a str>,
     body: Option<Markup>,
-    tone: Option<&'static str>,
-    variant: Option<&'static str>,
+    tone: Option<Tone>,
+    variant: Option<Variant>,
+    size: Size,
     icon: Option<Glyph<'a>>,
 }
 
@@ -68,6 +77,23 @@ impl Alert<'_> {
             .doc("A paler tint inside a border in the level's colour."),
         Prop::new("outline", PropKind::Switch, "")
             .doc("No tint: a border in the level's colour on the page."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("Radix's sizes 1 to 3: the padding, gaps and text."),
+        Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
+            .default("info")
+            .doc("The colour; danger also makes it `role=\"alert\"`."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("soft")
+        .doc("Soft, surface or outline; ghost drops the frame, and solid draws as soft."),
     ];
 }
 
@@ -80,6 +106,7 @@ impl Ui {
             body: None,
             tone: None,
             variant: None,
+            size: Size::S2,
             icon: None,
         }
     }
@@ -105,32 +132,47 @@ impl<'a> Alert<'a> {
     }
 
     /// Something went wrong: `--lui-danger`, and `role="alert"`.
-    pub fn danger(mut self) -> Self {
-        self.tone = Some("danger");
-        self
+    pub fn danger(self) -> Self {
+        self.tone(Tone::Danger)
     }
 
     /// Something to watch: `--lui-warn`.
-    pub fn warn(mut self) -> Self {
-        self.tone = Some("warn");
-        self
+    pub fn warn(self) -> Self {
+        self.tone(Tone::Warn)
     }
 
     /// Something worked: `--lui-ok`.
-    pub fn ok(mut self) -> Self {
-        self.tone = Some("ok");
-        self
+    pub fn ok(self) -> Self {
+        self.tone(Tone::Ok)
     }
 
     /// A paler tint inside a border in the level's colour (Radix's surface variant).
-    pub fn surface(mut self) -> Self {
-        self.variant = Some("surface");
-        self
+    pub fn surface(self) -> Self {
+        self.variant(Variant::Surface)
     }
 
     /// No tint: a border in the level's colour on the page (Radix's outline variant).
-    pub fn outline(mut self) -> Self {
-        self.variant = Some("outline");
+    pub fn outline(self) -> Self {
+        self.variant(Variant::Outline)
+    }
+
+    /// The colour: info (the default, the brand scale), neutral, brand, ok, warn or danger;
+    /// danger also makes it `role="alert"`.
+    pub fn tone(mut self, tone: Tone) -> Self {
+        self.tone = Some(tone);
+        self
+    }
+
+    /// Soft (the default), surface or outline, as in Radix; ghost drops the frame and fill,
+    /// and solid, which Radix's callout does not have, draws as soft.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
+
+    /// Radix's sizes 1 to 3 (2 is the default): the padding, gaps and text.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
         self
     }
 }
@@ -138,13 +180,24 @@ impl<'a> Alert<'a> {
 impl Render for Alert<'_> {
     fn render(&self) -> Markup {
         let icon = self.icon.unwrap_or(Glyph::Icon(match self.tone {
-            Some("danger") | Some("warn") => Icon::TriangleAlert,
-            Some("ok") => Icon::CircleCheck,
+            Some(Tone::Danger | Tone::Warn) => Icon::TriangleAlert,
+            Some(Tone::Ok) => Icon::CircleCheck,
             _ => Icon::Info,
         }));
+        // The brand tone is the info callout's own scale.
+        let level = match self.tone {
+            Some(Tone::Brand | Tone::Info) | None => "info",
+            Some(tone) => tone.as_str(),
+        };
+        let variant = match self.variant {
+            Some(v @ (Variant::Surface | Variant::Outline)) => Some(v.as_str()),
+            _ => None,
+        };
+        let size = (self.size != Size::S2).then(|| self.size.as_str());
         html! {
-            div class={ "lui-alert lui-callout lui-callout-" (self.tone.unwrap_or("info")) @if let Some(v) = self.variant { " lui-callout-" (v) } }
-                role=(if self.tone == Some("danger") { "alert" } else { "status" }) {
+            div class={ "lui-alert lui-callout lui-callout-" (level) @if let Some(v) = variant { " lui-callout-" (v) } }
+                data-size=[size] data-tone=[self.tone.map(Tone::as_str)] data-variant=[self.variant.map(Variant::as_str)]
+                role=(if self.tone == Some(Tone::Danger) { "alert" } else { "status" }) {
                 (icon.hidden())
                 p class="lui-alert-title" { (self.title) }
                 @if let Some(d) = self.description { p class="lui-alert-description" { (d) } }
@@ -172,8 +225,13 @@ pub const CSS: &str = r#"
 .lui-callout-ok { --lui-callout-bg: color-mix(in srgb, var(--lui-ok) 12%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-ok) 80%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-ok) 45%, var(--lui-bg)); }
 .lui-callout-warn { --lui-callout-bg: color-mix(in srgb, var(--lui-warn) 14%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-warn) 80%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-warn) 45%, var(--lui-bg)); }
 .lui-callout-danger { --lui-callout-bg: color-mix(in srgb, var(--lui-danger) 10%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-danger) 85%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-danger) 40%, var(--lui-bg)); }
+.lui-callout-neutral { --lui-callout-bg: var(--lui-gray-3); --lui-callout-fg: var(--lui-gray-12); --lui-callout-line: var(--lui-gray-7); }
 .lui-callout-surface { background: color-mix(in srgb, var(--lui-callout-bg) 60%, var(--lui-bg)); border-color: var(--lui-callout-line); }
 .lui-callout-outline { background: transparent; border-color: var(--lui-callout-line); }
+.lui-callout[data-variant=ghost] { background: transparent; border-color: transparent; padding-inline: 0; }
+/* Radix's sizes: 1 is tighter, 3 roomier with larger text. */
+.lui-callout[data-size="1"] { padding: var(--lui-space-2) var(--lui-space-3); column-gap: var(--lui-space-2); font-size: 0.8125rem; }
+.lui-callout[data-size="3"] { padding: var(--lui-space-4) var(--lui-space-6); column-gap: var(--lui-space-4); font-size: 1rem; line-height: 1.5rem; }
 .lui-callout > .lui-icon { grid-row: 1 / span 2; margin-top: 0.125rem; }
 .lui-callout > :not(.lui-icon) { grid-column: 2; margin: 0; }
 .lui-callout a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

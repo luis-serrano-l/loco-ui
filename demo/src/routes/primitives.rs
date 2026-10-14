@@ -47,6 +47,10 @@ fn buttons(ui: &Ui) -> Markup {
                 Button("Upgrade") primary shimmer; Button("What's new") shimmer;
                 Badge("New") shimmer; Badge("Beta") outline shimmer;
             }
+            Cluster {
+                Button("Delete") danger ghost; Button("Retry") tone="warn" variant="soft" radius="full";
+                Badge("Beta") tone="info" variant="surface" size=2; Badge("Synced") ok solid radius="full";
+            }
             Cluster gap=3 { @for icon in Icon::ALL { Icon(icon) label=(icon.name()); } }
             // end code
         }

@@ -947,10 +947,21 @@ pub fn to_json() -> String {
                     calls.join(", ")
                 ));
                 for (k, p) in b.props.iter().enumerate() {
+                    let kind = match p.kind {
+                        crate::props::PropKind::Choice { of } => {
+                            let of: Vec<String> = of.iter().map(|c| json_str(c)).collect();
+                            format!(
+                                "{}, \"choices\": [{}]",
+                                json_str(p.kind.as_str()),
+                                of.join(", ")
+                            )
+                        }
+                        _ => json_str(p.kind.as_str()),
+                    };
                     out.push_str(&format!(
                         "\n            {{ \"name\": {}, \"kind\": {}, \"args\": {}, \"default\": {}, \"attr\": {}, \"doc\": {} }}{}",
                         json_str(p.name),
-                        json_str(p.kind.as_str()),
+                        kind,
                         json_str(p.args),
                         json_str(p.default),
                         json_str(p.attr),

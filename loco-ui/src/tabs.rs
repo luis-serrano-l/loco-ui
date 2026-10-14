@@ -3,7 +3,8 @@
 //! Tab strip where exactly one panel is open at a time, no script. Tabs can carry a badge
 //! count, be lazy (their body rendered only when open), run vertically, and collapse to a
 //! `<select>` when the tabs are narrow (a container query), take an `.underline()` look after Radix
-//! TabNav instead of the pill; the open tab morphs to the next one on switch.
+//! TabNav instead of the pill, and come in Radix's sizes (`.size(..)`, 1 to 3); the open tab
+//! morphs to the next one on switch.
 //!
 //! **Platform features:**
 //! - `<details name="group">` exclusive accordion (baseline 2024): opening one closes the rest.
@@ -69,6 +70,10 @@
 //! let line = ui.tabs("line").tab("One", html! {}).tab("Two", html! {}).underline().render().into_string();
 //! assert!(line.contains("lui-tabs lui-tabs-underline"));
 //! assert_eq!(lui! { Tabs("line") underline { tab "One" {} tab "Two" {} } }.into_string(), line);
+//! // Smaller titles.
+//! let small = ui.tabs("small").tab("One", html! {}).size(1).render().into_string();
+//! assert!(small.contains(r#"class="lui-tabs" data-size="1""#));
+//! assert_eq!(lui! { Tabs("small") size=1 { tab "One" {} } }.into_string(), small);
 //! ```
 
 use std::fmt::Display;
@@ -78,6 +83,7 @@ use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
+use crate::variant::Size;
 use crate::{Cap, Ui};
 
 /// One tab: a title, a panel (ready or rendered on demand), an optional badge count.
@@ -108,7 +114,7 @@ impl std::fmt::Debug for Body<'_> {
 /// A tab strip, made by [`Ui::tabs`]: the open tab is `?tab.<name>=i` (or the cookie's
 /// memory of it), and each title links to its own. Horizontal unless told otherwise.
 ///
-/// **Setters.** Values and items: `.lazy(..)`, `.tab(..)`, `.badge(..)`; switches:
+/// **Setters.** Values and items: `.lazy(..)`, `.tab(..)`, `.badge(..)`, `.size(..)`; switches:
 /// `.vertical()`, `.select_below()`, `.underline()`.
 #[derive(Clone, Debug)]
 pub struct Tabs<'a> {
@@ -118,6 +124,7 @@ pub struct Tabs<'a> {
     vertical: bool,
     select_below: bool,
     underline: bool,
+    size: Size,
 }
 
 impl Tabs<'_> {
@@ -140,6 +147,13 @@ impl Tabs<'_> {
             .doc("Under 30rem of its own width the titles give way to a `<select>`."),
         Prop::new("underline", PropKind::Switch, "")
             .doc("Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("The titles' text and padding: smaller at 1, larger at 3."),
     ];
 }
 
@@ -153,6 +167,7 @@ impl Ui {
             vertical: false,
             select_below: false,
             underline: false,
+            size: Size::S2,
         }
     }
 }
@@ -205,6 +220,12 @@ impl<'a> Tabs<'a> {
         self.underline = true;
         self
     }
+
+    /// The titles' text and padding: Radix's sizes 1 and 2 (the default), and a larger 3.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
 }
 
 impl Render for Tabs<'_> {
@@ -216,6 +237,7 @@ impl Render for Tabs<'_> {
             vertical,
             select_below,
             underline,
+            size,
         } = *self;
         let state = &ui.state;
         let strip = ui.has(Cap::DetailsContent);
@@ -230,7 +252,7 @@ impl Render for Tabs<'_> {
         };
         html! {
             div id={ "lui-tabs-" (name) } data-lui="swap"
-                class=(class) style=[(strip && vertical).then(|| format!("--lui-tabs-n: {}", tabs.len()))] {
+                class=(class) data-size=[(size != Size::S2).then(|| size.as_str())] style=[(strip && vertical).then(|| format!("--lui-tabs-n: {}", tabs.len()))] {
                 @if select_below {
                     form method="get" action=(state.path()) class="lui-tabs-select" {
                         @for (k, v) in state.entries() { @if k != key { input type="hidden" name=(k) value=(v); } }
@@ -293,6 +315,8 @@ pub const CSS: &str = r#"
   padding: 0.25rem 0.75rem; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; white-space: nowrap;
 }
 .lui-tabs:not(.lui-accordion) summary a:hover { color: var(--lui-fg); }
+.lui-tabs[data-size="1"]:not(.lui-accordion) summary a { font-size: 0.8125rem; padding-inline: 0.5rem; }
+.lui-tabs[data-size="3"]:not(.lui-accordion) summary a { font-size: 1rem; line-height: 1.5rem; padding-inline: 1rem; }
 .lui-tabs:not(.lui-accordion) details[open] summary { color: var(--lui-fg); }
 /* The chip is its own empty element so the view transition slides it, not the text. */
 .lui-tabs-mark {

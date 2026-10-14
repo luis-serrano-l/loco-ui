@@ -1,7 +1,9 @@
 //! # Avatar
 //!
 //! A round picture of a person, with their initials underneath for when there is no picture
-//! or it fails to load.
+//! or it fails to load. After Radix Themes Avatar: five sizes, the initials on a soft brand
+//! tint, or any [`Tone`](crate::variant::Tone) soft or solid, and `.radius(..)` for the
+//! corners.
 //!
 //! **Platform features:** the initials are painted first and the `<img>` is stacked over
 //! them; an image that fails to load has `alt=""`, so it renders nothing and the initials
@@ -32,23 +34,32 @@
 //! assert!(team.contains(r#"role="group" aria-label="Team""#) && team.contains(r#"aria-label="+1""#));
 //! let same = lui! { Avatars("Team") max=3 { avatar "Ada Lovelace"; avatar "Grace Hopper"; avatar "Alan Turing"; avatar "Ken Thompson"; } };
 //! assert_eq!(same.into_string(), team);
+//! // A solid gray tile with rounded corners.
+//! let bot = ui.avatar("Build Bot").tone(Tone::Neutral).variant(Variant::Solid).radius(Radius::Medium);
+//! let bot = bot.render().into_string();
+//! assert!(bot.contains(r#"data-tone="neutral" data-variant="solid" data-radius="medium""#));
+//! assert_eq!(lui! { Avatar("Build Bot") tone="neutral" variant="solid" radius="medium"; }.into_string(), bot);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::props::{Prop, PropKind};
+use crate::variant::{Radius, Tone, Variant};
 
 /// An avatar, made by [`Ui::avatar`].
 ///
-/// **Setters.** Values and items: `.src(..)`, `.size(..)`; switches: `.small()`, `.large()`,
-/// `.square()`.
+/// **Setters.** Values and items: `.src(..)`, `.size(..)`, `.tone(..)`, `.variant(..)`,
+/// `.radius(..)`; switches: `.small()`, `.large()`, `.square()`.
 #[derive(Clone, Debug)]
 pub struct Avatar<'a> {
     name: &'a str,
     src: Option<&'a str>,
     size: u8,
     square: bool,
+    tone: Option<Tone>,
+    variant: Option<Variant>,
+    radius: Option<Radius>,
 }
 
 impl Avatar<'_> {
@@ -67,6 +78,23 @@ impl Avatar<'_> {
             .doc("`.size(4)`: 3rem across, for a profile header."),
         Prop::new("square", PropKind::Switch, "")
             .doc("Rounded corners instead of a circle (a team, a project)."),
+        Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
+            .default("brand")
+            .doc("The colour of the initials' tile."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("soft")
+        .doc("Soft (a tint) or solid (filled); Radix has no other, so the rest draw as soft."),
+        Prop::new(
+            "radius",
+            PropKind::Choice { of: Radius::NAMES },
+            "radius: Radius",
+        )
+        .default("full")
+        .doc("The corners, from square to the circle."),
     ];
 }
 
@@ -79,6 +107,9 @@ impl Ui {
             src: None,
             size: 2,
             square: false,
+            tone: None,
+            variant: None,
+            radius: None,
         }
     }
 
@@ -122,6 +153,26 @@ impl<'a> Avatar<'a> {
         self.square = true;
         self
     }
+
+    /// The colour of the initials' tile: brand (the default), neutral, ok, warn, danger or
+    /// info.
+    pub fn tone(mut self, tone: Tone) -> Self {
+        self.tone = Some(tone);
+        self
+    }
+
+    /// Soft (the default, a tint with darker initials) or solid (filled, light initials);
+    /// Radix's avatar has only those two, so the others draw as soft.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
+
+    /// The corners: none, small, medium, large or full (the default circle).
+    pub fn radius(mut self, radius: Radius) -> Self {
+        self.radius = Some(radius);
+        self
+    }
 }
 
 /// A row of overlapping avatars, made by [`Ui::avatars`].
@@ -158,6 +209,9 @@ impl<'a> Avatars<'a> {
             src: None,
             size: 2,
             square: false,
+            tone: None,
+            variant: None,
+            radius: None,
         });
         self
     }
@@ -218,7 +272,9 @@ fn initials(name: &str) -> String {
 impl Render for Avatar<'_> {
     fn render(&self) -> Markup {
         html! {
-            span class={ "lui-avatar lui-avatar-" (self.size) @if self.square { " lui-avatar-square" } } role="img" aria-label=(self.name) {
+            span class={ "lui-avatar lui-avatar-" (self.size) @if self.square { " lui-avatar-square" } }
+                data-tone=[self.tone.map(Tone::as_str)] data-variant=[self.variant.map(Variant::as_str)]
+                data-radius=[self.radius.map(Radius::as_str)] role="img" aria-label=(self.name) {
                 span class="lui-avatar-initials" aria-hidden="true" { (initials(self.name)) }
                 @if let Some(src) = self.src { img src=(src) alt="" loading="lazy"; }
             }
@@ -243,6 +299,17 @@ pub const CSS: &str = r#"
 .lui-avatar-4 { width: 3rem; height: 3rem; font-size: 1rem; }
 .lui-avatar-5 { width: 4rem; height: 4rem; font-size: 1.25rem; }
 .lui-avatar-square { border-radius: var(--lui-radius); }
+/* .tone(..) and .variant(..): a tint of the tone mixed into the page (soft), or the tone with
+   light initials (solid). Brand and info keep the brand scale above. */
+.lui-avatar { --lui-avatar-tone: var(--lui-primary); }
+.lui-avatar[data-tone=neutral] { --lui-avatar-tone: var(--lui-gray-11); }
+.lui-avatar[data-tone=danger] { --lui-avatar-tone: var(--lui-danger); }
+.lui-avatar[data-tone=ok] { --lui-avatar-tone: var(--lui-ok); }
+.lui-avatar[data-tone=warn] { --lui-avatar-tone: var(--lui-warn); }
+.lui-avatar:is([data-tone=neutral], [data-tone=danger], [data-tone=ok], [data-tone=warn]) {
+  background: color-mix(in srgb, var(--lui-avatar-tone) 14%, var(--lui-bg)); color: color-mix(in srgb, var(--lui-avatar-tone) 80%, var(--lui-fg));
+}
+.lui-avatar[data-variant=solid] { background: var(--lui-avatar-tone); color: var(--lui-gray-1); }
 .lui-avatars { display: inline-flex; align-items: center; }
 .lui-avatars > .lui-avatar { box-shadow: 0 0 0 2px var(--lui-bg); }
 .lui-avatars > .lui-avatar + .lui-avatar { margin-left: -0.5rem; }

@@ -618,7 +618,7 @@ fn props(ui: &Ui, builders: &[&loco_ui::props::Component]) -> Markup {
                                 thead { tr { th { "Prop" } th { "Kind" } th { "Arguments" } th { "Default" } th { "HTML" } th { "What it does" } @if has_try { th { "Try" } } } }
                                 tbody { @for p in b.props { tr {
                                     td { code { (p.name) } }
-                                    td { (p.kind.as_str()) }
+                                    td { (p.kind.as_str()) @if let loco_ui::props::PropKind::Choice { of } = p.kind { br; small { (of.join(", ")) } } }
                                     td { @if !p.args.is_empty() { code { (p.args) } } }
                                     td { @if !p.default.is_empty() { code { (p.default) } } }
                                     td { @if !p.attr.is_empty() { code { (p.attr) } } }

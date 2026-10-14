@@ -2378,11 +2378,23 @@ Decisions (to confirm with the owner, defaults chosen):
   spec say it, and `props_follow_the_conventions` checks that every Modifier lists at
   least one item kind.
 
-- [ ] `variant.rs` with the four enums, `Display` (the class suffix), `FromStr`, `From<u8>`
+- [x] `variant.rs` with the four enums, `Display` (the class suffix), `FromStr`, `From<u8>`
   for `Size`, and `PropKind::Choice { of: &'static [&'static str] }` in `props.rs`;
   `spec write` emits the choices; the demo props table shows them as a `<select>` in the
   playground (`demo/src/playground.rs` already turns props into a form).
-- [ ] Button, LinkButton, Badge, Alert, Avatar, Dialog, Card, Tabs, Input, Select,
+  Done: `loco-ui/src/variant.rs` holds `Size` (`S1`..`S3`, `Size::ONE`..), `Tone`, `Variant`
+  and `Radius`, each with `ALL`, `NAMES`, `as_str`, a `const fn parse`, `Display` and
+  `FromStr` (error `UnknownChoice`), in the prelude. The enums are written out by hand
+  rather than with a `macro_rules!`, which the conventions keep to `html!` and `lui!`.
+  `PropKind::Choice { of }` prints as `choice`; the spec JSON adds `"choices"`, the props
+  table lists the names under the kind, and the playground's control for a choice is a
+  small `ui.select` with the default first. `lui!` needed one rule: a string literal given
+  to an attribute named `size`, `tone`, `variant` or `radius` becomes a `const` that
+  matches `Type::parse("..")` and panics otherwise, so a bad name is a compile error at the
+  literal (pinned in `loco-ui-macros/tests/ui/unknown_choice.rs`). A number passes through
+  `impl Into<Size>` and `(expr)` as before, so neither needed a change. Tests in
+  `loco-ui/tests/lui.rs` (`choices_take_a_number_a_name_or_an_expression`).
+- [x] Button, LinkButton, Badge, Alert, Avatar, Dialog, Card, Tabs, Input, Select,
   ToggleGroup, Progress, Flash, Toast, Stat: `.size(Size)`, `.tone(Tone)`,
   `.variant(Variant)`, `.radius(Radius)` where the reference library has them (Radix
   Themes: Button/Badge/Card/TextField/Select/Tabs/Dialog/Callout/Avatar/Progress). CSS:
@@ -2391,6 +2403,28 @@ Decisions (to confirm with the owner, defaults chosen):
   `--lui-size-{1,2,3}-h`, `--lui-radius-{none,1,2,3,full}`, `--lui-info-*`). Until M39
   merges, use the existing tokens and literal rems, then rebase.
   Deprecated numeric `.size(u8)` keeps working through `From<u8>`.
+  Done: `.size(impl Into<Size>)` on Button, Badge, Alert, Card, Tabs, Input, Select,
+  ToggleGroup and Progress; `.tone(Tone)` on Button, Badge, Alert, Avatar and Progress;
+  `.variant(Variant)` on Button, Badge, Alert, Avatar, Card, Input, Select, Progress and
+  Flash; `.radius(Radius)` on Button, Badge, Avatar, ToggleGroup and Progress, each a
+  `PropKind::Choice` in `PROPS` with the component's own default. A value that is not the
+  default is written on the root as `data-size`/`data-tone`/`data-variant`/`data-radius`
+  beside the classes, and each component's CSS styles it from existing tokens (`--lui-brand-*`,
+  `--lui-gray-*`, `color-mix` of `--lui-ok`/`--lui-warn`/`--lui-danger`, the control
+  heights); `data-radius` on Button, Badge and Avatar is one shared rule set in
+  `variant::CSS`, ToggleGroup and Progress map it to their own custom property. Button's
+  switches are sugar that composes: `.primary()` is brand solid, `.danger()` a tone (solid
+  unless a variant is given), `.ghost()`/`.soft()`/`.surface()` variants (soft and surface
+  brand unless toned), so `Button("Delete") danger ghost` is a red ghost button; the five
+  old looks keep their class. Info is the brand scale until M39 (FINDINGS). Kept different:
+  Dialog and Avatar keep `.size(u8)` (Radix gives them four and five sizes; `Size` has
+  three), so Dialog gains nothing and Avatar gains tone, variant and radius. Toast and Stat
+  gain nothing: their references (Sonner, Tremor) have no such props, and a toast's tone is
+  each message's level. Alert, Avatar, Card, Input, Select and Progress draw the variants
+  Radix lacks for them as their default. Demo: `/button` has a row of composed buttons and
+  badges, `/feedback` a neutral surface alert of size 1, and the playground offers the
+  choices on Button, Badge, Alert, Avatar and Progress. `table.rs` changed in one test line
+  only (a small button now carries `data-size="1"`).
 - [ ] `data-state` contract: open/closed, checked, selected, disabled, invalid, busy,
   current, sorted as `data-state` / `data-disabled` / `data-invalid` on the root and the
   part they describe (Radix/Base UI convention); documented in `docs/api.md` as the

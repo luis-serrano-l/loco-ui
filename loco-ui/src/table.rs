@@ -1549,7 +1549,7 @@ mod tests {
         .into_string();
         assert!(m.contains("aria-busy=\"true\"") && m.contains("lui-table-skeleton"));
         assert!(m.contains("<form method=\"post\" action=\"/b\" id=\"lui-table-t-bulk\""));
-        assert!(m.contains("<button type=\"submit\" class=\"lui-button lui-button-small\" name=\"action\" value=\"x\">X</button>"), "{m}");
+        assert!(m.contains("<button type=\"submit\" class=\"lui-button lui-button-small\" data-size=\"1\" name=\"action\" value=\"x\">X</button>"), "{m}");
         assert_eq!(slug("src/a.txt"), "src-a-txt");
     }
 

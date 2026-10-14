@@ -61,6 +61,12 @@
 //!     group "Vegetables" ([("leek", "Leek")]);
 //! } };
 //! assert_eq!(same.into_string(), m);
+//! // A small soft trigger.
+//! let sort = ui.select("sort", "Sort").options([("new", "Newest")]).size(1).variant(Variant::Soft);
+//! let sort = sort.render().into_string();
+//! assert!(sort.contains(r#"<span class="lui-select" data-size="1" data-variant="soft">"#));
+//! let same = lui! { Select("sort", "Sort") options=([("new", "Newest")]) size=1 variant="soft"; };
+//! assert_eq!(same.into_string(), sort);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -69,6 +75,7 @@ use crate::i18n::Text;
 use crate::icon::Glyph;
 use crate::input::Input;
 use crate::props::{Prop, PropKind};
+use crate::variant::{Size, Variant};
 use crate::{Cap, Ui};
 
 /// One option: its value, its text (what the filter matches), an optional icon and optional
@@ -150,7 +157,7 @@ struct Group<'a> {
 /// A select, made by [`Ui::select`]. No filter box unless [`Select::search`] asks for one.
 ///
 /// **Setters.** Values and items: `.options(..)`, `.group(..)`, `.groups(..)`, `.search(..)`,
-/// `.search_over(..)`, `.value(..)`, `.error(..)`.
+/// `.search_over(..)`, `.value(..)`, `.error(..)`, `.size(..)`, `.variant(..)`.
 #[derive(Clone, Debug)]
 pub struct Select<'a> {
     ui: &'a Ui,
@@ -161,6 +168,8 @@ pub struct Select<'a> {
     search: Option<&'a str>,
     search_over: usize,
     error: Option<&'a str>,
+    size: Size,
+    variant: Option<Variant>,
 }
 
 impl Select<'_> {
@@ -194,6 +203,20 @@ impl Select<'_> {
             .doc("The chosen option's value, instead of the query's `name`."),
         Prop::new("error", PropKind::Value, "message: &'a str")
             .doc("A server message under the select, which gets `aria-invalid`."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("The trigger's height and text: Radix's sizes 1 to 3."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("surface")
+        .doc("The trigger's look: surface (a border), soft (a tint) or ghost (neither)."),
     ];
 }
 
@@ -212,6 +235,8 @@ impl Ui {
             search: None,
             search_over: 15,
             error: None,
+            size: Size::S2,
+            variant: None,
         }
     }
 }
@@ -278,6 +303,19 @@ impl<'a> Select<'a> {
         self.error = (!message.is_empty()).then_some(message);
         self
     }
+
+    /// The trigger's height and text, Radix's sizes 1 to 3 (2 is the default).
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
+
+    /// The trigger's look: surface (the default, a border), soft (a brand tint and no
+    /// border) or ghost (neither); solid and outline draw as surface.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
 }
 
 impl Render for Select<'_> {
@@ -291,6 +329,8 @@ impl Render for Select<'_> {
             search,
             search_over,
             error,
+            size,
+            variant,
         } = *self;
         let id = format!("f-{name}");
         let error_id = format!("{id}-error");
@@ -320,7 +360,7 @@ impl Render for Select<'_> {
             Some(label),
             &id,
             html! {
-                span class="lui-select" {
+                span class="lui-select" data-size=[(size != Size::S2).then(|| size.as_str())] data-variant=[variant.map(Variant::as_str)] {
                     @if let Some(action) = search {
                         span class="lui-select-search" {
                             (Input::search_box(&query_name, ui.text(Text::FilterOptions), raw_query).id(&query_id).placeholder(ui.text(Text::Filter)).class("lui-select-filter"))
@@ -356,6 +396,11 @@ pub const CSS: &str = r#"
 .lui-select-filter { flex: 1; min-width: min(10rem, 100%); }
 .lui-select select, .lui-select select::picker(select) { appearance: base-select; }
 .lui-select select { min-width: min(12rem, 100%); }
+/* .size(..) and .variant(..) on the trigger: Radix's sizes 1 and 3, its soft and ghost looks. */
+.lui-select[data-size="1"] select { min-height: var(--lui-control-h-sm); padding-block: 0.25rem; font-size: 0.8125rem; }
+.lui-select[data-size="3"] select { min-height: var(--lui-control-h-lg); padding-block: 0.5rem; font-size: 1rem; line-height: 1.5rem; }
+.lui-select[data-variant=soft] select { background-color: var(--lui-brand-3); border-color: transparent; }
+.lui-select[data-variant=ghost] select { background-color: transparent; border-color: transparent; }
 /* base-select draws its own ::picker-icon; drop the gradient chevron from input.rs. */
 @supports (appearance: base-select) {
   .lui-select select { display: flex; align-items: center; gap: var(--lui-space-2); background-image: none; padding-right: 0.75rem; }

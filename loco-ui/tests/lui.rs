@@ -248,3 +248,33 @@ fn the_readme_example() {
         "the flash shows by itself"
     );
 }
+
+/// A choice (`size`, `tone`, `variant`, `radius`) written as a number, a string looked up at
+/// compile time, or an expression. A string given to any other
+/// attribute stays a string.
+#[test]
+fn choices_take_a_number_a_name_or_an_expression() {
+    let ui = ui();
+    let tone = Tone::Danger;
+    same(
+        lui! {
+            Button("Delete") size=1 tone="danger" variant="ghost" radius="full";
+            Button("Delete") size="1" tone=(tone) variant=(Variant::Ghost) radius=(Radius::Full);
+            Badge("New") tone="info" variant="surface" size=3;
+            Alert("Draft") tone="neutral";
+        },
+        html! {
+            (ui.button("Delete").size(Size::S1).tone(Tone::Danger).variant(Variant::Ghost).radius(Radius::Full))
+            (ui.button("Delete").size(1).tone(tone).variant(Variant::Ghost).radius(Radius::Full))
+            (ui.badge("New").tone(Tone::Info).variant(Variant::Surface).size(3))
+            (ui.alert("Draft").tone(Tone::Neutral))
+        },
+    );
+    for name in Tone::NAMES {
+        assert_eq!(name.parse::<Tone>().map(Tone::as_str), Ok(*name));
+    }
+    same(
+        lui! { Input("q", "Search") placeholder="tone" size=1; },
+        html! { (ui.input("q", "Search").placeholder("tone").size(1)) },
+    );
+}

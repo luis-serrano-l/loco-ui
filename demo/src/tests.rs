@@ -914,13 +914,13 @@ async fn beta_builders_are_marked() {
     };
     let chart = text("/chart").await;
     assert!(
-        chart.contains("<h1>Charts <span class=\"lui-badge lui-badge-warn\">beta</span></h1>"),
+        chart.contains("<h1>Charts <span class=\"lui-badge lui-badge-warn\" data-tone=\"warn\">beta</span></h1>"),
         "{chart}"
     );
     let dialog = text("/dialog").await;
     assert!(!dialog.contains(">beta</span></h1>") && dialog.contains(">stable</span>"));
     assert!(text("/").await.contains(
-        "href=\"/chart\">Charts</a> <span class=\"lui-badge lui-badge-warn\">beta</span>"
+        "href=\"/chart\">Charts</a> <span class=\"lui-badge lui-badge-warn\" data-tone=\"warn\">beta</span>"
     ));
 }
 

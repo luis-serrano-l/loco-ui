@@ -1,5 +1,5 @@
 //! The errors a misspelled attribute, a missing required argument, a wrong value type, markup
-//! among items and a component written as an item's argument give, pinned so each keeps
+//! among items, a component written as an item's argument and a misspelt choice (`tone="dangr"`) give, pinned so each keeps
 //! pointing at what the caller wrote.
 
 #[test]

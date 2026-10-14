@@ -17,6 +17,8 @@
 //! assert_eq!(vertical.default, "off");
 //! let badge = Tabs::PROPS.iter().find(|p| p.name == "badge").unwrap();
 //! assert_eq!(badge.kind, PropKind::Modifier);
+//! let size = loco_ui::button::Button::PROPS.iter().find(|p| p.name == "size").unwrap();
+//! assert_eq!(size.kind, PropKind::Choice { of: &["1", "2", "3"] });
 //!
 //! let tabs = loco_ui::props().iter().find(|c| c.builder == "Tabs").unwrap();
 //! assert_eq!(tabs.calls, ["ui.tabs(name: &str)"]);
@@ -38,6 +40,12 @@ pub enum PropKind {
     Item,
     /// Changes the item added last (`.badge(..)`, `.sortable()`).
     Modifier,
+    /// One of a fixed set of names (`.size(..)`, `.tone(..)`): `of` lists them as written in
+    /// `lui!` and in the `data-*` attribute.
+    Choice {
+        /// The names it takes, in order.
+        of: &'static [&'static str],
+    },
 }
 
 impl PropKind {
@@ -50,6 +58,7 @@ impl PropKind {
             PropKind::Condition => "condition",
             PropKind::Item => "item",
             PropKind::Modifier => "modifier",
+            PropKind::Choice { .. } => "choice",
         }
     }
 }

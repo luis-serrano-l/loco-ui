@@ -78,6 +78,31 @@ Everything below also ships in 0.2.0, the first publish.
   longer compiles (its fields were private already); its `PartialEq` leaves out the plural
   rule.
 
+#### M38
+
+- New `loco_ui::variant` with four enums in the prelude: `Size` (`S1` to `S3`, also
+  `Size::ONE`.., and `From<u8>` saturating), `Tone` (neutral, brand, ok, warn, danger, info),
+  `Variant` (solid, soft, surface, outline, ghost) and `Radius` (none, small, medium, large,
+  full). Each has `NAMES`, `as_str`, a `const fn parse`, `Display` and `FromStr`.
+- `PropKind::Choice { of }` lists a setter's names; the spec JSON writes them as `"choices"`,
+  the demo's props tables show them and the playground offers them in a `<select>`.
+  **Breaking** for code that matches on `PropKind` exhaustively.
+- `lui!` looks up a string given to `size`, `tone`, `variant` or `radius` at compile time:
+  `tone="danger"` is `.tone(Tone::Danger)`, and `tone="dangr"` is a compile error at the
+  literal. `size=2` and `tone=(Tone::Danger)` work as before.
+- New setters: `.size(impl Into<Size>)` on Button, Badge, Alert, Card, Tabs, Input, Select,
+  ToggleGroup and Progress; `.tone(Tone)` on Button, Badge, Alert, Avatar and Progress;
+  `.variant(Variant)` on Button, Badge, Alert, Avatar, Card, Input, Select, Progress and
+  Flash; `.radius(Radius)` on Button, Badge, Avatar, ToggleGroup and Progress. Each value
+  that is not the component's default is also written on the root as `data-size`,
+  `data-tone`, `data-variant` or `data-radius`. **Breaking**: `Button::size` and `Badge`'s
+  tone and look now take these types (a `u8` still works through `From<u8>`).
+- Button's tone and variant compose: `.danger().ghost()` is a red ghost button and
+  `.primary()` is `.tone(Tone::Brand).variant(Variant::Solid)`. The switch setters stay, and
+  the five looks that had a class keep it (`lui-button-primary` and so on), now beside
+  `data-tone` and `data-variant`. **Breaking** in the HTML: a primary, danger, ghost, soft or
+  surface button, a small or large one, and a toned badge carry the new attributes.
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached

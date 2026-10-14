@@ -2,7 +2,8 @@
 //!
 //! One-shot status messages that survive a Post/Redirect/Get, no script. Four levels
 //! (`info`, `ok`, `warn`, `danger`), several at once stacked in arrival order, an optional
-//! dismiss link, and an optional auto-hide for the calm levels.
+//! dismiss link, and an optional auto-hide for the calm levels. Each message is an alert's
+//! callout, soft unless `.variant(..)` makes them surface or outline.
 //!
 //! **Platform features:** a cookie with `Max-Age=60` set by [`crate::Ui::redirect`] on the
 //! redirect, read on the next request through `UiState`, and cleared by the next
@@ -45,12 +46,17 @@
 //! // The same in `lui!`:
 //! let same = lui! { Flash dismiss auto_hide; };
 //! assert_eq!(same.into_string(), m);
+//! // Outlined callouts instead of tinted ones.
+//! let m = ui.flash().variant(Variant::Outline).render().into_string();
+//! assert!(m.starts_with(r#"<div class="lui-flash" data-variant="outline">"#) && m.contains("lui-callout-outline"));
+//! assert_eq!(lui! { Flash variant="outline"; }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
+use crate::variant::Variant;
 use crate::{Icon, Ui};
 
 /// How much a message matters: sets its colour and how it is announced.
@@ -115,12 +121,13 @@ pub fn stack(messages: &[(Level, &str)]) -> String {
 /// The request's flash messages as a stack of banners, made by [`Ui::flash`]; nothing when
 /// there are none.
 ///
-/// **Setters.** Switches: `.dismiss()`, `.auto_hide()`.
+/// **Setters.** Values and items: `.variant(..)`; switches: `.dismiss()`, `.auto_hide()`.
 #[derive(Clone, Debug)]
 pub struct Flash<'a> {
     ui: &'a Ui,
     dismiss: bool,
     auto_hide: bool,
+    variant: Option<Variant>,
 }
 
 impl Flash<'_> {
@@ -132,6 +139,13 @@ impl Flash<'_> {
         ),
         Prop::new("auto_hide", PropKind::Switch, "")
             .doc("Fade calm messages out after a few seconds."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("soft")
+        .doc("Each message's callout: soft, surface or outline, as on an alert."),
     ];
 }
 
@@ -142,6 +156,7 @@ impl Ui {
             ui: self,
             dismiss: false,
             auto_hide: false,
+            variant: None,
         }
     }
 }
@@ -158,18 +173,29 @@ impl Flash<'_> {
         self.auto_hide = true;
         self
     }
+
+    /// Each message's callout: soft (the default), surface or outline, as on an alert; ghost
+    /// drops the frame and solid draws as soft.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
 }
 
 impl Render for Flash<'_> {
     fn render(&self) -> Markup {
         let messages = self.ui.state.flash().map(parse).unwrap_or_default();
         let dismiss = self.dismiss.then(|| self.ui.state.path());
+        let framed = match self.variant {
+            Some(v @ (Variant::Surface | Variant::Outline)) => Some(v.as_str()),
+            _ => None,
+        };
         html! {
             @if !messages.is_empty() {
-                div class="lui-flash" {
+                div class="lui-flash" data-variant=[self.variant.map(Variant::as_str)] {
                     @for (level, message) in &messages {
                         @let hide = self.auto_hide && matches!(level, Level::Info | Level::Ok);
-                        div class={ "lui-flash-item lui-callout lui-callout-" (level.as_str()) " lui-flash-" (level.as_str()) @if hide { " lui-flash-auto" } }
+                        div class={ "lui-flash-item lui-callout lui-callout-" (level.as_str()) " lui-flash-" (level.as_str()) @if let Some(v) = framed { " lui-callout-" (v) } @if hide { " lui-flash-auto" } }
                             role=(if *level == Level::Danger { "alert" } else { "status" }) {
                             (match level { Level::Ok => Icon::CircleCheck, Level::Info => Icon::Info, _ => Icon::TriangleAlert })
                             p class="lui-flash-text" { (message) }
@@ -189,6 +215,7 @@ pub const CSS: &str = r#"
 .lui-flash { display: grid; gap: var(--lui-space-2); margin-block: var(--lui-space-4); }
 .lui-flash-item { grid-template-columns: 1rem minmax(0, 1fr) auto; }
 .lui-flash-item > .lui-icon { grid-row: 1; }
+.lui-flash[data-variant=ghost] > .lui-flash-item { background: transparent; border-color: transparent; }
 .lui-flash-dismiss {
   grid-column: 3 !important; grid-row: 1; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; margin: -0.125rem -0.5rem 0 0 !important;
   border-radius: var(--lui-radius-sm); color: inherit; opacity: 0.7;

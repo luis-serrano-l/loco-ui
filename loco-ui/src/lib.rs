@@ -120,6 +120,7 @@ pub mod toggle_group;
 pub mod tooltip;
 pub mod ui;
 pub mod upload;
+pub mod variant;
 pub mod wizard;
 
 /// Server-side feature detection: the [`loco_ui_caps`] crate, re-exported so `loco_ui::caps`
@@ -161,6 +162,7 @@ pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::Saved;
     pub use crate::lui;
+    pub use crate::variant::{Radius, Size, Tone, Variant};
     pub use crate::{
         Cap, Caps, Icon, MenuItem, Page, Posted, Redirect, Row, TableQuery, Theme, Ui,
     };
@@ -362,6 +364,7 @@ pub const COMPONENT_CSS: &[&str] = &[
     drawer::CSS,
     palette::CSS,
     marquee::CSS,
+    variant::CSS,
 ];
 
 #[cfg(test)]
@@ -1055,6 +1058,10 @@ mod tests {
             "a file field (Input, Form) or an uploaded file with its size (Upload)",
         ),
         (
+            "size",
+            "a `Size` (1 to 3) everywhere but Avatar, Avatars and Dialog, which keep Radix's five and four sizes as a `u8`",
+        ),
+        (
             "submit",
             "Button's switch sets `type=\"submit\"`; Form's value is its button's text",
         ),
@@ -1634,6 +1641,7 @@ mod tests {
             ("drawer", drawer::CSS),
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
+            ("variant", variant::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
