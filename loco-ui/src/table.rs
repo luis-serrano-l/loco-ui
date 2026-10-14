@@ -134,14 +134,16 @@
 use loco_rs::controller::views::pagination::PagerMeta;
 use maud::{Markup, Render, html};
 
-use crate::button::Button;
 use crate::i18n::{Strings, Text};
-use crate::input::Input;
-use crate::paged_table::{PagedTableOptions, paged_table_with};
-use crate::popover::{MenuItem, Placement, menu};
+use crate::popover::MenuItem;
 use crate::props::{Prop, PropKind};
 use crate::state::decode;
-use crate::{Cap, Caps, Icon, Ui, enhance, slug};
+use crate::{Caps, Ui, enhance};
+
+mod body;
+mod foot;
+mod head;
+mod toolbar;
 
 /// One column: the query key it sorts by, its header text, whether it can be sorted, how
 /// its cells align and how wide it is.
@@ -164,20 +166,6 @@ pub(crate) struct Column<'a> {
 }
 
 impl<'a> Column<'a> {
-    /// A column whose header sorts the table.
-    #[cfg(test)]
-    pub const fn sortable(key: &'a str, label: &'a str) -> Column<'a> {
-        Column {
-            key,
-            label,
-            sortable: true,
-            numeric: false,
-            width: None,
-            editable: false,
-            priority: 1,
-        }
-    }
-
     /// A column with a plain header.
     pub const fn plain(key: &'a str, label: &'a str) -> Column<'a> {
         Column {
@@ -185,20 +173,6 @@ impl<'a> Column<'a> {
             label,
             sortable: false,
             numeric: false,
-            width: None,
-            editable: false,
-            priority: 1,
-        }
-    }
-
-    /// A sortable column of numbers: right-aligned, tabular figures.
-    #[cfg(test)]
-    pub const fn numeric(key: &'a str, label: &'a str) -> Column<'a> {
-        Column {
-            key,
-            label,
-            sortable: true,
-            numeric: true,
             width: None,
             editable: false,
             priority: 1,
@@ -585,39 +559,43 @@ pub(crate) fn cols_from_query<'a>(
     (!keys.is_empty()).then_some(keys)
 }
 
-/// How the table renders; `Default::default()` is unsorted, unfiltered, every column, no
-/// selection, no CSV link.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) struct TableOptions<'a> {
-    /// The current sort as `(key, descending)`, usually from [`sort_from_query`].
-    pub sort: Option<(&'a str, bool)>,
+/// What one render of a table needs, worked out by [`Table`] from its setters and the
+/// request; a paged table draws the same view with the page's rows and its page size kept.
+#[derive(Clone, Debug)]
+pub(crate) struct View<'v> {
+    pub caps: Caps,
+    pub id: &'v str,
+    /// The links' and forms' target, its own query moved into `keep`.
+    pub href: &'v str,
+    pub columns: &'v [Column<'v>],
+    pub rows: &'v [Row<'v>],
+    /// The current sort as `(key, descending)`, only for a sortable column.
+    pub sort: Option<(&'v str, bool)>,
     /// The current search text, echoed into the box and kept in the sort links.
-    pub filter: &'a str,
+    pub filter: &'v str,
     /// Extra query pairs (a page size, say) carried by every link and the filter form.
-    pub keep: &'a [(&'a str, &'a str)],
-    /// Visible column keys, usually from [`cols_from_query`]; `None` shows all.
-    pub cols: Option<&'a [&'a str]>,
-    /// Show the "Columns" chooser (links that toggle `?cols.<id>=`); also shown whenever `cols`
-    /// is set, so a hidden column can always be brought back.
+    pub keep: Vec<(&'v str, &'v str)>,
+    /// Visible column keys; `None` shows all.
+    pub cols: Option<&'v [&'v str]>,
+    /// Show the "Columns" chooser; also shown whenever `cols` is set, so a hidden column can
+    /// always be brought back.
     pub choose_columns: bool,
-    /// A bulk post `action` and its buttons `(value, label)`: adds a checkbox column and a
-    /// bar after the table. The form posts `row=<key>` per ticked row and `action=<value>`.
-    pub bulk: Option<(&'a str, &'a [(&'a str, &'a str)])>,
+    /// A bulk post `action` and its buttons `(value, label)`.
+    pub bulk: Option<(&'v str, &'v [(&'v str, &'v str)])>,
     /// Base URL of a CSV download; the current sort, filter and columns are appended.
-    pub csv: Option<&'a str>,
+    pub csv: Option<&'v str>,
     /// Message of the empty body.
-    pub empty: &'a str,
+    pub empty: &'v str,
     /// Draw skeleton rows with `aria-busy` instead of `rows`: the data is still coming.
     pub loading: bool,
-    /// Rows can be edited in place: an "Edit" link per row, and the row being edited as text
-    /// boxes posting to one form.
-    pub edit: Option<Editing<'a>>,
+    /// Rows can be edited in place.
+    pub edit: Option<Editing<'v>>,
     /// The visitor's language, for the table's own words.
     pub strings: &'static Strings,
-    /// The search box (on unless `Table::hide_search`).
+    /// The search box.
     pub search: bool,
     /// `<select>`s in the search form, each filtering by one query parameter.
-    pub selects: &'a [FilterSelect<'a>],
+    pub selects: &'v [FilterSelect<'v>],
 }
 
 /// A `<select>` in the table's search form: its parameter, label, `(value, text)` options and
@@ -655,138 +633,45 @@ pub(crate) struct Editing<'a> {
     pub done: &'a str,
 }
 
-impl Default for TableOptions<'_> {
-    fn default() -> Self {
-        TableOptions {
-            sort: None,
-            filter: "",
-            keep: &[],
-            cols: None,
-            choose_columns: false,
-            bulk: None,
-            csv: None,
-            empty: Strings::ENGLISH.get(Text::NoRows),
-            loading: false,
-            edit: None,
-            strings: &Strings::ENGLISH,
-            search: true,
-            selects: &[],
-        }
-    }
+/// A [`View`] with what its parts share worked out once: the query keys, the element ids,
+/// the visible columns and the pairs every link carries.
+struct Ctx<'c, 'v> {
+    v: &'c View<'v>,
+    keys: &'c Keys,
+    root: &'c str,
+    edit_id: &'c str,
+    bulk_id: &'c str,
+    /// `(index in the row's cells, column)` of each shown column.
+    visible: &'c [(usize, &'v Column<'v>)],
+    /// Query pairs every link and form carries besides the sort: filter, extras, columns.
+    carried: &'c [(&'c str, &'c str)],
+    has_menu: bool,
+    /// Cells in a full-width row: the shown columns and the select, edit and menu columns.
+    span: usize,
 }
 
-// Setters for the tests; the builder fills the struct directly.
-#[cfg(test)]
-impl<'a> TableOptions<'a> {
-    /// The current sort as `(key, descending)`.
-    pub fn sort(mut self, sort: Option<(&'a str, bool)>) -> Self {
-        self.sort = sort;
-        self
+impl Ctx<'_, '_> {
+    fn t(&self, text: Text) -> &'static str {
+        self.v.strings.get(text)
     }
-    /// The current search text.
-    pub fn filter(mut self, filter: &'a str) -> Self {
-        self.filter = filter;
-        self
-    }
-    /// Extra query pairs carried by every link and the filter form.
-    pub fn keep(mut self, keep: &'a [(&'a str, &'a str)]) -> Self {
-        self.keep = keep;
-        self
-    }
-    /// Visible column keys.
-    pub fn cols(mut self, cols: Option<&'a [&'a str]>) -> Self {
-        self.cols = cols;
-        self
-    }
-    /// A bulk post action with its buttons.
-    pub fn bulk(mut self, action: &'a str, buttons: &'a [(&'a str, &'a str)]) -> Self {
-        self.bulk = Some((action, buttons));
-        self
-    }
-    /// Show skeleton rows instead of `rows`.
-    pub fn loading(mut self, loading: bool) -> Self {
-        self.loading = loading;
-        self
-    }
-}
 
-/// `rows` are already sorted and filtered by the caller; `options` says how, so the links
-/// and the filter box reflect it.
-pub(crate) fn table_with(
-    caps: &Caps,
-    id: &str,
-    href: &str,
-    columns: &[Column],
-    rows: &[Row],
-    options: TableOptions,
-) -> Markup {
-    table_in(caps, id, href, columns, rows, options, true)
-}
+    fn shown(&self, c: &Column) -> bool {
+        self.v.cols.is_none_or(|v| v.contains(&c.key))
+    }
 
-/// [`table_with`], as a swap root or not: inside a paged table the pager's root is the swap
-/// root, so a sort also refreshes the page links.
-pub(crate) fn table_in(
-    caps: &Caps,
-    id: &str,
-    href: &str,
-    columns: &[Column],
-    rows: &[Row],
-    options: TableOptions,
-    swap: bool,
-) -> Markup {
-    let TableOptions {
-        sort,
-        filter,
-        keep,
-        cols,
-        choose_columns,
-        bulk,
-        csv,
-        empty,
-        loading,
-        edit,
-        strings,
-        search,
-        selects,
-    } = options;
-    let t = |text| strings.get(text);
-    let keys = Keys::new(id);
-    let root = enhance::swap_id("lui-table", id);
-    let edit_id = format!("{root}-edit");
-    let filter_id = format!("{root}-q");
-    let bulk_id = format!("{root}-bulk");
-    let vt = caps
-        .has(Cap::ViewTransitions)
-        .then(|| format!("view-transition-name: lui-table-{id}"));
-    let shown = |c: &Column| cols.is_none_or(|v| v.contains(&c.key));
-    let visible: Vec<(usize, &Column)> = columns
-        .iter()
-        .enumerate()
-        .filter(|(_, c)| shown(c))
-        .collect();
-    let cols_value = cols.map(|v| v.join(","));
-    // Query pairs every link and form carries besides the sort: filter, extras, columns.
-    let mut carried: Vec<(&str, &str)> = Vec::new();
-    if !filter.is_empty() {
-        carried.push((&keys.q, filter));
-    }
-    carried.extend(keep.iter().copied());
-    if let Some(v) = &cols_value {
-        carried.push((&keys.cols, v));
-    }
-    let sort_pairs = |s: Option<(&str, bool)>| {
-        s.map(|(k, d)| {
-            format!(
-                "{}={}&{}={}",
-                Encoded(&keys.sort),
-                Encoded(k),
-                Encoded(&keys.dir),
-                if d { "desc" } else { "asc" }
-            )
-        })
-    };
-    let query = |s: Option<(&str, bool)>, pairs: &[(&str, &str)]| {
-        let all: Vec<String> = sort_pairs(s)
+    /// `?sort..&dir..&pairs..`, or nothing when there is neither.
+    fn query(&self, sort: Option<(&str, bool)>, pairs: &[(&str, &str)]) -> String {
+        let keys = self.keys;
+        let all: Vec<String> = sort
+            .map(|(k, d)| {
+                format!(
+                    "{}={}&{}={}",
+                    Encoded(&keys.sort),
+                    Encoded(k),
+                    Encoded(&keys.dir),
+                    if d { "desc" } else { "asc" }
+                )
+            })
             .into_iter()
             .chain(
                 pairs
@@ -799,187 +684,63 @@ pub(crate) fn table_in(
         } else {
             format!("?{}", all.join("&"))
         }
-    };
-    let cols_link = |key: &str| -> String {
-        let current: Vec<&str> = cols
-            .map(|v| v.to_vec())
-            .unwrap_or_else(|| columns.iter().map(|c| c.key).collect());
-        let next: Vec<&str> = if current.contains(&key) {
-            current.iter().copied().filter(|k| *k != key).collect()
-        } else {
-            columns
-                .iter()
-                .map(|c| c.key)
-                .filter(|k| current.contains(k) || *k == key)
-                .collect()
-        };
-        let joined = next.join(",");
-        let mut pairs: Vec<(&str, &str)> = carried
+    }
+
+    /// `href` with `sort` and `pairs`.
+    fn link(&self, sort: Option<(&str, bool)>, pairs: &[(&str, &str)]) -> String {
+        join(self.v.href, &self.query(sort, pairs))
+    }
+}
+
+impl View<'_> {
+    /// The table, as a swap root or not: inside a paged table the pager's root is the swap
+    /// root, so a sort also refreshes the page links.
+    pub(crate) fn render(&self, swap: bool) -> Markup {
+        let keys = Keys::new(self.id);
+        let root = enhance::swap_id("lui-table", self.id);
+        let edit_id = format!("{root}-edit");
+        let bulk_id = format!("{root}-bulk");
+        let visible: Vec<(usize, &Column)> = self
+            .columns
             .iter()
-            .copied()
-            .filter(|(k, _)| *k != keys.cols)
+            .enumerate()
+            .filter(|(_, c)| self.cols.is_none_or(|v| v.contains(&c.key)))
             .collect();
-        pairs.push((&keys.cols, &joined));
-        join(href, &query(sort, &pairs))
-    };
-    // A `<select>` sends its own value, so the form carries everything else.
-    let hidden = |k: &str| (search && k == keys.q) || selects.iter().any(|s| s.name == k);
-    let filtering = search || !selects.is_empty();
-    let toolbar = filtering || choose_columns || cols.is_some() || csv.is_some();
-    let action = (!href.is_empty()).then_some(href);
-    let has_menu = rows.iter().any(|r| !r.menu.is_empty());
-    let span = visible.len()
-        + usize::from(bulk.is_some())
-        + usize::from(has_menu)
-        + usize::from(edit.is_some());
-    html! {
-        div id=(root) data-lui=[swap.then_some("swap")] class="lui-table" {
-            @if toolbar {
-            div class="lui-table-toolbar" {
-                @if filtering {
-                search class="lui-table-filter" {
-                    form method="get" action=[action] {
-                        @if let Some((key, desc)) = sort {
-                            input type="hidden" name=(keys.sort) value=(key);
-                            input type="hidden" name=(keys.dir) value=(if desc { "desc" } else { "asc" });
-                        }
-                        @for (k, v) in &carried { @if !hidden(k) { input type="hidden" name=(k) value=(v); } }
-                        @if search {
-                            (Input::search_box(&keys.q, t(Text::FilterRows), filter).id(&filter_id).placeholder(t(Text::FilterRowsHint)).autocomplete("off").class("lui-table-filter-input"))
-                        }
-                        @for s in selects {
-                            label class="lui-table-filter-select" {
-                                span class="lui-sr" { (s.label) }
-                                select name=(s.name) {
-                                    @for (value, text) in &s.options { option value=(value) selected[*value == s.value] { (text) } }
-                                }
-                            }
-                        }
-                        (Button::new(*caps, t(Text::Filter)))
-                        @if !filter.is_empty() {
-                            a class="lui-table-clear" href=(join(href, &query(sort, &carried.iter().copied().filter(|(k, _)| *k != keys.q).collect::<Vec<_>>()))) { (t(Text::Clear)) }
-                        }
+        let cols_value = self.cols.map(|v| v.join(","));
+        let mut carried: Vec<(&str, &str)> = Vec::new();
+        if !self.filter.is_empty() {
+            carried.push((&keys.q, self.filter));
+        }
+        carried.extend(self.keep.iter().copied());
+        if let Some(v) = &cols_value {
+            carried.push((&keys.cols, v));
+        }
+        let has_menu = self.rows.iter().any(|r| !r.menu.is_empty());
+        let span = visible.len()
+            + usize::from(self.bulk.is_some())
+            + usize::from(has_menu)
+            + usize::from(self.edit.is_some());
+        let cx = Ctx {
+            v: self,
+            keys: &keys,
+            root: &root,
+            edit_id: &edit_id,
+            bulk_id: &bulk_id,
+            visible: &visible,
+            carried: &carried,
+            has_menu,
+            span,
+        };
+        html! {
+            div id=(root) data-lui=[swap.then_some("swap")] class="lui-table" {
+                (toolbar::toolbar(&cx))
+                div class={ "lui-table-scroll" @if self.bulk.is_some() { " lui-table-has-select" } } {
+                    table {
+                        (head::head(&cx))
+                        (body::body(&cx))
                     }
                 }
-                }
-                @if choose_columns || cols.is_some() {
-                    details class="lui-table-cols" {
-                        summary class="lui-button" { (t(Text::Columns)) (Icon::ChevronDown) }
-                        ul {
-                            @for c in columns {
-                                @let on = shown(c);
-                                li { a href=(cols_link(c.key)) aria-pressed=(on) {
-                                    span class="lui-table-cols-mark" aria-hidden="true" { @if on { "\u{2611}" } @else { "\u{2610}" } } " " (c.label)
-                                } }
-                            }
-                        }
-                    }
-                }
-                @if let Some(base) = csv {
-                    a class="lui-button lui-button-small lui-table-csv" href=(join(base, &query(sort, &carried))) download { (Icon::Download) (t(Text::DownloadCsv)) }
-                }
-            }
-            }
-            div class={ "lui-table-scroll" @if bulk.is_some() { " lui-table-has-select" } } {
-            table {
-                colgroup {
-                    @if bulk.is_some() { col class="lui-table-select-col"; }
-                    @for (_, c) in &visible { col class=[prio(c)] style=[c.width.map(|w| format!("width: {w}"))]; }
-                    @if edit.is_some() { col class="lui-table-edit-col"; }
-                    @if has_menu { col class="lui-table-menu-col"; }
-                }
-                thead { tr {
-                    @if bulk.is_some() { th scope="col" class="lui-table-select" { span class="lui-sr" { (t(Text::Select)) } } }
-                    @for (_, col) in &visible {
-                        @let sorted = sort.filter(|(k, _)| *k == col.key);
-                        @let aria = sorted.map(|(_, d)| if d { "descending" } else { "ascending" });
-                        th scope="col" aria-sort=[aria] class={ @if sorted.is_some() { "lui-table-sorted" } @if col.numeric { " lui-table-num" } @if let Some(p) = prio(col) { " " (p) } } {
-                            @if col.sortable {
-                                @let next_desc = matches!(sorted, Some((_, false)));
-                                @let pairs: Vec<(&str, &str)> = carried.clone();
-                                a href=(join(href, &query(Some((col.key, next_desc)), &pairs))) {
-                                    (col.label)
-                                    @match sorted { Some((_, true)) => span class="lui-table-arrow" { "▼" }, Some((_, false)) => span class="lui-table-arrow" { "▲" }, None => {} }
-                                }
-                            } @else { (col.label) }
-                        }
-                    }
-                    @if edit.is_some() { th scope="col" class="lui-table-edit" { span class="lui-sr" { (t(Text::Edit)) } } }
-                    @if has_menu { th scope="col" class="lui-table-menu" { span class="lui-sr" { (t(Text::Actions)) } } }
-                } }
-                tbody style=[vt] aria-busy=[loading.then_some("true")] {
-                    @if loading {
-                        @for _ in 0..3 { tr class="lui-table-skeleton" { @for _ in 0..span { td { span {} } } } }
-                    } @else if rows.is_empty() {
-                        tr { td colspan=(span) class="lui-table-empty" { (empty) } }
-                    }
-                    @for row in rows.iter().filter(|_| !loading) {
-                    @let editing = edit.is_some_and(|e| e.key.is_some() && e.key == row.key);
-                    tr class=[editing.then_some("lui-table-editing")] {
-                        @if bulk.is_some() {
-                            td class="lui-table-select" {
-                                @if let Some(k) = row.key { input type="checkbox" class="lui-table-check" name="row" value=(k) form=(bulk_id) aria-label=(strings.fill(Text::SelectRow, &[&k])); }
-                            }
-                        }
-                        @for (n, (i, col)) in visible.iter().enumerate() {
-                            @let cell = row.cells.get(*i);
-                            @let class = [col.numeric.then_some("lui-table-num"), prio(col)].into_iter().flatten().collect::<Vec<_>>().join(" ");
-                            td class=[(!class.is_empty()).then_some(class)] {
-                                @if editing && col.editable {
-                                    (Input::text_box(col.key, col.label, row.values.get(*i).copied().unwrap_or("")).form(&edit_id).class("lui-table-edit-input"))
-                                } @else {
-                                @match (n, &row.detail) {
-                                    (0, Some(detail)) => details class="lui-table-detail" {
-                                        summary { @if let Some(c) = cell { (c) } }
-                                        div class="lui-table-detail-body" { (detail) }
-                                    },
-                                    _ => @if let Some(c) = cell { (c) },
-                                }
-                                @if n == 0 && visible.iter().any(|(_, c)| c.priority > 1) {
-                                    dl class="lui-table-more" {
-                                        @for (j, c) in visible.iter().filter(|(_, c)| c.priority > 1) {
-                                            div class={ "lui-table-more-p" (c.priority) } {
-                                                dt { (c.label) } dd { @if let Some(v) = row.cells.get(*j) { (v) } }
-                                            }
-                                        }
-                                    }
-                                }
-                                }
-                            }
-                        }
-                        @if let Some(e) = edit {
-                            td class="lui-table-edit" {
-                                @if editing {
-                                    (Button::new(*caps, t(Text::Save)).primary().small().form(&edit_id))
-                                    (Button::link(*caps, t(Text::Cancel), e.done).ghost().small())
-                                } @else if let Some(k) = row.key {
-                                    @let href = format!("{}{}", e.link, encode(k));
-                                    (Button::link(*caps, t(Text::Edit), &href).ghost().small())
-                                }
-                            }
-                        }
-                        @if has_menu {
-                            td class="lui-table-menu" {
-                                @if let (Some(k), false) = (row.key, row.menu.is_empty()) {
-                                    (menu(caps, &format!("{root}-{}", slug(k)), t(Text::RowActions), &row.menu, Placement::BottomEnd, true))
-                                }
-                            }
-                        }
-                    } }
-                }
-            }
-            }
-            @if let (Some(e), Some(key)) = (edit, edit.and_then(|e| e.key)) {
-                form method="post" action=(e.action) id=(edit_id) class="lui-table-edit-form" {
-                    input type="hidden" name="key" value=(key);
-                    input type="hidden" name="returns_to" value=(e.done);
-                }
-            }
-            @if let Some((action, buttons)) = bulk {
-                form method="post" action=(action) id=(bulk_id) class="lui-table-bulk" {
-                    span { (t(Text::WithSelected)) }
-                    @for (value, label) in buttons { (Button::new(*caps, label).small().name("action").value(value)) }
-                }
+                (foot::forms(&cx))
             }
         }
     }
@@ -1299,9 +1060,15 @@ impl Render for Table<'_> {
             link: &link,
             done: &done,
         });
-        let options = TableOptions {
+        let view = View {
+            caps: self.ui.caps,
+            id: self.id,
+            href,
+            columns: &self.columns,
+            rows: &self.rows,
             sort: self.sort(),
             filter: self.filter(),
+            keep,
             cols: cols.as_deref(),
             choose_columns: self.choose_columns,
             bulk: self
@@ -1313,36 +1080,12 @@ impl Render for Table<'_> {
             loading: self.loading,
             edit,
             strings: self.ui.strings,
-            keep: &keep,
             search: self.search,
             selects: &self.selects,
         };
         match self.total {
-            Some(total) => {
-                let paged = PagedTableOptions {
-                    table: options,
-                    query: Some(&self.query),
-                    state: Some(&self.ui.state),
-                    ..PagedTableOptions::default()
-                };
-                paged_table_with(
-                    &self.ui.caps,
-                    self.id,
-                    href,
-                    &self.columns,
-                    &self.rows,
-                    total,
-                    paged,
-                )
-            }
-            None => table_with(
-                &self.ui.caps,
-                self.id,
-                href,
-                &self.columns,
-                &self.rows,
-                options,
-            ),
+            Some(total) => crate::paged_table::paged(view, total, self.page(), self.per_page()),
+            None => view.render(true),
         }
     }
 }
@@ -1469,15 +1212,14 @@ mod tests {
 
     #[test]
     fn links_flip_direction_and_keep_the_filter() {
-        let cols = [
-            Column::sortable("name", "Name"),
-            Column::plain("note", "Note"),
-        ];
-        let opts = TableOptions::default()
-            .sort(Some(("name", false)))
-            .filter("a b")
-            .keep(&[("per", "5")]);
-        let m = table_with(&Caps::NONE, "t", "/t", &cols, &[], opts).into_string();
+        let ui = Ui::from_request("/t", "sort.t=name&dir.t=asc&q.t=a+b&per=5", "");
+        let table = ui
+            .table("t", "/t")
+            .column("name", "Name")
+            .sortable()
+            .column("note", "Note")
+            .keep("per");
+        let m = table.render().into_string();
         assert!(
             m.contains("href=\"/t?sort.t=name&amp;dir.t=desc&amp;q.t=a+b&amp;per=5\""),
             "{m}"
@@ -1490,34 +1232,29 @@ mod tests {
         assert!(m.contains("aria-sort=\"ascending\""));
         assert!(m.contains("No rows match."));
         assert!(!m.contains("view-transition-name"));
-        assert_eq!(sort_from_query(&cols, Some("note"), None), None);
+        let cols = &table.columns;
+        assert_eq!(sort_from_query(cols, Some("note"), None), None);
         assert_eq!(
-            sort_from_query(&cols, Some("name"), Some("desc")),
+            sort_from_query(cols, Some("name"), Some("desc")),
             Some(("name", true))
         );
     }
 
     #[test]
     fn columns_links_toggle_one_key_in_table_order() {
-        let cols = [
-            Column::sortable("a", "A"),
-            Column::numeric("b", "B"),
-            Column::plain("c", "C"),
-        ];
-        assert_eq!(
-            cols_from_query(&cols, Some("c,zzz,a")),
-            Some(vec!["a", "c"])
-        );
-        assert_eq!(cols_from_query(&cols, Some("zzz")), None);
-        let m = table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &[],
-            TableOptions::default().cols(Some(&["a", "c"])).filter("x"),
-        )
-        .into_string();
+        let ui = Ui::from_request("/t", "cols.t=a,c&q.t=x", "");
+        let table = ui
+            .table("t", "/t")
+            .column("a", "A")
+            .sortable()
+            .column("b", "B")
+            .sortable()
+            .numeric()
+            .column("c", "C");
+        let cols = &table.columns;
+        assert_eq!(cols_from_query(cols, Some("c,zzz,a")), Some(vec!["a", "c"]));
+        assert_eq!(cols_from_query(cols, Some("zzz")), None);
+        let m = table.render().into_string();
         assert!(
             m.contains("href=\"/t?q.t=x&amp;cols.t=c\" aria-pressed=\"true\""),
             "a shown column links to hiding it: {m}"
@@ -1535,22 +1272,19 @@ mod tests {
 
     #[test]
     fn loading_and_bulk_states() {
-        let cols = [Column::sortable("a", "A")];
-        let m = table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &[],
-            TableOptions::default()
-                .loading(true)
-                .bulk("/b", &[("x", "X")]),
-        )
-        .into_string();
+        let ui = Ui::default();
+        let m = ui
+            .table("t", "/t")
+            .column("a", "A")
+            .sortable()
+            .loading(true)
+            .bulk("/b", [("x", "X")])
+            .render()
+            .into_string();
         assert!(m.contains("aria-busy=\"true\"") && m.contains("lui-table-skeleton"));
         assert!(m.contains("<form method=\"post\" action=\"/b\" id=\"lui-table-t-bulk\""));
         assert!(m.contains("<button type=\"submit\" class=\"lui-button lui-button-small\" name=\"action\" value=\"x\">X</button>"), "{m}");
-        assert_eq!(slug("src/a.txt"), "src-a-txt");
+        assert_eq!(crate::slug("src/a.txt"), "src-a-txt");
     }
 
     /// `.keep(..)` and a query in `href` reach every link and form: sort links, the search

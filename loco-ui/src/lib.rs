@@ -686,6 +686,7 @@ mod tests {
         };
         let mut files = rs(concat!(env!("CARGO_MANIFEST_DIR"), "/src"));
         files.extend(rs(concat!(env!("CARGO_MANIFEST_DIR"), "/src/blocks")));
+        files.extend(rs(concat!(env!("CARGO_MANIFEST_DIR"), "/src/table")));
         files
     }
 
