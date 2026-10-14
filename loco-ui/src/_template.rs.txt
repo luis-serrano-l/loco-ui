@@ -126,7 +126,8 @@ impl Render for Widget<'_> {
 // TODO(9, responsive): a root that changes layout sets `container: lui-widget / inline-size`;
 // the narrow layout is the base, wider ones go in `@container lui-widget (width >= 30rem)` or
 // `(width >= 48rem)`; viewport `@media` only for `prefers-*` and `pointer`; every clickable
-// part is at least 44px tall under `@media (pointer: coarse)`; nothing overflows at 320px.
+// part is at least `var(--lui-hit)` (44px) tall under `@media (pointer: coarse)`; nothing
+// overflows at 320px.
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After <library> <Component>: TODO the measurements copied (heights, paddings, radii). */
