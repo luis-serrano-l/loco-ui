@@ -373,18 +373,18 @@ pub const CSS: &str = r#"
 .lui-wizard { container: lui-wizard / inline-size; }
 .lui-wizard > .lui-steps { margin-bottom: var(--lui-space-6); }
 .lui-wizard-progress { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.lui-wizard-resume { padding: 0.75rem 1rem; font-size: 0.875rem; border: 1px solid var(--lui-line); border-radius: var(--lui-radius); background: var(--lui-card); max-width: none; }
+.lui-wizard-resume { padding: 0.75rem 1rem; font-size: var(--lui-text-2); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); background: var(--lui-card); max-width: none; }
 .lui-wizard-form fieldset { min-width: 0; margin: 0; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); padding: var(--lui-space-4); }
 @container lui-wizard (width >= 30rem) { .lui-wizard-form fieldset { padding: var(--lui-space-6); } }
 .lui-wizard-form fieldset[aria-invalid=true] { border-color: var(--lui-danger); }
 .lui-wizard-form legend { padding: 0 0.5rem; font-weight: 600; }
-.lui-wizard-form label { display: block; margin: 0.75rem 0; font-size: 0.875rem; }
+.lui-wizard-form label { display: block; margin: 0.75rem 0; font-size: var(--lui-text-2); }
 .lui-wizard-form .lui-field { max-width: 24rem; }
 .lui-wizard-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); margin-top: var(--lui-space-4); }
 .lui-wizard-review { margin: 0; }
 .lui-wizard-review dt { color: var(--lui-muted); }
 .lui-wizard-review dd { margin: 0 0 0.5rem; }
-.lui-wizard-edit { margin-left: var(--lui-space-2); font-size: 0.875rem; }
+.lui-wizard-edit { margin-inline-start: var(--lui-space-2); font-size: var(--lui-text-2); }
 "#;
 
 #[cfg(test)]

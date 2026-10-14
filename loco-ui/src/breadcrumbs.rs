@@ -170,12 +170,12 @@ pub const CSS: &str = r#"
    a turned square, so screen readers read nothing), the current page in the text colour.
    The breadcrumbs are their own container: under 30rem a short trail's middle crumb gives
    way to the same … menu a long trail always has. */
-.lui-breadcrumbs { container: lui-breadcrumbs / inline-size; font-size: 0.875rem; color: var(--lui-muted); margin-bottom: var(--lui-space-4); }
+.lui-breadcrumbs { container: lui-breadcrumbs / inline-size; font-size: var(--lui-text-2); color: var(--lui-muted); margin-bottom: var(--lui-space-4); }
 .lui-breadcrumbs > ol { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0; list-style: none; margin: 0; padding: 0; }
 .lui-breadcrumbs > ol > li { display: inline-flex; align-items: center; min-width: 0; }
 .lui-breadcrumbs > ol > li + li::before {
   content: ""; flex: none; width: 0.3125rem; height: 0.3125rem; margin-inline: 0.5rem 0.625rem;
-  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; rotate: -45deg; opacity: 0.8;
+  border-inline-end: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; rotate: -45deg; opacity: 0.8;
 }
 .lui-breadcrumbs-custom > ol > li + li::before { content: none; }
 .lui-breadcrumbs-sep { display: inline-flex; margin-inline: 0.5rem; opacity: 0.8; }
@@ -194,7 +194,7 @@ pub const CSS: &str = r#"
 .lui-breadcrumbs-fold summary::-webkit-details-marker { display: none; }
 .lui-breadcrumbs-fold summary:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
 .lui-breadcrumbs-fold ol {
-  position: absolute; z-index: 5; top: 100%; left: 0; margin: var(--lui-space-1) 0 0; padding: var(--lui-space-1);
+  position: absolute; z-index: var(--lui-z-popover); top: 100%; inset-inline-start: 0; margin: var(--lui-space-1) 0 0; padding: var(--lui-space-1);
   list-style: none; min-width: 10rem; background: var(--lui-popover);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }

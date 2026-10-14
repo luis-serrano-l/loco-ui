@@ -93,6 +93,6 @@ pub const CSS: &str = r#"
 .lui-separator { border: 0; margin: 1rem 0; }
 hr.lui-separator { height: 1px; background: var(--lui-line); }
 .lui-separator-vertical { display: inline-block; align-self: stretch; width: 1px; min-height: 1rem; margin: 0; background: var(--lui-line); }
-.lui-separator-label { display: flex; align-items: center; gap: 0.75rem; color: var(--lui-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.lui-separator-label { display: flex; align-items: center; gap: 0.75rem; color: var(--lui-muted); font-size: var(--lui-text-1); text-transform: uppercase; letter-spacing: 0.05em; }
 .lui-separator-label::before, .lui-separator-label::after { content: ""; flex: 1; height: 1px; background: var(--lui-line); }
 "#;

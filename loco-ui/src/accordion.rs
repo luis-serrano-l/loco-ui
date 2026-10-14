@@ -232,22 +232,22 @@ pub const CSS: &str = r#"
 .lui-accordion-item { border-bottom: 1px solid var(--lui-line); }
 .lui-accordion-trigger {
   display: flex; align-items: flex-start; gap: 0.5rem; padding: 1rem 0; color: inherit; text-decoration: none;
-  font-size: 0.875rem; line-height: 1.25rem; font-weight: 500;
+  font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500;
 }
 .lui-accordion-trigger:hover .lui-accordion-title { text-decoration: underline; }
 /* The chevron is two borders of a rotated square in the muted colour. */
 .lui-accordion-trigger::after {
   content: ""; flex: none; width: 0.45rem; height: 0.45rem; margin: 0.3rem 0.25rem 0 auto;
-  border-right: 1.5px solid var(--lui-muted); border-bottom: 1.5px solid var(--lui-muted);
+  border-inline-end: 1.5px solid var(--lui-muted); border-bottom: 1.5px solid var(--lui-muted);
   rotate: 45deg; transition: rotate var(--lui-duration) var(--lui-ease-out);
 }
 .lui-accordion-trigger[data-state="open"]::after { rotate: 225deg; margin-top: 0.5rem; }
 .lui-accordion-title { flex: 1; min-width: 0; }
 .lui-accordion-icon { font-size: 1.1em; line-height: 1; }
-.lui-accordion-summary { display: block; font-weight: 400; font-size: 0.875rem; color: var(--lui-muted); margin-top: 0.15rem; }
+.lui-accordion-summary { display: block; font-weight: 400; font-size: var(--lui-text-2); color: var(--lui-muted); margin-top: 0.15rem; }
 .lui-accordion-trigger[data-state="open"] .lui-accordion-summary { display: none; }
-.lui-accordion-body { padding: 0 0 1rem; font-size: 0.875rem; }
-.lui-accordion-controls { display: flex; gap: calc(var(--lui-space) * 2); margin: 0; max-width: none; padding: 0 0 0.5rem; font-size: 0.875rem; border-bottom: 1px solid var(--lui-line); }
+.lui-accordion-body { padding: 0 0 1rem; font-size: var(--lui-text-2); }
+.lui-accordion-controls { display: flex; gap: calc(var(--lui-space) * 2); margin: 0; max-width: none; padding: 0 0 0.5rem; font-size: var(--lui-text-2); border-bottom: 1px solid var(--lui-line); }
 /* A nested accordion sits inside a body, indented. */
 .lui-accordion .lui-accordion { margin: 0.5rem 0 0 1rem; }
 .lui-accordion .lui-accordion .lui-accordion-item:last-child { border-bottom: 0; }

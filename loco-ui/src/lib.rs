@@ -2199,58 +2199,9 @@ mod tests {
 
     /// Type sizes and stacking come from tokens: `font-size` is a `var(--lui-text-n)` (or
     /// relative: `em`, `%`, `inherit`) and `z-index` a `var(--lui-z-*)` (or a local order
-    /// from -1 to 3 inside one component). The files listed still write literals and lose
-    /// their entry in M39's sweep, run after the other milestones merge.
+    /// from -1 to 3 inside one component).
     #[test]
     fn no_literal_font_size_or_z_outside_tokens() {
-        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
-        const PENDING_SWEEP: &[&str] = &[
-            "accordion.rs",
-            "alert.rs",
-            "app_shell.rs",
-            "auth_page.rs",
-            "avatar.rs",
-            "badge.rs",
-            "breadcrumbs.rs",
-            "button.rs",
-            "calendar.rs",
-            "card.rs",
-            "chart.rs",
-            "color.rs",
-            "combobox.rs",
-            "counter.rs",
-            "date_picker.rs",
-            "description_list.rs",
-            "dialog.rs",
-            "drawer.rs",
-            "empty_state.rs",
-            "error_page.rs",
-            "error_summary.rs",
-            "form.rs",
-            "input.rs",
-            "input_otp.rs",
-            "kanban.rs",
-            "nav_menu.rs",
-            "paged_table.rs",
-            "pager.rs",
-            "palette.rs",
-            "popover.rs",
-            "progress.rs",
-            "range.rs",
-            "select.rs",
-            "separator.rs",
-            "settings_page.rs",
-            "sidebar.rs",
-            "sortable.rs",
-            "stat.rs",
-            "table.rs",
-            "tabs.rs",
-            "toast.rs",
-            "toggle_group.rs",
-            "tooltip.rs",
-            "upload.rs",
-            "wizard.rs",
-        ];
         let mut failed = Vec::new();
         for (file, css) in css_by_file() {
             let bad: Vec<String> = declarations(&css)
@@ -2270,10 +2221,8 @@ mod tests {
                 })
                 .map(|(p, v)| format!("{p}: {v}"))
                 .collect();
-            match (bad.is_empty(), PENDING_SWEEP.contains(&file.as_str())) {
-                (false, false) => failed.push(format!("{file}: {bad:?}")),
-                (true, true) => failed.push(format!("{file} is clean: drop it from PENDING_SWEEP")),
-                _ => {}
+            if !bad.is_empty() {
+                failed.push(format!("{file}: {bad:?}"));
             }
         }
         assert!(failed.is_empty(), "{failed:#?}");
@@ -2281,38 +2230,9 @@ mod tests {
 
     /// Component CSS uses logical properties (`margin-inline-start`, `inset-inline-end`,
     /// `text-align: start`), so a right-to-left page mirrors. Transforms, `translate` and the
-    /// `inset` shorthand are fine. The files listed still use physical ones and lose their
-    /// entry in M39's sweep.
+    /// `inset` shorthand are fine.
     #[test]
     fn no_physical_property_in_component_css() {
-        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
-        const PENDING_SWEEP: &[&str] = &[
-            "accordion.rs",
-            "avatar.rs",
-            "breadcrumbs.rs",
-            "card.rs",
-            "color.rs",
-            "combobox.rs",
-            "date_picker.rs",
-            "dialog.rs",
-            "drawer.rs",
-            "error_summary.rs",
-            "form.rs",
-            "input.rs",
-            "input_otp.rs",
-            "paged_table.rs",
-            "pager.rs",
-            "palette.rs",
-            "popover.rs",
-            "range.rs",
-            "select.rs",
-            "sidebar.rs",
-            "table.rs",
-            "tabs.rs",
-            "toggle_group.rs",
-            "tooltip.rs",
-            "wizard.rs",
-        ];
         let physical = |p: &str, v: &str| {
             matches!(
                 p,
@@ -2333,10 +2253,8 @@ mod tests {
                 .filter(|(p, v)| physical(p, v))
                 .map(|(p, v)| format!("{p}: {v}"))
                 .collect();
-            match (bad.is_empty(), PENDING_SWEEP.contains(&file.as_str())) {
-                (false, false) => failed.push(format!("{file}: {bad:?}")),
-                (true, true) => failed.push(format!("{file} is clean: drop it from PENDING_SWEEP")),
-                _ => {}
+            if !bad.is_empty() {
+                failed.push(format!("{file}: {bad:?}"));
             }
         }
         assert!(failed.is_empty(), "{failed:#?}");

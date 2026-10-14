@@ -374,9 +374,9 @@ pub const CSS: &str = r#"
 .lui-range-input:disabled { cursor: not-allowed; }
 .lui-range-input:disabled::-webkit-slider-runnable-track { background: var(--lui-gray-4); }
 .lui-range-input:disabled::-moz-range-progress { background: var(--lui-gray-8); }
-.lui-range output, .lui-range-values { line-height: 1.25rem; min-width: 3ch; text-align: right; font-size: 0.875rem; font-variant-numeric: tabular-nums; text-wrap: nowrap; }
+.lui-range output, .lui-range-values { line-height: 1.25rem; min-width: 3ch; text-align: end; font-size: var(--lui-text-2); font-variant-numeric: tabular-nums; text-wrap: nowrap; }
 /* .ticks(): the lowest, middle and highest value under the track, the ends labelled. */
-.lui-range-ticks { display: flex; justify-content: space-between; padding-inline: 0.5rem; color: var(--lui-muted); font-size: 0.75rem; line-height: 1rem; font-variant-numeric: tabular-nums; }
+.lui-range-ticks { display: flex; justify-content: space-between; padding-inline: 0.5rem; color: var(--lui-muted); font-size: var(--lui-text-1); line-height: 1rem; font-variant-numeric: tabular-nums; }
 .lui-range-ticks > span { display: grid; justify-items: center; width: 0; white-space: nowrap; }
 .lui-range-ticks > span::before { content: ""; width: 1px; height: 0.25rem; margin-bottom: 0.125rem; background: var(--lui-gray-7); }
 /* A pair: two inputs share one grid cell over one drawn track, filled between the thumbs;

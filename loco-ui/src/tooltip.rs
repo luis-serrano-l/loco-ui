@@ -164,17 +164,19 @@ pub const CSS: &str = r#"
 /* Radix Themes Tooltip: the inverted chip, --lui-gray-12 with --lui-gray-1 text, small type. */
 .lui-tooltip { position: relative; display: inline-flex; }
 .lui-tooltip-text {
-  position: absolute; z-index: 30; left: 50%; bottom: calc(100% + 6px); translate: -50% 0;
+  position: absolute; z-index: var(--lui-z-tooltip); inset-inline-start: 50%; bottom: calc(100% + 6px); translate: -50% 0;
   width: max-content; max-width: 16rem; padding: 0.375rem 0.75rem; pointer-events: none;
-  font-size: 0.75rem; line-height: 1rem; font-weight: 400; text-align: center;
+  font-size: var(--lui-text-1); line-height: 1rem; font-weight: 400; text-align: center;
   color: var(--lui-gray-1); background: var(--lui-gray-12); border-radius: var(--lui-radius-sm);
   box-shadow: var(--lui-shadow-md);
   opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s, display 0.15s allow-discrete;
   /* Out of the layout at rest, so a tooltip beside a button at the edge never widens the page. */
   display: none;
 }
+/* Centred with a translate, which is physical: mirror it in right-to-left. */
+.lui-tooltip-text:dir(rtl) { translate: 50% 0; }
 .lui-tooltip[data-side=bottom] .lui-tooltip-text { bottom: auto; top: calc(100% + 6px); }
-.lui-tooltip:is([data-side=start], [data-side=end]) .lui-tooltip-text { left: auto; bottom: auto; inset-block-start: 50%; translate: 0 -50%; }
+.lui-tooltip:is([data-side=start], [data-side=end]) .lui-tooltip-text { inset-inline-start: auto; bottom: auto; inset-block-start: 50%; translate: 0 -50%; }
 .lui-tooltip[data-side=start] .lui-tooltip-text { inset-inline-end: calc(100% + 6px); }
 .lui-tooltip[data-side=end] .lui-tooltip-text { inset-inline-start: calc(100% + 6px); }
 .lui-tooltip:hover .lui-tooltip-text, .lui-tooltip:focus-within .lui-tooltip-text { opacity: 1; visibility: visible; display: block; }

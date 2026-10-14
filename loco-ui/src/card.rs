@@ -290,9 +290,9 @@ pub const CSS: &str = r#"
 }
 .lui-card-header { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--lui-space-2) var(--lui-space-4); padding-inline: 1.5rem; }
 .lui-card-heading { display: grid; gap: 0.375rem; flex: 1 1 12rem; min-width: 0; }
-.lui-card-title { margin: 0; font-size: 1rem; line-height: 1.25; font-weight: 600; }
-.lui-card-description { margin: 0; color: var(--lui-muted); font-size: 0.875rem; }
-.lui-card-action { flex: none; margin-left: auto; }
+.lui-card-title { margin: 0; font-size: var(--lui-text-3); line-height: 1.25; font-weight: 600; }
+.lui-card-description { margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); }
+.lui-card-action { flex: none; margin-inline-start: auto; }
 .lui-card.lui-card-classic { border-color: transparent; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
 .lui-card.lui-card-ghost, .lui-card .lui-card { background: transparent; border-color: transparent; box-shadow: none; }
 .lui-card .lui-card { padding-block: 0; }

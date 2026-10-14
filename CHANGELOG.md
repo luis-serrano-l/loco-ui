@@ -326,6 +326,9 @@ by milestone, newest first, rather than against 0.1.0.
 #### After M36: input hardening, `lui!` templates, sign-in redirects
 #### M39 · CSS that an app can own
 
+- The type and z-index literals and physical properties in component CSS became tokens and
+  logical properties (`--lui-text-n`, `--lui-z-*`, `inset-inline-*`, `margin-inline-*`,
+  `text-align: start`). Tooltip, switch and toggle-group thumbs mirror in right-to-left.
 - **Breaking.** The stylesheet is five cascade layers, `lui.reset, lui.tokens,
   lui.components, lui.blocks, lui.modes`; `Look::css` and `Page::css` come unlayered after
   it, so an app's rule wins without `!important`. `LAYERS` and `layout::RESET` / `MODES`

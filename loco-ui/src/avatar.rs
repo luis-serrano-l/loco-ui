@@ -296,15 +296,15 @@ pub const CSS: &str = r#"
 .lui-avatar {
   position: relative; display: inline-grid; place-items: center; flex: none; overflow: hidden;
   width: 2rem; height: 2rem; border-radius: 9999px; background: var(--lui-brand-3); color: var(--lui-brand-11);
-  font-size: 0.75rem; font-weight: 500; line-height: 1; vertical-align: middle; user-select: none;
+  font-size: var(--lui-text-1); font-weight: 500; line-height: 1; vertical-align: middle; user-select: none;
 }
 /* 2px past the edge on every side: the frame Firefox draws round a broken image falls
    outside the circle and is clipped away. */
 .lui-avatar img { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); max-width: none; object-fit: cover; color: transparent; }
-.lui-avatar-1 { width: 1.5rem; height: 1.5rem; font-size: 0.625rem; }
-.lui-avatar-3 { width: 2.5rem; height: 2.5rem; font-size: 0.875rem; }
-.lui-avatar-4 { width: 3rem; height: 3rem; font-size: 1rem; }
-.lui-avatar-5 { width: 4rem; height: 4rem; font-size: 1.25rem; }
+.lui-avatar-1 { width: 1.5rem; height: 1.5rem; font-size: var(--lui-text-1); }
+.lui-avatar-3 { width: 2.5rem; height: 2.5rem; font-size: var(--lui-text-2); }
+.lui-avatar-4 { width: 3rem; height: 3rem; font-size: var(--lui-text-3); }
+.lui-avatar-5 { width: 4rem; height: 4rem; font-size: var(--lui-text-5); }
 .lui-avatar-square { border-radius: var(--lui-radius); }
 /* .tone(..) and .variant(..): a tint of the tone mixed into the page (soft), or the tone with
    light initials (solid). Brand and info keep the brand scale above. */
@@ -319,7 +319,7 @@ pub const CSS: &str = r#"
 .lui-avatar[data-variant=solid] { background: var(--lui-avatar-tone); color: var(--lui-gray-1); }
 .lui-avatars { display: inline-flex; align-items: center; }
 .lui-avatars > .lui-avatar { box-shadow: 0 0 0 2px var(--lui-bg); }
-.lui-avatars > .lui-avatar + .lui-avatar { margin-left: -0.5rem; }
+.lui-avatars > .lui-avatar + .lui-avatar { margin-inline-start: -0.5rem; }
 .lui-avatar-more { background: var(--lui-gray-3); color: var(--lui-fg); }
 "#;
 

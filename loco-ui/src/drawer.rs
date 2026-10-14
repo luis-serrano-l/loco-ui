@@ -306,15 +306,15 @@ pub const CSS: &str = r#"
   color: var(--lui-fg); background: var(--lui-popover); border: 0; border-inline-end: 1px solid var(--lui-line);
 }
 .lui-drawer-panel:modal, .lui-drawer-panel:target {
-  display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; height: 100dvh; max-height: none; width: min(var(--lui-drawer-size, 24rem), 85vw); z-index: 10;
+  display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; height: 100dvh; max-height: none; width: min(var(--lui-drawer-size, 24rem), 85vw); z-index: var(--lui-z-drawer);
   padding: var(--lui-space-6); box-shadow: var(--lui-shadow-lg), var(--lui-highlight);
 }
 .lui-drawer-panel:target { box-shadow: var(--lui-shadow-lg), var(--lui-highlight), 0 0 0 100vmax var(--lui-overlay); }
 .lui-drawer-panel::backdrop { background: var(--lui-overlay); }
 .lui-drawer-panel:not(:modal):not(:target)[open] { position: static; width: auto; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); }
 .lui-drawer-head { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--lui-space-2); align-items: center; margin-bottom: var(--lui-space-4); }
-.lui-drawer-title { margin: 0; font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
-.lui-drawer-description { grid-column: 1; margin: 0; font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-muted); }
+.lui-drawer-title { margin: 0; font-size: var(--lui-text-3); line-height: 1.5rem; font-weight: 600; }
+.lui-drawer-description { grid-column: 1; margin: 0; font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-muted); }
 .lui-drawer-close { grid-column: 2; grid-row: 1; opacity: 0.7; }
 .lui-drawer-close:hover { opacity: 1; }
 .lui-drawer-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-inline: calc(var(--lui-space-2) * -1); padding-inline: var(--lui-space-2); }
@@ -323,7 +323,7 @@ pub const CSS: &str = r#"
 .lui-drawer-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.125rem; }
 .lui-drawer-panel li a {
   display: flex; align-items: center; min-height: 2rem; padding: 0 0.5rem; border-radius: var(--lui-radius-sm);
-  font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-fg); text-decoration: none;
+  font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-fg); text-decoration: none;
 }
 @media (pointer: coarse) { .lui-drawer-panel li a { min-height: var(--lui-hit); } }
 .lui-drawer-panel li a:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
@@ -343,7 +343,7 @@ pub const CSS: &str = r#"
     border: 0; border-top: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg) var(--lui-radius-lg) 0 0;
   }
   .lui-drawer-panel:not([data-side=top]):modal::before, .lui-drawer-panel:not([data-side=top]):target::before {
-    content: ""; position: absolute; top: var(--lui-space-3); left: 50%; translate: -50% 0;
+    content: ""; position: absolute; top: var(--lui-space-3); inset-inline: 0; margin-inline: auto;
     width: 3rem; height: 0.375rem; border-radius: 9999px; background: var(--lui-gray-5);
   }
 }

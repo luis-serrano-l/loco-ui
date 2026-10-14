@@ -798,11 +798,11 @@ pub const CSS: &str = r#"
 .lui-form-inline { max-width: 48rem; }
 .lui-form-group { display: grid; gap: var(--lui-space-4); min-width: 0; margin: 0; padding: 0; border: 0; }
 fieldset.lui-form-group ~ fieldset.lui-form-group { padding-top: var(--lui-space-6); border-top: 1px solid var(--lui-line); }
-.lui-form-group-legend { float: left; width: 100%; padding: 0; font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+.lui-form-group-legend { float: inline-start; width: 100%; padding: 0; font-size: var(--lui-text-3); line-height: 1.5rem; font-weight: 600; }
 /* Floated, a legend is no longer drawn in the fieldset's border but laid out as an ordinary
    grid item, so the gap spaces it; the description pulls up under it. */
-.lui-form-hint { margin: 0; color: var(--lui-muted); font-size: 0.8125rem; line-height: 1.25rem; }
-.lui-form-group-description { margin: calc(var(--lui-space-4) * -1 + var(--lui-space-1)) 0 0; color: var(--lui-muted); font-size: 0.875rem; line-height: 1.25rem; }
+.lui-form-hint { margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); line-height: 1.25rem; }
+.lui-form-group-description { margin: calc(var(--lui-space-4) * -1 + var(--lui-space-1)) 0 0; color: var(--lui-muted); font-size: var(--lui-text-2); line-height: 1.25rem; }
 /* The submit row: the button fills a narrow form, and sits at the end of a wide one. */
 .lui-form-actions { display: flex; flex-direction: column; gap: var(--lui-space-2); }
 .lui-form-actions > .lui-button { width: 100%; }

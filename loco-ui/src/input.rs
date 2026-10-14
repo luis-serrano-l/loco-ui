@@ -1421,7 +1421,7 @@ pub const CSS: &str = r#"
    shadow, --lui-control-h tall (Radix's 32px at our taller control height), px-3. These bare
    element rules are the one place inputs are styled: a hand-written field and a component's
    control look the same. */
-input, select, textarea { font: inherit; font-size: 0.875rem; line-height: 1.25rem; color: inherit; }
+input, select, textarea { font: inherit; font-size: var(--lui-text-2); line-height: 1.25rem; color: inherit; }
 label { font-weight: 500; }
 input, select, textarea {
   min-height: var(--lui-control-h); padding: 0.375rem 0.75rem; min-width: 0;
@@ -1433,11 +1433,11 @@ input::placeholder, textarea::placeholder { color: var(--lui-gray-10); }
 input[type=number] { font-variant-numeric: tabular-nums; }
 /* Native select: no OS chrome, a chevron drawn from two gradients in the muted colour. */
 select {
-  appearance: none; padding-right: 2rem;
+  appearance: none; padding-inline-end: 2rem;
   background-image: linear-gradient(45deg, transparent 50%, var(--lui-muted) 50%), linear-gradient(135deg, var(--lui-muted) 50%, transparent 50%);
   background-position: right 1rem center, right 0.75rem center; background-size: 0.25rem 0.25rem; background-repeat: no-repeat;
 }
-select[multiple], select[size] { padding-right: 0.75rem; background-image: none; }
+select[multiple], select[size] { padding-inline-end: 0.75rem; background-image: none; }
 /* Radix Checkbox and Radio, size 2: a 1rem box (radius 4px) or circle in a --lui-gray-7 border,
    filled with the primary colour when checked; the tick (two borders turned 45°) and the
    dot scale in. A component that hides its input (calendar, toggle group) sets opacity 0. */
@@ -1468,26 +1468,26 @@ input::file-selector-button { font: inherit; font-weight: 500; color: var(--lui-
 input:is([type=checkbox], [type=radio]):disabled { background: var(--lui-gray-3); }
 input:is([type=checkbox], [type=radio]):disabled:checked { background: var(--lui-gray-8); border-color: var(--lui-gray-8); }
 .lui-field { display: grid; gap: 0.5rem; }
-.lui-field label { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+.lui-field label { font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500; }
 .lui-field-check label, .lui-radio-group-option { display: flex; align-items: center; gap: 0.5rem; }
 /* :where keeps this at one class, so a component inside a field (colour, range) sizes itself. */
 .lui-field :where(input:not([type=file], [type=color], [type=range], [type=checkbox], [type=radio]), textarea) { width: 100%; box-sizing: border-box; }
 .lui-field textarea { resize: vertical; field-sizing: content; min-height: 3lh; max-height: 20lh; font: inherit; }
-.lui-field-help { color: var(--lui-muted); font-size: 0.8125rem; line-height: 1.25rem; }
-.lui-field-count { justify-self: end; color: var(--lui-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.lui-field-help { color: var(--lui-muted); font-size: var(--lui-text-2); line-height: 1.25rem; }
+.lui-field-count { justify-self: end; color: var(--lui-muted); font-size: var(--lui-text-1); font-variant-numeric: tabular-nums; }
 /* One rule per newer selector (:user-invalid is Chrome 119, :has() Chrome 105 and not in
    Blitz): in a list, a browser that lacks one drops the whole rule (FINDINGS, M23). */
 .lui-field [aria-invalid=true] { border-color: var(--lui-danger); }
 .lui-field :is(input, textarea):user-invalid { border-color: var(--lui-danger); }
 .lui-field [aria-invalid=true] ~ label { color: var(--lui-danger); }
 .lui-field:has([aria-invalid=true]) > label { color: var(--lui-danger); }
-.lui-error { display: flex; align-items: flex-start; gap: 0.375rem; color: var(--lui-danger); margin: 0; font-size: 0.8125rem; line-height: 1.25rem; }
+.lui-error { display: flex; align-items: flex-start; gap: 0.375rem; color: var(--lui-danger); margin: 0; font-size: var(--lui-text-2); line-height: 1.25rem; }
 .lui-error > .lui-icon { margin-top: 0.125rem; width: 0.875rem; height: 0.875rem; }
 /* .leading() / .trailing(): Radix TextField slots. The wrapper draws the border; the input
    inside is borderless and the wrapper takes its focus, invalid and disabled looks. */
 .lui-input-slots {
   display: flex; align-items: center; gap: var(--lui-space-2); box-sizing: border-box; width: 100%;
-  min-height: var(--lui-control-h); padding-inline: 0.75rem; color: var(--lui-muted); font-size: 0.875rem;
+  min-height: var(--lui-control-h); padding-inline: 0.75rem; color: var(--lui-muted); font-size: var(--lui-text-2);
   border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm); cursor: text;
   transition: border-color var(--lui-duration-fast);
 }
@@ -1501,9 +1501,9 @@ input:is([type=checkbox], [type=radio]):disabled:checked { background: var(--lui
 /* .size(..) and .variant(..), on the field's root (the control itself when its label is
    hidden): Radix TextField sizes 1 and 3 on the shared control heights, and its soft look (a
    brand-3 tint, no border) and a ghost one (no border or fill). */
-:is(.lui-field[data-size="1"] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-size="1"]) { min-height: var(--lui-control-h-sm); font-size: 0.8125rem; }
+:is(.lui-field[data-size="1"] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-size="1"]) { min-height: var(--lui-control-h-sm); font-size: var(--lui-text-2); }
 :is(.lui-field[data-size="1"] input, input[data-size="1"]) { padding-block: 0.25rem; }
-:is(.lui-field[data-size="3"] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-size="3"]) { min-height: var(--lui-control-h-lg); font-size: 1rem; line-height: 1.5rem; }
+:is(.lui-field[data-size="3"] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-size="3"]) { min-height: var(--lui-control-h-lg); font-size: var(--lui-text-3); line-height: 1.5rem; }
 :is(.lui-field[data-size="3"] input, input[data-size="3"]) { padding-block: 0.5rem; }
 :is(.lui-field[data-variant=soft] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-variant=soft]) { background-color: var(--lui-brand-3); border-color: transparent; }
 :is(.lui-field[data-variant=ghost] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-variant=ghost]) { background-color: transparent; border-color: transparent; }
@@ -1516,14 +1516,14 @@ input:is([type=checkbox], [type=radio]):disabled:checked { background: var(--lui
   }
 }
 .lui-radio-group { container: lui-radio-group / inline-size; margin: 0; padding: 0; border: 0; gap: 0.75rem; }
-.lui-radio-group legend { padding: 0; margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 500; }
+.lui-radio-group legend { padding: 0; margin-bottom: 0.75rem; font-size: var(--lui-text-2); font-weight: 500; }
 .lui-radio-group[aria-invalid=true] legend { color: var(--lui-danger); }
 .lui-radio-group-options { display: grid; gap: 0.75rem; }
 .lui-radio-group-option { cursor: pointer; }
 .lui-radio-group-option:has(.lui-radio-group-description) { align-items: flex-start; }
 .lui-radio-group-option:has(.lui-radio-group-description) > input { margin-top: 0.125rem; }
 .lui-radio-group-text { display: grid; gap: 0.125rem; min-width: 0; }
-.lui-radio-group-description { color: var(--lui-muted); font-weight: 400; font-size: 0.8125rem; line-height: 1.25rem; }
+.lui-radio-group-description { color: var(--lui-muted); font-weight: 400; font-size: var(--lui-text-2); line-height: 1.25rem; }
 /* .cards(): Radix RadioCards. Each choice a --lui-gray-7 bordered card, ringed in the primary
    colour when picked, 1, 2 or 3 across as the group's own width allows. The radio covers
    the card, invisible, so the whole card is its hit area. */
@@ -1548,12 +1548,13 @@ input.lui-switch {
   box-shadow: inset 0 0 0 1px var(--lui-gray-6); cursor: pointer; transition: background-color var(--lui-duration-fast);
 }
 input.lui-switch::before {
-  content: ""; position: absolute; top: 1px; left: 1px; width: 1.125rem; height: 1.125rem;
+  content: ""; position: absolute; top: 1px; inset-inline-start: 1px; width: 1.125rem; height: 1.125rem;
   border-radius: 50%; background: var(--lui-on-primary); box-shadow: var(--lui-shadow-xs);
   transition: translate var(--lui-duration) var(--lui-ease-spring);
 }
 input.lui-switch:checked { background: var(--lui-primary); box-shadow: none; }
 input.lui-switch:checked::before { translate: calc(2.1875rem - 1.125rem - 2px) 0; }
+input.lui-switch:checked:dir(rtl)::before { translate: calc(1.125rem + 2px - 2.1875rem) 0; }
 input.lui-switch:disabled { background: var(--lui-gray-4); }
 /* .optional(): a quiet note after the label. */
 .lui-field-optional { color: var(--lui-muted); font-weight: 400; }
@@ -1568,7 +1569,7 @@ input.lui-switch:disabled { background: var(--lui-gray-4); }
 .lui-input-group {
   display: flex; align-items: stretch; box-sizing: border-box; width: 100%; min-width: 0;
   min-height: var(--lui-control-h); border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
-  font-size: 0.875rem; transition: border-color var(--lui-duration-fast);
+  font-size: var(--lui-text-2); transition: border-color var(--lui-duration-fast);
 }
 .lui-input-group > :is(input, .lui-input-slots) { order: 3; flex: 1; min-width: 0; min-height: calc(var(--lui-control-h) - 2px); border: 0; border-radius: 0; background: transparent; }
 .lui-input-group > :is(input, .lui-input-slots):focus-visible { outline: none; }
@@ -1580,13 +1581,13 @@ input.lui-switch:disabled { background: var(--lui-gray-4); }
   display: inline-flex; align-items: center; flex: none; padding-inline: 0.75rem; white-space: nowrap;
   color: var(--lui-muted); background: var(--lui-gray-2);
 }
-.lui-input-group-prefix { order: 1; border-right: 1px solid var(--lui-input); border-radius: calc(var(--lui-radius-sm) - 1px) 0 0 calc(var(--lui-radius-sm) - 1px); }
-.lui-input-group-suffix { order: 5; border-left: 1px solid var(--lui-input); border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
-.lui-input-group-button { order: 6; display: flex; flex: none; border-left: 1px solid var(--lui-input); }
+.lui-input-group-prefix { order: 1; border-inline-end: 1px solid var(--lui-input); border-radius: calc(var(--lui-radius-sm) - 1px) 0 0 calc(var(--lui-radius-sm) - 1px); }
+.lui-input-group-suffix { order: 5; border-inline-start: 1px solid var(--lui-input); border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
+.lui-input-group-button { order: 6; display: flex; flex: none; border-inline-start: 1px solid var(--lui-input); }
 .lui-input-group-button > .lui-button { min-height: 100%; border: 0; border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
 /* A number's steppers: Origin UI's chevrons stacked at the end. They come first in the
    markup (the pressed one's value posts first) and show last. */
-.lui-input-steppers { order: 4; display: flex; flex-direction: column; flex: none; border-left: 1px solid var(--lui-input); }
+.lui-input-steppers { order: 4; display: flex; flex-direction: column; flex: none; border-inline-start: 1px solid var(--lui-input); }
 .lui-input-steppers > .lui-button { flex: 1; min-height: 0; height: auto; width: 1.75rem; padding: 0; border: 0; border-radius: 0; }
 .lui-input-steppers > .lui-button + .lui-button { border-top: 1px solid var(--lui-input); }
 .lui-input-steppers .lui-icon { width: 0.75rem; height: 0.75rem; }
@@ -1600,7 +1601,7 @@ input.lui-switch:disabled { background: var(--lui-gray-4); }
   .lui-input-group { min-height: var(--lui-hit); }
   .lui-input-steppers { flex-direction: row; }
   .lui-input-steppers > .lui-button { width: var(--lui-hit); }
-  .lui-input-steppers > .lui-button + .lui-button { border-top: 0; border-left: 1px solid var(--lui-input); }
+  .lui-input-steppers > .lui-button + .lui-button { border-top: 0; border-inline-start: 1px solid var(--lui-input); }
 }
 "#;
 

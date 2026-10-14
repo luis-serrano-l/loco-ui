@@ -234,7 +234,7 @@ pub const CSS: &str = r#"
    the untransformed front one). Pointing at the stack or focusing a toast fans it out (each back in its own row); under
    reduced motion it is always fanned out. Full width at the bottom on a narrow viewport. */
 .lui-toasts {
-  position: fixed; z-index: 20; inset-inline-end: var(--lui-space-6); bottom: var(--lui-space-6);
+  position: fixed; z-index: var(--lui-z-toast); inset-inline-end: var(--lui-space-6); bottom: var(--lui-space-6);
   display: grid; gap: var(--lui-space-3); width: min(22.25rem, calc(100vw - 2rem));
   list-style: none; margin: 0; padding: 0; --lui-toast-dir: -1;
 }
@@ -249,7 +249,7 @@ pub const CSS: &str = r#"
   --lui-toast-tone: var(--lui-muted);
   position: relative; z-index: 3; grid-area: 1 / 1; align-self: end; display: grid; grid-template-columns: 1rem minmax(0, 1fr); grid-auto-flow: column; grid-auto-columns: auto; align-items: start; column-gap: var(--lui-space-3);
   box-sizing: border-box; padding: var(--lui-space-4); color: var(--lui-fg); background: var(--lui-popover);
-  font-size: 0.875rem; line-height: 1.25rem;
+  font-size: var(--lui-text-2); line-height: 1.25rem;
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
   box-shadow: var(--lui-shadow-lg), var(--lui-highlight); transform-origin: 50% 0;
   animation: lui-toast-out 0.4s ease-in var(--lui-toast-duration, 5s) forwards;

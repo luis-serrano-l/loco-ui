@@ -2587,7 +2587,7 @@ theme covers type, motion, depth, density, RTL and forced colours.
   normalisation. **Breaking** (apps that relied on styled bare `<table>`); test:
   `stylesheet()` contains no `.lui-site`.
   Done: the demo's rules and header are `demo/src/site.rs` `CSS` and `LOOK`, layered on in `router()`; `layout::header()` is gone and a page has no header unless `Look`/`Page::header` gives one. Bare-element rules are `layout::RESET` in `lui.reset` (M40a's `.lui-prose` can take `h1-h3`, `p`, `li`, `a`, `code`, `table` from there). Kept: the bare `button` rules in `button.rs`, left for the sweep. Test: the stylesheet contains no `.lui-site`.
-- [ ] Tokens that exist: `Tokens` gains `font: Fonts { sans, mono, serif }`,
+- [x] Tokens that exist: `Tokens` gains `font: Fonts { sans, mono, serif }`,
   `type_scale` (`--lui-text-1..9` Radix ramp), `size` (`--lui-size-1..3` control heights),
   `radius` becomes a `Radius` ramp (`--lui-radius-{none,1,2,3,full}` with a factor),
   `shadow: Depth` (the `DEPTH_*` consts become fields), `motion: Motion { fast, base,
@@ -2596,7 +2596,7 @@ theme covers type, motion, depth, density, RTL and forced colours.
   by 0.85/1). The 142 literal `font-size`s become `var(--lui-text-n)`; the z-index
   literals become tokens; a `no_literal_font_size_or_z_outside_tokens` test joins
   `no_colour_literal_outside_tokens`. `--lui-info-*` role joins the palette (M38 needs it).
-  Done except the sweep: `Fonts`, `TypeScale`, `Sizes`, `Radius` (with `Radius::new`), `Depth`, `Motion`, `ZIndex`, `Density` and the `info`/`on_info` roles are `Tokens` fields and the `no_literal_font_size_or_z_outside_tokens` test exists. Not done: replacing the literal `font-size`s and z-indexes in component CSS; the 45 files still writing them are listed in the test's `PENDING_SWEEP`, to empty in the sweep commit after M38/M40 merge.
+  Done: `Fonts`, `TypeScale`, `Sizes`, `Radius` (with `Radius::new`), `Depth`, `Motion`, `ZIndex`, `Density` and the `info`/`on_info` roles are `Tokens` fields and the `no_literal_font_size_or_z_outside_tokens` test exists. The sweep is done too: every literal `font-size` in component CSS is the nearest `--lui-text-n` (13px to step 2, 11px and 10px to step 1, 30px to step 7) and the dialog, drawer, popover, breadcrumbs, toast, tooltip and sidebar z-indexes are `--lui-z-*`; `PENDING_SWEEP` is gone.
 - [x] `Tokens` owns `Cow<'static, str>` for every value so a per-tenant palette from a
   database is a `Tokens` value, not a leak; `Tokens::DEFAULT` stays `const` via `Cow::Borrowed`.
   `Look` keeps `&'static` (it is an app-level static) but gains `Look::with_tokens(Tokens)`
@@ -2626,7 +2626,7 @@ theme covers type, motion, depth, density, RTL and forced colours.
   a `dir="rtl"` demo (`?dir=rtl` query handled by `Ui`, or an Arabic strings table in the
   demo with three strings translated) and a Blitz shot; a test greps component CSS for
   physical properties (allow-list: `translate`, transforms, `inset` shorthand).
-  Partly done: `layout.rs` uses logical properties (`text-align: start`, `margin-inline-*`), and `no_physical_property_in_component_css` exists with the 26 files still to convert in its `PENDING_SWEEP`. Not done: the sweep, `Strings::dir()`, `<html dir>` and the RTL demo, which M45 owns.
+  Partly done: `layout.rs` uses logical properties (`text-align: start`, `margin-inline-*`), and `no_physical_property_in_component_css` exists and the sweep is done: component CSS uses `inset-inline-*`, `margin-inline-*`, `padding-inline-*`, `border-inline-*`, `text-align: start/end` and `float: inline-start`; the three transform-centred parts (tooltip, switch thumb, toggle-group thumb) get a `:dir(rtl)` mirror of their `translate`, and the drawer grabber centres with `inset-inline: 0; margin-inline: auto`; `PENDING_SWEEP` is gone. Not done: `Strings::dir()`, `<html dir>` and the RTL demo, which M45 owns.
 - [x] Skip link: `layout::page` emits `<a class="lui-skip" href="#main">Skip to content</a>`
   (`Text::SkipToContent`) as the first child of `<body>`, visible on focus; `<main id="main"
   tabindex="-1">`; AppShell gets the same. The enhancement script, after a swap, moves

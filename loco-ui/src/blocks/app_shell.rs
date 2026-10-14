@@ -192,7 +192,7 @@ impl Render for AppShell<'_> {
 /// Styles for this block; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* The links are a sidebar (its groups, icons and counts); the user sits at the foot. */
-.lui-app-shell-user { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; margin-top: calc(var(--lui-space) * 3); padding-top: calc(var(--lui-space) * 2); border-top: 1px solid var(--lui-line); font-size: 0.875rem; }
+.lui-app-shell-user { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; margin-top: calc(var(--lui-space) * 3); padding-top: calc(var(--lui-space) * 2); border-top: 1px solid var(--lui-line); font-size: var(--lui-text-2); }
 .lui-app-shell-user > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lui-app-shell-user > .lui-button { grid-column: 1 / -1; justify-self: start; }
 "#;

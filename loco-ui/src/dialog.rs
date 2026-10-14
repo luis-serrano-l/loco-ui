@@ -467,15 +467,15 @@ pub const CSS: &str = r#"
 .lui-dialog dialog.lui-dialog-xl { max-width: 56rem; --lui-dialog-pad: var(--lui-space-8); }
 .lui-dialog dialog::backdrop { background: var(--lui-overlay); }
 .lui-dialog dialog h2 { margin-top: 0; }
-.lui-dialog-title { flex: none; font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 2.5rem var(--lui-space-2) 0; }
-.lui-dialog-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-muted); }
+.lui-dialog-title { flex: none; font-size: var(--lui-text-5); line-height: 1.75rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 2.5rem var(--lui-space-2) 0; }
+.lui-dialog-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-muted); }
 .lui-dialog-body > :first-child { margin-top: 0; }
 .lui-dialog-body > :last-child { margin-bottom: 0; }
 .lui-dialog-body label { color: var(--lui-fg); }
 .lui-dialog-actions { flex: none; display: flex; flex-wrap: wrap-reverse; justify-content: flex-end; gap: var(--lui-space-3); margin: var(--lui-space-6) 0 0; }
 /* The close × is a ghost icon button in the corner (44px itself on a coarse pointer, where
    the small control height is --lui-hit), 70% opacity until hovered. */
-.lui-dialog-close { position: absolute; top: var(--lui-space-3); right: var(--lui-space-3); opacity: 0.7; }
+.lui-dialog-close { position: absolute; top: var(--lui-space-3); inset-inline-end: var(--lui-space-3); opacity: 0.7; }
 .lui-dialog-close:hover { opacity: 1; }
 .lui-dialog-description { flex: none; margin: 0 2.5rem var(--lui-space-3) 0; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); color: var(--lui-muted); }
 .lui-dialog-footer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); margin-inline-end: auto; font-size: var(--lui-text-2); }
@@ -490,7 +490,7 @@ pub const CSS: &str = r#"
 
 /* :target fallback: a dialog that is the URL fragment renders as a fixed overlay. */
 .lui-dialog dialog:target {
-  display: block; position: fixed; inset: 0; margin: auto; height: fit-content; z-index: 10;
+  display: block; position: fixed; inset: 0; margin: auto; height: fit-content; z-index: var(--lui-z-dialog);
   box-shadow: var(--lui-shadow-lg), var(--lui-highlight), 0 0 0 100vmax var(--lui-overlay);
 }
 
