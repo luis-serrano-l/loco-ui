@@ -12,8 +12,12 @@
 //! hover and on keyboard focus. Checked by axe-core in headless Firefox on every demo route,
 //! both capability variants, light and dark (no serious or critical violation).
 //!
-//! **What it does not do without script:** open after a delay, close on Escape while the
-//! pointer stays over it, or flip to fit the viewport. `popover="hint"` with hover triggers
+//! `.side(..)` puts it on any side of the trigger (the same [`Side`] as the popover's) and
+//! `.delay(ms)` waits before showing it on hover: a `transition-delay` on the way in, none
+//! on the way out.
+//!
+//! **What it does not do without script:** close on Escape while the pointer stays over it,
+//! or flip to fit the viewport. `popover="hint"` with hover triggers
 //! would do some of this, but it is Chromium-only and needs script to open on hover.
 //!
 //! **Fallback:** none needed.
@@ -26,27 +30,33 @@
 //! assert!(m.contains(r#"role="tooltip""#) && m.contains("Copy the link"));
 //! assert!(m.contains(r#"aria-describedby="lui-tooltip-copy-the-link""#));
 //! let below = ui.tooltip("Saved", html! { span { "3" } }).below().render().into_string();
-//! assert!(below.contains("lui-tooltip-below"));
+//! assert!(below.contains(r#"data-side="bottom""#));
 //! // The same in `lui!`:
 //! let same = lui! { Tooltip("Copy the link", lui! {
 //!     Button("") icon_only ghost aria_label="Copy" body=(html! { (Icon::Copy) });
 //! }); };
 //! assert_eq!(same.into_string(), m);
+//! // At the end of the trigger, after half a second.
+//! let m = ui.tooltip("Saved", html! { span { "3" } }).side(Side::End).delay(500).render().into_string();
+//! assert!(m.starts_with(r#"<span class="lui-tooltip" data-side="end" style="--lui-tooltip-delay: 500ms">"#));
+//! assert_eq!(lui! { Tooltip("Saved", html! { span { "3" } }) side=(Side::End) delay=500; }.into_string(), m);
 //! ```
 
 use maud::{Markup, PreEscaped, Render, html};
 
+use crate::popover_card::Side;
 use crate::props::{Prop, PropKind};
 use crate::{Ui, slug};
 
 /// A trigger with a tooltip, made by [`Ui::tooltip`].
 ///
-/// **Setters.** Values and items: `.id(..)`; switches: `.below()`.
+/// **Setters.** Values and items: `.id(..)`, `.side(..)`, `.delay(..)`; switches: `.below()`.
 #[derive(Clone, Debug)]
 pub struct Tooltip<'a> {
     text: &'a str,
     trigger: Markup,
-    below: bool,
+    side: Side,
+    delay: Option<u32>,
     id: Option<&'a str>,
 }
 
@@ -55,7 +65,15 @@ impl Tooltip<'_> {
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("below", PropKind::Switch, "")
-            .doc("Show the text under the trigger instead of above it."),
+            .doc("Show the text under the trigger instead of above it: `.side(Side::Bottom)`."),
+        Prop::new("side", PropKind::Choice { of: Side::NAMES }, "side: Side")
+            .default("top")
+            .doc("The side of the trigger the text shows on."),
+        Prop::new("delay", PropKind::Number, "ms: u32")
+            .default("0")
+            .doc(
+                "How long the pointer rests on the trigger before the text shows, in milliseconds.",
+            ),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The tooltip's id, `lui-tooltip-<slug of the text>` by default."),
@@ -68,16 +86,29 @@ impl Ui {
         Tooltip {
             text,
             trigger,
-            below: false,
+            side: Side::Top,
+            delay: None,
             id: None,
         }
     }
 }
 
 impl<'a> Tooltip<'a> {
-    /// Show the text under the trigger instead of above it.
-    pub fn below(mut self) -> Self {
-        self.below = true;
+    /// Show the text under the trigger instead of above it: `.side(Side::Bottom)`.
+    pub fn below(self) -> Self {
+        self.side(Side::Bottom)
+    }
+
+    /// The side of the trigger the text shows on: top (the default), bottom, start or end.
+    pub fn side(mut self, side: Side) -> Self {
+        self.side = side;
+        self
+    }
+
+    /// How long the pointer rests on the trigger before the text shows, in milliseconds;
+    /// keyboard focus shows it at once, and it hides at once.
+    pub fn delay(mut self, ms: u32) -> Self {
+        self.delay = Some(ms);
         self
     }
 
@@ -102,7 +133,8 @@ impl Render for Tooltip<'_> {
             usize::from(self.trigger.0.starts_with('<')),
         );
         html! {
-            span class={ "lui-tooltip" @if self.below { " lui-tooltip-below" } } {
+            span class="lui-tooltip" data-side=[(self.side != Side::Top).then(|| self.side.as_str())]
+                style=[self.delay.map(|ms| format!("--lui-tooltip-delay: {ms}ms"))] {
                 (PreEscaped(trigger))
                 span id=(id) role="tooltip" class="lui-tooltip-text" { (self.text) }
             }
@@ -123,8 +155,13 @@ pub const CSS: &str = r#"
   box-shadow: var(--lui-shadow-md);
   opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s;
 }
-.lui-tooltip-below .lui-tooltip-text { bottom: auto; top: calc(100% + 6px); }
+.lui-tooltip[data-side=bottom] .lui-tooltip-text { bottom: auto; top: calc(100% + 6px); }
+.lui-tooltip:is([data-side=start], [data-side=end]) .lui-tooltip-text { left: auto; bottom: auto; inset-block-start: 50%; translate: 0 -50%; }
+.lui-tooltip[data-side=start] .lui-tooltip-text { inset-inline-end: calc(100% + 6px); }
+.lui-tooltip[data-side=end] .lui-tooltip-text { inset-inline-start: calc(100% + 6px); }
 .lui-tooltip:hover .lui-tooltip-text, .lui-tooltip:focus-within .lui-tooltip-text { opacity: 1; visibility: visible; }
+/* .delay(ms): the hover waits; focus does not, and leaving hides at once. */
+.lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { transition-delay: var(--lui-tooltip-delay, 0s); }
 @media (hover: none) { .lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .lui-tooltip-text { transition: none; } }
 "#;

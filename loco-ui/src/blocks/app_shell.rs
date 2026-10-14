@@ -38,6 +38,10 @@
 //!     body (html! { h1 { "Hello" } });
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // A banner across the top, above the sidebar and the content.
+//! let m = ui.app_shell("Acme").banner(ui.banner("Maintenance at 22:00.").render()).render().into_string();
+//! assert!(m.starts_with(r#"<div class="lui-app-shell"><aside class="lui-banner""#));
+//! assert_eq!(lui! { AppShell("Acme") banner=(ui.banner("Maintenance at 22:00.").render()); }.into_string(), m);
 //! ```
 
 use std::fmt::Display;
@@ -53,7 +57,7 @@ use crate::sidebar::Sidebar;
 /// A sidebar and content, made by [`Ui::app_shell`].
 ///
 /// **Setters.** Values and items: `.group(..)`, `.link(..)`, `.icon(..)`, `.badge(..)`,
-/// `.user(..)`, `.body(..)`.
+/// `.user(..)`, `.body(..)`, `.banner(..)`.
 #[derive(Clone, Debug)]
 pub struct AppShell<'a> {
     ui: &'a Ui,
@@ -61,6 +65,7 @@ pub struct AppShell<'a> {
     nav: Sidebar<'a>,
     user: Option<(&'a str, &'a str)>,
     body: Markup,
+    banner: Option<Markup>,
 }
 
 impl AppShell<'_> {
@@ -77,6 +82,8 @@ impl AppShell<'_> {
         Prop::new("user", PropKind::Value, "name: &'a str, signout: &'a str")
             .doc("Who is signed in, and where the sign-out button posts."),
         Prop::new("body", PropKind::Value, "body: Markup").doc("The page's content."),
+        Prop::new("banner", PropKind::Value, "banner: Markup")
+            .doc("A bar across the top, above the sidebar and the content (a `ui.banner(..)`)."),
     ];
 }
 
@@ -89,6 +96,7 @@ impl Ui {
             nav: self.sidebar(name).id("app-nav").inner(),
             user: None,
             body: Markup::default(),
+            banner: None,
         }
     }
 }
@@ -129,6 +137,13 @@ impl<'a> AppShell<'a> {
         self.body = body;
         self
     }
+
+    /// A bar across the top, above the sidebar and the content: a [`crate::banner::Banner`]
+    /// rendered (`ui.banner("..").dismiss().render()`).
+    pub fn banner(mut self, banner: Markup) -> Self {
+        self.banner = Some(banner);
+        self
+    }
 }
 
 impl Render for AppShell<'_> {
@@ -146,6 +161,7 @@ impl Render for AppShell<'_> {
         };
         html! {
             div class="lui-app-shell" {
+                @if let Some(b) = &self.banner { (b) }
                 (ui.drawer(self.name).id("app").title(self.name).sidebar().nav(nav).body(self.body.clone()))
             }
         }

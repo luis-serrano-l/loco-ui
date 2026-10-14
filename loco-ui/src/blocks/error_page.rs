@@ -1,8 +1,11 @@
 //! # Error page
 //!
-//! The page for a 404 or a 500: the status, what happened in a sentence, and a way home, in
+//! The page for an HTTP error: the status, what happened in a sentence, and a way home, in
 //! the site's look instead of the framework's plain text. `not_found` (feature `axum`) is an Axum handler
 //! for `Router::fallback`, so every unknown path gets it; on Loco, add it in `after_routes`.
+//! It has its own words for 401 (sign in), 403 (no access), 404 (not here), 422 (the form
+//! could not be accepted) and 503 (down for a moment); any other status says something went
+//! wrong.
 //!
 //! **Platform features:** none of its own; the HTTP status is set on the response.
 //!
@@ -23,6 +26,10 @@
 //! // The same in `lui!`:
 //! let same = lui! { ErrorPage(500) home="/dashboard"; };
 //! assert_eq!(same.into_string(), m);
+//! for (status, title) in [(401, "Sign in to continue"), (403, "You cannot open this page"),
+//!     (422, "That could not be saved"), (503, "Back in a moment")] {
+//!     assert!(ui.error_page(status).render().into_string().contains(&format!("<h1>{title}</h1>")));
+//! }
 //! ```
 
 use maud::{Markup, Render, html};
@@ -31,7 +38,7 @@ use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
 use crate::{Page, Ui};
 
-/// A 404 or 500 page, made by [`Ui::error_page`].
+/// An error page for an HTTP status, made by [`Ui::error_page`].
 ///
 /// **Setters.** Values and items: `.title(..)`, `.description(..)`, `.home(..)`.
 #[derive(Clone, Debug)]
@@ -47,7 +54,7 @@ impl ErrorPage<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("title", PropKind::Value, "text: &'a str")
-            .default("Page not found / Something went wrong")
+            .default("the status's own heading")
             .doc("The heading."),
         Prop::new("description", PropKind::Value, "text: &'a str").doc("The sentence under it."),
         Prop::new("home", PropKind::Value, "href: &'a str")
@@ -58,13 +65,16 @@ impl ErrorPage<'_> {
 }
 
 impl Ui {
-    /// The page for HTTP `status`: 404 says the page is not here, anything else that
-    /// something went wrong.
+    /// The page for HTTP `status`: 401, 403, 404, 422 and 503 say what happened in their own
+    /// words, anything else that something went wrong.
     pub fn error_page(&self, status: u16) -> ErrorPage<'_> {
-        let (title, message) = if status == 404 {
-            (Text::NotFound, Text::NotFoundMessage)
-        } else {
-            (Text::ServerError, Text::ServerErrorMessage)
+        let (title, message) = match status {
+            401 => (Text::Unauthorized, Text::UnauthorizedMessage),
+            403 => (Text::Forbidden, Text::ForbiddenMessage),
+            404 => (Text::NotFound, Text::NotFoundMessage),
+            422 => (Text::Unprocessable, Text::UnprocessableMessage),
+            503 => (Text::Unavailable, Text::UnavailableMessage),
+            _ => (Text::ServerError, Text::ServerErrorMessage),
         };
         ErrorPage {
             ui: self,

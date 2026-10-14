@@ -1314,6 +1314,14 @@ mod tests {
     /// Names two or more builders use for setters of a different shape, each with the reason.
     const SAME_NAME_OTHER_SHAPE: &[(&str, &str)] = &[
         (
+            "checkbox",
+            "Form adds a checkbox field (name, label); Menu a checkbox item posting to its action",
+        ),
+        (
+            "radio",
+            "Calendar's switch picks one day; Menu adds a radio item posting to its action",
+        ),
+        (
             "text",
             "Form adds a text field (name, label); Marquee adds a line of text",
         ),
@@ -2822,6 +2830,15 @@ mod tests {
             [
                 ui.stat("A", "1").render(),
                 ui.stat("A", "1").href("/a").render(),
+            ]
+        }),
+        ("Menu", "checked", |ui| {
+            [
+                ui.menu("View").checkbox("Grid", "/v", "grid").render(),
+                ui.menu("View")
+                    .checkbox("Grid", "/v", "grid")
+                    .checked(true)
+                    .render(),
             ]
         }),
         ("Popover", "id", |ui| {

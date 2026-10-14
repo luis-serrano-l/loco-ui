@@ -1,8 +1,9 @@
 //! # Popover menu
 //!
 //! A dropdown menu that opens on click, closes on outside click or Escape, no script. Items
-//! are links, `<form method="post">` actions, headings, separators and submenus; each item
-//! can show an icon and a keyboard shortcut and be disabled or destructive.
+//! are links, `<form method="post">` actions, checkboxes and radio buttons that post their
+//! own form, headings, separators and submenus; each item can show an icon and a keyboard
+//! shortcut and be disabled or destructive.
 //!
 //! **Platform features:**
 //! - `popover` attribute + `popovertarget` button (Chrome 114, Firefox 125, Safari 17). Light
@@ -10,7 +11,13 @@
 //!   platform keeps open with its parent.
 //! - CSS anchor positioning `anchor-name` / `position-anchor` / `position-area`
 //!   (Chrome 125, Firefox 147, Safari 26) to place the menu under its button, at its end, or
-//!   to its right (`.align_end()`, `.open_right()`).
+//!   to its right (`.align_end()`, `.open_right()`), with `position-try-fallbacks` (Chrome
+//!   128, Firefox 147, Safari 26) flipping it when there is no room; the areas are the
+//!   generic [`crate::popover_card::Popover`]'s.
+//! - A checkbox or radio item (`.checkbox(..)`, `.radio(..)`) is a native control with
+//!   `role="menuitemcheckbox"` or `menuitemradio` in its own `<form method="post">`, with an
+//!   Apply button beside it. The enhancement script submits the form on `change`
+//!   (`data-lui="autosubmit"`) and then hides the Apply buttons.
 //! - Motion: `@starting-style` (Chrome 117, Firefox 129, Safari 17.5) and
 //!   `transition-behavior: allow-discrete` on `display` and `overlay` (Chrome 117,
 //!   Firefox 129, Safari 17.4) fade the menu in and out with a 4px drop; the `<details>`
@@ -27,6 +34,8 @@
 //! **Fallback:** without `Caps::Anchor` the popover is UA-centred, which is still usable.
 //! Without `Caps::Popover` the menu is a `<details>` dropdown (a submenu a nested one): it
 //! opens and closes on click but has no light dismiss.
+//!
+//! A checkbox or radio item needs its Apply button pressed without the script.
 //!
 //! **Without script:** a shortcut shown beside an item is a label; binding the key needs
 //! script the crate does not ship. Arrow keys move between items only with the enhancement
@@ -50,7 +59,7 @@
 //!     .align_end();
 //! let html = m.render().into_string();
 //! assert!(html.contains("<form method=\"post\" action=\"/logout\""));
-//! assert!(html.contains("position-area: bottom span-left") && html.contains(r#"id="account-theme""#));
+//! assert!(html.contains("position-area: block-end span-inline-start") && html.contains(r#"id="account-theme""#));
 //! // The same in `lui!`:
 //! let same = lui! { Menu("Account") align_end {
 //!     group "Signed in as Ada";
@@ -62,12 +71,29 @@
 //!     action "Sign out" "/logout" danger;
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // Checkbox and radio items post their own form; `checked` applies to the item just added.
+//! let m = ui.menu("View")
+//!     .checkbox("Show grid", "/view", "grid").checked(true)
+//!     .radio("Compact", "/view", "density", "compact")
+//!     .radio("Comfortable", "/view", "density", "comfortable").checked(true);
+//! let html = m.render().into_string();
+//! assert!(html.contains(r#"<form method="post" action="/view" data-lui="autosubmit">"#));
+//! assert!(html.contains(r#"<input class="lui-popover-check" type="checkbox" role="menuitemcheckbox" name="grid" value="on" checked>"#));
+//! assert!(html.contains(r#"type="radio" role="menuitemradio" name="density" value="comfortable" checked>"#));
+//! let same = lui! { Menu("View") {
+//!     checkbox "Show grid" "/view" "grid" checked=(true);
+//!     radio "Compact" "/view" "density" "compact";
+//!     radio "Comfortable" "/view" "density" "comfortable" checked=(true);
+//! } };
+//! assert_eq!(same.into_string(), html);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::button::Button;
+use crate::i18n::Text;
 use crate::icon::Glyph;
+use crate::popover_card::{Align, Side, area};
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Caps, Icon, Ui, slug};
 
@@ -86,9 +112,9 @@ pub(crate) enum Placement {
 impl Placement {
     fn area(self) -> &'static str {
         match self {
-            Placement::BottomStart => "bottom span-right",
-            Placement::BottomEnd => "bottom span-left",
-            Placement::Right => "right span-bottom",
+            Placement::BottomStart => area(Side::Bottom, Align::Start),
+            Placement::BottomEnd => area(Side::Bottom, Align::End),
+            Placement::Right => area(Side::End, Align::Start),
         }
     }
 
@@ -108,6 +134,10 @@ enum Kind<'a> {
     Heading,
     Separator,
     Submenu(Vec<MenuItem<'a>>),
+    /// A checkbox posting `name=on` (or nothing) to the action, and its Apply button's text.
+    Check(&'a str, &'a str, &'static str),
+    /// A radio button posting `name=value` to the action, and its Apply button's text.
+    Radio(&'a str, &'a str, &'a str, &'static str),
 }
 
 /// One entry of a menu, for the places that take a list of them (a table row's menu). A
@@ -121,6 +151,7 @@ pub struct MenuItem<'a> {
     pub(crate) disabled: bool,
     pub(crate) danger: bool,
     pub(crate) description: Option<&'a str>,
+    pub(crate) checked: bool,
 }
 
 impl<'a> MenuItem<'a> {
@@ -133,6 +164,7 @@ impl<'a> MenuItem<'a> {
             disabled: false,
             danger: false,
             description: None,
+            checked: false,
         }
     }
 
@@ -187,12 +219,14 @@ impl<'a> From<(&'a str, &'a str)> for MenuItem<'a> {
 /// `shortcut`, `disabled` and `danger` apply to the item added last. Opens below the button,
 /// start-aligned, unless told otherwise.
 ///
-/// **Setters.** Values and items: `.submenu(..)`, `.link(..)`, `.action(..)`, `.group(..)`,
-/// `.icon(..)`, `.shortcut(..)`, `.id(..)`; switches: `.separator()`, `.disabled()`,
-/// `.danger()`, `.align_end()`, `.open_right()`.
+/// **Setters.** Values and items: `.submenu(..)`, `.link(..)`, `.action(..)`, `.checkbox(..)`,
+/// `.radio(..)`, `.group(..)`, `.icon(..)`, `.shortcut(..)`, `.id(..)`; switches:
+/// `.separator()`, `.disabled()`, `.danger()`, `.align_end()`, `.open_right()`; from a
+/// condition: `.checked(bool)`.
 #[derive(Clone, Debug)]
 pub struct Menu<'a> {
     caps: Caps,
+    apply: &'static str,
     id: String,
     label: &'a str,
     items: Vec<MenuItem<'a>>,
@@ -207,6 +241,21 @@ impl Menu<'_> {
         Prop::new("action", PropKind::Item, "text: &'a str, action: &'a str")
             .attr("action")
             .doc("A `<form method=\"post\">` button posting to `action`."),
+        Prop::new(
+            "checkbox",
+            PropKind::Item,
+            "text: &'a str, action: &'a str, name: &'a str",
+        )
+        .doc("A checkbox in its own form posting `name=on` (or nothing) to `action`."),
+        Prop::new(
+            "radio",
+            PropKind::Item,
+            "text: &'a str, action: &'a str, name: &'a str, value: &'a str",
+        )
+        .doc("A radio button in its own form posting `name=value` to `action`."),
+        Prop::new("checked", PropKind::Modifier, "checked: bool")
+            .attr("checked")
+            .doc("The checkbox or radio item is ticked."),
         Prop::new("group", PropKind::Item, "text: &'a str").doc("A section heading."),
         Prop::new("separator", PropKind::Item, "").doc("A rule between groups."),
         Prop::new(
@@ -239,6 +288,7 @@ impl Ui {
     pub fn menu<'a>(&self, label: &'a str) -> Menu<'a> {
         Menu {
             caps: self.caps,
+            apply: self.text(Text::Apply),
             id: slug(label),
             label,
             items: Vec::new(),
@@ -268,6 +318,26 @@ impl<'a> Menu<'a> {
     /// A `<form method="post">` button posting to `action`: for things that change state.
     pub fn action(self, text: &'a str, action: &'a str) -> Self {
         self.push(MenuItem::action(text, action))
+    }
+
+    /// A checkbox in its own `<form method="post">` to `action`: ticked, it posts `name=on`;
+    /// unticked, nothing for `name`. The script posts it on change; without it, its Apply
+    /// button does.
+    pub fn checkbox(self, text: &'a str, action: &'a str, name: &'a str) -> Self {
+        let apply = self.apply;
+        self.push(MenuItem::new(Kind::Check(action, name, apply), text))
+    }
+
+    /// A radio button in its own `<form method="post">` to `action`, posting `name=value`.
+    /// The script posts it on change; without it, its Apply button does.
+    pub fn radio(self, text: &'a str, action: &'a str, name: &'a str, value: &'a str) -> Self {
+        let apply = self.apply;
+        self.push(MenuItem::new(Kind::Radio(action, name, value, apply), text))
+    }
+
+    /// The checkbox or radio item added last is ticked.
+    pub fn checked(self, checked: bool) -> Self {
+        self.last(|it| it.checked = checked)
     }
 
     /// A section heading.
@@ -440,6 +510,24 @@ fn item(menu_id: &str, it: &MenuItem, popover: bool, anchor: bool) -> Markup {
                     button type="submit" class=(class) role="menuitem" disabled[it.disabled] { (inner) }
                 }
             },
+            Kind::Check(action, name, apply) => li role="none" {
+                form method="post" action=(action) data-lui="autosubmit" {
+                    label class=(class) {
+                        input class="lui-popover-check" type="checkbox" role="menuitemcheckbox" name=(name) value="on" checked[it.checked] disabled[it.disabled];
+                        (inner)
+                    }
+                    (Button::new(Caps::NONE, apply).ghost().small().submit().class("lui-popover-apply"))
+                }
+            },
+            Kind::Radio(action, name, value, apply) => li role="none" {
+                form method="post" action=(action) data-lui="autosubmit" {
+                    label class=(class) {
+                        input class="lui-popover-check" type="radio" role="menuitemradio" name=(name) value=(value) checked[it.checked] disabled[it.disabled];
+                        (inner)
+                    }
+                    (Button::new(Caps::NONE, apply).ghost().small().submit().class("lui-popover-apply"))
+                }
+            },
             Kind::Submenu(ref items) => li role="none" class="lui-popover-sub" {
                 @let sub_id = format!("{menu_id}-{}", slug(it.text));
                 @let list = html! { ul role="menu" { @for it in items { (item(&sub_id, it, popover, anchor)) } } };
@@ -475,7 +563,13 @@ pub const CSS: &str = r#"
   box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
 .lui-popover-anchored > nav, .lui-popover-details > nav, .lui-popover-subnav { margin: 0; }
-.lui-popover-anchored > nav { margin-top: 4px; }
+.lui-popover-anchored > nav { margin-top: 4px; position-try-fallbacks: flip-block, flip-inline; }
+.lui-popover-subnav { position-try-fallbacks: flip-inline, flip-block; }
+/* A checkbox or radio item: the control in the icon slot, the Apply button (no script)
+   beside the label; the script hides it and posts on change. */
+.lui-popover form[data-lui=autosubmit] { display: flex; align-items: center; gap: var(--lui-space-1); }
+.lui-popover-check { flex: none; width: 1rem; height: 1rem; margin: 0; accent-color: var(--lui-primary); }
+[data-lui-script] .lui-popover-apply { display: none; }
 .lui-popover nav[popover] { max-block-size: min(24rem, calc(100dvh - 2rem)); overflow-y: auto; }
 /* Popover without anchor positioning: the UA centres it in the viewport; keep that. */
 .lui-popover ul { list-style: none; margin: 0; padding: 0; }
