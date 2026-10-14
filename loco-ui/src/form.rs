@@ -194,7 +194,7 @@ impl Form<'_> {
         Prop::new("body", PropKind::Item, "markup: Markup")
             .doc("Any markup at this point among the fields: a control built with its own setters."),
         Prop::new("required", PropKind::Modifier, "")
-            .doc("The `required` attribute, and a `*` after the label."),
+            .doc("The `required` attribute, and a `*` after the label; the form says what the star means."),
         Prop::new("help", PropKind::Modifier, "help: &'a str")
             .doc("Help text under the field."),
         Prop::new("maxlength", PropKind::Modifier, "max: usize")
@@ -389,7 +389,8 @@ impl<'a> Form<'a> {
         self.add("", "", FieldKind::Markup(markup))
     }
 
-    /// The `required` attribute, and a `*` after the label.
+    /// The `required` attribute, and a `*` after the label; a form with a required field
+    /// says "* required" ([`Text::RequiredHint`]) above its button.
     pub fn required(self) -> Self {
         self.last(|f| f.required = true)
     }
@@ -566,6 +567,9 @@ impl Render for Form<'_> {
             .iter()
             .flat_map(|g| &g.fields)
             .any(|f| matches!(f.kind, FieldKind::File { .. }));
+        let required = (self.groups.iter())
+            .flat_map(|g| &g.fields)
+            .any(|f| f.required);
         let class = if self.inline {
             "lui-form lui-form-inline"
         } else {
@@ -577,6 +581,9 @@ impl Render for Form<'_> {
                 enctype=[multipart.then_some("multipart/form-data")] {
                 (self.summary())
                 (self.fields())
+                // The stars are hidden from screen readers (the `required` attribute speaks),
+                // so the line that explains them is too.
+                @if required { p class="lui-form-hint" aria-hidden="true" { (self.strings.get(Text::RequiredHint)) } }
                 div class="lui-form-actions" { (Button::new(Caps::NONE, self.submit).primary()) }
             }
         }
@@ -596,6 +603,7 @@ fieldset.lui-form-group ~ fieldset.lui-form-group { padding-top: var(--lui-space
 .lui-form-group-legend { float: left; width: 100%; padding: 0; font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
 /* Floated, a legend is no longer drawn in the fieldset's border but laid out as an ordinary
    grid item, so the gap spaces it; the description pulls up under it. */
+.lui-form-hint { margin: 0; color: var(--lui-muted); font-size: 0.8125rem; line-height: 1.25rem; }
 .lui-form-group-description { margin: calc(var(--lui-space-4) * -1 + var(--lui-space-1)) 0 0; color: var(--lui-muted); font-size: 0.875rem; line-height: 1.25rem; }
 /* The submit row: the button fills a narrow form, and sits at the end of a wide one. */
 .lui-form-actions { display: flex; flex-direction: column; gap: var(--lui-space-2); }
