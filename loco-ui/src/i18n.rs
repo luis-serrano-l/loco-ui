@@ -362,6 +362,8 @@ pub enum Text {
     DeleteConfirm,
     /// "This cannot be undone.": record page: the delete dialog's text.
     CannotUndo,
+    /// "Skip to content": the skip link every page starts with.
+    SkipToContent,
 }
 
 /// How many texts there are.
@@ -370,7 +372,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 148] = [
+    pub const ALL: [Text; 149] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -519,6 +521,7 @@ impl Text {
         Text::Deleted,
         Text::DeleteConfirm,
         Text::CannotUndo,
+        Text::SkipToContent,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -700,6 +703,7 @@ const ENGLISH: [&str; N] = [
     "Deleted.",
     "Delete {}?",
     "This cannot be undone.",
+    "Skip to content",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

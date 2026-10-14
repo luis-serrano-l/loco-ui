@@ -161,7 +161,8 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Saved, "Guardado.")
     .with(Text::Deleted, "Borrado.")
     .with(Text::DeleteConfirm, "¿Borrar {}?")
-    .with(Text::CannotUndo, "No se puede deshacer.");
+    .with(Text::CannotUndo, "No se puede deshacer.")
+    .with(Text::SkipToContent, "Saltar al contenido");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

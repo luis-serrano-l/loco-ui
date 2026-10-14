@@ -53,7 +53,7 @@ use std::pin::Pin;
 use futures_util::stream::{self, FuturesUnordered, Stream, StreamExt};
 use maud::{DOCTYPE, Markup, PreEscaped, html};
 
-use crate::{Cap, Caps, Theme, Ui, caps, enhance, layout, stylesheet};
+use crate::{Cap, Caps, Ui, caps, enhance, layout};
 
 type Fill = Pin<Box<dyn Future<Output = Markup> + Send + 'static>>;
 
@@ -61,7 +61,18 @@ impl Ui {
     /// A page in this request's theme whose slow sections arrive later: mark each with
     /// [`Ui::slot`], then add its content with [`Streamed::fill`].
     pub fn stream(&self, title: &str, body: Markup) -> Streamed {
-        Streamed::page(&self.caps, self.lang(), title, self.theme, body)
+        let look = self.current_look();
+        let header = look.and_then(|l| l.header).map(|header| header());
+        // No `caps` for the head: its view-transition hold would wait for the whole stream.
+        let no_caps = Caps::default();
+        let doc = layout::Doc {
+            strings: self.strings,
+            tokens: look.map(|l| &l.tokens),
+            css: look.map_or(&[][..], |l| l.css),
+            header: header.as_ref(),
+            ..layout::Doc::new(&no_caps, title, self.theme)
+        };
+        Streamed::page(&self.caps, &doc, body)
     }
 
     /// Placeholder for the section `id`. In DSD mode it is a named `<slot>` showing
@@ -111,21 +122,23 @@ impl std::fmt::Debug for Streamed {
 
 impl Streamed {
     /// The page shell with `body` inside `<main>`, like `layout`, ready for fills.
-    fn page(caps: &Caps, lang: &str, title: &str, theme: Theme, body: Markup) -> Streamed {
+    fn page(caps: &Caps, doc: &layout::Doc, body: Markup) -> Streamed {
         let dsd = caps.has(Cap::StreamingDsd);
         let inner = html! {
-            (layout::header())
-            main { (body) }
+            (doc.top())
+            main id="main" tabindex="-1" { (body) }
             (caps::beacons(caps))
         };
         let open = html! {
             (DOCTYPE)
-            html lang=(lang) data-theme=(theme.as_str()) { (layout::head(title)) }
+            html lang=(doc.strings.lang()) data-theme=(doc.theme.as_str()) { (doc.head()) }
         };
         // `html!` closes every element it opens, so the tags after `<head>` are written by hand.
         let open = open.into_string().trim_end_matches("</html>").to_string();
         let prefix = if dsd {
-            let shadow_css = format!("<style>{}</style>", stylesheet());
+            let shadow_css: String = (doc.styles().iter())
+                .map(|(_, css)| format!("<style>{css}</style>"))
+                .collect();
             format!(
                 "{open}<body><template shadowrootmode=\"open\">{shadow_css}{}</template>",
                 inner.into_string()
