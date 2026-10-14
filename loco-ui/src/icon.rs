@@ -278,21 +278,50 @@ impl Render for Icon {
     }
 }
 
-/// What every `.icon(..)` setter takes: one of the [`Icon`] set, or a glyph or emoji written
-/// as text (`"\u{1F4E6}"`). Either way it is decorative, hidden from assistive technology;
-/// callers pass an `Icon` or a `&str` and never name this type.
+/// What every `.icon(..)` setter takes: one of the [`Icon`] set, a glyph or emoji written
+/// as text (`"\u{1F4E6}"`), or an app's own SVG as `&Markup`, so an icon set the library does
+/// not ship works everywhere an icon does. Either way it is decorative, hidden from assistive
+/// technology; callers pass an `Icon`, a `&str` or a `&Markup` and never name this type.
 ///
 /// ```rust
 /// use loco_ui::{icon::Glyph, prelude::*};
 /// assert_eq!(Glyph::from(Icon::Mail), Glyph::Icon(Icon::Mail));
 /// assert_eq!(Glyph::from("\u{1F4E6}"), Glyph::Text("\u{1F4E6}"));
+/// let rocket = html! { svg viewBox="0 0 24 24" { path d="M4 20 20 4"; } };
+/// let ui = Ui::default();
+/// let menu = ui.menu("Go").link("Launch", "/launch").icon(&rocket).render().into_string();
+/// assert!(menu.contains(r#"<span class="lui-popover-icon" aria-hidden="true"><svg viewBox="0 0 24 24">"#));
+/// let button = ui.button("Launch").leading(&rocket).render().into_string();
+/// assert!(button.contains(r#"<span class="lui-icon" aria-hidden="true"><svg"#));
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub enum Glyph<'a> {
     /// An inline SVG icon.
     Icon(Icon),
     /// A glyph or emoji.
     Text(&'a str),
+    /// An app's own inline SVG (or any markup), borrowed so a `Glyph` stays `Copy`.
+    Svg(&'a Markup),
+}
+
+/// Two glyphs are equal when they are the same icon, text or markup.
+impl PartialEq for Glyph<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Glyph::Icon(a), Glyph::Icon(b)) => a == b,
+            (Glyph::Text(a), Glyph::Text(b)) => a == b,
+            (Glyph::Svg(a), Glyph::Svg(b)) => a.0 == b.0,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for Glyph<'_> {}
+
+impl<'a> From<&'a Markup> for Glyph<'a> {
+    fn from(svg: &'a Markup) -> Self {
+        Glyph::Svg(svg)
+    }
 }
 
 impl From<Icon> for Glyph<'_> {
@@ -314,6 +343,7 @@ impl Glyph<'_> {
         match self {
             Glyph::Icon(icon) => icon.render(),
             Glyph::Text(text) => html! { span class="lui-icon" aria-hidden="true" { (text) } },
+            Glyph::Svg(svg) => html! { span class="lui-icon" aria-hidden="true" { (svg) } },
         }
     }
 }
@@ -325,6 +355,7 @@ impl Render for Glyph<'_> {
         match self {
             Glyph::Icon(icon) => icon.render(),
             Glyph::Text(text) => html! { (text) },
+            Glyph::Svg(svg) => html! { (svg) },
         }
     }
 }

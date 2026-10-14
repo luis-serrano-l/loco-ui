@@ -66,10 +66,15 @@
 //! let remove = ui.button("Remove").danger().ghost().radius(Radius::Full).render().into_string();
 //! assert!(remove.contains(r#"data-tone="danger" data-variant="ghost" data-radius="full""#));
 //! assert_eq!(lui! { Button("Remove") danger ghost radius="full"; }.into_string(), remove);
+//! // Icons around the text, a larger size, the container's full width.
+//! let next = ui.button("Continue").primary().large().block().trailing(Icon::ArrowRight).render().into_string();
+//! assert!(next.contains("lui-button-large lui-button-block") && next.contains(r#"data-icon="arrow-right""#));
+//! assert_eq!(lui! { Button("Continue") primary large block trailing=(Icon::ArrowRight); }.into_string(), next);
 //! ```
 
 use maud::{Markup, Render, html};
 
+use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
 use crate::variant::{Radius, Size, Tone, Variant};
 use crate::{Cap, Caps, Ui};
@@ -80,8 +85,8 @@ use crate::{Cap, Caps, Ui};
 /// `.name(..)`, `.value(..)`, `.aria_label(..)`, `.class(..)`, `.body(..)`, `.id(..)`,
 /// `.role(..)`, `.title(..)`, `.style(..)`, `.aria_haspopup(..)`, `.accesskey(..)`,
 /// `.aria_keyshortcuts(..)`, `.formmethod(..)`, `.formaction(..)`, `.rel(..)`,
-/// `.size(..)`, `.tone(..)`, `.variant(..)`, `.radius(..)`; switches: `.primary()`, `.danger()`, `.ghost()`, `.soft()`, `.surface()`,
-/// `.small()`, `.icon_only()`, `.submit()`, `.reset()`,
+/// `.size(..)`, `.tone(..)`, `.variant(..)`, `.radius(..)`, `.leading(..)`, `.trailing(..)`; switches: `.primary()`, `.danger()`, `.ghost()`, `.soft()`, `.surface()`,
+/// `.small()`, `.large()`, `.block()`, `.icon_only()`, `.submit()`, `.reset()`,
 /// `.disabled()`, `.formnovalidate()`, `.shimmer()`; from a condition: `.loading(bool)`, `.pressed(bool)`,
 /// `.current(bool)`.
 #[derive(Clone, Debug)]
@@ -106,6 +111,9 @@ pub struct Button<'a> {
     disabled: bool,
     loading: bool,
     shimmer: bool,
+    block: bool,
+    leading: Option<Glyph<'a>>,
+    trailing: Option<Glyph<'a>>,
     attrs: Attrs<'a>,
 }
 
@@ -133,6 +141,14 @@ impl Button<'_> {
             .doc("The corners, from square to a pill."),
         Prop::new("small", PropKind::Switch, "")
             .doc("Size 1: 2rem tall instead of 2.25rem."),
+        Prop::new("large", PropKind::Switch, "")
+            .doc("Size 3: 2.5rem tall, larger text."),
+        Prop::new("block", PropKind::Switch, "")
+            .doc("As wide as its container."),
+        Prop::new("leading", PropKind::Value, "icon: impl Into<Glyph<'a>>")
+            .doc("An icon, or a glyph or emoji, before the text, hidden from assistive tech."),
+        Prop::new("trailing", PropKind::Value, "icon: impl Into<Glyph<'a>>")
+            .doc("An icon, or a glyph or emoji, after the text, hidden from assistive tech."),
         Prop::new("icon_only", PropKind::Switch, "")
             .doc("Square, for a glyph or an icon."),
         Prop::new("submit", PropKind::Switch, "")
@@ -254,6 +270,9 @@ impl<'a> Button<'a> {
             disabled: false,
             loading: false,
             shimmer: false,
+            block: false,
+            leading: None,
+            trailing: None,
             attrs: Attrs::default(),
         }
     }
@@ -324,6 +343,31 @@ impl<'a> Button<'a> {
     /// Size 1: 2rem tall instead of 2.25rem.
     pub fn small(self) -> Self {
         self.size(Size::S1)
+    }
+
+    /// Size 3: 2.5rem tall, larger text.
+    pub fn large(self) -> Self {
+        self.size(Size::S3)
+    }
+
+    /// As wide as its container (`lui-button-block`), for the one action of a narrow form.
+    pub fn block(mut self) -> Self {
+        self.block = true;
+        self
+    }
+
+    /// An icon, or a glyph or emoji, before the text, hidden from assistive tech: an
+    /// [`Icon`](crate::Icon), a `&str`, or an app's own SVG as `&Markup`.
+    pub fn leading(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        self.leading = Some(icon.into());
+        self
+    }
+
+    /// An icon, or a glyph or emoji, after the text (a chevron, an external-link arrow),
+    /// hidden from assistive tech.
+    pub fn trailing(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        self.trailing = Some(icon.into());
+        self
     }
 
     /// Square, for a glyph or an icon; give it a `.aria_label()` for screen readers.
@@ -532,6 +576,9 @@ impl<'a> Button<'a> {
         if self.shimmer {
             c.push_str(" lui-button-shimmer");
         }
+        if self.block {
+            c.push_str(" lui-button-block");
+        }
         if let Some(extra) = self.class {
             c.push(' ');
             c.push_str(extra);
@@ -559,7 +606,11 @@ impl Render for Button<'_> {
         let variant = look.map(|(_, v)| v.as_str());
         let size = (self.size != Size::S2).then(|| self.size.as_str());
         let radius = self.radius.map(Radius::as_str);
-        let text = html! { @if let Some(m) = &self.content { (m) } @else { (self.text) } };
+        let text = html! {
+            @if let Some(g) = self.leading { (g.hidden()) }
+            @if let Some(m) = &self.content { (m) } @else { (self.text) }
+            @if let Some(g) = self.trailing { (g.hidden()) }
+        };
         // Busy: the label stays (for the width and the accessible name) under the spinner.
         let text = if self.loading {
             html! { span class="lui-button-label" { (text) } }
@@ -678,6 +729,7 @@ button.lui-danger:hover, .lui-button.lui-button-danger:hover { background: color
 .lui-button:is(.lui-button-primary, .lui-button-danger):active:not(:disabled) { background-image: none; filter: brightness(0.92); }
 /* Sizes: Radix 1 to 3, on the shared control heights (all 2.75rem on a touch screen). */
 .lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; font-size: 0.8125rem; }
+.lui-button.lui-button-block { inline-size: 100%; }
 .lui-button.lui-button-large { min-height: var(--lui-control-h-lg); padding: 0.5rem 1.25rem; gap: 0.625rem; font-size: 1rem; line-height: 1.5rem; }
 .lui-button.lui-button-icon { width: var(--lui-control-h); min-width: var(--lui-control-h); padding: 0; }
 .lui-button.lui-button-icon.lui-button-small { width: var(--lui-control-h-sm); min-width: var(--lui-control-h-sm); }

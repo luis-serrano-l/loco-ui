@@ -261,7 +261,7 @@ pub(crate) const COMPONENTS: &[Component] = &[
     Component {
         module: "badge",
         builder: "Badge",
-        calls: &["ui.badge(text: &str)"],
+        calls: &["ui.badge(text: impl Display)"],
         props: crate::badge::Badge::PROPS,
         status: Status::Stable,
     },
