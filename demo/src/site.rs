@@ -1165,6 +1165,7 @@ pub const CSS: &str = r#"
 .lui-doc-body > :first-child { margin-top: 0; }
 .lui-doc-body h2 { margin-top: 2.5rem; }
 .lui-doc-body h3 { margin-top: 1.75rem; }
+.lui-doc-body :not(pre) > code { overflow-wrap: anywhere; }
 .lui-doc-toc { font-size: 0.875rem; }
 .lui-doc-toc > p { margin: 0 0 var(--lui-space-2); color: var(--lui-muted); font-weight: 500; }
 .lui-doc-toc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--lui-space-1); }

@@ -131,7 +131,8 @@ async fn dialog_variants_follow_caps() {
 
     let page = Page::render(demo::router(), "/dialog", OLD).await;
     assert!(page.is_visible(".lui-dialog-open"));
-    assert!(!page.exists("button[command]"));
+    // The snippet's copy button keeps its command in every variant (hidden; the script runs it).
+    assert!(!page.exists("button[command]:not([command=\"--copy\"])"));
 
     let page = Page::render(demo::router(), "/dialog?dialog=confirm", OLD).await;
     assert!(
@@ -995,7 +996,7 @@ async fn stats_and_empty_state() {
 #[tokio::test]
 async fn command_palette_suggests_and_lists_matches() {
     let page = Page::render(demo::router(), "/palette?q=ta", MODERN).await;
-    assert!(page.exists("button.lui-palette-open[popovertarget=cmd][accesskey=k]"));
+    assert!(page.exists("button.lui-palette-open[popovertarget=cmd][accesskey=j]"));
     assert!(page.exists("#cmd[popover] input[type=search][list=cmd-list][autofocus]"));
     assert!(page.count("datalist#cmd-list option") >= 19);
     assert!(!page.is_visible("#cmd"), "the popover is closed on arrival");

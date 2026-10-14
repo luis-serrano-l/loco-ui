@@ -110,7 +110,7 @@ try {
 
   // Combobox: results as you type, focus kept.
   await go("/combobox");
-  await type("input[type=search]", "ru");
+  await type("main input[type=search]", "ru");
   await until(async () => (await js("return [...document.querySelectorAll('#langs .lui-combobox-list li')].map(l => l.textContent).join()")) === "Rust,Ruby", "search results");
   assert(await js("return document.activeElement.name") === "q", "combobox: focus stays in the input");
   await js("document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))");
@@ -286,7 +286,7 @@ try {
 
   // Command palette: the popover opens with the caret in the box; an exact name redirects.
   await go("/palette");
-  await click(".lui-palette-open");
+  await click("main .lui-palette-open");
   await until(async () => await js("return document.querySelector('#cmd').matches(':popover-open') && document.activeElement.name === 'q'"), "palette: opens focused");
   await type("#cmd input[name=q]", "Toasts\ue007"); // Enter
   await until(async () => (await js("return location.pathname")) === "/toast", "palette: exact name goes to its page");
@@ -334,12 +334,12 @@ try {
   assert(await js("return document.querySelector('#f-password').type") === "text", "reveal: the password shows");
   assert(await js("return document.querySelector('.lui-input-reveal button').getAttribute('aria-pressed')") === "true", "reveal: the button is pressed");
 
-  // Button: Tab onto the primary button; the keyboard focus ring is a 3px outline (Blitz
+  // Button: Tab onto the primary button (past the stage toggles); the keyboard focus ring is a 3px outline (Blitz
   // cannot check this: :focus-visible never matches there, blitz#839).
   await go("/button");
   await js("document.querySelector('.lui-back').focus()");
   const tab = () => wd("POST", S + "/actions", { actions: [{ type: "key", id: "kb", actions: [{ type: "keyDown", value: "\ue004" }, { type: "keyUp", value: "\ue004" }] }] });
-  for (let i = 0; i < 10 && !(await js("return document.activeElement.matches('.lui-button-primary')")); i++) await tab();
+  for (let i = 0; i < 40 && !(await js("return document.activeElement.matches('.lui-button-primary')")); i++) await tab();
   assert(await js("return document.activeElement.matches('.lui-button-primary:focus-visible')"), "button: reached by Tab, :focus-visible");
   assert(await js("return getComputedStyle(document.activeElement).outlineWidth") === "3px", "button: the focus ring is a 3px outline");
 
@@ -438,12 +438,12 @@ try {
   await until(async () => (await js("return document.documentElement.dataset.theme")) === "dark", "theme");
   assert(await navigations() === 1, "theme: switched without a reload");
 
-  // Copy buttons (M42): the script adds one to each `data-lui="copy"` block (the markup has
-  // none), on a component's snippet and on a docs page's code blocks.
+  // Copy buttons (M42): the markup carries each one `hidden` and the script shows it, on a
+  // component's snippet and on a docs page's code blocks.
   await go("/dialog");
-  assert(await js("return document.querySelectorAll('.lui-snippet[data-lui=copy] > .lui-copy').length") === 1, "copy: the snippet has its button");
+  assert(await js("return document.querySelectorAll('.lui-snippet > [data-lui=copy]:not([hidden])').length") === 1, "copy: the snippet has its button");
   await go("/start/axum");
-  assert(await js("const b = document.querySelectorAll('.lui-doc-code'); return b.length > 0 && [...b].every((f) => f.querySelector('.lui-copy'))"), "copy: every docs code block has its button");
+  assert(await js("const b = document.querySelectorAll('.lui-doc-code'); return b.length > 0 && [...b].every((f) => f.querySelector('[data-lui=copy]:not([hidden]) [commandfor]'))"), "copy: every docs code block has its button");
 
   // Index prefetch: a component page opens from the cache with the current theme. (A copy
   // prefetched before a theme change is not reused: Vary: Cookie; checked by hand, see FINDINGS.)

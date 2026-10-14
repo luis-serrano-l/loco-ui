@@ -68,6 +68,7 @@ fn palette(ui: &Ui) -> loco_ui::palette::Palette<'_> {
     // code: /palette
     ui.palette("/palette")
         .id("cmd")
+        .accesskey("j")
         .group("Components")
         .links(COMPONENTS.iter().map(|c| (c.title, c.href)))
         .group("Shortcuts")
@@ -94,7 +95,7 @@ async fn palette_page(ui: Ui) -> Response {
     }
     // end code
     page(&ui, "Command palette", html! {
-        p { "Open it with the button or the access key, type, pick a suggestion and press Enter. An exact name goes straight to the page; anything else lists what matches." }
+        p { "Open it with the button or the access key (J here: K opens the site search in the header), type, pick a suggestion and press Enter. An exact name goes straight to the page; anything else lists what matches." }
         (palette)
     }).into_response()
 }
