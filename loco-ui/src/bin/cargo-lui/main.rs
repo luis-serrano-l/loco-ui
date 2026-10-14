@@ -1,21 +1,28 @@
-//! `cargo lui install`: set up a Loco app for loco-ui in one command. `cargo lui auth`: add
-//! the account pages.
+//! `cargo lui`: set up a Loco app for loco-ui, write its account pages, copy components into
+//! it, or start a new app.
 //!
 //! ```sh
-//! cargo install --git https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui
+//! cargo install --git https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui --features cli
 //! cargo lui install                  # in the app's directory
 //! cargo lui install path/to/app      # or name it
 //! cargo lui auth                     # then the account pages
+//! cargo lui add badge card           # copy components into src/ui/, yours to edit
+//! cargo lui new my_app               # a new Axum app (`--loco` for a Loco one)
 //! # from a loco-ui checkout, without installing:
-//! cargo run -p loco-ui -- install path/to/app --dep-path "$PWD/loco-ui"
+//! cargo run -p loco-ui --features cli -- install path/to/app --dep-path "$PWD/loco-ui"
 //! ```
 //!
-//! It writes, and prints one line per step:
+//! `install` writes, and prints one line per step:
 //! - `.loco-templates/scaffold/api/{controller,dto}.t`, the scaffold that makes
 //!   `cargo loco generate scaffold` write Maud views and HTML controllers;
-//! - the initializer line in `src/app.rs` (`Box::new(loco_ui::loco::Initializer)`);
-//! - `src/views/layout.rs`, a page with a header, and `pub mod layout;` in `src/views/mod.rs`;
-//! - `loco-ui` (git, or `--dep-path`) and `maud` under `[dependencies]` in `Cargo.toml`.
+//! - the initializer line in `src/app.rs` (`Box::new(loco_ui::loco::Initializer)`), and the
+//!   `before_routes` / `after_routes` hooks: loco-ui's 404 page for every path no route
+//!   answers, the app's look and the strict Content-Security-Policy on every page;
+//! - `src/views/layout.rs`, a page with a header, and `src/views/look.rs`, the app's
+//!   [`Look`](loco_ui::layout::Look), with their `pub mod` lines in `src/views/mod.rs`;
+//! - `loco-ui` (git, pinned to this build's commit; or `--dep-path`) and `maud` under
+//!   `[dependencies]` in `Cargo.toml`, edited with `toml_edit` so comments, CRLF line ends
+//!   and dotted tables survive.
 //!
 //! `auth` writes the account pages (sign in, sign up, sign out, forgot and reset password,
 //! email verification, magic link) as no-script forms on the starter's `users` model and
@@ -31,60 +38,54 @@
 //! - `location: { from: Cookie, name: auth }` under `auth.jwt` in each `config/*.yaml`, so
 //!   Loco's `auth::JWT` reads the token from the `HttpOnly` cookie the pages set.
 //!
-//! Both are idempotent: a second run changes nothing. A file that exists with other content is left
-//! alone and reported (`--force` overwrites the templates and the layout). Standard library
-//! only, so it builds without the crate's features.
+//! `add`, `list`, `info` and `eject` are in [`add`]; `new` in [`new`]; `scaffold` runs
+//! `cargo loco generate scaffold` with the template options (`--parent`).
+//!
+//! Every command is idempotent: a second run changes nothing. A file that exists with other
+//! content is left alone and reported (`--force` overwrites it), and `--dry-run` prints what
+//! would change without writing.
+
+mod add;
+mod edit;
+mod new;
 
 use std::{
     fs, io,
     path::{Path, PathBuf},
-    process::ExitCode,
+    process::{Command, ExitCode},
 };
 
-const CONTROLLER: &str = include_str!("../../loco-templates/scaffold/api/controller.t");
-const DTO: &str = include_str!("../../loco-templates/scaffold/api/dto.t");
-const ACCOUNT_CONTROLLER: &str = include_str!("../../loco-templates/auth/controller.rs");
-const ACCOUNT_VIEWS: &str = include_str!("../../loco-templates/auth/views.rs");
-const ACCOUNT_ROUTE: &str = ".add_route(controllers::account::routes())";
-/// The starter's mail links (to its JSON API and SPA) and where the account pages answer.
-const MAIL_LINKS: [(&str, &str); 3] = [
-    ("{{host}}/api/auth/verify/", "{{host}}/verify/"),
-    ("{{host}}/reset#", "{{host}}/reset/"),
-    ("{{host}}/api/auth/magic-link/", "{{host}}/magic-link/"),
-];
-const JWT_LOCATION: &str = "    # loco-ui's account pages keep the token in this cookie.
-    location:
-      from: Cookie
-      name: auth
-";
-const INITIALIZER: &str = "Box::new(loco_ui::loco::Initializer)";
-/// Signed-out visits to signed-in pages go to the sign-in form (`auth`).
-const SIGN_IN: &str = "Box::new(loco_ui::loco::SignIn(\"/signin\"))";
+const CONTROLLER: &str = include_str!("../../../loco-templates/scaffold/api/controller.t");
+const DTO: &str = include_str!("../../../loco-templates/scaffold/api/dto.t");
+const ACCOUNT_CONTROLLER: &str = include_str!("../../../loco-templates/auth/controller.rs");
+const ACCOUNT_VIEWS: &str = include_str!("../../../loco-templates/auth/views.rs");
+const LAYOUT: &str = include_str!("../../../loco-templates/install/layout.rs");
+const LOOK: &str = include_str!("../../../loco-templates/install/look.rs");
 const GIT: &str = "https://github.com/luis-serrano-l/loco-ui";
 
-const LAYOUT: &str = r#"//! The page every view renders into: a header with a home link (add yours), then the view.
-//! Written by `cargo lui install`; edit freely.
+const USAGE: &str = "cargo lui: loco-ui for Loco and Axum apps
 
-use loco_ui::prelude::*;
+usage: cargo lui install [APP_DIR] [--dep-path PATH] [--rev REV] [--force] [--dry-run]
+       cargo lui auth [APP_DIR] [--force] [--dry-run]
+       cargo lui add NAME.. [--app DIR] [--prefix WORD] [--force] [--dry-run] [--diff] [--view]
+       cargo lui list
+       cargo lui info NAME
+       cargo lui eject [APP_DIR] [--dry-run]
+       cargo lui new APP_DIR [--axum | --loco] [--from DIR] [--dep-path PATH] [--rev REV]
+       cargo lui scaffold MODEL FIELD.. [--parent MODEL] [--app DIR] [-- GENERATOR_ARGS..]
+       cargo lui --help | --version
 
-/// `body` inside the app's header, as a full page titled `title`.
-pub fn page(ui: &Ui, title: &str, body: Markup) -> Page {
-    ui.page(
-        title,
-        html! {
-            header {
-                (ui.cluster().body(html! {
-                    a href="/" { strong { "Home" } }
-                }))
-            }
-            main { (body) }
-        },
-    )
-}
-"#;
+install    the scaffold templates, the initializer, the 404 page, the look, the CSP, the deps
+auth       the account pages (sign in, sign up, reset, magic link) on Loco's users model
+add        copy components into src/ui/ (as `<prefix>_<name>`, `app_` by default)
+list       the components `add` can copy
+info       a component's setters
+eject      copy loco-ui itself into vendor/ and depend on that copy
+new        a new app: app shell, settings, theme toggle, 404 page, CSP, a check script
+scaffold   `cargo loco generate scaffold` with loco-ui's options (`--parent notebook`)
 
-const USAGE: &str = "usage: cargo lui install [APP_DIR] [--dep-path PATH] [--force]
-       cargo lui auth [APP_DIR] [--force]";
+--dry-run  print what would change and write nothing
+--force    overwrite files that were edited since they were written";
 
 fn main() -> ExitCode {
     // `cargo lui ..` runs this binary as `cargo-lui lui ..`.
@@ -92,38 +93,29 @@ fn main() -> ExitCode {
     if args.first().map(String::as_str) == Some("lui") {
         args.remove(0);
     }
-    let command: fn(&Options) -> Result<(), String> = match args.first().map(String::as_str) {
-        Some("install") => install,
-        Some("auth") => auth,
-        _ => {
-            eprintln!("{USAGE}");
+    let options = match Options::parse(args) {
+        Ok(Parsed::Run(options)) => options,
+        Ok(Parsed::Print(text)) => {
+            println!("{text}");
+            return ExitCode::SUCCESS;
+        }
+        Err(e) => {
+            eprintln!("{e}\n\n{USAGE}");
             return ExitCode::from(2);
         }
     };
-    let mut options = Options {
-        app: PathBuf::from("."),
-        dep_path: None,
-        force: false,
+    let result = match options.command.as_str() {
+        "install" => install(&options),
+        "auth" => auth(&options),
+        "add" => add::add(&options),
+        "list" => add::list(),
+        "info" => add::info(&options),
+        "eject" => add::eject(&options),
+        "new" => new::new(&options),
+        "scaffold" => scaffold(&options),
+        other => Err(format!("unknown command {other}")),
     };
-    let mut rest = args.into_iter().skip(1);
-    while let Some(arg) = rest.next() {
-        match arg.as_str() {
-            "--force" => options.force = true,
-            "--dep-path" => match rest.next() {
-                Some(p) => options.dep_path = Some(p),
-                None => {
-                    eprintln!("{USAGE}");
-                    return ExitCode::from(2);
-                }
-            },
-            flag if flag.starts_with('-') => {
-                eprintln!("unknown option {flag}\n{USAGE}");
-                return ExitCode::from(2);
-            }
-            _ => options.app = PathBuf::from(arg),
-        }
-    }
-    match command(&options) {
+    match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("error: {e}");
@@ -132,13 +124,169 @@ fn main() -> ExitCode {
     }
 }
 
-struct Options {
-    app: PathBuf,
-    dep_path: Option<String>,
-    force: bool,
+/// What the command line asked for.
+pub(crate) struct Options {
+    pub command: String,
+    /// The app's directory (`.` unless named).
+    pub app: PathBuf,
+    /// The positional arguments after the command that are not the app: component names
+    /// for `add` and `info`, the model and fields for `scaffold`.
+    pub names: Vec<String>,
+    /// Arguments after `--`, passed on to the generator by `scaffold`.
+    pub rest: Vec<String>,
+    pub dep_path: Option<String>,
+    pub rev: Option<String>,
+    pub prefix: String,
+    pub parent: Option<String>,
+    pub from: Option<PathBuf>,
+    pub loco: bool,
+    pub diff: bool,
+    pub view: bool,
+    pub files: Files,
 }
 
-fn loco_app(app: &Path) -> Result<(), String> {
+enum Parsed {
+    Run(Options),
+    Print(String),
+}
+
+impl Options {
+    fn parse(args: Vec<String>) -> Result<Parsed, String> {
+        let mut args = args.into_iter();
+        let Some(command) = args.next() else {
+            return Ok(Parsed::Print(USAGE.to_string()));
+        };
+        match command.as_str() {
+            "-h" | "--help" | "help" => return Ok(Parsed::Print(USAGE.to_string())),
+            "-V" | "--version" => return Ok(Parsed::Print(version())),
+            _ => {}
+        }
+        let mut options = Options {
+            command,
+            app: PathBuf::from("."),
+            names: Vec::new(),
+            rest: Vec::new(),
+            dep_path: None,
+            rev: None,
+            prefix: "app".to_string(),
+            parent: None,
+            from: None,
+            loco: false,
+            diff: false,
+            view: false,
+            files: Files {
+                force: false,
+                dry_run: false,
+            },
+        };
+        // `install`, `auth`, `eject` and `new` take the app as their one positional argument;
+        // `add`, `info` and `scaffold` take names and the app as `--app`.
+        let app_positional = matches!(
+            options.command.as_str(),
+            "install" | "auth" | "eject" | "new"
+        );
+        let mut app_named = false;
+        while let Some(arg) = args.next() {
+            let mut value = |flag: &str| args.next().ok_or_else(|| format!("{flag} needs a value"));
+            match arg.as_str() {
+                "-h" | "--help" => return Ok(Parsed::Print(USAGE.to_string())),
+                "-V" | "--version" => return Ok(Parsed::Print(version())),
+                "--force" => options.files.force = true,
+                "--dry-run" => options.files.dry_run = true,
+                "--diff" => options.diff = true,
+                "--view" => options.view = true,
+                "--loco" => options.loco = true,
+                "--axum" => options.loco = false,
+                "--dep-path" => options.dep_path = Some(value("--dep-path")?),
+                "--rev" => options.rev = Some(value("--rev")?),
+                "--prefix" => options.prefix = value("--prefix")?,
+                "--parent" => options.parent = Some(value("--parent")?),
+                "--from" => options.from = Some(PathBuf::from(value("--from")?)),
+                "--app" => {
+                    options.app = PathBuf::from(value("--app")?);
+                    app_named = true;
+                }
+                "--" => {
+                    options.rest = args.by_ref().collect();
+                }
+                flag if flag.starts_with('-') => return Err(format!("unknown option {flag}")),
+                _ if app_positional && !app_named => {
+                    options.app = PathBuf::from(arg);
+                    app_named = true;
+                }
+                _ => options.names.push(arg),
+            }
+        }
+        if !options.names.is_empty() && app_positional {
+            return Err(format!(
+                "{} takes one directory, not {}",
+                options.command,
+                options.names.join(" ")
+            ));
+        }
+        if !is_word(&options.prefix) {
+            return Err(format!(
+                "--prefix {}: lowercase letters, digits and `_` only",
+                options.prefix
+            ));
+        }
+        Ok(Parsed::Run(options))
+    }
+
+    /// The `loco-ui` line for the app's `[dependencies]`, with `features`.
+    pub fn dependency(&self, features: &str) -> String {
+        match (&self.dep_path, self.rev.clone().or_else(source_rev)) {
+            (Some(p), _) => {
+                format!(r#"{{ path = "{p}", features = [{features}] }}"#)
+            }
+            (None, Some(rev)) => {
+                format!(r#"{{ git = "{GIT}", rev = "{rev}", features = [{features}] }}"#)
+            }
+            (None, None) => format!(r#"{{ git = "{GIT}", features = [{features}] }}"#),
+        }
+    }
+}
+
+/// A lowercase Rust identifier: what `--prefix` and a component name may be.
+pub(crate) fn is_word(text: &str) -> bool {
+    text.starts_with(|c: char| c.is_ascii_lowercase())
+        && text
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+}
+
+fn version() -> String {
+    match source_rev() {
+        Some(rev) => format!("cargo-lui {} ({rev})", env!("CARGO_PKG_VERSION")),
+        None => format!("cargo-lui {}", env!("CARGO_PKG_VERSION")),
+    }
+}
+
+/// The commit this binary was built from, which `install` pins the git dependency to until
+/// the crate is published: the source's `git rev-parse HEAD`, or the short commit that
+/// `cargo install --git` names its checkout directory after
+/// (`~/.cargo/git/checkouts/loco-ui-<hash>/<commit>/loco-ui`).
+fn source_rev() -> Option<String> {
+    let source = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let head = Command::new("git")
+        .arg("-C")
+        .arg(source)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()
+        .filter(|out| out.status.success())
+        .and_then(|out| String::from_utf8(out.stdout).ok())
+        .map(|rev| rev.trim().to_string())
+        .filter(|rev| !rev.is_empty());
+    head.or_else(|| {
+        let checkout = source.parent()?;
+        let in_checkouts = checkout.parent()?.parent()?.ends_with("git/checkouts");
+        let name = checkout.file_name()?.to_str()?;
+        (in_checkouts && name.chars().all(|c| c.is_ascii_hexdigit())).then(|| name.to_string())
+    })
+}
+
+pub(crate) fn loco_app(app: &Path) -> Result<(), String> {
     if !app.join("src/app.rs").is_file() || !app.join("Cargo.toml").is_file() {
         return Err(format!(
             "{} is not a Loco app (no Cargo.toml and src/app.rs)",
@@ -150,22 +298,23 @@ fn loco_app(app: &Path) -> Result<(), String> {
 
 fn install(options: &Options) -> Result<(), String> {
     let app = &options.app;
+    let files = &options.files;
     loco_app(app)?;
     let templates = app.join(".loco-templates/scaffold/api");
-    write_file(&templates.join("controller.t"), CONTROLLER, options.force)?;
-    write_file(&templates.join("dto.t"), DTO, options.force)?;
-    write_file(&app.join("src/views/layout.rs"), LAYOUT, options.force)?;
-    edit(&app.join("src/views/mod.rs"), |s| {
-        add_line(s, "pub mod layout;")
+    files.write(&templates.join("controller.t"), CONTROLLER)?;
+    files.write(&templates.join("dto.t"), DTO)?;
+    files.write(&app.join("src/views/layout.rs"), LAYOUT)?;
+    files.write(&app.join("src/views/look.rs"), LOOK)?;
+    files.edit(&app.join("src/views/mod.rs"), |s| {
+        edit::add_line(&edit::add_line(s, "pub mod layout;")?, "pub mod look;")
     })?;
-    edit(&app.join("src/app.rs"), |s| add_initializer(s, INITIALIZER))?;
-    let dep = match &options.dep_path {
-        Some(p) => format!(r#"loco-ui = {{ path = "{p}", features = ["loco"] }}"#),
-        None => format!(r#"loco-ui = {{ git = "{GIT}", features = ["loco"] }}"#),
-    };
-    edit(&app.join("Cargo.toml"), |s| {
-        let s = add_dependency(s, "loco-ui", &dep)?;
-        add_dependency(&s, "maud", r#"maud = "0.27""#)
+    files.edit(&app.join("src/app.rs"), |s| {
+        edit::add_hooks(&edit::add_initializer(s, edit::INITIALIZER)?)
+    })?;
+    let dep = options.dependency(r#""loco""#);
+    files.edit(&app.join("Cargo.toml"), |s| {
+        let s = edit::add_dependency(s, "loco-ui", &dep)?;
+        edit::add_dependency(&s, "maud", r#""0.27""#)
     })?;
     println!("done: `cargo loco generate scaffold <model> <fields..>` now writes Maud views");
     Ok(())
@@ -173,6 +322,7 @@ fn install(options: &Options) -> Result<(), String> {
 
 fn auth(options: &Options) -> Result<(), String> {
     let app = &options.app;
+    let files = &options.files;
     loco_app(app)?;
     let manifest = fs::read_to_string(app.join("Cargo.toml")).unwrap_or_default();
     if !manifest.contains("loco-ui") {
@@ -184,259 +334,138 @@ fn auth(options: &Options) -> Result<(), String> {
             "needs the starter's users model and AuthMailer (`loco new` with a database)".into(),
         );
     }
-    write_file(
-        &app.join("src/controllers/account.rs"),
-        ACCOUNT_CONTROLLER,
-        options.force,
-    )?;
-    write_file(
-        &app.join("src/views/account.rs"),
-        ACCOUNT_VIEWS,
-        options.force,
-    )?;
-    edit(&app.join("src/controllers/mod.rs"), |s| {
-        add_line(s, "pub mod account;")
+    files.write(&app.join("src/controllers/account.rs"), ACCOUNT_CONTROLLER)?;
+    files.write(&app.join("src/views/account.rs"), ACCOUNT_VIEWS)?;
+    files.edit(&app.join("src/controllers/mod.rs"), |s| {
+        edit::add_line(s, "pub mod account;")
     })?;
-    edit(&app.join("src/views/mod.rs"), |s| {
-        add_line(s, "pub mod account;")
+    files.edit(&app.join("src/views/mod.rs"), |s| {
+        edit::add_line(s, "pub mod account;")
     })?;
-    edit(&app.join("src/app.rs"), |s| {
-        add_initializer(&add_account_route(s)?, SIGN_IN)
+    files.edit(&app.join("src/app.rs"), |s| {
+        edit::add_initializer(&edit::add_account_route(s)?, edit::SIGN_IN)
     })?;
     for mail in ["welcome", "forgot", "magic_link"] {
         for part in ["html.t", "text.t"] {
             let path = app.join("src/mailers/auth").join(mail).join(part);
             if path.is_file() {
-                edit(&path, |s| Ok(point_mail_links(s)))?;
+                files.edit(&path, |s| Ok(edit::point_mail_links(s)))?;
             }
         }
     }
     let config = app.join("config");
-    let mut files: Vec<PathBuf> = fs::read_dir(&config)
+    let mut yaml: Vec<PathBuf> = fs::read_dir(&config)
         .map_err(|e| format!("{}: {e}", config.display()))?
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| p.extension().is_some_and(|x| x == "yaml"))
         .collect();
-    files.sort();
-    for path in files {
-        edit(&path, add_jwt_location)?;
+    yaml.sort();
+    for path in yaml {
+        files.edit(&path, edit::add_jwt_location)?;
     }
     println!("done: /signin, /signup, /forgot and /magic-link answer with pages");
     Ok(())
 }
 
-/// Register the account routes right after `AppRoutes::..` in `fn routes`.
-fn add_account_route(contents: &str) -> Result<String, String> {
-    if contents.contains(ACCOUNT_ROUTE) {
-        return Ok(contents.to_string());
+/// `cargo loco generate scaffold MODEL FIELD..` in the app, with the template options in the
+/// environment the templates read them from (`get_env(name="LUI_PARENT")`).
+fn scaffold(options: &Options) -> Result<(), String> {
+    loco_app(&options.app)?;
+    if options.names.is_empty() {
+        return Err("scaffold needs a model and its fields".into());
     }
-    let missing = || format!("no `AppRoutes::` in `fn routes`; add `{ACCOUNT_ROUTE}` by hand");
-    let at = contents.find("fn routes").ok_or_else(missing)?;
-    let at = at + contents[at..].find("AppRoutes::").ok_or_else(missing)?;
-    let end = at + contents[at..].find('\n').ok_or_else(missing)? + 1;
-    Ok(format!(
-        "{}            {ACCOUNT_ROUTE}\n{}",
-        &contents[..end],
-        &contents[end..]
-    ))
-}
-
-/// Point the starter'contents mail links at the account pages.
-fn point_mail_links(contents: &str) -> String {
-    MAIL_LINKS
-        .iter()
-        .fold(contents.to_string(), |text, (from, to)| {
-            text.replace(from, to)
-        })
-}
-
-/// Add the cookie location under `auth:` → `jwt:` unless that block names a location.
-fn add_jwt_location(contents: &str) -> Result<String, String> {
-    let lines: Vec<&str> = contents.split_inclusive('\n').collect();
-    let Some(auth) = lines.iter().position(|l| l.trim_end() == "auth:") else {
-        return Ok(contents.to_string());
-    };
-    // The block runs to the next line that starts in the first column (not a comment).
-    let end = lines[auth + 1..]
-        .iter()
-        .position(|l| l.starts_with(|c: char| !c.is_whitespace() && c != '#'))
-        .map_or(lines.len(), |i| auth + 1 + i);
-    let block = &lines[auth..end];
-    if block
-        .iter()
-        .any(|l| l.trim_start().starts_with("location:"))
-    {
-        return Ok(contents.to_string());
-    }
-    let Some(jwt) = block.iter().position(|l| l.trim_end() == "  jwt:") else {
-        return Ok(contents.to_string());
-    };
-    let at = auth + jwt + 1;
-    Ok(format!(
-        "{}{JWT_LOCATION}{}",
-        lines[..at].concat(),
-        lines[at..].concat()
-    ))
-}
-
-/// Write `content` unless the file already holds it; another content is kept unless `force`.
-fn write_file(path: &Path, content: &str, force: bool) -> Result<(), String> {
-    match fs::read_to_string(path) {
-        Ok(old) if old == content => println!("unchanged {}", path.display()),
-        Ok(_) if !force => println!("kept      {} (edited; --force overwrites)", path.display()),
-        Err(e) if e.kind() != io::ErrorKind::NotFound => {
-            return Err(format!("{}: {e}", path.display()));
+    let mut command = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
+    command
+        .args(["loco", "generate", "scaffold"])
+        .args(&options.names)
+        .args(&options.rest)
+        .current_dir(&options.app);
+    if let Some(parent) = &options.parent {
+        if !is_word(parent) {
+            return Err(format!("--parent {parent}: a model name in snake case"));
         }
-        _ => {
+        let field = format!("{parent}:references");
+        if !options.names.iter().any(|f| f.starts_with(&field)) {
+            return Err(format!(
+                "--parent {parent} needs a `{parent}:references` field (the column it nests by)"
+            ));
+        }
+        command.env("LUI_PARENT", parent);
+    }
+    if options.files.dry_run {
+        println!("would run {command:?}");
+        return Ok(());
+    }
+    let status = command
+        .status()
+        .map_err(|e| format!("cargo loco generate: {e}"))?;
+    if !status.success() {
+        return Err(format!("cargo loco generate scaffold failed ({status})"));
+    }
+    Ok(())
+}
+
+/// Writes and edits files, or only says what it would do (`--dry-run`).
+pub(crate) struct Files {
+    pub force: bool,
+    pub dry_run: bool,
+}
+
+impl Files {
+    /// Write `content` unless the file already holds it; other content is kept unless
+    /// `--force`.
+    pub fn write(&self, path: &Path, content: &str) -> Result<(), String> {
+        match fs::read_to_string(path) {
+            Ok(old) if old == content => println!("unchanged {}", path.display()),
+            Ok(_) if !self.force => {
+                println!("kept      {} (edited; --force overwrites)", path.display());
+            }
+            Err(e) if e.kind() != io::ErrorKind::NotFound => {
+                return Err(format!("{}: {e}", path.display()));
+            }
+            _ if self.dry_run => println!("would write {}", path.display()),
+            _ => {
+                if let Some(dir) = path.parent() {
+                    fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+                }
+                fs::write(path, content).map_err(|e| format!("{}: {e}", path.display()))?;
+                println!("wrote     {}", path.display());
+            }
+        }
+        Ok(())
+    }
+
+    /// Apply `change` to the file (created empty when missing) and write it back only if it
+    /// changed. A file with CRLF line ends is edited as LF and written back with CRLF.
+    pub fn edit(
+        &self,
+        path: &Path,
+        change: impl Fn(&str) -> Result<String, String>,
+    ) -> Result<(), String> {
+        let old = match fs::read_to_string(path) {
+            Ok(old) => old,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
+            Err(e) => return Err(format!("{}: {e}", path.display())),
+        };
+        let crlf = old.contains("\r\n");
+        let lf = if crlf {
+            old.replace("\r\n", "\n")
+        } else {
+            old.clone()
+        };
+        let new = change(&lf).map_err(|e| format!("{}: {e}", path.display()))?;
+        let new = if crlf { new.replace('\n', "\r\n") } else { new };
+        if new == old {
+            println!("unchanged {}", path.display());
+        } else if self.dry_run {
+            println!("would edit {}", path.display());
+        } else {
             if let Some(dir) = path.parent() {
                 fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
             }
-            fs::write(path, content).map_err(|e| format!("{}: {e}", path.display()))?;
-            println!("wrote     {}", path.display());
+            fs::write(path, new).map_err(|e| format!("{}: {e}", path.display()))?;
+            println!("edited    {}", path.display());
         }
-    }
-    Ok(())
-}
-
-/// Apply `change` to the file (created empty when missing) and write it back only if it changed.
-fn edit(path: &Path, change: impl Fn(&str) -> Result<String, String>) -> Result<(), String> {
-    let old = match fs::read_to_string(path) {
-        Ok(old) => old,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
-        Err(e) => return Err(format!("{}: {e}", path.display())),
-    };
-    let new = change(&old).map_err(|e| format!("{}: {e}", path.display()))?;
-    if new == old {
-        println!("unchanged {}", path.display());
-    } else {
-        fs::write(path, new).map_err(|e| format!("{}: {e}", path.display()))?;
-        println!("edited    {}", path.display());
-    }
-    Ok(())
-}
-
-/// Append `line` unless a line reads exactly that.
-fn add_line(contents: &str, line: &str) -> Result<String, String> {
-    if contents.lines().any(|l| l.trim() == line) {
-        return Ok(contents.to_string());
-    }
-    let mut out = contents.to_string();
-    if !out.is_empty() && !out.ends_with('\n') {
-        out.push('\n');
-    }
-    out.push_str(line);
-    out.push('\n');
-    Ok(out)
-}
-
-/// Put `init` in the `vec![..]` that `fn initializers` returns: right after loco-ui'contents own
-/// initializer when that is there, else first.
-fn add_initializer(contents: &str, init: &str) -> Result<String, String> {
-    if contents.contains(init) {
-        return Ok(contents.to_string());
-    }
-    if let Some(at) = contents.find(INITIALIZER) {
-        let at = at + INITIALIZER.len();
-        return Ok(format!("{}, {init}{}", &contents[..at], &contents[at..]));
-    }
-    let missing = || format!("no `vec![` in `fn initializers`; add `{init}` to it by hand");
-    let at = contents.find("fn initializers").ok_or_else(missing)?;
-    let open = at + contents[at..].find("vec![").ok_or_else(missing)? + "vec![".len();
-    let empty = contents[open..].trim_start().starts_with(']');
-    let insert = if empty {
-        init.to_string()
-    } else {
-        format!("{init}, ")
-    };
-    Ok(format!(
-        "{}{insert}{}",
-        &contents[..open],
-        &contents[open..]
-    ))
-}
-
-/// Add `line` as the first entry of `[dependencies]` unless `name` is already a dependency.
-fn add_dependency(contents: &str, name: &str, line: &str) -> Result<String, String> {
-    let mut section = "";
-    for trimmed in contents.lines().map(str::trim) {
-        if trimmed.starts_with('[') {
-            section = trimmed;
-        } else if section == "[dependencies]" && trimmed.split(['=', ' ', '.']).next() == Some(name)
-        {
-            return Ok(contents.to_string());
-        }
-    }
-    let at = contents
-        .find("[dependencies]\n")
-        .ok_or("no [dependencies] section")?;
-    let at = at + "[dependencies]\n".len();
-    Ok(format!("{}{line}\n{}", &contents[..at], &contents[at..]))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_initializer_goes_first_once() {
-        let fresh = "async fn initializers(_ctx: &AppContext) -> Result<..> {\n    Ok(vec![])\n}";
-        let once = add_initializer(fresh, INITIALIZER).unwrap();
-        assert!(once.contains("Ok(vec![Box::new(loco_ui::loco::Initializer)])"));
-        assert_eq!(add_initializer(&once, INITIALIZER).unwrap(), once);
-        let other = "fn initializers() { Ok(vec![Box::new(Mine)]) }";
-        let added = add_initializer(other, INITIALIZER).unwrap();
-        assert!(added.contains("vec![Box::new(loco_ui::loco::Initializer), Box::new(Mine)]"));
-        assert!(add_initializer("fn routes() {}", INITIALIZER).is_err());
-        // `auth`'s sign-in initializer goes right after it.
-        let signed = add_initializer(&added, SIGN_IN).unwrap();
-        assert!(signed.contains(r#"vec![Box::new(loco_ui::loco::Initializer), Box::new(loco_ui::loco::SignIn("/signin")), Box::new(Mine)]"#));
-        assert_eq!(add_initializer(&signed, SIGN_IN).unwrap(), signed);
-    }
-
-    #[test]
-    fn a_dependency_is_added_once_and_only_under_dependencies() {
-        let toml = "[workspace.dependencies]\nmaud = \"1\"\n\n[dependencies]\nserde = \"1\"\n";
-        let added = add_dependency(toml, "maud", "maud = \"0.27\"").unwrap();
-        assert!(added.contains("[dependencies]\nmaud = \"0.27\"\nserde"));
-        assert_eq!(
-            add_dependency(&added, "maud", "maud = \"0.27\"").unwrap(),
-            added
-        );
-        let dotted = "[dependencies]\nloco-ui.path = \"x\"\n";
-        assert_eq!(add_dependency(dotted, "loco-ui", "..").unwrap(), dotted);
-    }
-
-    #[test]
-    fn the_jwt_reads_the_cookie() {
-        let yaml =
-            "server:\n  port: 1\nauth:\n  # JWT\n  jwt:\n    secret: x\n\ndatabase:\n  uri: y\n";
-        let added = add_jwt_location(yaml).unwrap();
-        assert!(added.contains("  jwt:\n    # loco-ui's account pages keep the token in this cookie.\n    location:\n      from: Cookie\n      name: auth\n    secret: x"));
-        assert_eq!(add_jwt_location(&added).unwrap(), added);
-        assert_eq!(add_jwt_location("server: {}\n").unwrap(), "server: {}\n");
-    }
-
-    #[test]
-    fn the_account_route_follows_app_routes() {
-        let app = "fn routes(_ctx: &AppContext) -> AppRoutes {\n        AppRoutes::with_default_routes() // controller routes below\n            .add_route(controllers::auth::routes())\n    }";
-        let added = add_account_route(app).unwrap();
-        assert!(added.contains("below\n            .add_route(controllers::account::routes())\n            .add_route(controllers::auth"));
-        assert_eq!(add_account_route(&added).unwrap(), added);
-    }
-
-    #[test]
-    fn mail_links_point_at_the_pages() {
-        let text = "{{host}}/api/auth/verify/{{verifyToken}} {{host}}/reset#{{resetToken}}";
-        assert_eq!(
-            point_mail_links(text),
-            "{{host}}/verify/{{verifyToken}} {{host}}/reset/{{resetToken}}"
-        );
-    }
-
-    #[test]
-    fn a_module_line_is_appended_once() {
-        let once = add_line("pub mod auth;", "pub mod layout;").unwrap();
-        assert_eq!(once, "pub mod auth;\npub mod layout;\n");
-        assert_eq!(add_line(&once, "pub mod layout;").unwrap(), once);
+        Ok(())
     }
 }
