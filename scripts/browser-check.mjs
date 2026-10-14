@@ -125,7 +125,7 @@ try {
   assert(await js("return document.querySelector('a[rel=next]').href.includes('sort.files=size')"), "table: the pager's links follow the sort swapped in place");
   await click(".lui-table-cols summary");
   await click(".lui-table-cols a[href*='cols.files=name%2Csize']");
-  await until(async () => (await js("return document.querySelectorAll('.lui-table thead th a').length")) === 2, "column hidden");
+  await until(async () => (await js("return document.querySelectorAll('.lui-table thead th a:not(.lui-table-then)').length")) === 2, "column hidden");
   assert(await js("return location.search").then(q => q.includes("cols.files=name%2Csize")), "table: hidden column swapped in place with ?cols.files= in the URL");
   await js("document.querySelector('tbody tr:nth-child(2) input[type=checkbox]').click(); document.querySelector('#lui-table-files-bulk button[value=archive]').click()");
   await until(async () => (await js("return document.querySelector('.lui-flash')?.textContent || ''")).includes("archive: 1 file"), "bulk form posted and redirected with a flash");
@@ -138,6 +138,20 @@ try {
   await until(async () => (await js("return document.querySelector('.lui-paged-table-range')?.textContent")) === "31–35 of 36", "jump to page 7");
   assert(await js("return location.search").then(q => q.includes("page.files=7")), "table: the jump is in the URL");
   assert(await navigations() === 1, "table: jumped without a reload");
+  // Multi-sort: the "+" beside Name adds it as the second key.
+  await go("/table?sort.files=kind");
+  await click(".lui-table th a.lui-table-then[href*='sort.files=kind,name']");
+  await until(async () => (await js("return location.search")).includes("sort.files=kind,name"), "then by name");
+  assert(await js("return document.querySelectorAll('.lui-table-sort-index').length") === 2, "table: both sort keys show their place");
+  // A column filter from the Filters panel narrows the rows in place.
+  await js("const f = document.querySelector('.lui-table-filter form'); f.querySelector('details').open = true; f.elements['q.files.kind'].value = 'video'; f.requestSubmit()");
+  await until(async () => (await js("return document.querySelector('.lui-paged-table-range')?.textContent")) === "1–3 of 3", "filter by kind");
+  assert(await js("return location.search").then(q => q.includes("q.files.kind=video")), "table: the column filter is in the URL");
+  // Select all matching: the script ticks the page's boxes, and the post acts on every match.
+  await click(".lui-table-all");
+  assert(await js("return [...document.querySelectorAll('.lui-table-check')].every(c => c.checked)"), "table: select-all ticks the visible boxes");
+  await js("document.querySelector('#lui-table-files-bulk button[value=archive]').click()");
+  await until(async () => (await js("return document.querySelector('.lui-flash')?.textContent || ''")).includes("archive: 3 file"), "select-all posted every matching row");
 
   // Wizard: Next posts, PRG lands on step 2 in place, Back keeps the value.
   await go("/wizard?step.signup=0");

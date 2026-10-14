@@ -1473,7 +1473,7 @@ pub const CSS: &str = r#"
 .lui-table { container: lui-table / inline-size; }
 .lui-table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); margin-bottom: calc(var(--lui-space) * 2); }
 .lui-table-filter { flex: 1; min-width: min(14rem, 100%); }
-.lui-table-filter form { display: flex; gap: var(--lui-space); align-items: center; }
+.lui-table-filter form { display: flex; flex-wrap: wrap; gap: var(--lui-space); align-items: center; }
 .lui-table-filter-input { flex: 1; min-width: 8rem; max-width: 24rem; }
 .lui-table-clear { color: var(--lui-muted); font-size: 0.875rem; }
 .lui-table-clear:hover { color: var(--lui-fg); }
@@ -1556,16 +1556,19 @@ pub const CSS: &str = r#"
 .lui-table th:hover .lui-table-then, .lui-table th .lui-table-then:focus-visible { opacity: 1; }
 .lui-table th .lui-table-then:hover { background: var(--lui-gray-4); color: var(--lui-fg); }
 @media (pointer: coarse) { .lui-table th .lui-table-then { opacity: 1; } }
-.lui-table-filters { position: relative; font-size: 0.875rem; }
-.lui-table-filters summary { list-style: none; }
+/* The "Filters" panel opens as a row of its own under the search, after the buttons, so an
+   active filter (the panel stays open) never covers the table. */
+.lui-table-filters { font-size: 0.875rem; }
+.lui-table-filters[open] { flex-basis: 100%; order: 1; }
+.lui-table-filters summary { list-style: none; width: fit-content; }
 .lui-table-filters summary::-webkit-details-marker { display: none; }
 .lui-table-filters-count { min-width: 1.25rem; padding: 0 0.375rem; border-radius: 999px; background: var(--lui-primary); color: var(--lui-on-primary); font-size: 0.75rem; line-height: 1.25rem; text-align: center; }
 .lui-table-filters-body {
-  position: absolute; inset-inline-start: 0; z-index: 3; display: grid; gap: var(--lui-space-3); margin-top: 0.25rem; padding: var(--lui-space-3); min-width: min(18rem, 80vw);
-  background: var(--lui-popover); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr)); gap: var(--lui-space-2); margin-top: var(--lui-space-2); padding: var(--lui-space-3);
+  background: var(--lui-gray-2); border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
 }
 .lui-table-all, .lui-table-check { margin: 0; }
-.lui-table tfoot td { background: var(--lui-gray-2); font-weight: 500; border-top: 1px solid var(--lui-line); border-bottom: 0; }
+.lui-table .lui-table-scroll tfoot td { background: var(--lui-gray-2); font-weight: 500; border-top: 1px solid var(--lui-line); border-bottom: 0; }
 .lui-table-striped tbody tr:nth-child(even) > td { background: var(--lui-gray-2); }
 .lui-table-striped tbody tr:hover > td { background: var(--lui-gray-3); }
 .lui-table-compact :is(th, td) { padding: var(--lui-space-1) var(--lui-space-2); font-size: 0.8125rem; }
