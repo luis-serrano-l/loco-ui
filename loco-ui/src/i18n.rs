@@ -364,6 +364,18 @@ pub enum Text {
     CannotUndo,
     /// "Skip to content": the skip link every page starts with.
     SkipToContent,
+    /// "Then by {}": table: the link that adds a column as the next sort key.
+    SortThenBy,
+    /// "Filters": table: the panel of column filters.
+    Filters,
+    /// "Select all {} matching rows": table: the select-all box.
+    SelectAllMatching,
+    /// "Download JSON": table.
+    DownloadJson,
+    /// "Open": table: the row links column.
+    Open,
+    /// "Open {}": table: a row's link.
+    OpenRow,
     /// "Show password": a password field's reveal button.
     ShowPassword,
     /// "one:{} star|other:{} stars": rating, one choice's name.
@@ -388,7 +400,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 157] = [
+    pub const ALL: [Text; 163] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -538,6 +550,12 @@ impl Text {
         Text::DeleteConfirm,
         Text::CannotUndo,
         Text::SkipToContent,
+        Text::SortThenBy,
+        Text::Filters,
+        Text::SelectAllMatching,
+        Text::DownloadJson,
+        Text::Open,
+        Text::OpenRow,
         Text::ShowPassword,
         Text::Stars,
         Text::RatingOf,
@@ -728,6 +746,12 @@ const ENGLISH: [&str; N] = [
     "Delete {}?",
     "This cannot be undone.",
     "Skip to content",
+    "Then by {}",
+    "Filters",
+    "Select all {} matching rows",
+    "Download JSON",
+    "Open",
+    "Open {}",
     "Show password",
     "one:{} star|other:{} stars",
     "{} out of {}",

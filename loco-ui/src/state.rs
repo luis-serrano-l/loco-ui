@@ -9,7 +9,7 @@
 //! while everything else is remembered. In Axum it is an extractor, and returning it as part
 //! of the response writes the cookie back when the query changed something.
 //!
-//! **State or query.** A table's other keys (`q.<id>`, `sort.<id>`, `dir.<id>`, `page.<id>`,
+//! **State or query.** A table's other keys (`q.<id>`, `q.<id>.<col>`, `sort.<id>`, `page.<id>`,
 //! `cols.<id>`, `edit.<id>`) are named the same way but are not state: they describe one view
 //! and live in the URL only, read with `ui.param` by the table ([`crate::table::Keys`]). Only
 //! what a visitor would expect to find again on their next visit (a tab, an open section, a

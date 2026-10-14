@@ -1004,6 +1004,7 @@ mod tests {
         };
         let mut files = rs(concat!(env!("CARGO_MANIFEST_DIR"), "/src"));
         files.extend(rs(concat!(env!("CARGO_MANIFEST_DIR"), "/src/blocks")));
+        files.extend(rs(concat!(env!("CARGO_MANIFEST_DIR"), "/src/table")));
         files
     }
 
@@ -1349,6 +1350,10 @@ mod tests {
         (
             "width",
             "Input picks a size, Form's modifier sets it on the field added last; Table's is a column width",
+        ),
+        (
+            "footer",
+            "Card's footer is markup; Table adds a `<tfoot>` row of cells, like its rows",
         ),
         (
             "text",

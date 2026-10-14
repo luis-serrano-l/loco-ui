@@ -7,7 +7,7 @@
 //!
 //! **Platform features:**
 //! - Ordinary links to `?page.<id>=n` that keep the table's sort, filter, columns and page
-//!   size (`sort.<id>`, `dir.<id>`, `q.<id>`, `cols.<id>`, `per.<id>`); the current page is `aria-current="page"` and the previous/next links are `rel="prev"` /
+//!   size (`sort.<id>`, `q.<id>`, `q.<id>.<col>`, `cols.<id>`, `per.<id>`); the current page is `aria-current="page"` and the previous/next links are `rel="prev"` /
 //!   `rel="next"`. Past seven pages only the first, the last and the current one's neighbours
 //!   are numbered; the gaps are an `aria-hidden` ellipsis.
 //! - `<form method="get">` with `<input type="number">` (`min`, `max`) to jump to a page, and another
@@ -33,12 +33,12 @@
 //! page link still names it, so a shared URL shows the same rows for everyone. The page
 //! itself (`page.<id>`), like the sort and the filter, is a query key only: a bookmark of the
 //! bare path starts on page 1. Each key carries the table's id, so two paged tables on one page
-//! page on their own; the bare `page` of before is still read for one release.
+//! page on their own.
 //!
 //! ```rust
 //! use loco_ui::{prelude::*, table::Row};
 //! // The URL's sort, filter and page, and the page size the visitor picked before.
-//! let ui = Ui::from_request("/table", "sort.files=name&dir.files=desc&q.files=a&page.files=20", "lui-ui=per.files=25");
+//! let ui = Ui::from_request("/table", "sort.files=-name&q.files=a&page.files=20", "lui-ui=per.files=25");
 //! let files = ui.table("files", "/table").column("name", "Name").sortable().column("note", "Note");
 //! assert_eq!((files.page(), files.per_page()), (20, 25), "what a database query needs");
 //! // Only this page's rows, and the total after filtering.
@@ -56,147 +56,31 @@ use crate::button::Button;
 use crate::enhance;
 use crate::i18n::{Strings, Text};
 use crate::input::Input;
-use crate::table::{Column, Encoded, Keys, Row, TableOptions, TableQuery, table_in};
-use crate::{Caps, Icon, UiState};
+use crate::table::{Encoded, Keys, SortValue, View, sort_text};
+use crate::{Caps, Icon};
 
 /// Page sizes offered in the select.
 pub const PAGE_SIZES: [usize; 4] = [5, 10, 25, 50];
 
-/// How the paged table renders; `Default::default()` is page 1 of 10, unsorted, unfiltered.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) struct PagedTableOptions<'a> {
-    /// The current sort as `(key, descending)`.
-    pub sort: Option<(&'a str, bool)>,
-    /// The current search text.
-    pub filter: &'a str,
-    /// The page being shown, 1-based.
-    pub page: usize,
-    /// Rows per page; one of [`PAGE_SIZES`] is selected in the size control. With a `state`
-    /// the size the visitor picked (`per.<id>`) wins, capped at the largest of [`PAGE_SIZES`].
-    pub per_page: usize,
-    /// Everything else the inner table takes (columns, bulk form, CSV link, empty and
-    /// loading states); its `sort` and `filter` are overwritten by the pager's, and its `keep` gains the page size.
-    pub table: TableOptions<'a>,
-    /// Remember the page size per table as the state key `per.<id>`.
-    pub state: Option<&'a UiState>,
-    /// The URL's sort, filter, page and columns, used wherever the setters above left the
-    /// default.
-    pub query: Option<&'a TableQuery<'a>>,
-}
-
-impl Default for PagedTableOptions<'_> {
-    fn default() -> Self {
-        PagedTableOptions {
-            sort: None,
-            filter: "",
-            page: 1,
-            per_page: PAGE_SIZES[1],
-            table: TableOptions::default(),
-            state: None,
-            query: None,
-        }
-    }
-}
-
-// Setters for the tests; the builder fills the struct directly.
-#[cfg(test)]
-impl<'a> PagedTableOptions<'a> {
-    /// The current sort as `(key, descending)`.
-    pub fn sort(mut self, sort: Option<(&'a str, bool)>) -> Self {
-        self.sort = sort;
-        self
-    }
-
-    /// The current search text.
-    pub fn filter(mut self, filter: &'a str) -> Self {
-        self.filter = filter;
-        self
-    }
-
-    /// The page being shown, 1-based.
-    pub fn page(mut self, page: usize) -> Self {
-        self.page = page;
-        self
-    }
-
-    /// Rows per page.
-    pub fn per_page(mut self, per_page: usize) -> Self {
-        self.per_page = per_page;
-        self
-    }
-
-    /// Name the page-size parameter `per.<id>` so the `lui-ui` cookie remembers it, and read
-    /// the remembered size back.
-    pub fn state(mut self, state: &'a UiState) -> Self {
-        self.state = Some(state);
-        self
-    }
-
-    /// Take the sort, filter, page and columns from the parsed URL.
-    pub fn query(mut self, query: &'a TableQuery<'a>) -> Self {
-        self.query = Some(query);
-        self
-    }
-}
-
-/// `rows` are either every row (`rows.len() == total`), and the component shows the current
-/// page of them, or the rows of the current page only, for data too large to build in full;
-/// `total` is the full row count after filtering, which sizes the page links.
-pub(crate) fn paged_table_with(
-    caps: &Caps,
-    id: &str,
-    href: &str,
-    columns: &[Column],
-    rows: &[Row],
-    total: usize,
-    options: PagedTableOptions,
-) -> Markup {
-    let PagedTableOptions {
-        sort,
-        filter,
-        page,
-        per_page,
-        table: inner,
-        state,
-        query,
-    } = options;
-    let sort = sort.or_else(|| query.and_then(|q| q.sort_in(columns)));
-    let filter = if filter.is_empty() {
-        query.map_or("", |q| q.filter)
-    } else {
-        filter
-    };
-    let page = query
-        .and_then(|q| q.page)
-        .filter(|_| page == 1)
-        .unwrap_or(page);
-    let cols = inner
-        .cols
-        .is_none()
-        .then(|| query.and_then(|q| q.cols_in(columns)))
-        .flatten();
-    let inner = TableOptions {
-        cols: inner.cols.or(cols.as_deref()),
-        ..inner
-    };
-    let strings = inner.strings;
+/// The table `view` and its pager. `view.rows` are either every row (`rows.len() == total`),
+/// and the current page of them is shown, or the rows of the current page only, for data
+/// too large to build in full; `total` is the full row count after filtering, which sizes
+/// the page links. `page` is the one asked for (clamped here) and `per_page` the size, kept
+/// in every link as `per.<id>`.
+pub(crate) fn paged(view: View, total: usize, page: usize, per_page: usize) -> Markup {
+    let (caps, id, href, strings) = (view.caps, view.id, view.href, view.strings);
     let t = |text| strings.get(text);
     let keys = Keys::new(id);
-    let per_key = if state.is_some() {
-        format!("per.{id}")
-    } else {
-        "per".to_string()
-    };
-    let remembered = state
-        .and_then(|s| s.per_page(id))
-        .map(|n| n.min(PAGE_SIZES[PAGE_SIZES.len() - 1]));
-    let per_page = remembered.unwrap_or(per_page).max(1);
+    let per_key = format!("per.{id}");
+    let per_page = per_page.max(1);
     let pages = total.div_ceil(per_page).max(1);
     let page = page.clamp(1, pages);
-    let rows = if rows.len() == total && total > per_page {
-        &rows[(page - 1) * per_page..(page * per_page).min(total)]
-    } else {
-        rows
+    let rows = match view
+        .rows
+        .get((page - 1) * per_page..(page * per_page).min(total))
+    {
+        Some(slice) if view.rows.len() == total && total > per_page => slice,
+        _ => view.rows,
     };
     let per = per_page.to_string();
     let first = if total == 0 {
@@ -205,28 +89,30 @@ pub(crate) fn paged_table_with(
         (page - 1) * per_page + 1
     };
     let last = (page * per_page).min(total);
-    let dir = |d: bool| if d { "desc" } else { "asc" };
-    let cols_value = inner.cols.map(|c| c.join(","));
+    let cols_value = view.cols.map(|c| c.join(","));
+    let filter_keys = view.filter_keys(&keys);
+    let sort_text = sort_text(view.sort);
     // Hidden fields shared by both forms: everything in the URL except what the form sets.
     let carried = |skip: &str| {
-        let mut pairs: Vec<(&str, &str)> = Vec::with_capacity(5);
-        if let Some((k, d)) = sort {
-            pairs.extend([(keys.sort.as_str(), k), (keys.dir.as_str(), dir(d))]);
+        let mut pairs: Vec<(&str, &str)> = Vec::with_capacity(6);
+        if !view.sort.is_empty() {
+            pairs.push((keys.sort.as_str(), sort_text.as_str()));
         }
-        if !filter.is_empty() {
-            pairs.push((&keys.q, filter));
-        }
-        pairs.extend(inner.keep.iter().copied());
-        if let Some(c) = &cols_value {
-            pairs.push((&keys.cols, c));
-        }
+        pairs.extend(view.pairs(&keys, &filter_keys, cols_value.as_deref()));
         if skip != per_key {
             pairs.push((per_key.as_str(), &per));
         }
         pairs
     };
+    // The page links: the sort as the header links write it (commas kept), then the rest.
     let mut base = String::new();
-    for (k, v) in carried("") {
+    if !view.sort.is_empty() {
+        let _ = write!(base, "{}={}&", Encoded(&keys.sort), SortValue(view.sort));
+    }
+    for (k, v) in carried("")
+        .into_iter()
+        .skip(usize::from(!view.sort.is_empty()))
+    {
         let _ = write!(base, "{}={}&", Encoded(k), Encoded(v));
     }
     let link = |page: usize| PageLink {
@@ -235,21 +121,26 @@ pub(crate) fn paged_table_with(
         key: &keys.page,
         page,
     };
-    let mut keep = inner.keep.to_vec();
+    let mut keep = view.keep.clone();
     keep.push((per_key.as_str(), per.as_str()));
     let action = (!href.is_empty()).then_some(href);
     let jump_id = format!("{}-page", enhance::swap_id("lui-paged-table", id));
     let page_text = page.to_string();
+    let table = View {
+        rows,
+        keep,
+        ..view.clone()
+    };
     html! {
         div id=(enhance::swap_id("lui-paged-table", id)) data-lui="swap" class="lui-paged-table" {
-            (table_in(caps, id, href, columns, rows, TableOptions { sort, filter, keep: &keep, ..inner }, false))
+            (table.render(false))
             nav class="lui-paged-table-nav" aria-label=(t(Text::Pages)) {
                 output class="lui-paged-table-range" { (strings.fill(Text::RangeOf, &[&strings.digits(first), &strings.digits(last), &strings.digits(total)])) }
                 ul class="lui-paged-table-pages" {
                     @if page > 1 {
                         @let (first, prev) = (link(1).to_string(), link(page - 1).to_string());
-                        li { (page_button(caps, &first, t(Text::First), false).class("lui-paged-table-end")) }
-                        li { (page_button(caps, &prev, t(Text::Previous), false).rel("prev").body(html! { (Icon::ChevronLeft) (t(Text::Previous)) })) }
+                        li { (page_button(&caps, &first, t(Text::First), false).class("lui-paged-table-end")) }
+                        li { (page_button(&caps, &prev, t(Text::Previous), false).rel("prev").body(html! { (Icon::ChevronLeft) (t(Text::Previous)) })) }
                     }
                     li class="lui-paged-table-of" aria-hidden="true" {
                         (t(Text::Page)) " " (strings.digits(page)) " " (strings.fill(Text::OfTotal, &[&strings.digits(pages)]))
@@ -258,15 +149,15 @@ pub(crate) fn paged_table_with(
                         @match slot {
                             Some(n) => li class="lui-paged-table-num" {
                                 @let h = link(n).to_string();
-                                (page_button(caps, &h, "", n == page).current(n == page).body(html! { (strings.digits(n)) }))
+                                (page_button(&caps, &h, "", n == page).current(n == page).body(html! { (strings.digits(n)) }))
                             },
                             None => li class="lui-paged-table-gap" aria-hidden="true" { "…" },
                         }
                     }
                     @if page < pages {
                         @let (next, last) = (link(page + 1).to_string(), link(pages).to_string());
-                        li { (page_button(caps, &next, t(Text::Next), false).rel("next").body(html! { (t(Text::Next)) (Icon::ChevronRight) })) }
-                        li { (page_button(caps, &last, t(Text::Last), false).class("lui-paged-table-end")) }
+                        li { (page_button(&caps, &next, t(Text::Next), false).rel("next").body(html! { (t(Text::Next)) (Icon::ChevronRight) })) }
+                        li { (page_button(&caps, &last, t(Text::Last), false).class("lui-paged-table-end")) }
                     }
                 }
                 @if pages > 1 {
@@ -275,7 +166,7 @@ pub(crate) fn paged_table_with(
                         span { (t(Text::Page)) }
                         (Input::number_within(&keys.page, t(Text::Page), Some(1.0), Some(pages as f64)).hide_label().class("lui-paged-table-page").inputmode("numeric").id(&jump_id).value(&page_text))
                         span { (strings.fill(Text::OfTotal, &[&strings.digits(pages)])) }
-                        (Button::new(*caps, t(Text::Go)))
+                        (Button::new(caps, t(Text::Go)))
                     }
                 }
                 form method="get" action=[action] class="lui-paged-table-per" {
@@ -285,7 +176,7 @@ pub(crate) fn paged_table_with(
                             @for size in PAGE_SIZES { option value=(size) selected[size == per_page] { (size) } }
                         }
                     }
-                    (Button::new(*caps, t(Text::Show)))
+                    (Button::new(caps, t(Text::Show)))
                 }
             }
         }
@@ -373,33 +264,34 @@ pub const CSS: &str = r#"
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Ui;
+    use maud::Render;
+
+    /// A paged table `t` at `/t` for this query and cookie, with a sortable `n` and a plain
+    /// `x` column, `rows` rows and `total` in all.
+    fn paged_table(query: &str, cookie: &str, rows: usize, total: usize) -> String {
+        let ui = Ui::from_request("/t", query, cookie);
+        ui.table("t", "/t")
+            .column("n", "N")
+            .sortable()
+            .column("x", "X")
+            .rows((1..=rows).map(|n| (html! { "row " (n) }, "")))
+            .paged(total)
+            .render()
+            .into_string()
+    }
 
     #[test]
     fn links_keep_sort_filter_and_size() {
-        let cols = [Column::sortable("n", "N")];
-        let opts = PagedTableOptions::default()
-            .sort(Some(("n", true)))
-            .filter("x")
-            .page(2)
-            .per_page(5);
-        let m = paged_table_with(&Caps::NONE, "t", "/t", &cols, &[], 12, opts).into_string();
+        let m = paged_table("sort.t=-n&q.t=x&page.t=2", "lui-ui=per.t=5", 0, 12);
         assert!(
-            m.contains("href=\"/t?sort.t=n&amp;dir.t=desc&amp;q.t=x&amp;per=5&amp;page.t=3\""),
+            m.contains("href=\"/t?sort.t=-n&amp;q.t=x&amp;per.t=5&amp;page.t=3\""),
             "{m}"
         );
         assert!(m.contains("rel=\"prev\"") && m.contains("rel=\"next\""));
         assert!(m.contains("6–10 of 12"));
         assert!(m.contains("value=\"5\" selected"));
-        let empty = paged_table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &[],
-            0,
-            PagedTableOptions::default().page(9),
-        )
-        .into_string();
+        let empty = paged_table("page.t=9", "", 0, 0);
         assert!(empty.contains("0–0 of 0") && !empty.contains("rel="));
         assert!(
             !empty.contains("lui-paged-table-jump"),
@@ -429,21 +321,7 @@ mod tests {
 
     #[test]
     fn state_names_the_size_per_table() {
-        let state = UiState::parse("/t", "per.t=5", "");
-        let opts = PagedTableOptions::default()
-            .per_page(state.per_page("t").unwrap())
-            .page(2)
-            .state(&state);
-        let m = paged_table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &[Column::plain("n", "N")],
-            &[],
-            40,
-            opts,
-        )
-        .into_string();
+        let m = paged_table("page.t=2", "lui-ui=per.t=5", 0, 40);
         assert!(m.contains("href=\"/t?per.t=5&amp;page.t=8\">Last"), "{m}");
         assert!(m.contains("href=\"/t?per.t=5&amp;page.t=1\">First"));
         assert!(
@@ -455,50 +333,18 @@ mod tests {
 
     #[test]
     fn the_query_state_and_all_rows_are_enough() {
-        let cols = [Column::sortable("n", "N"), Column::plain("x", "X")];
-        let rows: Vec<Row> = (1..=12)
-            .map(|n| Row::new(vec![html! { "row " (n) }, html! {}]))
-            .collect();
-        let ui = crate::Ui::from_request(
-            "/t",
-            "sort.t=n&dir.t=desc&q.t=r%C3%A9&page.t=3&cols.t=n&other=1",
-            "",
-        );
-        let query = TableQuery::from_ui(&ui, "t");
-        assert_eq!(query.filter, "r\u{e9}");
-        let state = UiState::parse("/t", "per.t=5", "");
-        let m = paged_table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &rows,
-            12,
-            PagedTableOptions::default().query(&query).state(&state),
-        )
-        .into_string();
+        let query = "sort.t=-n&q.t=r%C3%A9&page.t=3&cols.t=n&other=1";
+        let m = paged_table(query, "lui-ui=per.t=5", 12, 12);
         assert!(m.contains("11–12 of 12"), "{m}");
         assert!(
             m.contains("row 11") && m.contains("row 12") && !m.contains("row 10<"),
             "sliced to page 3"
         );
         assert!(
-            m.contains(
-                "sort.t=n&amp;dir.t=desc&amp;q.t=r%C3%A9&amp;cols.t=n&amp;per.t=5&amp;page.t=2"
-            ),
+            m.contains("sort.t=-n&amp;q.t=r%C3%A9&amp;cols.t=n&amp;per.t=5&amp;page.t=2"),
             "{m}"
         );
-        let huge = UiState::parse("/t", "per.t=100000", "");
-        let m = paged_table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &rows,
-            12,
-            PagedTableOptions::default().state(&huge),
-        )
-        .into_string();
+        let m = paged_table("", "lui-ui=per.t=100000", 12, 12);
         assert!(
             m.contains("<option value=\"50\" selected"),
             "a remembered size is capped"

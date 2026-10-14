@@ -588,7 +588,7 @@ async fn palette_exact_name_redirects_and_toast_posts_stack() {
     assert_eq!(res.status(), 303);
     assert_eq!(
         res.headers().get("location").unwrap(),
-        "/table?sort.files=size&dir.files=desc"
+        "/table?sort.files=-size"
     );
     let res = router()
         .oneshot(Request::get("/palette?q=zzz").body(Body::empty()).unwrap())
@@ -979,7 +979,7 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
             .unwrap();
         String::from_utf8(bytes.to_vec()).unwrap()
     };
-    let page = html("/table?q.try=zzz&sort.files=size&dir.files=desc").await;
+    let page = html("/table?q.try=zzz&sort.files=-size").await;
     assert!(
         page.contains(r#"id="lui-table-try""#),
         "the playground table is on the page"
@@ -993,14 +993,75 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
         "the playground keeps its own search"
     );
     assert!(
-        page.contains(r#"href="/table?sort.files=size&amp;dir.files=asc&amp;per.files=10""#),
+        page.contains(r#"href="/table?sort.files=size&amp;per.files=10""#),
         "the files table's links carry only its own keys"
     );
     let page = html("/table?q.files=zzz").await;
     assert!(page.contains("No files match this filter.") && page.contains("<td>a.txt</td>"));
-    // The bare keys of before still reach the files table, for one release.
+    // The bare keys of before M33 are no longer read (M41).
     let page = html("/table?q=zzz").await;
-    assert!(page.contains("No files match this filter."));
+    assert!(page.contains("1–10 of 36"));
+}
+
+/// The markup of the `/table` and `/table/minimal` tables, pinned for a set of requests in
+/// `demo/tests/golden/`: a refactor of the table must not change a byte. After an intended
+/// change, `GOLDEN=write cargo test -p demo tables_render_their_golden_markup` rewrites the
+/// files, and the diff is the review.
+#[test]
+fn tables_render_their_golden_markup() {
+    use crate::routes::table::PREVIEWS;
+    const CASES: &[(&str, &str, &str, &str)] = &[
+        ("table-default", "/table", "", ""),
+        (
+            "table-sorted-filtered-paged",
+            "/table",
+            "sort.files=-size&q.files=s&page.files=2",
+            "lui-ui=per.files=5",
+        ),
+        (
+            "table-columns-edit",
+            "/table",
+            "cols.files=name,kind&edit.files=src/main.rs&sort.files=kind",
+            "",
+        ),
+        ("table-loading", "/table", "loading=1", ""),
+        (
+            "table-multi-sort-column-filter",
+            "/table",
+            "sort.files=kind,-size&q.files.kind=source",
+            "",
+        ),
+        ("table-empty", "/table", "q.files=zzz", ""),
+        ("minimal-default", "/table/minimal", "", ""),
+        (
+            "minimal-sorted",
+            "/table/minimal",
+            "sort.minimal=-size&q.minimal=s&page.minimal=2",
+            "lui-ui=per.minimal=5",
+        ),
+    ];
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden");
+    let write = std::env::var("GOLDEN").as_deref() == Ok("write");
+    let mut changed = Vec::new();
+    for (name, path, query, cookie) in CASES {
+        let draw = PREVIEWS.iter().find(|(p, _)| p == path).unwrap().1;
+        for (caps, suffix) in [(Caps::NONE, "none"), (Caps::all(), "all")] {
+            let mut ui = Ui::from_request(path, query, cookie);
+            ui.caps = caps;
+            let html = draw(&ui).into_string().replace("><", ">\n<") + "\n";
+            let file = dir.join(format!("{name}-{suffix}.html"));
+            if write {
+                std::fs::create_dir_all(&dir).unwrap();
+                std::fs::write(&file, &html).unwrap();
+            } else if std::fs::read_to_string(&file).ok().as_deref() != Some(html.as_str()) {
+                changed.push(file.display().to_string());
+            }
+        }
+    }
+    assert!(
+        changed.is_empty(),
+        "the table markup changed (GOLDEN=write rewrites it): {changed:#?}"
+    );
 }
 
 /// Every route parses as HTML without errors, in both capability variants and both themes,

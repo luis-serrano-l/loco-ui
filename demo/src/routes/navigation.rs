@@ -42,7 +42,7 @@ fn palette(ui: &Ui) -> loco_ui::palette::Palette<'_> {
         .keywords("email releases")
         .icon(Icon::Mail)
         .shortcut("g n")
-        .link("Largest files", "/table?sort.files=size&dir.files=desc")
+        .link("Largest files", "/table?sort.files=-size")
         .keywords("sort size big")
         .icon(Icon::File)
         .shortcut("g f")

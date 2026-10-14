@@ -1,18 +1,24 @@
 //! # Table
 //!
 //! A data table an admin panel can sort, filter, select from and act on, no script: every
-//! column header is a link that re-requests the page sorted by that column, a search box
-//! filters rows on the server, checkboxes pick rows for a bulk form, a "Columns" chooser
-//! hides columns through `?cols.<id>=`, a row can expand a detail block and carry its own action
-//! menu, numbers line up, a CSV link downloads the current filter, and a row can be edited in
-//! place (`?edit.<id>=<key>` draws it as text boxes posting to one form, Post/Redirect/Get).
+//! column header is a link that re-requests the page sorted by that column (by several, in
+//! order), a search box and per-column filters narrow the rows on the server, checkboxes
+//! pick rows (or every matching row) for a bulk form, a "Columns" chooser hides columns
+//! through `?cols.<id>=`, a row can expand a detail block, carry its own action menu, link
+//! as a whole and take a tone, numbers line up, a `<tfoot>` holds totals, CSV and JSON links
+//! download the current filter, and a row can be edited in place (`?edit.<id>=<key>` draws
+//! it as text boxes posting to one form, Post/Redirect/Get).
 //!
 //! **Platform features:**
-//! - Ordinary links to `?sort.<id>=<col>&dir.<id>=asc|desc` in each `<th>`; clicking the sorted column
-//!   again flips the direction. The current one carries `aria-sort` for screen readers.
+//! - Ordinary links to `?sort.<id>=<col>` in each `<th>` (`-<col>` descending, a comma list
+//!   for several keys: `name,-size`); clicking the first sort column again flips it, and
+//!   once sorted, a "then by" link (`+`) beside another header adds it as the next key. The
+//!   first key's header carries `aria-sort`; each sorted header shows its place when there
+//!   are several.
 //! - `<form method="get">` inside a `<search>` element (baseline 2023) for the filter; the
 //!   sort, page size and hidden columns are kept in hidden inputs so filtering never loses
-//!   them and the URL stays shareable.
+//!   them and the URL stays shareable. Column filters (`?q.<id>.<col>=`) sit in a
+//!   `<details>` "Filters" panel of that form, open while one is set.
 //! - Row selection through the form attribute (`form="id"`, Chrome 10, Firefox 4, Safari 5.1):
 //!   each checkbox belongs to a
 //!   bulk `<form method="post">` that sits after the table, so nothing nests and the row's
@@ -22,41 +28,46 @@
 //!   is a [`crate::Ui::menu`].
 //! - `<colgroup>` widths and `font-variant-numeric: tabular-nums` (Chrome 52, Firefox 34,
 //!   Safari 9.1) for numeric columns.
-//! - `position: sticky` (Chrome 56, Firefox 32, Safari 13) on the header row.
+//! - `position: sticky` (Chrome 56, Firefox 32, Safari 13) on the header row and the first
+//!   column (`inset-inline-start: 0`, so it is the right edge in a right-to-left page).
+//! - A row link is a link in a last cell whose `::after` box covers the row, which is
+//!   `position: relative` (positioned table rows: Firefox 30, Chrome 91; Safari unchecked,
+//!   see FINDINGS).
 //! - `view-transition-name` on the body so re-sorted rows fade rather than jump.
 //! - `aria-busy` on a loading body, drawn as skeleton bars, for a table filled by a later
 //!   stream chunk.
 //!
-//! **Accessibility:** a `<table>` with `scope="col"` headers, `aria-sort` on the sorted one,
-//! labelled filter and page-size controls, visually hidden names for the select, edit and
-//! actions columns. Checked by axe-core in headless Firefox on every demo route, both
+//! **Accessibility:** a `<table>` with `scope="col"` headers, an optional hidden
+//! `<caption>`, `aria-sort` on the first sort key, labelled filter and page-size controls,
+//! visually hidden names for the select, edit, actions and link columns, `aria-disabled` on
+//! a disabled row. Checked by axe-core in headless Firefox on every demo route, both
 //! capability variants, light and dark (no serious or critical violation).
 //!
-//! **What it does not do without script:** resize or reorder columns, or keep row selection
-//! across sorts.
+//! **What it does not do without script:** resize or reorder columns by dragging (the
+//! "Columns" chooser and `?cols.<id>=` choose and order them), collapse a group, or keep row
+//! selection across sorts.
 //!
 //! **Fallback:** none needed. Without `Caps::ViewTransitions` the transition name is
 //! omitted; sorting, filtering, choosing columns and the bulk form are plain navigations and
 //! posts either way.
 //!
-//! **Without script:** "select all" does not exist: there is no way to tick every box without
-//! script, so the bulk bar says how many are needed and the server answers "nothing selected"
-//! with a flash. Everything else works the same.
+//! **Without script:** ticking every box at once needs script. `.select_all()` instead puts
+//! a box in the header that posts `all=1` with the table's query in the bulk form's URL, so
+//! the server acts on every row the filter matches; the enhancement script also ticks the
+//! visible boxes. Everything else works the same.
 //!
 //! **Finding:** the server sorts and filters; the component only renders what it is given and
 //! the links to ask for something else. That is what keeps it usable with `curl`.
 //!
 //! **Query keys:** each carries the table's id, the way its page size (`per.<id>`) and in-place
-//! edit (`edit.<id>`) do: `q.<id>`, `sort.<id>`, `dir.<id>`, `page.<id>` and `cols.<id>`
+//! edit (`edit.<id>`) do: `q.<id>`, `q.<id>.<col>`, `sort.<id>`, `page.<id>` and `cols.<id>`
 //! ([`Keys`]), so two tables on one page sort, filter and page on their own. They live in the
-//! URL only; the page size alone is state, remembered in the `lui-ui` cookie. The bare `q`,
-//! `sort`, `dir`, `page` and `cols` of before are still read when the table's own are absent,
-//! for one release (deprecated); the table's links only write its own.
+//! URL only; the page size alone is state, remembered in the `lui-ui` cookie.
 //!
 //! ```rust
 //! use loco_ui::{prelude::*, table::Row};
 //! // The URL says: sorted by name, filtered to "a", only two columns shown.
-//! let ui = Ui::from_request("/table", "sort.files=name&dir.files=asc&q.files=a&cols.files=name,size", "");
+//! let ui = Ui::from_request("/table", "sort.files=name&q.files=a&cols.files=name,size", "");
 //! // `sortable`, `numeric` and `width` apply to the column added last.
 //! let files = ui.table("files", "/table")
 //!     .column("name", "Name").sortable()
@@ -67,7 +78,7 @@
 //!     .csv("/table.csv")
 //!     .empty("No files yet.");
 //! // The route fetches its data with what the table read from the URL.
-//! assert_eq!((files.sort(), files.filter()), (Some(("name", false)), "a"));
+//! assert_eq!((files.sort(), files.filter()), (&[("name", false)][..], "a"));
 //! let row = Row::new([html! { "a.txt" }, html! { "1 KB" }, html! { "—" }])
 //!     .key("a.txt")
 //!     .detail(html! { p { "Modified today." } })
@@ -75,7 +86,7 @@
 //! let html = files.rows([row.clone()]).render().into_string();
 //! assert!(html.contains("aria-sort=\"ascending\""));
 //! assert!(html.contains("<input type=\"checkbox\" class=\"lui-table-check\" name=\"row\" value=\"a.txt\" form=\"lui-table-files-bulk\""));
-//! assert!(html.contains("href=\"/table.csv?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize\""));
+//! assert!(html.contains("href=\"/table.csv?sort.files=name&amp;q.files=a&amp;cols.files=name%2Csize\""));
 //! assert!(!html.contains("<td>—</td>"), "a hidden column's cells are not rendered (its name stays in the chooser)");
 //! // The same in `lui!`:
 //! let same = lui! { Table("files", "/table") choose_columns csv="/table.csv" empty="No files yet." {
@@ -104,7 +115,7 @@
 //!
 //! ```rust
 //! use loco_ui::prelude::*;
-//! let ui = Ui::from_request("/orders", "status=paid&sort.orders=total&dir.orders=desc", "");
+//! let ui = Ui::from_request("/orders", "status=paid&sort.orders=-total", "");
 //! let orders = [(1, "Ada", "paid", 12.5_f64), (2, "Grace", "pending", 30.0), (3, "Ken", "paid", 20.0)];
 //! let q = ui.table_query("orders", &["id", "total"]);
 //! let status = ui.param("status").unwrap_or("");
@@ -120,7 +131,7 @@
 //!     rows (page.iter().map(|o| (o.0, o.1, ui.badge(o.2), format!("${:.2}", o.3))));
 //! } }.into_string();
 //! assert!(html.contains("<td>Ken</td>") && !html.contains("Grace"));
-//! assert!(html.contains(r#"href="/orders?sort.orders=total&amp;dir.orders=asc&amp;status=paid&amp;"#), "kept by the sort links");
+//! assert!(html.contains(r#"href="/orders?sort.orders=total&amp;status=paid&amp;"#), "kept by the sort links");
 //! assert!(html.contains(r#"<option value="paid" selected>Paid</option>"#));
 //! // A display-only table: no search box, no sortable column, no pager, so no link at all.
 //! let recent = lui! { Table("recent", "") hide_search {
@@ -129,30 +140,75 @@
 //! } }.into_string();
 //! assert!(!recent.contains("<a ") && !recent.contains("<form"));
 //! ```
+//!
+//! **More of a data table:** column filters, select-all, a caption, totals and footer rows,
+//! stripes, a compact density, group rows, row links, disabled and toned rows, JSON, and
+//! markup when there are no rows.
+//!
+//! ```rust
+//! use loco_ui::{prelude::*, table::Density};
+//! let ui = Ui::from_request("/orders", "q.orders.customer=a&sort.orders=status,-total", "");
+//! let q = ui.table_query("orders", &["status", "total"]);
+//! let orders = [(1, "Ada", "paid", 12.5_f64), (2, "Grace", "due", 30.0), (3, "Ken", "paid", 20.0)];
+//! let mut found: Vec<_> = orders.iter().filter(|o| q.matches_in("customer", o.1)).collect();
+//! q.sort_by(&mut found, |a, b, key| match key { "total" => a.3.total_cmp(&b.3), _ => a.2.cmp(b.2) });
+//! let row = |o: &&(u32, &'static str, &'static str, f64)| {
+//!     let r = Row::from((o.0, o.1, o.2, format!("${:.2}", o.3))).href("/orders/1");
+//!     if o.2 == "due" { r.warn() } else { r }
+//! };
+//! let html = ui.table("orders", "/orders")
+//!     .column("id", "Order").numeric()
+//!     .column("customer", "Customer").filterable()
+//!     .column("status", "Status").sortable()
+//!     .column("total", "Total").sortable().numeric()
+//!     .bulk("/orders/bulk", [("archive", "Archive")]).select_all()
+//!     .caption("Orders").total("total", "$32.50").striped().density(Density::Compact)
+//!     .group_by("status").json("/orders.json").empty(html! { a href="/orders/new" { "Add an order" } })
+//!     .rows(found.iter().map(row)).render().into_string();
+//! assert!(html.contains(r#"<details class="lui-table-filters" open>"#) && html.contains(r#"name="q.orders.customer""#));
+//! assert!(html.contains(r#"aria-label="Select all 2 matching rows""#));
+//! assert!(html.contains(r#"<tr class="lui-table-group"><td colspan="6">paid</td></tr>"#));
+//! assert!(html.contains("<tfoot>") && html.contains("$32.50"));
+//! let same = lui! { Table("orders", "/orders") select_all caption="Orders" striped density=(Density::Compact)
+//!         group_by="status" json="/orders.json" empty={ a href="/orders/new" { "Add an order" } } {
+//!     column "id" "Order" numeric;
+//!     column "customer" "Customer" filterable;
+//!     column "status" "Status" sortable;
+//!     column "total" "Total" sortable numeric;
+//!     bulk "/orders/bulk" ([("archive", "Archive")]);
+//!     total "total" "$32.50";
+//!     rows (found.iter().map(row));
+//! } };
+//! assert_eq!(same.into_string(), html);
+//! ```
 
 #[cfg(feature = "loco")]
 use loco_rs::controller::views::pagination::PagerMeta;
 use maud::{Markup, Render, html};
 
-use crate::button::Button;
 use crate::i18n::{Strings, Text};
-use crate::input::Input;
-use crate::paged_table::{PagedTableOptions, paged_table_with};
-use crate::popover::{MenuItem, Placement, menu};
+use crate::popover::MenuItem;
 use crate::props::{Prop, PropKind};
 use crate::state::decode;
-use crate::{Cap, Caps, Icon, Ui, enhance, slug};
+use crate::{Caps, Ui, enhance};
+
+mod body;
+mod foot;
+mod head;
+mod toolbar;
 
 /// One column: the query key it sorts by, its header text, whether it can be sorted, how
 /// its cells align and how wide it is.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct Column<'a> {
-    /// Value of `?sort.<id>=` for this column, and its name in `?cols.<id>=`.
+    /// Its name in `?sort.<id>=`, `?cols.<id>=` and `?q.<id>.<key>=`.
     pub key: &'a str,
     /// Header text.
     pub label: &'a str,
     /// Whether the header is a sort link.
     pub sortable: bool,
+    /// Whether it has a text box in the "Filters" panel.
+    pub filterable: bool,
     /// Right-aligned tabular figures.
     pub numeric: bool,
     /// A CSS width for the `<col>`, such as `6rem` or `30%`.
@@ -164,41 +220,14 @@ pub(crate) struct Column<'a> {
 }
 
 impl<'a> Column<'a> {
-    /// A column whose header sorts the table.
-    #[cfg(test)]
-    pub const fn sortable(key: &'a str, label: &'a str) -> Column<'a> {
-        Column {
-            key,
-            label,
-            sortable: true,
-            numeric: false,
-            width: None,
-            editable: false,
-            priority: 1,
-        }
-    }
-
     /// A column with a plain header.
     pub const fn plain(key: &'a str, label: &'a str) -> Column<'a> {
         Column {
             key,
             label,
             sortable: false,
+            filterable: false,
             numeric: false,
-            width: None,
-            editable: false,
-            priority: 1,
-        }
-    }
-
-    /// A sortable column of numbers: right-aligned, tabular figures.
-    #[cfg(test)]
-    pub const fn numeric(key: &'a str, label: &'a str) -> Column<'a> {
-        Column {
-            key,
-            label,
-            sortable: true,
-            numeric: true,
             width: None,
             editable: false,
             priority: 1,
@@ -207,9 +236,11 @@ impl<'a> Column<'a> {
 }
 
 /// One row: its cells, and optionally a key (for selection and its menu id), a detail
-/// block opened from the first cell, and an action menu in a last column.
+/// block opened from the first cell, an action menu in a last column, a link for the whole
+/// row and a tone.
 ///
-/// **Setters.** Values and items: `.key(..)`, `.detail(..)`, `.values(..)`, `.menu(..)`.
+/// **Setters.** Values and items: `.key(..)`, `.detail(..)`, `.values(..)`, `.menu(..)`,
+/// `.href(..)`; switches: `.disabled()`, `.ok()`, `.warn()`, `.danger()`.
 #[derive(Clone, Debug)]
 pub struct Row<'a> {
     cells: Vec<Markup>,
@@ -217,6 +248,9 @@ pub struct Row<'a> {
     detail: Option<Markup>,
     menu: Vec<MenuItem<'a>>,
     values: Vec<&'a str>,
+    href: Option<&'a str>,
+    disabled: bool,
+    tone: Option<&'static str>,
 }
 
 impl Row<'_> {
@@ -239,6 +273,15 @@ impl Row<'_> {
             "items: impl IntoIterator<Item = MenuItem<'a>>",
         )
         .doc("Items of the row's action menu (needs a `key`)."),
+        Prop::new("href", PropKind::Value, "href: &'a str").doc(
+            "The whole row links to `href`: a click anywhere on it that is not a control opens it.",
+        ),
+        Prop::new("disabled", PropKind::Switch, "")
+            .doc("The row cannot be selected or opened: no checkbox, no row link, muted."),
+        Prop::new("ok", PropKind::Switch, "").doc("The row tinted with the `--lui-ok` tone."),
+        Prop::new("warn", PropKind::Switch, "").doc("The row tinted with the `--lui-warn` tone."),
+        Prop::new("danger", PropKind::Switch, "")
+            .doc("The row tinted with the `--lui-danger` tone."),
     ];
 }
 
@@ -251,6 +294,9 @@ impl<'a> Row<'a> {
             detail: None,
             menu: Vec::new(),
             values: Vec::new(),
+            href: None,
+            disabled: false,
+            tone: None,
         }
     }
     /// The value posted for this row when its checkbox is ticked; also names its menu.
@@ -272,6 +318,34 @@ impl<'a> Row<'a> {
     /// Items of the row's action menu (needs a `key`).
     pub fn menu(mut self, items: impl IntoIterator<Item = MenuItem<'a>>) -> Self {
         self.menu = items.into_iter().collect();
+        self
+    }
+    /// The whole row links to `href`, as Tremor's linked rows do: a link in a last column
+    /// whose box is stretched over the row, so a click anywhere on it that is not a control
+    /// (checkbox, detail, menu, a link in a cell) opens it, and the keyboard reaches it as
+    /// one link named after the row's key.
+    pub const fn href(mut self, href: &'a str) -> Self {
+        self.href = Some(href);
+        self
+    }
+    /// The row cannot be selected or opened: no checkbox, no row link, `aria-disabled`, muted.
+    pub const fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+    /// The row tinted with the `--lui-ok` tone (a paid order, a passing check).
+    pub const fn ok(mut self) -> Self {
+        self.tone = Some("lui-table-ok");
+        self
+    }
+    /// The row tinted with the `--lui-warn` tone (overdue, nearly full).
+    pub const fn warn(mut self) -> Self {
+        self.tone = Some("lui-table-warn");
+        self
+    }
+    /// The row tinted with the `--lui-danger` tone (failed, refused).
+    pub const fn danger(mut self) -> Self {
+        self.tone = Some("lui-table-danger");
         self
     }
 }
@@ -357,17 +431,16 @@ impl<A: Render, B: Render, C: Render, D: Render, E: Render, F: Render, G: Render
     }
 }
 
-/// The query keys of the table `id`: `q.<id>`, `sort.<id>`, `dir.<id>`, `page.<id>` and
-/// `cols.<id>`, named like its page size (`per.<id>`) and its in-place edit (`edit.<id>`), so
-/// two tables on one page sort, filter and page on their own. An empty id gives the bare names.
+/// The query keys of the table `id`: `q.<id>`, `sort.<id>`, `page.<id>` and `cols.<id>`,
+/// named like its page size (`per.<id>`) and its in-place edit (`edit.<id>`), so two tables
+/// on one page sort, filter and page on their own; a column's filter is
+/// [`Keys::filter`], `q.<id>.<column>`. An empty id gives the bare names.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Keys {
     /// The search text.
     pub q: String,
-    /// The sort column.
+    /// The sort: a comma list of column keys, each `-` first when descending.
     pub sort: String,
-    /// The sort direction, `asc` or `desc`.
-    pub dir: String,
     /// The page, 1-based.
     pub page: String,
     /// The visible columns, a comma list.
@@ -380,7 +453,7 @@ impl Keys {
     /// ```rust
     /// let keys = loco_ui::table::Keys::new("files");
     /// assert_eq!((keys.q.as_str(), keys.sort.as_str()), ("q.files", "sort.files"));
-    /// assert_eq!(format!("/table?{}=size&{}=desc", keys.sort, keys.dir), "/table?sort.files=size&dir.files=desc");
+    /// assert_eq!(format!("/table?{}=-size,name&{}=src", keys.sort, keys.filter("name")), "/table?sort.files=-size,name&q.files.name=src");
     /// ```
     pub fn new(id: &str) -> Keys {
         let key = |name: &str| {
@@ -393,47 +466,77 @@ impl Keys {
         Keys {
             q: key("q"),
             sort: key("sort"),
-            dir: key("dir"),
             page: key("page"),
             cols: key("cols"),
         }
     }
+
+    /// The key of the filter of the column `column`: `q.<id>.<column>`.
+    pub fn filter(&self, column: &str) -> String {
+        format!("{}.{column}", self.q)
+    }
 }
 
-/// A table's URL parameters (`?sort.<id>=&dir.<id>=&q.<id>=&page.<id>=&cols.<id>=`, see
-/// [`Keys`]) and its page size, read before the
-/// markup: made by [`Ui::table_query`], so a route can fetch, sort and slice its rows and then
-/// write the table in `lui!` without holding the builder in a variable. The [`Table`] with the
-/// same id reads the same parameters, so the two agree.
+/// `name,-size`: the sort as a form field holds it (the browser encodes it).
+pub(crate) fn sort_text(sort: &[(&str, bool)]) -> String {
+    let keys: Vec<String> = (sort.iter())
+        .map(|(k, desc)| format!("{}{k}", if *desc { "-" } else { "" }))
+        .collect();
+    keys.join(",")
+}
+
+/// `name,-size`: the sort as `?sort.<id>=` writes it, each key encoded, the commas kept.
+pub(crate) struct SortValue<'a>(pub(crate) &'a [(&'a str, bool)]);
+
+impl std::fmt::Display for SortValue<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (i, (key, desc)) in self.0.iter().enumerate() {
+            let sep = if i == 0 { "" } else { "," };
+            let dash = if *desc { "-" } else { "" };
+            write!(f, "{sep}{dash}{}", Encoded(key))?;
+        }
+        Ok(())
+    }
+}
+
+/// A table's URL parameters (`?sort.<id>=&q.<id>=&q.<id>.<column>=&page.<id>=&cols.<id>=`,
+/// see [`Keys`]) and its page size, read before the markup: made by [`Ui::table_query`], so
+/// a route can fetch, sort and slice its rows and then write the table in `lui!` without
+/// holding the builder in a variable. The [`Table`] with the same id reads the same
+/// parameters, so the two agree.
 ///
 /// ```rust
 /// use loco_ui::prelude::*;
-/// let ui = Ui::from_request("/orders", "sort.orders=total&dir.orders=desc&q.orders=ADA&page.orders=2", "lui-ui=per.orders=5");
+/// let ui = Ui::from_request("/orders", "sort.orders=-total,id&q.orders=ADA&page.orders=2", "lui-ui=per.orders=5");
 /// let q = ui.table_query("orders", &["id", "total"]);
-/// assert_eq!((q.sort(), q.filter(), q.page(), q.per_page()), (Some(("total", true)), "ADA", 2, 5));
-/// let mut orders: Vec<(u32, &str, f64)> = (1..=20).map(|i| (i, "Ada", i as f64)).collect();
+/// assert_eq!((q.sort(), q.filter(), q.page(), q.per_page()), (&[("total", true), ("id", false)][..], "ADA", 2, 5));
+/// let mut orders: Vec<(u32, &str, f64)> = (1..=20).map(|i| (i, "Ada", (i % 4) as f64)).collect();
 /// orders.retain(|o| q.matches(o.1)); // case-insensitive, and true when there is no filter
+/// // Compared by each key in turn: total descending, then id.
 /// q.sort_by(&mut orders, |a, b, key| match key {
 ///     "total" => a.2.total_cmp(&b.2),
 ///     _ => a.0.cmp(&b.0),
 /// });
 /// let (page, total) = q.page_of(&orders);
-/// assert_eq!((page[0].0, page.len(), total), (15, 5, 20));
-/// // Defaults: no sort, no filter, page 1 of 10 rows.
-/// let ui = Ui::from_request("/orders", "sort.orders=secret", "");
+/// assert_eq!((page[0].0, page.len(), total), (2, 5, 20));
+/// // A column's own filter, `q.<id>.<column>`:
+/// let ui = Ui::from_request("/orders", "q.orders.status=PAID&sort.orders=secret", "");
 /// let q = ui.table_query("orders", &["id"]);
-/// assert_eq!((q.sort(), q.filter(), q.page(), q.per_page()), (None, "", 1, 10));
+/// assert_eq!((q.filters(), q.matches_in("status", "paid"), q.matches_in("status", "due")), (&[("status", "PAID")][..], true, false));
+/// // Defaults: no sort, no filter, page 1 of 10 rows.
+/// assert_eq!((q.sort(), q.filter(), q.page(), q.per_page()), (&[][..], "", 1, 10));
 /// ```
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TableQuery<'a> {
-    /// `?sort.<id>=<key>`; checked against the sortable keys (or the table's columns).
-    pub(crate) sort: Option<&'a str>,
-    /// `?dir.<id>=desc`.
-    pub(crate) desc: bool,
+    /// `?sort.<id>=a,-b` as `(key, descending)`, each key once, in order; checked against
+    /// the sortable keys (or the table's columns).
+    pub(crate) sort: Vec<(&'a str, bool)>,
     /// `?q.<id>=`, the search text as typed, trimmed.
     pub(crate) filter: &'a str,
     /// The search text lowercased, for [`TableQuery::matches`].
     lower: String,
+    /// `?q.<id>.<column>=` as `(column, text)`, trimmed, the empty ones left out.
+    pub(crate) filters: Vec<(&'a str, &'a str)>,
     /// `?page.<id>=`, 1-based.
     pub(crate) page: Option<usize>,
     /// `?cols.<id>=a,b`, checked against the columns by [`TableQuery::cols_in`].
@@ -443,35 +546,58 @@ pub struct TableQuery<'a> {
 }
 
 impl Ui {
-    /// The query of the table `id` ([`TableQuery`]): its sort (only by one of `sortable`),
-    /// search text, page and page size, for fetching the rows before writing the table.
-    /// Defaults: unsorted, no filter, page 1, 10 rows per page, or the size the visitor picked
-    /// (`ui.state.per_page(id)`, capped at 50).
+    /// The query of the table `id` ([`TableQuery`]): its sort (only by keys in `sortable`),
+    /// search text, column filters, page and page size, for fetching the rows before writing
+    /// the table. Defaults: unsorted, no filter, page 1, 10 rows per page, or the size the
+    /// visitor picked (`ui.state.per_page(id)`, capped at 50).
     pub fn table_query<'a>(&'a self, id: &str, sortable: &[&str]) -> TableQuery<'a> {
         let mut q = TableQuery::from_ui(self, id);
-        q.sort = q.sort.filter(|k| sortable.contains(k));
+        q.sort.retain(|(k, _)| sortable.contains(k));
         q
     }
 }
 
+/// `name,-size,name` as `[("name", false), ("size", true)]`: each key once, the first time.
+fn parse_sort(value: &str) -> Vec<(&str, bool)> {
+    let mut sort: Vec<(&str, bool)> = Vec::new();
+    for part in value.split(',').map(str::trim) {
+        let (key, desc) = match part.strip_prefix('-') {
+            Some(key) => (key, true),
+            None => (part, false),
+        };
+        if !key.is_empty() && !sort.iter().any(|(k, _)| *k == key) {
+            sort.push((key, desc));
+        }
+    }
+    sort
+}
+
 impl<'a> TableQuery<'a> {
-    /// Read the table's parameters from the request, the sort key unchecked.
-    /// Each key is `<name>.<id>` ([`Keys`]); the bare `<name>` is still read when that is
-    /// absent (deprecated, for one release).
+    /// Read the table's parameters from the request, the sort keys unchecked.
     pub(crate) fn from_ui(ui: &'a Ui, id: &str) -> TableQuery<'a> {
         let keys = Keys::new(id);
-        let param = |key: &str, bare: &str| ui.param(key).or_else(|| ui.param(bare));
-        let filter = param(&keys.q, "q").unwrap_or("").trim();
+        let filter = ui.param(&keys.q).unwrap_or("").trim();
+        let prefix = format!("{}.", keys.q);
+        let mut filters: Vec<(&str, &str)> = Vec::new();
+        for (k, v) in ui.query_pairs() {
+            if let Some(column) = k.strip_prefix(&prefix)
+                && !v.trim().is_empty()
+                && !filters.iter().any(|(c, _)| *c == column)
+            {
+                filters.push((column, v.trim()));
+            }
+        }
         let sizes = crate::paged_table::PAGE_SIZES;
         TableQuery {
-            sort: param(&keys.sort, "sort"),
-            desc: param(&keys.dir, "dir") == Some("desc"),
+            sort: ui.param(&keys.sort).map(parse_sort).unwrap_or_default(),
             filter,
             lower: filter.to_lowercase(),
-            page: param(&keys.page, "page")
+            filters,
+            page: ui
+                .param(&keys.page)
                 .and_then(|v| v.parse().ok())
                 .filter(|&n| n > 0),
-            cols: param(&keys.cols, "cols"),
+            cols: ui.param(&keys.cols),
             per_page: ui
                 .state
                 .per_page(id)
@@ -480,9 +606,10 @@ impl<'a> TableQuery<'a> {
         }
     }
 
-    /// The requested sort as `(column key, descending)`.
-    pub fn sort(&self) -> Option<(&'a str, bool)> {
-        self.sort.map(|k| (k, self.desc))
+    /// The requested sort as `(column key, descending)`, most significant first; empty when
+    /// unsorted.
+    pub fn sort(&self) -> &[(&'a str, bool)] {
+        &self.sort
     }
 
     /// The requested search text, trimmed, as typed.
@@ -490,9 +617,23 @@ impl<'a> TableQuery<'a> {
         self.filter
     }
 
+    /// The requested column filters as `(column key, text)`, trimmed, as typed.
+    pub fn filters(&self) -> &[(&'a str, &'a str)] {
+        &self.filters
+    }
+
     /// Whether `text` contains the search text, ignoring case; always true with no search.
     pub fn matches(&self, text: &str) -> bool {
         self.lower.is_empty() || text.to_lowercase().contains(&self.lower)
+    }
+
+    /// Whether `text` contains the filter of the column `key`, ignoring case; always true
+    /// when that column has none.
+    pub fn matches_in(&self, key: &str, text: &str) -> bool {
+        self.filters
+            .iter()
+            .find(|(k, _)| *k == key)
+            .is_none_or(|(_, f)| text.to_lowercase().contains(&f.to_lowercase()))
     }
 
     /// The requested page, 1-based (not yet clamped to the rows there are: see
@@ -507,14 +648,22 @@ impl<'a> TableQuery<'a> {
     }
 
     /// Sort `rows` as asked, when asked: `cmp(a, b, key)` compares two rows by the column
-    /// `key` in ascending order, and a descending sort reverses it. Stable.
+    /// `key` in ascending order; each sort key is tried in turn until one tells the rows
+    /// apart, and a descending key reverses its order. Stable.
     pub fn sort_by<T>(&self, rows: &mut [T], cmp: impl Fn(&T, &T, &str) -> std::cmp::Ordering) {
-        if let Some((key, desc)) = self.sort() {
-            rows.sort_by(|a, b| {
-                let order = cmp(a, b, key);
-                if desc { order.reverse() } else { order }
-            });
+        if self.sort.is_empty() {
+            return;
         }
+        rows.sort_by(|a, b| {
+            self.sort
+                .iter()
+                .map(|(key, desc)| {
+                    let order = cmp(a, b, key);
+                    if *desc { order.reverse() } else { order }
+                })
+                .find(|o| o.is_ne())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
     }
 
     /// The current page of `rows` (every row, filtered and sorted) and their count, the
@@ -523,10 +672,10 @@ impl<'a> TableQuery<'a> {
         let total = rows.len();
         let pages = total.div_ceil(self.per_page).max(1);
         let start = (self.page().clamp(1, pages) - 1) * self.per_page;
-        (
-            &rows[start.min(total)..(start + self.per_page).min(total)],
-            total,
-        )
+        let page = rows
+            .get(start.min(total)..(start + self.per_page).min(total))
+            .unwrap_or(&[]);
+        (page, total)
     }
 
     /// The keys of the columns `?cols.<id>=` shows, in table order; every key when it names none.
@@ -543,31 +692,10 @@ impl<'a> TableQuery<'a> {
         }
     }
 
-    /// The sort as `(key, descending)`, only for a sortable column of `columns`.
-    pub(crate) fn sort_in<'c>(&self, columns: &[Column<'c>]) -> Option<(&'c str, bool)> {
-        sort_from_query(
-            columns,
-            self.sort,
-            Some(if self.desc { "desc" } else { "asc" }),
-        )
-    }
-
     /// The visible column keys, only those `columns` has; `None` means every column.
     pub(crate) fn cols_in<'c>(&self, columns: &[Column<'c>]) -> Option<Vec<&'c str>> {
         cols_from_query(columns, self.cols)
     }
-}
-
-/// Parse `?sort.<id>=<key>&dir.<id>=<asc|desc>` into `(key, descending)`. Unknown keys give `None`,
-/// so a hand-edited URL cannot ask for a column that is not there.
-pub(crate) fn sort_from_query<'a>(
-    columns: &[Column<'a>],
-    sort: Option<&str>,
-    dir: Option<&str>,
-) -> Option<(&'a str, bool)> {
-    let key = sort?;
-    let col = columns.iter().find(|c| c.sortable && c.key == key)?;
-    Some((col.key, dir == Some("desc")))
 }
 
 /// Parse `?cols.<id>=a,b` into the visible keys, keeping only keys the table has and only when at
@@ -585,39 +713,96 @@ pub(crate) fn cols_from_query<'a>(
     (!keys.is_empty()).then_some(keys)
 }
 
-/// How the table renders; `Default::default()` is unsorted, unfiltered, every column, no
-/// selection, no CSV link.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) struct TableOptions<'a> {
-    /// The current sort as `(key, descending)`, usually from [`sort_from_query`].
-    pub sort: Option<(&'a str, bool)>,
+/// How much room a table's cells get: the page-wide [`Density`] (M39). On a table,
+/// [`Density::Compact`] halves the cell padding and makes the text smaller, for a dense admin
+/// list; the table's own setting wins over the page's.
+pub use crate::layout::Density;
+
+/// What one render of a table needs, worked out by [`Table`] from its setters and the
+/// request; a paged table draws the same view with the page's rows and its page size kept.
+#[derive(Clone, Debug)]
+pub(crate) struct View<'v> {
+    pub caps: Caps,
+    pub id: &'v str,
+    /// The links' and forms' target, its own query moved into `keep`.
+    pub href: &'v str,
+    pub columns: &'v [Column<'v>],
+    pub rows: &'v [Row<'v>],
+    /// The current sort as `(key, descending)`, most significant first, sortable keys only.
+    pub sort: &'v [(&'v str, bool)],
     /// The current search text, echoed into the box and kept in the sort links.
-    pub filter: &'a str,
+    pub filter: &'v str,
+    /// The current column filters as `(key, text)`, filterable columns only.
+    pub filters: &'v [(&'v str, &'v str)],
     /// Extra query pairs (a page size, say) carried by every link and the filter form.
-    pub keep: &'a [(&'a str, &'a str)],
-    /// Visible column keys, usually from [`cols_from_query`]; `None` shows all.
-    pub cols: Option<&'a [&'a str]>,
-    /// Show the "Columns" chooser (links that toggle `?cols.<id>=`); also shown whenever `cols`
-    /// is set, so a hidden column can always be brought back.
+    pub keep: Vec<(&'v str, &'v str)>,
+    /// Visible column keys; `None` shows all.
+    pub cols: Option<&'v [&'v str]>,
+    /// Show the "Columns" chooser; also shown whenever `cols` is set, so a hidden column can
+    /// always be brought back.
     pub choose_columns: bool,
-    /// A bulk post `action` and its buttons `(value, label)`: adds a checkbox column and a
-    /// bar after the table. The form posts `row=<key>` per ticked row and `action=<value>`.
-    pub bulk: Option<(&'a str, &'a [(&'a str, &'a str)])>,
-    /// Base URL of a CSV download; the current sort, filter and columns are appended.
-    pub csv: Option<&'a str>,
-    /// Message of the empty body.
-    pub empty: &'a str,
+    /// A bulk post `action` and its buttons `(value, label)`.
+    pub bulk: Option<(&'v str, &'v [(&'v str, &'v str)])>,
+    /// A header checkbox posting `all=1`: every row the filter matches.
+    pub select_all: bool,
+    /// How many rows the filter matches: the paged total, or the rows given.
+    pub matching: usize,
+    /// Base URLs of the CSV and JSON downloads; the current sort, filters and columns are
+    /// appended.
+    pub csv: Option<&'v str>,
+    pub json: Option<&'v str>,
+    /// What the empty body says.
+    pub empty: &'v Markup,
     /// Draw skeleton rows with `aria-busy` instead of `rows`: the data is still coming.
     pub loading: bool,
-    /// Rows can be edited in place: an "Edit" link per row, and the row being edited as text
-    /// boxes posting to one form.
-    pub edit: Option<Editing<'a>>,
+    /// Rows can be edited in place.
+    pub edit: Option<Editing<'v>>,
     /// The visitor's language, for the table's own words.
     pub strings: &'static Strings,
-    /// The search box (on unless `Table::hide_search`).
+    /// The search box.
     pub search: bool,
     /// `<select>`s in the search form, each filtering by one query parameter.
-    pub selects: &'a [FilterSelect<'a>],
+    pub selects: &'v [FilterSelect<'v>],
+    /// A visually hidden `<caption>`.
+    pub caption: Option<&'v str>,
+    /// `(column key, text)` cells of a totals row in `<tfoot>`.
+    pub totals: &'v [(&'v str, &'v str)],
+    /// More `<tfoot>` rows.
+    pub footer: &'v [Row<'v>],
+    pub striped: bool,
+    pub density: Density,
+    /// The index of the column whose value heads a group of rows.
+    pub group_by: Option<usize>,
+}
+
+impl<'v> View<'v> {
+    /// Every pair a link or form of this table carries besides the sort: the search text,
+    /// the column filters (`filter_keys` names them, in `filters` order), the kept
+    /// parameters and the visible columns.
+    pub(crate) fn pairs<'s>(
+        &'s self,
+        keys: &'s Keys,
+        filter_keys: &'s [String],
+        cols: Option<&'s str>,
+    ) -> Vec<(&'s str, &'s str)> {
+        let mut pairs: Vec<(&'s str, &'s str)> = Vec::with_capacity(4 + self.keep.len());
+        if !self.filter.is_empty() {
+            pairs.push((&keys.q, self.filter));
+        }
+        for (key, (_, text)) in filter_keys.iter().zip(self.filters) {
+            pairs.push((key, text));
+        }
+        pairs.extend(self.keep.iter().copied());
+        if let Some(c) = cols {
+            pairs.push((&keys.cols, c));
+        }
+        pairs
+    }
+
+    /// The keys of the column filters, `q.<id>.<column>`, in `filters` order.
+    pub(crate) fn filter_keys(&self, keys: &Keys) -> Vec<String> {
+        self.filters.iter().map(|(c, _)| keys.filter(c)).collect()
+    }
 }
 
 /// A `<select>` in the table's search form: its parameter, label, `(value, text)` options and
@@ -655,353 +840,132 @@ pub(crate) struct Editing<'a> {
     pub done: &'a str,
 }
 
-impl Default for TableOptions<'_> {
-    fn default() -> Self {
-        TableOptions {
-            sort: None,
-            filter: "",
-            keep: &[],
-            cols: None,
-            choose_columns: false,
-            bulk: None,
-            csv: None,
-            empty: Strings::ENGLISH.get(Text::NoRows),
-            loading: false,
-            edit: None,
-            strings: &Strings::ENGLISH,
-            search: true,
-            selects: &[],
+/// A [`View`] with what its parts share worked out once: the query keys, the element ids,
+/// the visible columns and the pairs every link carries.
+struct Ctx<'c, 'v> {
+    v: &'c View<'v>,
+    keys: &'c Keys,
+    root: &'c str,
+    edit_id: &'c str,
+    bulk_id: &'c str,
+    /// `(index in the row's cells, column)` of each shown column.
+    visible: &'c [(usize, &'v Column<'v>)],
+    /// Query pairs every link and form carries besides the sort: filters, extras, columns.
+    carried: &'c [(&'c str, &'c str)],
+    has_menu: bool,
+    /// Some row links somewhere: a last column holds the links.
+    has_link: bool,
+    /// Cells in a full-width row: the shown columns and the select, edit, menu and link
+    /// columns.
+    span: usize,
+}
+
+impl Ctx<'_, '_> {
+    fn t(&self, text: Text) -> &'static str {
+        self.v.strings.get(text)
+    }
+
+    fn shown(&self, c: &Column) -> bool {
+        self.v.cols.is_none_or(|v| v.contains(&c.key))
+    }
+
+    /// `?sort.<id>=..&pairs..`, or nothing when there is neither.
+    fn query(&self, sort: &[(&str, bool)], pairs: &[(&str, &str)]) -> String {
+        use std::fmt::Write;
+        let mut out = String::new();
+        if !sort.is_empty() {
+            let _ = write!(out, "?{}={}", Encoded(&self.keys.sort), SortValue(sort));
         }
-    }
-}
-
-// Setters for the tests; the builder fills the struct directly.
-#[cfg(test)]
-impl<'a> TableOptions<'a> {
-    /// The current sort as `(key, descending)`.
-    pub fn sort(mut self, sort: Option<(&'a str, bool)>) -> Self {
-        self.sort = sort;
-        self
-    }
-    /// The current search text.
-    pub fn filter(mut self, filter: &'a str) -> Self {
-        self.filter = filter;
-        self
-    }
-    /// Extra query pairs carried by every link and the filter form.
-    pub fn keep(mut self, keep: &'a [(&'a str, &'a str)]) -> Self {
-        self.keep = keep;
-        self
-    }
-    /// Visible column keys.
-    pub fn cols(mut self, cols: Option<&'a [&'a str]>) -> Self {
-        self.cols = cols;
-        self
-    }
-    /// A bulk post action with its buttons.
-    pub fn bulk(mut self, action: &'a str, buttons: &'a [(&'a str, &'a str)]) -> Self {
-        self.bulk = Some((action, buttons));
-        self
-    }
-    /// Show skeleton rows instead of `rows`.
-    pub fn loading(mut self, loading: bool) -> Self {
-        self.loading = loading;
-        self
-    }
-}
-
-/// `rows` are already sorted and filtered by the caller; `options` says how, so the links
-/// and the filter box reflect it.
-pub(crate) fn table_with(
-    caps: &Caps,
-    id: &str,
-    href: &str,
-    columns: &[Column],
-    rows: &[Row],
-    options: TableOptions,
-) -> Markup {
-    table_in(caps, id, href, columns, rows, options, true)
-}
-
-/// [`table_with`], as a swap root or not: inside a paged table the pager's root is the swap
-/// root, so a sort also refreshes the page links.
-pub(crate) fn table_in(
-    caps: &Caps,
-    id: &str,
-    href: &str,
-    columns: &[Column],
-    rows: &[Row],
-    options: TableOptions,
-    swap: bool,
-) -> Markup {
-    let TableOptions {
-        sort,
-        filter,
-        keep,
-        cols,
-        choose_columns,
-        bulk,
-        csv,
-        empty,
-        loading,
-        edit,
-        strings,
-        search,
-        selects,
-    } = options;
-    let t = |text| strings.get(text);
-    let keys = Keys::new(id);
-    let root = enhance::swap_id("lui-table", id);
-    let edit_id = format!("{root}-edit");
-    let filter_id = format!("{root}-q");
-    let bulk_id = format!("{root}-bulk");
-    let vt = caps
-        .has(Cap::ViewTransitions)
-        .then(|| format!("view-transition-name: lui-table-{id}"));
-    let shown = |c: &Column| cols.is_none_or(|v| v.contains(&c.key));
-    let visible: Vec<(usize, &Column)> = columns
-        .iter()
-        .enumerate()
-        .filter(|(_, c)| shown(c))
-        .collect();
-    let cols_value = cols.map(|v| v.join(","));
-    // Query pairs every link and form carries besides the sort: filter, extras, columns.
-    let mut carried: Vec<(&str, &str)> = Vec::new();
-    if !filter.is_empty() {
-        carried.push((&keys.q, filter));
-    }
-    carried.extend(keep.iter().copied());
-    if let Some(v) = &cols_value {
-        carried.push((&keys.cols, v));
-    }
-    let sort_pairs = |s: Option<(&str, bool)>| {
-        s.map(|(k, d)| {
-            format!(
-                "{}={}&{}={}",
-                Encoded(&keys.sort),
-                Encoded(k),
-                Encoded(&keys.dir),
-                if d { "desc" } else { "asc" }
-            )
-        })
-    };
-    let query = |s: Option<(&str, bool)>, pairs: &[(&str, &str)]| {
-        let all: Vec<String> = sort_pairs(s)
-            .into_iter()
-            .chain(
-                pairs
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", encode(k), encode(v))),
-            )
-            .collect();
-        if all.is_empty() {
-            String::new()
-        } else {
-            format!("?{}", all.join("&"))
+        for (k, v) in pairs {
+            let sep = if out.is_empty() { '?' } else { '&' };
+            let _ = write!(out, "{sep}{}={}", Encoded(k), Encoded(v));
         }
-    };
-    let cols_link = |key: &str| -> String {
-        let current: Vec<&str> = cols
-            .map(|v| v.to_vec())
-            .unwrap_or_else(|| columns.iter().map(|c| c.key).collect());
-        let next: Vec<&str> = if current.contains(&key) {
-            current.iter().copied().filter(|k| *k != key).collect()
-        } else {
-            columns
-                .iter()
-                .map(|c| c.key)
-                .filter(|k| current.contains(k) || *k == key)
-                .collect()
-        };
-        let joined = next.join(",");
-        let mut pairs: Vec<(&str, &str)> = carried
+        out
+    }
+
+    /// `href` with `sort` and `pairs`.
+    fn link(&self, sort: &[(&str, bool)], pairs: &[(&str, &str)]) -> String {
+        join(self.v.href, &self.query(sort, pairs))
+    }
+}
+
+impl View<'_> {
+    /// The table, as a swap root or not: inside a paged table the pager's root is the swap
+    /// root, so a sort also refreshes the page links.
+    pub(crate) fn render(&self, swap: bool) -> Markup {
+        let keys = Keys::new(self.id);
+        let root = enhance::swap_id("lui-table", self.id);
+        let edit_id = format!("{root}-edit");
+        let bulk_id = format!("{root}-bulk");
+        let visible: Vec<(usize, &Column)> = self
+            .columns
             .iter()
-            .copied()
-            .filter(|(k, _)| *k != keys.cols)
+            .enumerate()
+            .filter(|(_, c)| self.cols.is_none_or(|v| v.contains(&c.key)))
             .collect();
-        pairs.push((&keys.cols, &joined));
-        join(href, &query(sort, &pairs))
-    };
-    // A `<select>` sends its own value, so the form carries everything else.
-    let hidden = |k: &str| (search && k == keys.q) || selects.iter().any(|s| s.name == k);
-    let filtering = search || !selects.is_empty();
-    let toolbar = filtering || choose_columns || cols.is_some() || csv.is_some();
-    let action = (!href.is_empty()).then_some(href);
-    let has_menu = rows.iter().any(|r| !r.menu.is_empty());
-    let span = visible.len()
-        + usize::from(bulk.is_some())
-        + usize::from(has_menu)
-        + usize::from(edit.is_some());
-    html! {
-        div id=(root) data-lui=[swap.then_some("swap")] class="lui-table" {
-            @if toolbar {
-            div class="lui-table-toolbar" {
-                @if filtering {
-                search class="lui-table-filter" {
-                    form method="get" action=[action] {
-                        @if let Some((key, desc)) = sort {
-                            input type="hidden" name=(keys.sort) value=(key);
-                            input type="hidden" name=(keys.dir) value=(if desc { "desc" } else { "asc" });
-                        }
-                        @for (k, v) in &carried { @if !hidden(k) { input type="hidden" name=(k) value=(v); } }
-                        @if search {
-                            (Input::search_box(&keys.q, t(Text::FilterRows), filter).id(&filter_id).placeholder(t(Text::FilterRowsHint)).autocomplete("off").class("lui-table-filter-input"))
-                        }
-                        @for s in selects {
-                            label class="lui-table-filter-select" {
-                                span class="lui-sr" { (s.label) }
-                                select name=(s.name) {
-                                    @for (value, text) in &s.options { option value=(value) selected[*value == s.value] { (text) } }
-                                }
-                            }
-                        }
-                        (Button::new(*caps, t(Text::Filter)))
-                        @if !filter.is_empty() {
-                            a class="lui-table-clear" href=(join(href, &query(sort, &carried.iter().copied().filter(|(k, _)| *k != keys.q).collect::<Vec<_>>()))) { (t(Text::Clear)) }
-                        }
+        let cols_value = self.cols.map(|v| v.join(","));
+        let filter_keys = self.filter_keys(&keys);
+        let carried = self.pairs(&keys, &filter_keys, cols_value.as_deref());
+        let has_menu = self.rows.iter().any(|r| !r.menu.is_empty());
+        let has_link = self.rows.iter().any(|r| r.href.is_some());
+        let span = visible.len()
+            + usize::from(self.bulk.is_some())
+            + usize::from(has_menu)
+            + usize::from(has_link)
+            + usize::from(self.edit.is_some());
+        let cx = Ctx {
+            v: self,
+            keys: &keys,
+            root: &root,
+            edit_id: &edit_id,
+            bulk_id: &bulk_id,
+            visible: &visible,
+            carried: &carried,
+            has_menu,
+            has_link,
+            span,
+        };
+        html! {
+            div id=(root) data-lui=[swap.then_some("swap")] class={ "lui-table" @if self.striped { " lui-table-striped" } @if self.density == Density::Compact { " lui-table-compact" } } {
+                (toolbar::toolbar(&cx))
+                div class={ "lui-table-scroll" @if self.bulk.is_some() { " lui-table-has-select" } } {
+                    table {
+                        @if let Some(caption) = self.caption { caption class="lui-sr" { (caption) } }
+                        (head::head(&cx))
+                        (body::body(&cx))
+                        (foot::tfoot(&cx))
                     }
                 }
-                }
-                @if choose_columns || cols.is_some() {
-                    details class="lui-table-cols" {
-                        summary class="lui-button" { (t(Text::Columns)) (Icon::ChevronDown) }
-                        ul {
-                            @for c in columns {
-                                @let on = shown(c);
-                                li { a href=(cols_link(c.key)) aria-pressed=(on) {
-                                    span class="lui-table-cols-mark" aria-hidden="true" { @if on { "\u{2611}" } @else { "\u{2610}" } } " " (c.label)
-                                } }
-                            }
-                        }
-                    }
-                }
-                @if let Some(base) = csv {
-                    a class="lui-button lui-button-small lui-table-csv" href=(join(base, &query(sort, &carried))) download { (Icon::Download) (t(Text::DownloadCsv)) }
-                }
-            }
-            }
-            div class={ "lui-table-scroll" @if bulk.is_some() { " lui-table-has-select" } } {
-            table {
-                colgroup {
-                    @if bulk.is_some() { col class="lui-table-select-col"; }
-                    @for (_, c) in &visible { col class=[prio(c)] style=[c.width.map(|w| format!("width: {w}"))]; }
-                    @if edit.is_some() { col class="lui-table-edit-col"; }
-                    @if has_menu { col class="lui-table-menu-col"; }
-                }
-                thead { tr {
-                    @if bulk.is_some() { th scope="col" class="lui-table-select" { span class="lui-sr" { (t(Text::Select)) } } }
-                    @for (_, col) in &visible {
-                        @let sorted = sort.filter(|(k, _)| *k == col.key);
-                        @let aria = sorted.map(|(_, d)| if d { "descending" } else { "ascending" });
-                        th scope="col" aria-sort=[aria] class={ @if sorted.is_some() { "lui-table-sorted" } @if col.numeric { " lui-table-num" } @if let Some(p) = prio(col) { " " (p) } } {
-                            @if col.sortable {
-                                @let next_desc = matches!(sorted, Some((_, false)));
-                                @let pairs: Vec<(&str, &str)> = carried.clone();
-                                a href=(join(href, &query(Some((col.key, next_desc)), &pairs))) {
-                                    (col.label)
-                                    @match sorted { Some((_, true)) => span class="lui-table-arrow" { "▼" }, Some((_, false)) => span class="lui-table-arrow" { "▲" }, None => {} }
-                                }
-                            } @else { (col.label) }
-                        }
-                    }
-                    @if edit.is_some() { th scope="col" class="lui-table-edit" { span class="lui-sr" { (t(Text::Edit)) } } }
-                    @if has_menu { th scope="col" class="lui-table-menu" { span class="lui-sr" { (t(Text::Actions)) } } }
-                } }
-                tbody style=[vt] aria-busy=[loading.then_some("true")] {
-                    @if loading {
-                        @for _ in 0..3 { tr class="lui-table-skeleton" { @for _ in 0..span { td { span {} } } } }
-                    } @else if rows.is_empty() {
-                        tr { td colspan=(span) class="lui-table-empty" { (empty) } }
-                    }
-                    @for row in rows.iter().filter(|_| !loading) {
-                    @let editing = edit.is_some_and(|e| e.key.is_some() && e.key == row.key);
-                    tr class=[editing.then_some("lui-table-editing")] {
-                        @if bulk.is_some() {
-                            td class="lui-table-select" {
-                                @if let Some(k) = row.key { input type="checkbox" class="lui-table-check" name="row" value=(k) form=(bulk_id) aria-label=(strings.fill(Text::SelectRow, &[&k])); }
-                            }
-                        }
-                        @for (n, (i, col)) in visible.iter().enumerate() {
-                            @let cell = row.cells.get(*i);
-                            @let class = [col.numeric.then_some("lui-table-num"), prio(col)].into_iter().flatten().collect::<Vec<_>>().join(" ");
-                            td class=[(!class.is_empty()).then_some(class)] {
-                                @if editing && col.editable {
-                                    (Input::text_box(col.key, col.label, row.values.get(*i).copied().unwrap_or("")).form(&edit_id).class("lui-table-edit-input"))
-                                } @else {
-                                @match (n, &row.detail) {
-                                    (0, Some(detail)) => details class="lui-table-detail" {
-                                        summary { @if let Some(c) = cell { (c) } }
-                                        div class="lui-table-detail-body" { (detail) }
-                                    },
-                                    _ => @if let Some(c) = cell { (c) },
-                                }
-                                @if n == 0 && visible.iter().any(|(_, c)| c.priority > 1) {
-                                    dl class="lui-table-more" {
-                                        @for (j, c) in visible.iter().filter(|(_, c)| c.priority > 1) {
-                                            div class={ "lui-table-more-p" (c.priority) } {
-                                                dt { (c.label) } dd { @if let Some(v) = row.cells.get(*j) { (v) } }
-                                            }
-                                        }
-                                    }
-                                }
-                                }
-                            }
-                        }
-                        @if let Some(e) = edit {
-                            td class="lui-table-edit" {
-                                @if editing {
-                                    (Button::new(*caps, t(Text::Save)).primary().small().form(&edit_id))
-                                    (Button::link(*caps, t(Text::Cancel), e.done).ghost().small())
-                                } @else if let Some(k) = row.key {
-                                    @let href = format!("{}{}", e.link, encode(k));
-                                    (Button::link(*caps, t(Text::Edit), &href).ghost().small())
-                                }
-                            }
-                        }
-                        @if has_menu {
-                            td class="lui-table-menu" {
-                                @if let (Some(k), false) = (row.key, row.menu.is_empty()) {
-                                    (menu(caps, &format!("{root}-{}", slug(k)), t(Text::RowActions), &row.menu, Placement::BottomEnd, true))
-                                }
-                            }
-                        }
-                    } }
-                }
-            }
-            }
-            @if let (Some(e), Some(key)) = (edit, edit.and_then(|e| e.key)) {
-                form method="post" action=(e.action) id=(edit_id) class="lui-table-edit-form" {
-                    input type="hidden" name="key" value=(key);
-                    input type="hidden" name="returns_to" value=(e.done);
-                }
-            }
-            @if let Some((action, buttons)) = bulk {
-                form method="post" action=(action) id=(bulk_id) class="lui-table-bulk" {
-                    span { (t(Text::WithSelected)) }
-                    @for (value, label) in buttons { (Button::new(*caps, label).small().name("action").value(value)) }
-                }
+                (foot::forms(&cx))
             }
         }
     }
 }
 
-/// A data table, made by [`Ui::table`]. It reads its sort, filter, page and visible columns
-/// from the request (`?sort.<id>=&dir.<id>=&q.<id>=&page.<id>=&cols.<id>=`, with `<id>` its id), so a route asks it how to fetch the
-/// rows ([`Table::sort`], [`Table::filter`]) and hands them over with [`Table::rows`].
+/// A data table, made by [`Ui::table`]. It reads its sort, filters, page and visible columns
+/// from the request (`?sort.<id>=&q.<id>=&q.<id>.<column>=&page.<id>=&cols.<id>=`, with
+/// `<id>` its id), so a route asks it how to fetch the rows ([`Table::sort`],
+/// [`Table::filter`], [`Table::filters`]) and hands them over with [`Table::rows`].
 ///
 /// To fetch the rows before writing the table (in `lui!`, say), read the same parameters
 /// with [`Ui::table_query`].
 ///
 /// **Setters.** Values and items: `.bulk(..)`, `.column(..)`, `.edit(..)`, `.width(..)`, `.priority(..)`,
-/// `.rows(..)`, `.paged(..)`, `.paged_from(..)`, `.csv(..)`, `.empty(..)`, `.keep(..)`,
-/// `.filter_select(..)`; switches: `.sortable()`, `.numeric()`, `.editable()`,
-/// `.choose_columns()`, `.hide_search()`; from a condition: `.loading(bool)`.
+/// `.rows(..)`, `.paged(..)`, `.paged_from(..)`, `.csv(..)`, `.json(..)`, `.empty(..)`, `.keep(..)`,
+/// `.filter_select(..)`, `.caption(..)`, `.total(..)`, `.footer(..)`, `.density(..)`,
+/// `.group_by(..)`; switches: `.sortable()`, `.filterable()`, `.numeric()`, `.editable()`,
+/// `.choose_columns()`, `.hide_search()`, `.select_all()`, `.striped()`; from a condition:
+/// `.loading(bool)`.
 #[derive(Clone, Debug)]
 pub struct Table<'a> {
     ui: &'a Ui,
     id: &'a str,
     href: &'a str,
     query: TableQuery<'a>,
+    /// The request's sort, only by sortable columns.
+    sort: Vec<(&'a str, bool)>,
+    /// The request's column filters, only of filterable columns.
+    filters: Vec<(&'a str, &'a str)>,
     keep: Vec<&'a str>,
     selects: Vec<FilterSelect<'a>>,
     search: bool,
@@ -1010,10 +974,18 @@ pub struct Table<'a> {
     total: Option<usize>,
     choose_columns: bool,
     bulk: Option<(&'a str, Vec<(&'a str, &'a str)>)>,
+    select_all: bool,
     csv: Option<&'a str>,
-    empty: &'a str,
+    json: Option<&'a str>,
+    empty: Markup,
     loading: bool,
     edit: Option<&'a str>,
+    caption: Option<&'a str>,
+    totals: Vec<(&'a str, &'a str)>,
+    footer: Vec<Row<'a>>,
+    striped: bool,
+    density: Density,
+    group_by: Option<&'a str>,
 }
 
 impl Table<'_> {
@@ -1024,6 +996,8 @@ impl Table<'_> {
             .doc("A column."),
         Prop::new("sortable", PropKind::Modifier, "")
             .doc("The column added last sorts the table."),
+        Prop::new("filterable", PropKind::Modifier, "")
+            .doc("The column added last gets a text box in the \"Filters\" panel, `?q.<id>.<key>=`."),
         Prop::new("numeric", PropKind::Modifier, "")
             .doc("The column added last holds numbers."),
         Prop::new("editable", PropKind::Modifier, "")
@@ -1051,12 +1025,28 @@ impl Table<'_> {
             .doc("A \"Columns\" chooser."),
         Prop::new("bulk", PropKind::Value, "action: &'a str, buttons: impl IntoIterator<Item = (&'a str, &'a str)>")
             .doc("A checkbox per row (rows need a `Row::key`) and a bar of `(value, label)` buttons posting to `action`."),
+        Prop::new("select_all", PropKind::Switch, "")
+            .doc("A header checkbox posting `all=1` to the bulk action, whose URL carries the query: every row the filter matches."),
         Prop::new("csv", PropKind::Value, "href: &'a str")
             .doc("A \"Download CSV\" link to `href` with the current sort, filter and columns appended."),
-        Prop::new("empty", PropKind::Value, "message: &'a str").default("No rows match.")
-            .doc("What the body says when there are no rows."),
+        Prop::new("json", PropKind::Value, "href: &'a str")
+            .doc("A \"Download JSON\" link to `href` with the current sort, filter and columns appended."),
+        Prop::new("empty", PropKind::Value, "message: impl Render").default("No rows match.")
+            .doc("What the body says when there are no rows: text, or markup (a call to action)."),
         Prop::new("loading", PropKind::Condition, "loading: bool")
             .doc("Skeleton rows with `aria-busy` instead of the rows."),
+        Prop::new("caption", PropKind::Value, "text: &'a str")
+            .doc("A `<caption>` naming the table for assistive tech, visually hidden."),
+        Prop::new("total", PropKind::Value, "key: &'a str, text: &'a str")
+            .doc("The cell of the column `key` in a totals row in `<tfoot>`."),
+        Prop::new("footer", PropKind::Item, "row: impl Into<Row<'a>>")
+            .doc("A row in `<tfoot>`, after the totals."),
+        Prop::new("striped", PropKind::Switch, "")
+            .doc("Every other row on a gray band."),
+        Prop::new("density", PropKind::Value, "density: Density").default("Density::Comfortable")
+            .doc("`Density::Compact` halves the cell padding."),
+        Prop::new("group_by", PropKind::Value, "key: &'a str")
+            .doc("A group header row wherever the column `key`'s cell changes (rows sorted by it)."),
     ];
 }
 
@@ -1071,6 +1061,8 @@ impl Ui {
             id,
             href,
             query: TableQuery::from_ui(self, id),
+            sort: Vec::new(),
+            filters: Vec::new(),
             keep: Vec::new(),
             selects: Vec::new(),
             search: true,
@@ -1079,10 +1071,18 @@ impl Ui {
             total: None,
             choose_columns: false,
             bulk: None,
+            select_all: false,
             csv: None,
-            empty: self.text(Text::NoRows),
+            json: None,
+            empty: html! { (self.text(Text::NoRows)) },
             loading: false,
             edit: None,
+            caption: None,
+            totals: Vec::new(),
+            footer: Vec::new(),
+            striped: false,
+            density: Density::Comfortable,
+            group_by: None,
         }
     }
 }
@@ -1104,15 +1104,37 @@ impl<'a> Table<'a> {
         self
     }
 
-    /// A column: `key` names it in `?sort.<id>=` and `?cols.<id>=`, `label` is its header.
+    /// A column: `key` names it in `?sort.<id>=`, `?cols.<id>=` and `?q.<id>.<key>=`, `label`
+    /// is its header.
     pub fn column(mut self, key: &'a str, label: &'a str) -> Self {
         self.columns.push(Column::plain(key, label));
         self
     }
 
-    /// The column added last sorts the table: its header links to `?sort.<id>=<key>`.
+    /// The column added last sorts the table: its header links to `?sort.<id>=<key>` (and
+    /// `-<key>` when it is already sorted ascending), and once the table is sorted a small
+    /// "then by" link beside it adds it as the next sort key (`?sort.<id>=name,-size`).
     pub fn sortable(self) -> Self {
-        self.last(|c| c.sortable = true)
+        let mut table = self.last(|c| c.sortable = true);
+        let columns = &table.columns;
+        table.sort = (table.query.sort.iter())
+            .filter(|(k, _)| columns.iter().any(|c| c.sortable && c.key == *k))
+            .copied()
+            .collect();
+        table
+    }
+
+    /// The column added last gets a text box in the "Filters" panel of the search form
+    /// (`?q.<id>.<key>=`); the route filters by [`Table::filters`] or
+    /// [`TableQuery::matches_in`].
+    pub fn filterable(self) -> Self {
+        let mut table = self.last(|c| c.filterable = true);
+        let columns = &table.columns;
+        table.filters = (table.query.filters.iter())
+            .filter(|(k, _)| columns.iter().any(|c| c.filterable && c.key == *k))
+            .copied()
+            .collect();
+        table
     }
 
     /// The column added last holds numbers: right-aligned, tabular figures.
@@ -1164,7 +1186,8 @@ impl<'a> Table<'a> {
 
     /// A `<select>` in the search form filtering by the query parameter `name`: `(value,
     /// text)` options, the request's value chosen (an `("", "All")` option for no filter). The
-    /// table keeps `name` in its links; the route filters the rows by `ui.param(name)`.
+    /// table keeps `name` in its links; the route filters the rows by `ui.param(name)`. With
+    /// filterable columns it sits in the "Filters" panel beside their boxes.
     pub fn filter_select(
         mut self,
         name: &'a str,
@@ -1197,8 +1220,8 @@ impl<'a> Table<'a> {
 
     /// Page the rows from what Loco's `query::fetch_page` or `query::paginate` returns
     /// (feature `loco`): `.paged(meta.total_items)`. Ask Loco for the page the table wants
-    /// with `PaginationQuery { page: table.page() as u64, page_size: table.per_page() as u64 }`;
-    /// the `loco` module docs have the whole handler.
+    /// with `PaginationQuery { page: table.page() as u64, page_size: table.per_page() as u64 }`,
+    /// ordered by [`crate::loco::order_by`]; the `loco` module docs have the whole handler.
     #[cfg(feature = "loco")]
     pub fn paged_from(self, meta: &PagerMeta) -> Self {
         self.paged(usize::try_from(meta.total_items).unwrap_or(usize::MAX))
@@ -1221,15 +1244,33 @@ impl<'a> Table<'a> {
         self
     }
 
+    /// A checkbox in the header of the [`Table::bulk`] column, "Select all N matching rows",
+    /// posting `all=1`. The bulk form's URL then carries the table's query (sort, search,
+    /// column filters, kept parameters), so the route reads the same [`Ui::table_query`] and
+    /// acts on every row it matches, not only this page's. Ticking the visible boxes as
+    /// well needs script: the enhancement script does it.
+    pub fn select_all(mut self) -> Self {
+        self.select_all = true;
+        self
+    }
+
     /// A "Download CSV" link to `href` with the current sort, filter and columns appended.
     pub fn csv(mut self, href: &'a str) -> Self {
         self.csv = Some(href);
         self
     }
 
-    /// What the body says when there are no rows.
-    pub fn empty(mut self, message: &'a str) -> Self {
-        self.empty = message;
+    /// A "Download JSON" link to `href` with the current sort, filter and columns appended,
+    /// beside or instead of [`Table::csv`].
+    pub fn json(mut self, href: &'a str) -> Self {
+        self.json = Some(href);
+        self
+    }
+
+    /// What the body says when there are no rows: text, or markup such as a message and a
+    /// link to add the first row.
+    pub fn empty(mut self, message: impl Render) -> Self {
+        self.empty = message.render();
         self
     }
 
@@ -1239,14 +1280,61 @@ impl<'a> Table<'a> {
         self
     }
 
-    /// The requested sort as `(column key, descending)`, only for a sortable column.
-    pub fn sort(&self) -> Option<(&'a str, bool)> {
-        self.query.sort_in(&self.columns)
+    /// A `<caption>` that names the table for screen readers (the first thing they read of
+    /// it), visually hidden since the page's heading usually names it for everyone else.
+    pub fn caption(mut self, text: &'a str) -> Self {
+        self.caption = Some(text);
+        self
+    }
+
+    /// The cell under the column `key` in a totals row in `<tfoot>` (`"36 files"`,
+    /// `"12.4 MB"`); one row holds every total, the other cells empty.
+    pub fn total(mut self, key: &'a str, text: &'a str) -> Self {
+        self.totals.push((key, text));
+        self
+    }
+
+    /// A row in `<tfoot>` after the totals, cells in column order as in [`Table::rows`].
+    pub fn footer(mut self, row: impl Into<Row<'a>>) -> Self {
+        self.footer.push(row.into());
+        self
+    }
+
+    /// Every other body row on a gray band (`--lui-gray-2`).
+    pub fn striped(mut self) -> Self {
+        self.striped = true;
+        self
+    }
+
+    /// How much room the cells get: [`Density::Compact`] halves the padding.
+    pub fn density(mut self, density: Density) -> Self {
+        self.density = density;
+        self
+    }
+
+    /// A full-width group header row before each run of rows whose cell in the column `key`
+    /// is the same; the route sorts the rows by that column first (Radix Table has none;
+    /// after Tremor's and TanStack's grouped rows, without collapsing, which needs script
+    /// or a `<details>` per group that a table cannot hold).
+    pub fn group_by(mut self, key: &'a str) -> Self {
+        self.group_by = Some(key);
+        self
+    }
+
+    /// The requested sort as `(column key, descending)`, most significant first, only by
+    /// sortable columns; empty when unsorted.
+    pub fn sort(&self) -> &[(&'a str, bool)] {
+        &self.sort
     }
 
     /// The requested search text, trimmed, as typed.
     pub fn filter(&self) -> &'a str {
         self.query.filter
+    }
+
+    /// The requested column filters as `(column key, text)`, only of filterable columns.
+    pub fn filters(&self) -> &[(&'a str, &'a str)] {
+        &self.filters
     }
 
     /// The keys of the columns to show, in table order.
@@ -1299,50 +1387,44 @@ impl Render for Table<'_> {
             link: &link,
             done: &done,
         });
-        let options = TableOptions {
-            sort: self.sort(),
+        let view = View {
+            caps: self.ui.caps,
+            id: self.id,
+            href,
+            columns: &self.columns,
+            rows: &self.rows,
+            sort: &self.sort,
             filter: self.filter(),
+            filters: &self.filters,
+            keep,
             cols: cols.as_deref(),
             choose_columns: self.choose_columns,
             bulk: self
                 .bulk
                 .as_ref()
                 .map(|(action, buttons)| (*action, buttons.as_slice())),
+            select_all: self.select_all,
+            matching: self.total.unwrap_or(self.rows.len()),
             csv: self.csv,
-            empty: self.empty,
+            json: self.json,
+            empty: &self.empty,
             loading: self.loading,
             edit,
             strings: self.ui.strings,
-            keep: &keep,
             search: self.search,
             selects: &self.selects,
+            caption: self.caption,
+            totals: &self.totals,
+            footer: &self.footer,
+            striped: self.striped,
+            density: self.density,
+            group_by: self
+                .group_by
+                .and_then(|key| self.columns.iter().position(|c| c.key == key)),
         };
         match self.total {
-            Some(total) => {
-                let paged = PagedTableOptions {
-                    table: options,
-                    query: Some(&self.query),
-                    state: Some(&self.ui.state),
-                    ..PagedTableOptions::default()
-                };
-                paged_table_with(
-                    &self.ui.caps,
-                    self.id,
-                    href,
-                    &self.columns,
-                    &self.rows,
-                    total,
-                    paged,
-                )
-            }
-            None => table_with(
-                &self.ui.caps,
-                self.id,
-                href,
-                &self.columns,
-                &self.rows,
-                options,
-            ),
+            Some(total) => crate::paged_table::paged(view, total, self.page(), self.per_page()),
+            None => view.render(true),
         }
     }
 }
@@ -1384,7 +1466,7 @@ pub const CSS: &str = r#"
 .lui-table { container: lui-table / inline-size; }
 .lui-table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); margin-bottom: calc(var(--lui-space) * 2); }
 .lui-table-filter { flex: 1; min-width: min(14rem, 100%); }
-.lui-table-filter form { display: flex; gap: var(--lui-space); align-items: center; }
+.lui-table-filter form { display: flex; flex-wrap: wrap; gap: var(--lui-space); align-items: center; }
 .lui-table-filter-input { flex: 1; min-width: 8rem; max-width: 24rem; }
 .lui-table-clear { color: var(--lui-muted); font-size: 0.875rem; }
 .lui-table-clear:hover { color: var(--lui-fg); }
@@ -1410,8 +1492,8 @@ pub const CSS: &str = r#"
     radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--lui-fg) 16%, transparent), transparent) right / 0.75rem 100% no-repeat scroll;
 }
 .lui-table-scroll > table { width: 100%; margin: 0; }
-.lui-table-scroll :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: var(--lui-bg); }
-.lui-table-has-select :is(th, td):nth-child(2) { position: sticky; left: 2.5rem; z-index: 1; background: var(--lui-bg); }
+.lui-table-scroll :is(th, td):first-child { position: sticky; inset-inline-start: 0; z-index: 1; background: var(--lui-bg); }
+.lui-table-has-select :is(th, td):nth-child(2) { position: sticky; inset-inline-start: 2.5rem; z-index: 1; background: var(--lui-bg); }
 .lui-table-scroll thead th:is(:first-child, :nth-child(2)) { background: var(--lui-gray-2); }
 .lui-table table { table-layout: auto; border-collapse: separate; border-spacing: 0; }
 .lui-table tbody tr:last-child > * { border-bottom: 0; }
@@ -1432,7 +1514,6 @@ pub const CSS: &str = r#"
 .lui-table-edit { white-space: nowrap; text-align: right; }
 .lui-table-edit .lui-button + .lui-button { margin-left: 0.25rem; }
 .lui-table-edit-input { width: 100%; box-sizing: border-box; min-height: 2rem; padding-block: 0.25rem; }
-.lui-table-check { margin: 0; }
 .lui-table-empty { color: var(--lui-muted); text-align: center; padding: var(--lui-space-6); height: 6rem; }
 .lui-table tbody tr:hover > .lui-table-empty { background: none; }
 /* Priorities: the cells hide, and the matching lines under the first cell appear. */
@@ -1461,6 +1542,47 @@ pub const CSS: &str = r#"
 .lui-table-skeleton td span { display: block; height: 1rem; margin: 0.125rem 0; border-radius: var(--lui-radius-sm); background: var(--lui-accent); animation: lui-table-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 @keyframes lui-table-pulse { 50% { opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { .lui-table-skeleton td span { animation: none; } }
+/* M41: multi-sort, the filters panel, select-all, footer, stripes, density, groups, row
+   links and tones. */
+.lui-table-sort-index { min-width: 1rem; padding: 0 0.25rem; border-radius: 999px; background: var(--lui-gray-4); color: var(--lui-fg); font-size: 0.6875rem; line-height: 1rem; text-align: center; }
+.lui-table th .lui-table-then { margin-inline-start: 0.25rem; padding: 0 0.3rem; border-radius: var(--lui-radius-sm); color: var(--lui-muted); opacity: 0; }
+.lui-table th:hover .lui-table-then, .lui-table th .lui-table-then:focus-visible { opacity: 1; }
+.lui-table th .lui-table-then:hover { background: var(--lui-gray-4); color: var(--lui-fg); }
+@media (pointer: coarse) { .lui-table th .lui-table-then { opacity: 1; } }
+/* The "Filters" panel opens as a row of its own under the search, after the buttons, so an
+   active filter (the panel stays open) never covers the table. */
+.lui-table-filters { font-size: 0.875rem; }
+.lui-table-filters[open] { flex-basis: 100%; order: 1; }
+.lui-table-filters summary { list-style: none; width: fit-content; }
+.lui-table-filters summary::-webkit-details-marker { display: none; }
+.lui-table-filters-count { min-width: 1.25rem; padding: 0 0.375rem; border-radius: 999px; background: var(--lui-primary); color: var(--lui-on-primary); font-size: 0.75rem; line-height: 1.25rem; text-align: center; }
+.lui-table-filters-body {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr)); gap: var(--lui-space-2); margin-top: var(--lui-space-2); padding: var(--lui-space-3);
+  background: var(--lui-gray-2); border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
+}
+.lui-table-all, .lui-table-check { margin: 0; }
+.lui-table .lui-table-scroll tfoot td { background: var(--lui-gray-2); font-weight: 500; border-top: 1px solid var(--lui-line); border-bottom: 0; }
+.lui-table-striped tbody tr:nth-child(even) > td { background: var(--lui-gray-2); }
+.lui-table-striped tbody tr:hover > td { background: var(--lui-gray-3); }
+.lui-table-compact :is(th, td) { padding: var(--lui-space-1) var(--lui-space-2); font-size: 0.8125rem; }
+.lui-table-compact thead th { height: 2rem; }
+.lui-table tbody tr.lui-table-group > td { background: var(--lui-gray-2); color: var(--lui-muted); font-size: 0.8125rem; font-weight: 600; }
+.lui-table tbody tr.lui-table-disabled > td { color: var(--lui-muted); }
+.lui-table-ok { --lui-table-tone: var(--lui-ok); }
+.lui-table-warn { --lui-table-tone: var(--lui-warn); }
+.lui-table-danger { --lui-table-tone: var(--lui-danger); }
+.lui-table tbody tr:is(.lui-table-ok, .lui-table-warn, .lui-table-danger) > td { background: color-mix(in srgb, var(--lui-table-tone) 8%, var(--lui-bg)); }
+.lui-table tbody tr:is(.lui-table-ok, .lui-table-warn, .lui-table-danger) > td:first-child { box-shadow: inset 3px 0 var(--lui-table-tone); }
+/* A row link: the chevron's box is stretched over its row (Tremor), the row's own controls
+   lifted above it. A sticky cell is a stacking context, so it is lifted whole. */
+.lui-table-go-col { width: 2.5rem; }
+.lui-table-go { width: 2.5rem; text-align: center; }
+.lui-table tbody tr.lui-table-linked { position: relative; }
+.lui-table tbody tr.lui-table-linked:hover > td { cursor: pointer; }
+.lui-table-row-link { display: inline-block; color: var(--lui-muted); font-size: 1.25rem; line-height: 1; text-decoration: none; }
+.lui-table-row-link::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.lui-table-linked :is(.lui-table-check, .lui-button, summary, a:not(.lui-table-row-link)) { position: relative; z-index: 2; }
+.lui-table-linked > td:is(:first-child, .lui-table-select + td):has(.lui-table-check, .lui-button, summary, a:not(.lui-table-row-link)) { z-index: 2; }
 "#;
 
 #[cfg(test)]
@@ -1469,55 +1591,84 @@ mod tests {
 
     #[test]
     fn links_flip_direction_and_keep_the_filter() {
-        let cols = [
-            Column::sortable("name", "Name"),
-            Column::plain("note", "Note"),
-        ];
-        let opts = TableOptions::default()
-            .sort(Some(("name", false)))
-            .filter("a b")
-            .keep(&[("per", "5")]);
-        let m = table_with(&Caps::NONE, "t", "/t", &cols, &[], opts).into_string();
+        let ui = Ui::from_request("/t", "sort.t=name,note&q.t=a+b&per=5", "");
+        let table = ui
+            .table("t", "/t")
+            .column("name", "Name")
+            .sortable()
+            .column("note", "Note")
+            .keep("per");
+        assert_eq!(table.sort(), [("name", false)], "only sortable keys");
+        let m = table.render().into_string();
         assert!(
-            m.contains("href=\"/t?sort.t=name&amp;dir.t=desc&amp;q.t=a+b&amp;per=5\""),
+            m.contains("href=\"/t?sort.t=-name&amp;q.t=a+b&amp;per=5\""),
             "{m}"
         );
         assert!(m.contains("name=\"per\" value=\"5\""));
+        assert!(m.contains("name=\"sort.t\" value=\"name\""));
         assert!(
-            m.contains("href=\"/t?sort.t=name&amp;dir.t=asc&amp;per=5\""),
+            m.contains("href=\"/t?sort.t=name&amp;per=5\""),
             "clear link"
         );
         assert!(m.contains("aria-sort=\"ascending\""));
         assert!(m.contains("No rows match."));
         assert!(!m.contains("view-transition-name"));
-        assert_eq!(sort_from_query(&cols, Some("note"), None), None);
-        assert_eq!(
-            sort_from_query(&cols, Some("name"), Some("desc")),
-            Some(("name", true))
+    }
+
+    /// `?sort.<id>=a,-b`: the first key flips from its header, another header sorts by
+    /// itself alone, "then by" adds a key, and each sorted header shows its index.
+    #[test]
+    fn several_sort_keys() {
+        let ui = Ui::from_request("/t", "sort.t=-size,name,zzz,name", "");
+        let table = ui
+            .table("t", "/t")
+            .column("name", "Name")
+            .sortable()
+            .column("size", "Size")
+            .sortable()
+            .column("kind", "Kind")
+            .sortable();
+        assert_eq!(table.sort(), [("size", true), ("name", false)]);
+        let m = table.render().into_string();
+        assert!(
+            m.contains(r#"href="/t?sort.t=size,name""#),
+            "size flips, name stays: {m}"
         );
+        assert!(m.contains(r#"href="/t?sort.t=name">Name"#), "name alone");
+        assert!(
+            m.contains(r#"href="/t?sort.t=-size,name,kind" aria-label="Then by Kind""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"href="/t?sort.t=-size,-name" aria-label="Then by Name""#),
+            "a later key flips in place"
+        );
+        assert!(m.contains(r#"<span class="lui-table-sort-index" aria-hidden="true">2</span>"#));
+        assert_eq!(m.matches("aria-sort").count(), 1, "only the first key");
+        let mut v = vec![(1, "b"), (2, "a"), (2, "b"), (1, "a")];
+        ui.table_query("t", &["name", "size"])
+            .sort_by(&mut v, |a, b, key| match key {
+                "size" => a.0.cmp(&b.0),
+                _ => a.1.cmp(b.1),
+            });
+        assert_eq!(v, [(2, "a"), (2, "b"), (1, "a"), (1, "b")]);
     }
 
     #[test]
     fn columns_links_toggle_one_key_in_table_order() {
-        let cols = [
-            Column::sortable("a", "A"),
-            Column::numeric("b", "B"),
-            Column::plain("c", "C"),
-        ];
-        assert_eq!(
-            cols_from_query(&cols, Some("c,zzz,a")),
-            Some(vec!["a", "c"])
-        );
-        assert_eq!(cols_from_query(&cols, Some("zzz")), None);
-        let m = table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &[],
-            TableOptions::default().cols(Some(&["a", "c"])).filter("x"),
-        )
-        .into_string();
+        let ui = Ui::from_request("/t", "cols.t=a,c&q.t=x", "");
+        let table = ui
+            .table("t", "/t")
+            .column("a", "A")
+            .sortable()
+            .column("b", "B")
+            .sortable()
+            .numeric()
+            .column("c", "C");
+        let cols = &table.columns;
+        assert_eq!(cols_from_query(cols, Some("c,zzz,a")), Some(vec!["a", "c"]));
+        assert_eq!(cols_from_query(cols, Some("zzz")), None);
+        let m = table.render().into_string();
         assert!(
             m.contains("href=\"/t?q.t=x&amp;cols.t=c\" aria-pressed=\"true\""),
             "a shown column links to hiding it: {m}"
@@ -1535,22 +1686,132 @@ mod tests {
 
     #[test]
     fn loading_and_bulk_states() {
-        let cols = [Column::sortable("a", "A")];
-        let m = table_with(
-            &Caps::NONE,
-            "t",
-            "/t",
-            &cols,
-            &[],
-            TableOptions::default()
-                .loading(true)
-                .bulk("/b", &[("x", "X")]),
-        )
-        .into_string();
+        let ui = Ui::default();
+        let m = ui
+            .table("t", "/t")
+            .column("a", "A")
+            .sortable()
+            .loading(true)
+            .bulk("/b", [("x", "X")])
+            .render()
+            .into_string();
         assert!(m.contains("aria-busy=\"true\"") && m.contains("lui-table-skeleton"));
         assert!(m.contains("<form method=\"post\" action=\"/b\" id=\"lui-table-t-bulk\""));
         assert!(m.contains("<button type=\"submit\" class=\"lui-button lui-button-small\" data-size=\"1\" name=\"action\" value=\"x\">X</button>"), "{m}");
-        assert_eq!(slug("src/a.txt"), "src-a-txt");
+        assert_eq!(crate::slug("src/a.txt"), "src-a-txt");
+    }
+
+    /// Column filters: a box per filterable column in the "Filters" panel, opened while one
+    /// is set, carried by every link, and cleared with the search.
+    #[test]
+    fn column_filters() {
+        let ui = Ui::from_request("/t", "q.t.kind=img&q.t.name=&q.t.size=9&status=a", "");
+        let table = ui
+            .table("t", "/t")
+            .column("name", "Name")
+            .sortable()
+            .filterable()
+            .column("kind", "Kind")
+            .filterable()
+            .column("size", "Size")
+            .filter_select("status", "Status", [("", "All"), ("a", "A")]);
+        assert_eq!(table.filters(), [("kind", "img")], "size is not filterable");
+        let m = table.render().into_string();
+        assert!(
+            m.contains(r#"<details class="lui-table-filters" open>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"name="q.t.kind""#) && m.contains(r#"value="img""#));
+        assert!(m.contains(r#"<span class="lui-table-filters-count">1</span>"#));
+        assert!(
+            m.contains(r#"<div class="lui-table-filters-body">"#)
+                && m.contains(r#"<label class="lui-table-filter-select">"#),
+            "the select joins the panel"
+        );
+        assert!(
+            !m.contains(r#"type="hidden" name="q.t.kind""#),
+            "its box sends it"
+        );
+        assert!(
+            m.contains(r#"href="/t?sort.t=name&amp;q.t.kind=img&amp;status=a""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"class="lui-table-clear" href="/t?status=a""#),
+            "{m}"
+        );
+        let q = ui.table_query("t", &[]);
+        assert!(
+            q.matches_in("kind", "IMG.png")
+                && !q.matches_in("kind", "doc")
+                && q.matches_in("name", "x")
+        );
+    }
+
+    /// Select-all posts `all=1` to a bulk URL that carries the query; caption, totals,
+    /// footer rows, stripes, density, groups, row links, disabled rows, tones and JSON.
+    #[test]
+    fn the_rest_of_the_features() {
+        let ui = Ui::from_request("/t", "q.t=a&sort.t=kind", "");
+        let rows = [
+            Row::from(("a.txt", "text")).key("a.txt").href("/f/a.txt"),
+            Row::from(("b.txt", "text"))
+                .key("b.txt")
+                .disabled()
+                .href("/f/b"),
+            Row::from(("c.png", "image")).key("c.png").danger(),
+        ];
+        let m = ui
+            .table("t", "/t")
+            .column("name", "Name")
+            .column("kind", "Kind")
+            .sortable()
+            .bulk("/b", [("x", "X")])
+            .select_all()
+            .caption("Files")
+            .total("name", "3 files")
+            .footer(("All", "—"))
+            .striped()
+            .density(Density::Compact)
+            .group_by("kind")
+            .json("/t.json")
+            .empty(html! { a href="/new" { "Add one" } })
+            .rows(rows)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"class="lui-table lui-table-striped lui-table-compact""#));
+        assert!(m.contains(r#"<caption class="lui-sr">Files</caption>"#));
+        assert!(m.contains(r#"<input type="checkbox" class="lui-table-all" name="all" value="1" form="lui-table-t-bulk" aria-label="Select all 3 matching rows">"#), "{m}");
+        assert!(
+            m.contains(r#"action="/b?sort.t=kind&amp;q.t=a" id="lui-table-t-bulk""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<tfoot><tr class="lui-table-total"><td class="lui-table-select"></td><td>3 files</td><td></td><td></td></tr><tr><td class="lui-table-select"></td><td>All</td><td>—</td><td></td></tr></tfoot>"#), "{m}");
+        assert_eq!(
+            m.matches(r#"<tr class="lui-table-group">"#).count(),
+            2,
+            "text, then image"
+        );
+        assert!(m.contains(r#"<tr class="lui-table-linked">"#));
+        assert!(
+            m.contains(r#"<a class="lui-table-row-link" href="/f/a.txt" aria-label="Open a.txt">"#)
+        );
+        assert!(
+            !m.contains("/f/b") && !m.contains(r#"value="b.txt""#),
+            "a disabled row has no link or box"
+        );
+        assert!(m.contains(r#"<tr class="lui-table-disabled" aria-disabled="true">"#));
+        assert!(m.contains(r#"<tr class="lui-table-danger">"#));
+        assert!(m.contains(r#"href="/t.json?sort.t=kind&amp;q.t=a" download"#));
+        let empty = ui
+            .table("t", "/t")
+            .column("n", "N")
+            .empty(html! { a href="/new" { "Add one" } })
+            .render()
+            .into_string();
+        assert!(empty.contains(
+            r#"<td colspan="1" class="lui-table-empty"><a href="/new">Add one</a></td>"#
+        ));
     }
 
     /// `.keep(..)` and a query in `href` reach every link and form: sort links, the search
@@ -1574,9 +1835,7 @@ mod tests {
         let m = table("/o?tab=2");
         assert!(!m.contains("?tab=2?") && !m.contains("absent"), "{m}");
         assert!(
-            m.contains(
-                r#"href="/o?sort.o=n&amp;dir.o=asc&amp;q.o=a&amp;tab=2&amp;status=paid&amp;per.o=10""#
-            ),
+            m.contains(r#"href="/o?sort.o=n&amp;q.o=a&amp;tab=2&amp;status=paid&amp;per.o=10""#),
             "sort link: {m}"
         );
         assert!(m.contains(r#"<form method="get" action="/o"><input type="hidden" name="tab" value="2"><input type="hidden" name="status" value="paid">"#));
@@ -1591,7 +1850,7 @@ mod tests {
         // An empty `href`: relative links, forms with no action.
         let m = table("");
         assert!(
-            m.contains(r#"href="?sort.o=n&amp;dir.o=asc"#)
+            m.contains(r#"href="?sort.o=n&amp;q.o=a"#)
                 && m.contains(r#"<form method="get"><input"#)
         );
         assert!(
@@ -1623,11 +1882,7 @@ mod tests {
 
     #[test]
     fn the_query_sorts_and_pages_a_vec() {
-        let ui = Ui::from_request(
-            "/o",
-            "sort.o=n&dir.o=desc&page.o=9&q.o=%20X%20",
-            "lui-ui=per.o=5",
-        );
+        let ui = Ui::from_request("/o", "sort.o=-n&page.o=9&q.o=%20X%20", "lui-ui=per.o=5");
         let q = ui.table_query("o", &["n"]);
         assert!(q.matches("axe") && !q.matches("bee") && q.filter() == "X");
         let mut v: Vec<u32> = (1..=12).collect();
@@ -1637,34 +1892,18 @@ mod tests {
         assert_eq!(q.visible(&["a", "b"]), ["a", "b"]);
         let ui = Ui::from_request("/o", "cols.o=b,zz", "");
         let q = ui.table_query("o", &[]);
-        assert_eq!((q.visible(&["a", "b"]), q.sort()), (vec!["b"], None));
+        assert_eq!((q.visible(&["a", "b"]), q.sort()), (vec!["b"], &[][..]));
     }
 
-    /// The bare keys of before M33 are still read, for one release, when the table's own
-    /// are absent; its own win, and its links only write its own.
+    /// The bare keys of before M33 (`q`, `sort`, `dir`, `page`, `cols`) and `dir.<id>` are no
+    /// longer read (M41).
     #[test]
-    fn bare_keys_are_still_read() {
-        let ui = Ui::from_request("/o", "sort=n&dir=desc&q=x&page=2&cols=n", "");
+    fn bare_keys_are_not_read() {
+        let ui = Ui::from_request("/o", "sort=n&dir=desc&q=x&page=2&cols=n&dir.o=desc", "");
         let q = ui.table_query("o", &["n"]);
         assert_eq!(
             (q.sort(), q.filter(), q.page(), q.visible(&["n", "m"])),
-            (Some(("n", true)), "x", 2, vec!["n"])
-        );
-        let ui = Ui::from_request("/o", "q=x&q.o=y", "");
-        assert_eq!(
-            ui.table_query("o", &[]).filter(),
-            "y",
-            "the table's own key wins"
-        );
-        let m = ui
-            .table("o", "/o")
-            .column("n", "N")
-            .sortable()
-            .render()
-            .into_string();
-        assert!(
-            m.contains(r#"href="/o?sort.o=n&amp;dir.o=asc&amp;q.o=y""#),
-            "{m}"
+            (&[][..], "", 1, vec!["n", "m"])
         );
     }
 
@@ -1672,10 +1911,13 @@ mod tests {
     /// page leave the other alone.
     #[test]
     fn two_tables_on_one_page_sort_and_filter_on_their_own() {
-        let ui = Ui::from_request("/p", "sort.a=n&dir.a=desc&q.b=zz&page.b=2", "");
+        let ui = Ui::from_request("/p", "sort.a=-n&q.b=zz&page.b=2", "");
         let (a, b) = (ui.table_query("a", &["n"]), ui.table_query("b", &["n"]));
-        assert_eq!((a.sort(), a.filter(), a.page()), (Some(("n", true)), "", 1));
-        assert_eq!((b.sort(), b.filter(), b.page()), (None, "zz", 2));
+        assert_eq!(
+            (a.sort(), a.filter(), a.page()),
+            (&[("n", true)][..], "", 1)
+        );
+        assert_eq!((b.sort(), b.filter(), b.page()), (&[][..], "zz", 2));
         let table = |id| {
             ui.table(id, "/p")
                 .column("n", "N")
@@ -1694,7 +1936,7 @@ mod tests {
             "{b}"
         );
         assert!(
-            a.contains(r#"href="/p?sort.a=n&amp;dir.a=asc&amp;per.a=10""#),
+            a.contains(r#"href="/p?sort.a=n&amp;per.a=10""#),
             "a's sort link knows nothing of b: {a}"
         );
         assert!(

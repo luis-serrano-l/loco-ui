@@ -35,7 +35,7 @@
 //! assert!(html.contains("value=\"inc\" aria-label=\"increment\" disabled"));
 //! assert!(html.contains("name=\"value\" type=\"number\" value=\"10\" min=\"0\" max=\"10\" step=\"2\""));
 //! // The handler's half: the same counter applies the posted `op`, clamped to its bounds.
-//! assert_eq!(bounded.apply("dec", None), 8);
+//! assert_eq!(bounded.apply("dec", None), 8.0);
 //! # let _ = plain;
 //!
 //! // The same in `lui!`:

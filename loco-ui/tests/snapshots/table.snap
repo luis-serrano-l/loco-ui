@@ -7,11 +7,10 @@ caps: all
 <search class="lui-table-filter">
 <form method="get" action="/table">
 <input type="hidden" name="sort.files" value="name">
-<input type="hidden" name="dir.files" value="asc">
 <input type="hidden" name="cols.files" value="name,size">
 <input id="lui-table-files-q" class="lui-table-filter-input" name="q.files" type="search" value="a" placeholder="Filter rows…" autocomplete="off" aria-label="Filter rows">
 <button type="submit" class="lui-button">Filter</button>
-<a class="lui-table-clear" href="/table?sort.files=name&amp;dir.files=asc&amp;cols.files=name%2Csize">Clear</a>
+<a class="lui-table-clear" href="/table?sort.files=name&amp;cols.files=name%2Csize">Clear</a>
 </form>
 </search>
 <details class="lui-table-cols">
@@ -21,20 +20,20 @@ caps: all
 </summary>
 <ul>
 <li>
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=size" aria-pressed="true">
+<a href="/table?sort.files=name&amp;q.files=a&amp;cols.files=size" aria-pressed="true">
 <span class="lui-table-cols-mark" aria-hidden="true">☑</span> Name</a>
 </li>
 <li>
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name" aria-pressed="true">
+<a href="/table?sort.files=name&amp;q.files=a&amp;cols.files=name" aria-pressed="true">
 <span class="lui-table-cols-mark" aria-hidden="true">☑</span> Size</a>
 </li>
 <li>
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize%2Cnote" aria-pressed="false">
+<a href="/table?sort.files=name&amp;q.files=a&amp;cols.files=name%2Csize%2Cnote" aria-pressed="false">
 <span class="lui-table-cols-mark" aria-hidden="true">☐</span> Note</a>
 </li>
 </ul>
 </details>
-<a class="lui-button lui-button-small lui-table-csv" href="/table.csv?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize" download>
+<a class="lui-button lui-button-small lui-table-csv" href="/table.csv?sort.files=name&amp;q.files=a&amp;cols.files=name%2Csize" download>
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="download">
 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
 <path d="m7 10 5 5 5-5"/>
@@ -55,11 +54,12 @@ caps: all
 <span class="lui-sr">Select</span>
 </th>
 <th scope="col" aria-sort="ascending" class="lui-table-sorted">
-<a href="/table?sort.files=name&amp;dir.files=desc&amp;q.files=a&amp;cols.files=name%2Csize">Name<span class="lui-table-arrow">▲</span>
+<a href="/table?sort.files=-name&amp;q.files=a&amp;cols.files=name%2Csize">Name<span class="lui-table-arrow">▲</span>
 </a>
 </th>
 <th scope="col" class=" lui-table-num">
-<a href="/table?sort.files=size&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize">Size</a>
+<a href="/table?sort.files=size&amp;q.files=a&amp;cols.files=name%2Csize">Size</a>
+<a class="lui-table-then" href="/table?sort.files=name,size&amp;q.files=a&amp;cols.files=name%2Csize" aria-label="Then by Size" title="Then by Size">+</a>
 </th>
 <th scope="col" class="lui-table-menu">
 <span class="lui-sr">Actions</span>
@@ -118,11 +118,10 @@ caps: none
 <search class="lui-table-filter">
 <form method="get" action="/table">
 <input type="hidden" name="sort.files" value="name">
-<input type="hidden" name="dir.files" value="asc">
 <input type="hidden" name="cols.files" value="name,size">
 <input id="lui-table-files-q" class="lui-table-filter-input" name="q.files" type="search" value="a" placeholder="Filter rows…" autocomplete="off" aria-label="Filter rows">
 <button type="submit" class="lui-button">Filter</button>
-<a class="lui-table-clear" href="/table?sort.files=name&amp;dir.files=asc&amp;cols.files=name%2Csize">Clear</a>
+<a class="lui-table-clear" href="/table?sort.files=name&amp;cols.files=name%2Csize">Clear</a>
 </form>
 </search>
 <details class="lui-table-cols">
@@ -132,20 +131,20 @@ caps: none
 </summary>
 <ul>
 <li>
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=size" aria-pressed="true">
+<a href="/table?sort.files=name&amp;q.files=a&amp;cols.files=size" aria-pressed="true">
 <span class="lui-table-cols-mark" aria-hidden="true">☑</span> Name</a>
 </li>
 <li>
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name" aria-pressed="true">
+<a href="/table?sort.files=name&amp;q.files=a&amp;cols.files=name" aria-pressed="true">
 <span class="lui-table-cols-mark" aria-hidden="true">☑</span> Size</a>
 </li>
 <li>
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize%2Cnote" aria-pressed="false">
+<a href="/table?sort.files=name&amp;q.files=a&amp;cols.files=name%2Csize%2Cnote" aria-pressed="false">
 <span class="lui-table-cols-mark" aria-hidden="true">☐</span> Note</a>
 </li>
 </ul>
 </details>
-<a class="lui-button lui-button-small lui-table-csv" href="/table.csv?sort.files=name&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize" download>
+<a class="lui-button lui-button-small lui-table-csv" href="/table.csv?sort.files=name&amp;q.files=a&amp;cols.files=name%2Csize" download>
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="download">
 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
 <path d="m7 10 5 5 5-5"/>
@@ -166,11 +165,12 @@ caps: none
 <span class="lui-sr">Select</span>
 </th>
 <th scope="col" aria-sort="ascending" class="lui-table-sorted">
-<a href="/table?sort.files=name&amp;dir.files=desc&amp;q.files=a&amp;cols.files=name%2Csize">Name<span class="lui-table-arrow">▲</span>
+<a href="/table?sort.files=-name&amp;q.files=a&amp;cols.files=name%2Csize">Name<span class="lui-table-arrow">▲</span>
 </a>
 </th>
 <th scope="col" class=" lui-table-num">
-<a href="/table?sort.files=size&amp;dir.files=asc&amp;q.files=a&amp;cols.files=name%2Csize">Size</a>
+<a href="/table?sort.files=size&amp;q.files=a&amp;cols.files=name%2Csize">Size</a>
+<a class="lui-table-then" href="/table?sort.files=name,size&amp;q.files=a&amp;cols.files=name%2Csize" aria-label="Then by Size" title="Then by Size">+</a>
 </th>
 <th scope="col" class="lui-table-menu">
 <span class="lui-sr">Actions</span>
