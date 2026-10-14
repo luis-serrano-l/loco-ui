@@ -17,15 +17,8 @@ cargo clippy --workspace --all-targets -- -D warnings
 echo "== tests (unit, doc, only-one-script, Blitz layout + screenshots)"
 cargo test --workspace
 
-# The enhancement tag is built in loco-ui/src/enhance.rs; nothing else may write one.
 echo "== no <script> outside enhance.rs"
-if grep -rn '<script' loco-ui/src demo/src loco-ui-test/src examples/loco-app/src \
-     | grep -v '^loco-ui/src/enhance.rs:' \
-     | grep -v 'matches("<script")' \
-     | grep -v '^\S*:\s*//' \
-     | grep -v 'code { "<script>" }'; then
-  echo "found a <script> mention outside enhance.rs and its test"; exit 1
-fi
+scripts/check-script.sh
 
 echo "== screenshots"
 ls tests/shots/*.png | wc -l | xargs -I{} echo "{} PNGs under tests/shots/"
