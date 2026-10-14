@@ -1,0 +1,38 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<search class="lui-search">
+<form method="get" action="/notes">
+<input type="hidden" name="view" value="list">
+<div class="lui-input-slots">
+<span class="lui-input-leading">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="search">
+<circle cx="11" cy="11" r="8"/>
+<path d="m21 21-4.3-4.3"/>
+</svg>
+</span>
+<input id="f-q" class="lui-search-input" name="q" type="search" value="rust" placeholder="Search notes" aria-label="Search notes" aria-controls="notes">
+</div>
+<button type="submit" class="lui-button">Search</button>
+<a class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" href="/notes?view=list">Clear</a>
+</form>
+</search>
+
+caps: none
+<search class="lui-search">
+<form method="get" action="/notes">
+<input type="hidden" name="view" value="list">
+<div class="lui-input-slots">
+<span class="lui-input-leading">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="search">
+<circle cx="11" cy="11" r="8"/>
+<path d="m21 21-4.3-4.3"/>
+</svg>
+</span>
+<input id="f-q" class="lui-search-input" name="q" type="search" value="rust" placeholder="Search notes" aria-label="Search notes" aria-controls="notes">
+</div>
+<button type="submit" class="lui-button">Search</button>
+<a class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" href="/notes?view=list">Clear</a>
+</form>
+</search>

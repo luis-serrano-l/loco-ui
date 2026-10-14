@@ -1,0 +1,56 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<fieldset class="lui-field lui-checkbox-group" aria-describedby="f-topics-help">
+<legend>Topics</legend>
+<div class="lui-checkbox-group-options">
+<label for="f-topics-0" class="lui-checkbox-group-option">
+<input id="f-topics-0" class="lui-checkbox-group-input" type="checkbox" name="topics[]" value="rust" checked aria-describedby="f-topics-0-description">
+<span class="lui-checkbox-group-text">
+<span class="lui-checkbox-group-title">Rust</span>
+<span id="f-topics-0-description" class="lui-checkbox-group-description">Weekly</span>
+</span>
+</label>
+<label for="f-topics-1" class="lui-checkbox-group-option">
+<input id="f-topics-1" class="lui-checkbox-group-input" type="checkbox" name="topics[]" value="css">
+<span class="lui-checkbox-group-text">
+<span class="lui-checkbox-group-title">CSS</span>
+</span>
+</label>
+<label for="f-topics-2" class="lui-checkbox-group-option">
+<input id="f-topics-2" class="lui-checkbox-group-input" type="checkbox" name="topics[]" value="old" disabled aria-disabled="true">
+<span class="lui-checkbox-group-text">
+<span class="lui-checkbox-group-title">Old news</span>
+</span>
+</label>
+</div>
+<small id="f-topics-help" class="lui-field-help">Pick any.</small>
+</fieldset>
+
+caps: none
+<fieldset class="lui-field lui-checkbox-group" aria-describedby="f-topics-help">
+<legend>Topics</legend>
+<div class="lui-checkbox-group-options">
+<label for="f-topics-0" class="lui-checkbox-group-option">
+<input id="f-topics-0" class="lui-checkbox-group-input" type="checkbox" name="topics[]" value="rust" checked aria-describedby="f-topics-0-description">
+<span class="lui-checkbox-group-text">
+<span class="lui-checkbox-group-title">Rust</span>
+<span id="f-topics-0-description" class="lui-checkbox-group-description">Weekly</span>
+</span>
+</label>
+<label for="f-topics-1" class="lui-checkbox-group-option">
+<input id="f-topics-1" class="lui-checkbox-group-input" type="checkbox" name="topics[]" value="css">
+<span class="lui-checkbox-group-text">
+<span class="lui-checkbox-group-title">CSS</span>
+</span>
+</label>
+<label for="f-topics-2" class="lui-checkbox-group-option">
+<input id="f-topics-2" class="lui-checkbox-group-input" type="checkbox" name="topics[]" value="old" disabled aria-disabled="true">
+<span class="lui-checkbox-group-text">
+<span class="lui-checkbox-group-title">Old news</span>
+</span>
+</label>
+</div>
+<small id="f-topics-help" class="lui-field-help">Pick any.</small>
+</fieldset>

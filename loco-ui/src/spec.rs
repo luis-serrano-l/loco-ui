@@ -895,6 +895,76 @@ pub const SPECS: &[ComponentSpec] = &[
         fallback: "at rest: the items wrap and the copy is hidden, without translate or under reduced motion",
         needs_js: NeedsJs::No,
     },
+    ComponentSpec {
+        name: "Checkbox group",
+        module: "checkbox_group",
+        look: "Radix Themes CheckboxGroup and CheckboxCards",
+        responsive: Responsive::Container,
+        features: &[
+            f("<fieldset>", ALWAYS),
+            f("appearance: none", b("84", "80", "15.4")),
+            f(":has()", b("105", "121", "15.4")),
+        ],
+        fallback: "none needed: native checkboxes; a ticked card shows no ring without :has()",
+        needs_js: NeedsJs::Partial(
+            "requiring at least one tick needs the server: HTML has no required for a group",
+        ),
+    },
+    ComponentSpec {
+        name: "Number",
+        module: "number",
+        look: "Origin UI number inputs",
+        responsive: Responsive::Content,
+        features: &[
+            f("type=\"number\"", b("6", "29", "5.1")),
+            f("formnovalidate", b("4", "4", "5")),
+            f(":has()", b("105", "121", "15.4")),
+        ],
+        fallback: "none needed: a native number field; a stepper posts the stepped value",
+        needs_js: NeedsJs::Partial(
+            "stepping in place without a round trip needs the enhancement script",
+        ),
+    },
+    ComponentSpec {
+        name: "Search",
+        module: "search",
+        look: "Radix Themes TextField, shadcn search form",
+        responsive: Responsive::Container,
+        features: &[
+            f("<search>", b("118", "118", "17")),
+            f("type=\"search\"", b("5", "4", "5")),
+            f("aria-controls", ALWAYS),
+        ],
+        fallback: "none needed: an unknown <search> is a block holding the same GET form",
+        needs_js: NeedsJs::Partial("searching as you type needs script"),
+    },
+    ComponentSpec {
+        name: "Rating",
+        module: "rating",
+        look: "Origin UI star rating",
+        responsive: Responsive::Content,
+        features: &[
+            f("type=\"radio\"", ALWAYS),
+            f(":has()", b("105", "121", "15.4")),
+        ],
+        fallback: "only the picked star is filled, and hovering fills nothing, without :has()",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Tag input",
+        module: "tag_input",
+        look: "Origin UI tag input, shadcn Badge",
+        responsive: Responsive::Content,
+        features: &[
+            f("formmethod", b("9", "4", "5.1")),
+            f("formnovalidate", b("4", "4", "5")),
+            f(":has()", b("105", "121", "15.4")),
+        ],
+        fallback: "none needed: Add and remove are page loads that keep the tags in the URL",
+        needs_js: NeedsJs::Partial(
+            "a chip on Enter or a comma, and removing one in place, need script",
+        ),
+    },
 ];
 
 fn json_str(s: &str) -> String {
@@ -1093,6 +1163,11 @@ mod tests {
         ("drawer", include_str!("drawer.rs")),
         ("palette", include_str!("palette.rs")),
         ("marquee", include_str!("marquee.rs")),
+        ("checkbox_group", include_str!("checkbox_group.rs")),
+        ("number", include_str!("number.rs")),
+        ("search", include_str!("search.rs")),
+        ("rating", include_str!("rating.rs")),
+        ("tag_input", include_str!("tag_input.rs")),
     ];
 
     fn header(source: &str) -> String {

@@ -843,6 +843,8 @@ mod tests {
             }
             let source = std::fs::read_to_string(&path).unwrap();
             let code = source.split("#[cfg(test)]\nmod tests").next().unwrap();
+            // A debug assertion speaks to the developer, not the visitor.
+            let mut in_assert = false;
             let (mut in_css, mut in_props) = (false, false);
             for (n, line) in code.lines().enumerate() {
                 let t = line.trim();
@@ -851,6 +853,13 @@ mod tests {
                 }
                 if in_css {
                     in_css = !t.starts_with("\"#;");
+                    continue;
+                }
+                if t.starts_with("debug_assert!(") {
+                    in_assert = true;
+                }
+                if in_assert {
+                    in_assert = !t.ends_with(");");
                     continue;
                 }
                 if t.starts_with("pub const PROPS") {
@@ -1322,6 +1331,22 @@ mod tests {
     /// Names two or more builders use for setters of a different shape, each with the reason.
     const SAME_NAME_OTHER_SHAPE: &[(&str, &str)] = &[
         (
+            "radio",
+            "Form adds a radio group (name, legend, options); Calendar's days become radios",
+        ),
+        (
+            "tel",
+            "Form adds a phone field (name, label); Input switches its own type",
+        ),
+        (
+            "url",
+            "Form adds a URL field (name, label); Input switches its own type",
+        ),
+        (
+            "width",
+            "Input picks a size, Form's modifier sets it on the field added last; Table's is a column width",
+        ),
+        (
             "text",
             "Form adds a text field (name, label); Marquee adds a line of text",
         ),
@@ -1428,6 +1453,19 @@ mod tests {
     /// reason.
     const LIST_IN_ONE_CALL: &[(&str, &str)] = &[
         (
+            "radio",
+            "Form adds a radio group with its options, from data as `.select(..)` does",
+        ),
+        (
+            "checkboxes",
+            "Form adds a checkbox group with its options, from data as `.select(..)` does",
+        ),
+        (
+            "value",
+            "the checked values of a checkbox group: a saved set, from data",
+        ),
+        ("tags", "a tag input's saved tags come from data"),
+        (
             "options",
             "a select's options come from data (a slice, a query), tuples welcome",
         ),
@@ -1511,6 +1549,24 @@ mod tests {
 
     /// Setters whose name is not the HTML attribute they set, each with the reason.
     const NAMED_OTHERWISE: &[(&str, &str)] = &[
+        ("Input::tel", "the switch is named after the `type` it sets"),
+        ("Input::url", "the switch is named after the `type` it sets"),
+        (
+            "CheckboxGroup::value",
+            "the values to check, as every field's `.value(..)`",
+        ),
+        (
+            "Rating::value",
+            "the score to check, as every field's `.value(..)`",
+        ),
+        (
+            "Search::results_id",
+            "names the results by their id; `aria-controls` is how it says so",
+        ),
+        (
+            "TagInput::action",
+            "the page the Add round trip goes to, as a form's `action`",
+        ),
         (
             "Button::submit",
             "the switch is named after the `type` it sets",
@@ -2063,9 +2119,12 @@ mod tests {
         // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
         // (README: "What a page weighs"). 128 KB until M39 folded the dark palette into
         // light-dark() and moved the demo's CSS out: 117 240 bytes then, 111 358 after; 124 KB
-        // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens.
+        // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens;
+        // 132 KB once M40c added the number, search, rating, tag input and checkbox group
+        // components and the input group (addons, steppers, reveal): 128 650 bytes then.
+
         assert!(
-            stylesheet().len() < 124 * 1024,
+            stylesheet().len() < 132 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2972,9 +3031,245 @@ mod tests {
                     .render(),
             ]
         }),
+        ("Color", "disabled", |ui| {
+            [
+                ui.color("c", "C").render(),
+                ui.color("c", "C").disabled().render(),
+            ]
+        }),
+        ("Counter", "disabled", |ui| {
+            [
+                ui.counter("/c", 3).render(),
+                ui.counter("/c", 3).disabled().render(),
+            ]
+        }),
+        ("Form", "disabled", |ui| {
+            [
+                ui.form("/f").text("n", "N").render(),
+                ui.form("/f").text("n", "N").disabled().render(),
+            ]
+        }),
+        ("Form", "autocomplete", |ui| {
+            [
+                ui.form("/f").text("n", "N").render(),
+                ui.form("/f").text("n", "N").autocomplete("name").render(),
+            ]
+        }),
+        ("Input", "tel", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").tel().render(),
+            ]
+        }),
+        ("Input", "url", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").url().render(),
+            ]
+        }),
+        ("Input", "disabled", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").disabled().render(),
+            ]
+        }),
+        ("RadioGroup", "disabled", |ui| {
+            [
+                ui.radio_group("r", "R").option("a", "A").render(),
+                ui.radio_group("r", "R")
+                    .option("a", "A")
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("Range", "disabled", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").disabled().render(),
+            ]
+        }),
+        ("Select", "required", |ui| {
+            [
+                ui.select("s", "S").options([("a", "A")]).render(),
+                ui.select("s", "S")
+                    .options([("a", "A")])
+                    .required()
+                    .render(),
+            ]
+        }),
+        ("Select", "disabled", |ui| {
+            [
+                ui.select("s", "S").options([("a", "A")]).render(),
+                ui.select("s", "S")
+                    .options([("a", "A")])
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("Select", "multiple", |ui| {
+            [
+                ui.select("s", "S").options([("a", "A")]).render(),
+                ui.select("s", "S")
+                    .options([("a", "A")])
+                    .multiple()
+                    .render(),
+            ]
+        }),
+        ("SelectOption", "disabled", |ui| {
+            [
+                (ui.select("s", "S"))
+                    .options([select::SelectOption::new("a", "A")])
+                    .render(),
+                (ui.select("s", "S"))
+                    .options([select::SelectOption::new("a", "A").disabled()])
+                    .render(),
+            ]
+        }),
+        ("CheckboxGroup", "disabled", |ui| {
+            [
+                ui.checkbox_group("c", "C").option("a", "A").render(),
+                ui.checkbox_group("c", "C")
+                    .option("a", "A")
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("CheckboxGroup", "value", |ui| {
+            [
+                ui.checkbox_group("c", "C").option("a", "A").render(),
+                ui.checkbox_group("c", "C")
+                    .option("a", "A")
+                    .value(&["a"])
+                    .render(),
+            ]
+        }),
+        ("CheckboxGroup", "id", |ui| {
+            [
+                ui.checkbox_group("c", "C").option("a", "A").render(),
+                ui.checkbox_group("c", "C")
+                    .option("a", "A")
+                    .id("x")
+                    .render(),
+            ]
+        }),
+        ("Number", "min", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").min(0).render(),
+            ]
+        }),
+        ("Number", "max", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").max(9).render(),
+            ]
+        }),
+        ("Number", "step", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").step(0.5).render(),
+            ]
+        }),
+        ("Number", "value", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").value(2).render(),
+            ]
+        }),
+        ("Number", "required", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").required().render(),
+            ]
+        }),
+        ("Number", "disabled", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").disabled().render(),
+            ]
+        }),
+        ("Number", "placeholder", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").placeholder("1").render(),
+            ]
+        }),
+        ("Number", "id", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").id("x").render(),
+            ]
+        }),
+        ("Search", "action", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").action("/find").render(),
+            ]
+        }),
+        ("Search", "placeholder", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").placeholder("Find").render(),
+            ]
+        }),
+        ("Search", "results_id", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").results_id("r").render(),
+            ]
+        }),
+        ("Search", "id", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").id("x").render(),
+            ]
+        }),
+        ("Rating", "value", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").value(3).render(),
+            ]
+        }),
+        ("Rating", "required", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").required().render(),
+            ]
+        }),
+        ("Rating", "disabled", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").disabled().render(),
+            ]
+        }),
+        ("Rating", "id", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").id("x").render(),
+            ]
+        }),
+        ("TagInput", "action", |ui| {
+            [
+                ui.tag_input("t", "T").render(),
+                ui.tag_input("t", "T").action("/e").render(),
+            ]
+        }),
+        ("TagInput", "placeholder", |ui| {
+            [
+                ui.tag_input("t", "T").render(),
+                ui.tag_input("t", "T").placeholder("Add").render(),
+            ]
+        }),
+        ("TagInput", "id", |ui| {
+            [
+                ui.tag_input("t", "T").render(),
+                ui.tag_input("t", "T").id("x").render(),
+            ]
+        }),
     ];
 
     /// Whether some tag in `html` carries the attribute `name`.
+
     fn has_attribute(html: &str, name: &str) -> bool {
         let needle = format!(" {name}");
         html.split('<').skip(1).any(|tag| {

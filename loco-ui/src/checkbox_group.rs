@@ -233,7 +233,7 @@ impl Render for CheckboxGroup<'_> {
                         @let oid = format!("{id}-{i}");
                         @let did = o.description.map(|_| format!("{oid}-description"));
                         label for=(oid) class="lui-checkbox-group-option" {
-                            input id=(oid) type="checkbox" name=(posted) value=(o.value)
+                            input id=(oid) class="lui-checkbox-group-input" type="checkbox" name=(posted) value=(o.value)
                                 checked[self.value.contains(&o.value)]
                                 disabled[o.disabled] aria-disabled=[o.disabled.then_some("true")]
                                 aria-describedby=[did.as_deref()];
@@ -265,8 +265,8 @@ pub const CSS: &str = r#"
 .lui-checkbox-group[aria-invalid=true] legend { color: var(--lui-danger); }
 .lui-checkbox-group-options { display: grid; gap: 0.75rem; }
 .lui-checkbox-group-option { display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-weight: 500; }
-.lui-checkbox-group-option > input { margin-top: 0.125rem; }
-.lui-checkbox-group-option:has(> input:disabled) { color: var(--lui-gray-11); cursor: not-allowed; }
+.lui-checkbox-group-option > .lui-checkbox-group-input { margin-top: 0.125rem; }
+.lui-checkbox-group-option:has(> .lui-checkbox-group-input:disabled) { color: var(--lui-gray-11); cursor: not-allowed; }
 .lui-checkbox-group-text { display: grid; gap: 0.125rem; min-width: 0; overflow-wrap: anywhere; }
 .lui-checkbox-group-description { color: var(--lui-muted); font-weight: 400; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
 .lui-checkbox-cards .lui-checkbox-group-options { grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-3); }
@@ -278,9 +278,9 @@ pub const CSS: &str = r#"
   transition: border-color var(--lui-duration-fast), box-shadow var(--lui-duration-fast);
 }
 .lui-checkbox-cards .lui-checkbox-group-option:hover { border-color: var(--lui-gray-8); }
-.lui-checkbox-cards .lui-checkbox-group-option:has(> input:checked) { border-color: var(--lui-primary); box-shadow: inset 0 0 0 1px var(--lui-primary); }
-.lui-checkbox-cards .lui-checkbox-group-option:has(> input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); }
-.lui-checkbox-cards .lui-checkbox-group-option:has(> input:disabled) { background: var(--lui-gray-2); }
+.lui-checkbox-cards .lui-checkbox-group-option:has(> .lui-checkbox-group-input:checked) { border-color: var(--lui-primary); box-shadow: inset 0 0 0 1px var(--lui-primary); }
+.lui-checkbox-cards .lui-checkbox-group-option:has(> .lui-checkbox-group-input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--lui-ring) 50%, transparent); }
+.lui-checkbox-cards .lui-checkbox-group-option:has(> .lui-checkbox-group-input:disabled) { background: var(--lui-gray-2); }
 @media (pointer: coarse) { .lui-checkbox-group-option { min-height: var(--lui-hit); align-items: center; } }
 "#;
 
@@ -299,7 +299,7 @@ mod tests {
             .error("e")
             .render()
             .into_string();
-        crate::input::tests::assert_described_ids_exist(&html);
+        crate::input::assert_described_ids_exist(&html);
     }
 
     #[test]

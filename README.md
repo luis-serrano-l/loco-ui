@@ -513,6 +513,11 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Drawer | shadcn Sheet and Drawer | viewport | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
 | Command palette | shadcn Command | viewport | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
 | Marquee | Magic UI Marquee | content | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
+| Checkbox group | Radix Themes CheckboxGroup and CheckboxCards | container | `<fieldset>`, `appearance: none`, `:has()` | 1 / 1 / 1; 84 / 80 / 15.4; 105 / 121 / 15.4 | none needed: native checkboxes; a ticked card shows no ring without :has() | Partly: requiring at least one tick needs the server: HTML has no required for a group |
+| Number | Origin UI number inputs | content | `type="number"`, `formnovalidate`, `:has()` | 6 / 29 / 5.1; 4 / 4 / 5; 105 / 121 / 15.4 | none needed: a native number field; a stepper posts the stepped value | Partly: stepping in place without a round trip needs the enhancement script |
+| Search | Radix Themes TextField, shadcn search form | container | `<search>`, `type="search"`, `aria-controls` | 118 / 118 / 17; 5 / 4 / 5; 1 / 1 / 1 | none needed: an unknown <search> is a block holding the same GET form | Partly: searching as you type needs script |
+| Rating | Origin UI star rating | content | `type="radio"`, `:has()` | 1 / 1 / 1; 105 / 121 / 15.4 | only the picked star is filled, and hovering fills nothing, without :has() | No |
+| Tag input | Origin UI tag input, shadcn Badge | content | `formmethod`, `formnovalidate`, `:has()` | 9 / 4 / 5.1; 4 / 4 / 5; 105 / 121 / 15.4 | none needed: Add and remove are page loads that keep the tags in the URL | Partly: a chip on Enter or a comma, and removing one in place, need script |
 <!-- matrix:end -->
 
 ## Findings

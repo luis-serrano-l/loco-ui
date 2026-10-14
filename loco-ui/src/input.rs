@@ -1603,7 +1603,10 @@ input.lui-switch:disabled { background: var(--lui-gray-4); }
 "#;
 
 #[cfg(test)]
-pub(crate) mod tests {
+pub(crate) use tests::assert_described_ids_exist;
+
+#[cfg(test)]
+mod tests {
     use super::*;
 
     /// Every id an `aria-describedby` names is the id of an element in `html`.

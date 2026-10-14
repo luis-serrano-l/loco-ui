@@ -533,6 +533,44 @@ const EXAMPLES: &[Example] = &[
             .value("bold")
             .render()
     }),
+    on("CheckboxGroup", ("/news", "topics%5B%5D=rust", ""), |ui| {
+        ui.checkbox_group("topics", "Topics")
+            .option("rust", "Rust")
+            .description("Weekly")
+            .option("css", "CSS")
+            .option("old", "Old news")
+            .disabled()
+            .help("Pick any.")
+            .render()
+    }),
+    on("Number", ("/cart", "qty=2", ""), |ui| {
+        ui.number("qty", "Quantity")
+            .min(1)
+            .max(10)
+            .suffix("kg")
+            .steppers()
+            .render()
+    }),
+    on("Search", ("/notes", "q=rust&view=list", ""), |ui| {
+        ui.search("q", "Search notes")
+            .keep("view")
+            .results_id("notes")
+            .placeholder("Search notes")
+            .render()
+    }),
+    on("Rating", ("/review", "stars=4", ""), |ui| {
+        ui.rating("stars", "Your rating").required().render()
+    }),
+    on(
+        "TagInput",
+        ("/note", "tags%5B%5D=rust&tags%5B%5D=web", ""),
+        |ui| {
+            ui.tag_input("tags", "Tags")
+                .placeholder("Add a tag")
+                .help("Up to five.")
+                .render()
+        },
+    ),
 ];
 
 /// One tag per line, so a snapshot diff points at the element that changed.

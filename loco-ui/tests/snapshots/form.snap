@@ -22,11 +22,17 @@ caps: all
 </div>
 <div class="lui-field">
 <label for="f-digest">Digest</label>
+<span class="lui-select">
 <select id="f-digest" name="digest">
+<button type="button" class="lui-select-trigger">
+<selectedcontent>
+</selectedcontent>
+</button>
 <option value="daily">daily</option>
 <option value="weekly" selected>weekly</option>
 <option value="never">never</option>
 </select>
+</span>
 </div>
 </fieldset>
 <div class="lui-form-actions">
@@ -55,11 +61,13 @@ caps: none
 </div>
 <div class="lui-field">
 <label for="f-digest">Digest</label>
+<span class="lui-select">
 <select id="f-digest" name="digest">
 <option value="daily">daily</option>
 <option value="weekly" selected>weekly</option>
 <option value="never">never</option>
 </select>
+</span>
 </div>
 </fieldset>
 <div class="lui-form-actions">

@@ -262,6 +262,6 @@ mod tests {
             1,
             "one radio covers the group"
         );
-        crate::input::tests::assert_described_ids_exist(&req);
+        crate::input::assert_described_ids_exist(&req);
     }
 }

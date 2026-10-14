@@ -122,7 +122,8 @@ impl Ui {
         Number {
             input: self
                 .input(name, label)
-                .value(self.param(name).unwrap_or("")),
+                .value(self.param(name).unwrap_or(""))
+                .class("lui-number"),
             min: None,
             max: None,
             value: None,
@@ -243,7 +244,7 @@ impl Render for Number<'_> {
 /// Styles for this component; included in [`crate::stylesheet`]. The row, the addons and
 /// the steppers are [`crate::input`]'s `.lui-input-group`, shared with every field.
 pub const CSS: &str = r#"
-/* After the Origin UI number inputs: the row is input.rs's .lui-input-group; a number reads
-   in tabular figures, aligned to the end like a column of amounts. */
-.lui-input-group > input[type=number] { font-variant-numeric: tabular-nums; text-align: end; }
+/* After the Origin UI number inputs: the row is input.rs's .lui-input-group; the field (.lui-number)
+   reads in tabular figures, aligned to the end like a column of amounts. */
+.lui-number { font-variant-numeric: tabular-nums; text-align: end; }
 "#;

@@ -129,7 +129,7 @@ use crate::{Caps, Ui, enhance};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Last {
     /// Nothing yet.
-    None,
+    Nothing,
     /// A field a person sees.
     Field,
     /// A hidden field.
@@ -138,18 +138,6 @@ enum Last {
     Body,
     /// A group's legend.
     Group,
-}
-
-impl Last {
-    fn name(self) -> &'static str {
-        match self {
-            Last::None => "nothing",
-            Last::Field => "a field",
-            Last::Hidden => "a hidden field",
-            Last::Body => "markup from body",
-            Last::Group => "a group",
-        }
-    }
 }
 
 /// A POST form of fields, made by [`Ui::form`], or the fields alone, made by [`Ui::fields`].
@@ -318,7 +306,7 @@ impl Ui {
             values: &[],
             errors: &[],
             id: None,
-            last: Last::None,
+            last: Last::Nothing,
         }
     }
 }
@@ -344,8 +332,8 @@ impl<'a> Form<'a> {
     fn last(mut self, method: &str, hidden: bool, change: impl FnOnce(&mut Field<'a>)) -> Self {
         debug_assert!(
             self.last == Last::Field || (hidden && self.last == Last::Hidden),
-            "Form::{method}() applies to a field, but the last item was {}",
-            self.last.name()
+            "Form::{method}() applies to a field, but the last item was {:?}",
+            self.last
         );
         if let Some(f) = self.groups.last_mut().and_then(|g| g.fields.last_mut()) {
             change(f);
@@ -368,8 +356,8 @@ impl<'a> Form<'a> {
     pub fn description(mut self, text: &'a str) -> Self {
         debug_assert!(
             self.last == Last::Group,
-            "Form::description() applies to a group, but the last item was {}",
-            self.last.name()
+            "Form::description() applies to a group, but the last item was {:?}",
+            self.last
         );
         if let Some(g) = self.groups.last_mut().filter(|g| g.legend.is_some()) {
             g.description = Some(text);

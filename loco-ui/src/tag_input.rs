@@ -247,6 +247,6 @@ mod tests {
             .render()
             .into_string();
         assert_eq!(m.matches(r#"type="hidden""#).count(), 2, "{m}");
-        crate::input::tests::assert_described_ids_exist(&m);
+        crate::input::assert_described_ids_exist(&m);
     }
 }
