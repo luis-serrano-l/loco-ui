@@ -513,6 +513,9 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Drawer | shadcn Sheet and Drawer | viewport | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
 | Command palette | shadcn Command | viewport | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
 | Marquee | Magic UI Marquee | content | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
+| Banner | Origin UI Banner | container | `<aside>`, `cookie`, `<form method="post">` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
+| Popover | Radix Themes Popover | content | `popover`, `anchor-name`, `position-try-fallbacks`, `@starting-style` | 114 / 125 / 17; 125 / 147 / 26; 128 / 147 / 26; 117 / 129 / 17.5 | centred in the viewport without anchor positioning; a <details> disclosure without popover | No |
+| Carousel | shadcn/ui Carousel | container | `scroll-snap-type`, `::scroll-button()`, `::scroll-marker` | 69 / 68 / 11; 135 / no / no; 135 / no / no | fragment links to each slide's id stand in for the scroll buttons and markers | No |
 <!-- matrix:end -->
 
 ## Findings
