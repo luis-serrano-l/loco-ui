@@ -63,44 +63,45 @@ try {
 
   // Tabs: click a title, panel switches, URL updated, no reload.
   await go("/tabs");
-  // The toggle comes from the script, before the answer: the strip it fires in is still the original.
-  assert(await wd("POST", S + "/execute/async", { args: [], script: "var cb = arguments[0], a = document.querySelector(\".lui-tabs summary a[href*='tab.demo=1']\"), d = a.closest('details'); d.addEventListener('toggle', function () { cb(d.open && a.isConnected && !!a.closest('summary').querySelector('.lui-tabs-mark')); }, { once: true }); a.click();" }), "tabs: the clicked tab opens and takes the underline before the answer");
-  await until(async () => (await text(".lui-tabs details[open] summary")).startsWith("Use"), "tab switch");
+  // The switch comes from the script, before the answer: the strip it happens in is still the original.
+  assert(await wd("POST", S + "/execute/async", { args: [], script: "var cb = arguments[0], a = document.querySelector(\"#lui-tabs-demo .lui-tabs-trigger[href*='tab.demo=1']\"); new MutationObserver(function (m, o) { if (a.getAttribute('data-state') === 'active') { o.disconnect(); cb(a.isConnected && !!a.querySelector('.lui-tabs-mark') && !document.querySelectorAll('#lui-tabs-demo .lui-tabs-panel')[1].hidden); } }).observe(a, { attributes: true }); a.click();" }), "tabs: the clicked tab opens and takes the underline before the answer");
+  await until(async () => (await text("#lui-tabs-demo .lui-tabs-trigger[data-state=active]")).startsWith("Use"), "tab switch");
   await until(async () => (await js("return location.search")) === "?tab.demo=1", "tabs: URL follows the swap");
   assert(true, "tabs: URL follows the swap");
   assert(await navigations() === 1, "tabs: switched without a reload");
-  assert(await js("return getComputedStyle(document.querySelector('.lui-tabs details[open] .lui-tabs-mark')).viewTransitionName") === "lui-tabs-demo", "tabs: the underline, not the title, carries the view-transition-name");
+  assert(await js("return getComputedStyle(document.querySelector('#lui-tabs-demo .lui-tabs-trigger[data-state=active] .lui-tabs-mark')).viewTransitionName") === "lui-tabs-demo", "tabs: the underline, not the title, carries the view-transition-name");
   const fetched = (q) => js("return performance.getEntriesByType('resource').filter((r) => r.name.endsWith(arguments[0])).length", q);
-  await js("document.querySelector(\".lui-tabs summary a[href*='tab.demo=2']\").dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))");
+  await js("document.querySelector(\"#lui-tabs-demo .lui-tabs-trigger[href*='tab.demo=2']\").dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))");
   await until(async () => (await fetched("?tab.demo=2")) === 1, "hover prefetches the tab");
-  await click(".lui-tabs summary a[href*='tab.demo=2']");
-  await until(async () => await js("return !!document.querySelector('#lui-tabs-demo details[open] .lui-tabs-panel p')"), "prefetched tab shown");
+  await click("#lui-tabs-demo .lui-tabs-trigger[href*='tab.demo=2']");
+  await until(async () => await js("return !!document.querySelector('#lui-tabs-demo .lui-tabs-panel[data-state=active] p')"), "prefetched tab shown");
   assert(await fetched("?tab.demo=2") === 1 && await navigations() === 1, "tabs: the click reused the prefetched answer in place, no second request");
-  await until(async () => await js("return !!document.querySelector('#lui-tabs-demo details[open] .lui-tabs-panel p')"), "lazy tab filled");
-  assert(!(await js("return document.querySelector('#lui-tabs-demo details[open] .lui-tabs-lazy')")), "tabs: lazy panel rendered by the request that opened it");
+  await until(async () => await js("return !!document.querySelector('#lui-tabs-demo .lui-tabs-panel[data-state=active] p')"), "lazy tab filled");
+  assert(!(await js("return document.querySelector('#lui-tabs-demo .lui-tabs-panel[data-state=active] .lui-tabs-lazy')")), "tabs: lazy panel rendered by the request that opened it");
   await wd("POST", S + "/window/rect", { width: 500, height: 800 });
   await until(async () => await js("return document.querySelector('#lui-tabs-demo .lui-tabs-select').offsetParent !== null"), "select shown on a narrow screen");
-  assert(await js("return document.querySelector('#lui-tabs-demo summary').offsetParent === null"), "tabs: titles hidden when the select shows");
+  assert(await js("return document.querySelector('#lui-tabs-demo .lui-tabs-trigger').offsetParent === null"), "tabs: titles hidden when the select shows");
   await js("var s = document.querySelector('#lui-tabs-demo select'); s.value = '0'; s.dispatchEvent(new Event('change', { bubbles: true }))");
-  await until(async () => (await js("return document.querySelector('#lui-tabs-demo select').value")) === "0" && (await text("#lui-tabs-demo details[open] summary")) === "Install", "select switched the tab");
+  await until(async () => (await js("return document.querySelector('#lui-tabs-demo select').value")) === "0" && (await js("return document.querySelector('#lui-tabs-demo .lui-tabs-trigger[data-state=active]').textContent")) === "Install", "select switched the tab");
   assert(await navigations() === 1 && await js("return location.search") === "?tab.demo=0", "tabs: select change swapped in place");
   await wd("POST", S + "/window/rect", { width: 1000, height: 700 });
 
   // Accordion: expand all, then one title, in place; several stay open.
+  const opened = (id) => js("return [...document.querySelectorAll(arguments[0] + ' > .lui-accordion-item')].map(d => d.dataset.state === 'open' ? 1 : 0).join('')", id);
   await go("/accordion");
   await click(".lui-accordion-controls a");
-  await until(async () => (await js("return document.querySelectorAll('#lui-accordion-faq > details[open]').length")) === 3, "expand all");
+  await until(async () => (await opened("#lui-accordion-faq")) === "111", "expand all");
   assert(await js("return location.search").then(q => q.includes("open.faq=0%2C1%2C2")), "accordion: expand all swapped in place with the list in the URL");
-  await click("#lui-accordion-faq > details:nth-of-type(2) > summary a");
-  await until(async () => (await js("return [...document.querySelectorAll('#lui-accordion-faq > details')].map(d => d.open ? 1 : 0).join('')")) === "101", "toggle one of three");
-  await click("#lui-accordion-faq-more > details:nth-of-type(2) > summary a");
-  await until(async () => (await js("return [...document.querySelectorAll('#lui-accordion-faq-more > details')].map(d => d.open ? 1 : 0).join('')")) === "01", "nested group toggles on its own key");
-  assert(await js("return [...document.querySelectorAll('#lui-accordion-faq > details')].map(d => d.open ? 1 : 0).join('')") === "101", "accordion: nested toggle kept the outer sections");
+  await click("#lui-accordion-faq > .lui-accordion-item:nth-of-type(2) > .lui-accordion-trigger");
+  await until(async () => (await opened("#lui-accordion-faq")) === "101", "toggle one of three");
+  await click("#lui-accordion-faq-more > .lui-accordion-item:nth-of-type(2) > .lui-accordion-trigger");
+  await until(async () => (await opened("#lui-accordion-faq-more")) === "01", "nested group toggles on its own key");
+  assert(await opened("#lui-accordion-faq") === "101", "accordion: nested toggle kept the outer sections");
   await click(".lui-accordion-controls a:last-child");
-  await until(async () => (await js("return document.querySelectorAll('#lui-accordion-faq > details[open]').length")) === 0, "collapse all");
+  await until(async () => (await opened("#lui-accordion-faq")) === "000", "collapse all");
   assert(await navigations() === 1, "accordion: every toggle swapped without a reload");
   await go("/accordion");
-  assert(await js("return document.querySelectorAll('#lui-accordion-faq > details[open]').length") === 0, "accordion: collapse all beat the cookie's memory on the next visit");
+  assert(await opened("#lui-accordion-faq") === "000", "accordion: collapse all beat the cookie's memory on the next visit");
 
   // Combobox: results as you type, focus kept.
   await go("/combobox");
@@ -249,7 +250,7 @@ try {
 
   // Flash: saving with notifications off stacks ok + warn; ok fades by CSS; dismiss clears both.
   await go("/settings?tab.settings=1");
-  await click(".lui-tabs details[open] button[type=submit]");
+  await click(".lui-tabs-panel[data-state=active] button[type=submit]");
   await until(async () => (await js("return document.querySelectorAll('.lui-flash-item').length")) === 2, "flash: ok and warn stacked");
   assert(await js("return getComputedStyle(document.querySelector('.lui-flash-ok')).animationName") === "lui-flash-hide", "flash: ok auto-hides by CSS animation");
   assert(await js("return getComputedStyle(document.querySelector('.lui-flash-warn')).animationName") === "none", "flash: warn stays");
@@ -440,10 +441,9 @@ try {
   assert(await js("const [t, d] = ['.lui-record-fields dt', '.lui-record-fields dd'].map((s) => document.querySelector(s).getBoundingClientRect()); return d.left > t.right && Math.abs(t.top - d.top) < 1"), "record page: fields side by side in the card");
 
   // Accessibility: axe-core on every route, as each visitor variant sees it.
-  // Runs in the page: load axe, check, answer the violations. Two patterns are let through
-  // (FINDINGS, M29): a link filling a <summary>, the no-script tab and accordion design; and
-  // the <button><selectedcontent> of a customisable select, which Firefox cannot fill and only
-  // gets here because the check forces the capability cookie.
+  // Runs in the page: load axe, check, answer the violations. One pattern is let through
+  // (FINDINGS, M29): the <button><selectedcontent> of a customisable select, which Firefox
+  // cannot fill and only gets here because the check forces the capability cookie.
   // Entry transitions (M30 motion) are jumped to their end first, so contrast is read on the
   // settled page, not mid-fade; long or looping animations (toast timers, marquee) are left.
   function audit(source, done) {
@@ -453,8 +453,7 @@ try {
       if (end !== undefined && end < 1000) a.finish();
     }
     axe.run(document, { resultTypes: ["violations"] }).then((r) => done(r.violations.map((v) => {
-      const nodes = v.nodes.filter((n) => !(v.id === "nested-interactive" && /^<summary/.test(n.html))
-        && !(v.id === "button-name" && /<selectedcontent/.test(n.html)));
+      const nodes = v.nodes.filter((n) => !(v.id === "button-name" && /<selectedcontent/.test(n.html)));
       return nodes.length ? { id: v.id, impact: v.impact, help: v.help, nodes: nodes.slice(0, 3).map((n) => n.target.join(" ")) } : null;
     }).filter(Boolean)), (e) => done([{ id: "axe-error", impact: "critical", help: String(e), nodes: [] }]));
   }

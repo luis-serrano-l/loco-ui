@@ -68,7 +68,7 @@ async function ready(url) {
 // Each case: the page, what to click, and the state that means the update is shown.
 const CASES = [
   { name: "table sort", path: "/table", click: '#lui-paged-table-files th a[href*="sort.files=size"]', root: "lui-paged-table-files", shown: "replaced" },
-  { name: "tab", path: "/tabs", click: "#lui-tabs-demo details:nth-of-type(2) > summary a", root: "lui-tabs-demo", shown: "tab" },
+  { name: "tab", path: "/tabs", click: "#lui-tabs-demo .lui-tabs-trigger:nth-child(2)", root: "lui-tabs-demo", shown: "tab" },
   { name: "pager", path: "/list", click: "#lui-pager--list .lui-pager-more", root: "lui-pager--list", shown: "replaced" },
 ];
 
@@ -78,7 +78,7 @@ const MEASURE = `
 const [sel, id, shown, done] = arguments;
 const before = document.getElementById(id);
 const ok = () => shown === "tab"
-  ? (document.querySelectorAll("#" + id + " details")[1] || {}).open === true
+  ? (document.querySelectorAll("#" + id + " .lui-tabs-panel")[1] || {}).hidden === false
   : document.getElementById(id) !== before && document.getElementById(id) !== null;
 const t0 = performance.now();
 let settled = false;

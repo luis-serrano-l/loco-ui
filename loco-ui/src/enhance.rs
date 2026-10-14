@@ -209,10 +209,15 @@ function request(t, src, url, req, fallback) {
 // then replaces the strip, once the underline has slid, without a second transition (a lazy
 // panel fills in at that point). Returns false, or a promise for the end of the slide.
 function openTab(a) {
-  var s = a.closest(".lui-tabs summary"), d = s && s.parentElement, strip = d && d.parentElement;
-  if (!d || d.open) return false;
-  var mark = strip.querySelector(":scope > details > summary > .lui-tabs-mark");
-  var show = function () { d.open = true; if (mark) s.append(mark); };
+  var list = a.closest(".lui-tabs-list"), strip = list && list.parentElement;
+  if (!list || !a.matches(".lui-tabs-trigger") || a.getAttribute("data-state") === "active") return false;
+  var tabs = list.querySelectorAll(":scope > .lui-tabs-trigger"), panels = strip.querySelectorAll(":scope > .lui-tabs-panel");
+  var at = Array.prototype.indexOf.call(tabs, a), mark = list.querySelector(".lui-tabs-mark");
+  var show = function () {
+    tabs.forEach(function (t, i) { t.setAttribute("data-state", i === at ? "active" : "inactive"); if (i === at) t.setAttribute("aria-current", "true"); else t.removeAttribute("aria-current"); });
+    panels.forEach(function (p, i) { p.hidden = i !== at; p.setAttribute("data-state", i === at ? "active" : "inactive"); });
+    if (mark) a.prepend(mark);
+  };
   if (document.startViewTransition && !reduced) return document.startViewTransition(show).finished;
   show();
   return true;
@@ -264,7 +269,7 @@ document.addEventListener("click", function (e) {
 ["mouseover", "focusin"].forEach(function (type) {
   document.addEventListener(type, function (e) {
     var a = e.target.closest && e.target.closest("a[href]");
-    if (!a || a.href === location.href || a.origin !== location.origin || !a.closest("[data-lui-prefetch]") || a.closest(".lui-tabs details[open] > summary") || !target(a, "push")) return;
+    if (!a || a.href === location.href || a.origin !== location.origin || !a.closest("[data-lui-prefetch]") || a.matches(".lui-tabs-trigger[data-state=active]") || !target(a, "push")) return;
     var hit = cache[a.href];
     if (hit && Date.now() - hit.at < 5000) return;
     var got = load(a.href, init("low"));

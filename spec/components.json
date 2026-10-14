@@ -565,12 +565,10 @@
       "look": "Radix Themes Tabs and TabNav",
       "responsive": "container",
       "features": [
-        { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
-        { "name": "display: contents", "baseline": { "chrome": "65", "firefox": "37", "safari": "11.1" } },
-        { "name": "::details-content", "baseline": { "chrome": "131", "firefox": "143", "safari": "18.4" } },
+        { "name": "hidden", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } }
       ],
-      "fallback": "accordion markup, chosen server-side; the narrow-screen select has a Go button",
+      "fallback": "no view transitions: the chip appears on the new tab; the narrow-screen select has a Go button",
       "needs_js": "no",
       "builders": [
         {
@@ -596,11 +594,9 @@
       "look": "shadcn Accordion",
       "responsive": "content",
       "features": [
-        { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
-        { "name": "::details-content", "baseline": { "chrome": "131", "firefox": "143", "safari": "18.4" } },
-        { "name": "interpolate-size", "baseline": { "chrome": "129", "firefox": "no", "safari": "no" } }
+        { "name": "hidden", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
       ],
-      "fallback": "plain <details>: no exclusivity, no animation; expand/collapse and every toggle are links either way",
+      "fallback": "none needed: every toggle, expand and collapse is a link",
       "needs_js": "no",
       "builders": [
         {
