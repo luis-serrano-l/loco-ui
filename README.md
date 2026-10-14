@@ -1,5 +1,11 @@
 # loco-ui
 
+[![crates.io](https://img.shields.io/crates/v/loco-ui.svg)](https://crates.io/crates/loco-ui)
+[![docs.rs](https://img.shields.io/docsrs/loco-ui)](https://docs.rs/loco-ui)
+[![CI](https://github.com/luis-serrano-l/loco-ui/actions/workflows/rust.yml/badge.svg)](https://github.com/luis-serrano-l/loco-ui/actions/workflows/rust.yml)
+[![MSRV 1.88](https://img.shields.io/badge/MSRV-1.88-blue.svg)](loco-ui/Cargo.toml)
+[![MIT licence](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **[Live demo](https://luis-serrano-l.github.io/loco-ui/)** (every component, static snapshot on
 GitHub Pages) · **[Source on GitHub](https://github.com/luis-serrano-l/loco-ui)**
 
@@ -22,6 +28,34 @@ redirect). One optional 12 KB script makes those forms and links update the page
 instead of reloading it; block it and every page still works. On Loco, a scaffold generates
 HTML controllers and Maud views for a model. The core is plain functions over strings, so it
 also works with any other Rust server.
+
+## Install
+
+loco-ui is not on crates.io yet. Until the publish (0.2.0), depend on the repository:
+
+```toml
+[dependencies]
+loco-ui = { git = "https://github.com/luis-serrano-l/loco-ui", features = ["axum"] }
+maud = "0.27" # `lui!` and `html!` expand to `maud::` paths, so your crate names it too
+```
+
+After the publish, `cargo add` does the same. Pick the line for your server:
+
+**Axum.** `cargo add loco-ui --features axum` and `cargo add maud`. Handlers take `ui: Ui`
+and return `Page` or `Redirect`; `enhance::router()` and `caps::router()` serve the script
+and the beacon route.
+
+**Loco.** `cargo add loco-ui --features loco` and `cargo add maud`, then
+`loco_ui::loco::Initializer` in `App::initializers` mounts both routes. Or let the installer
+do all of it, scaffold templates included: `cargo install --git
+https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui`, then `cargo lui install`
+in the app ("Use with Loco" below). The `loco` feature needs Rust 1.94, which loco-rs 1.2
+asks for; the rest builds on 1.88.
+
+**Any server.** `cargo add loco-ui` and `cargo add maud`, with no features: the crate then
+depends on Maud and its own two crates only. `Ui::from_request(path, query, cookies)` gives
+the builders and `.into_string()` the HTML; `--features http` adds `http::Response` and
+streaming ("Use with any server" below).
 
 ![Five layers, bottom to top: the HTML and CSS platform; primitives such as button, input and card; components such as dialog, tabs and table; widgets such as calendar and kanban; and components you write in your own crate](docs/layers.svg)
 
@@ -99,7 +133,7 @@ rustc's own "no method named `requird` … did you mean `required`" at the attri
 `loco_ui::props()` lists every component's setters with kind, arguments, default and the
 HTML attribute they set; the demo shows them as a table on each page.
 
-The dependencies: `cargo add loco-ui --features axum`, `cargo add maud` (`lui!` expands to
+The dependencies: `loco-ui` with the `axum` feature (see Install), `maud` (`lui!` expands to
 `maud::html!`, so the crate that calls it needs `maud` itself), plus `axum` and `serde` with
 `derive`. A handler that reads a post by name, or one with a file field, takes `posted:
 Posted` (urlencoded or multipart) instead of `Form<T>`: `posted.get("email")`,
@@ -114,8 +148,9 @@ server.
 cargo run -p demo      # http://127.0.0.1:3000: every component live on the index, a sidebar of them on every page
 cargo dev              # same, restarted when Rust source changes (cargo install cargo-watch)
 cargo test             # includes: only the enhancement <script> on any route, and Blitz layout tests
-scripts/verify.sh      # fmt + clippy -D warnings + tests + screenshots + <script> grep; CI adds
-                       # every feature level, the installer test, rustdoc and the Firefox check
+scripts/verify.sh      # fmt + clippy -D warnings + tests + <script> grep; --full adds the Blitz
+                       # screenshots; CI adds every feature level, the installer test, rustdoc
+                       # and the Firefox check
 scripts/snapshot.sh    # static snapshot of every page into target/site/ (no script, relative links, a banner)
 ```
 
@@ -149,11 +184,20 @@ search as you type, in-place table sort, wizard steps, live range output, theme)
 
 ## Use with Loco
 
-On [Loco](https://loco.rs), `cargo lui install` (from `cargo install --git
-https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui`) sets an app up in one
-command: the dependency with the `loco` feature, the scaffold templates, a layout view and
-this line in `App::initializers`; controllers then take `ui: Ui` like any Axum handler and return `Result<Page>` or
-`Result<Redirect>`:
+`cargo lui` is the installer:
+
+```sh
+cargo install --git https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui --features cli
+cargo lui new my_app               # a new Axum app; `--loco` for a Loco one with accounts
+cargo lui install                  # in an existing Loco app
+cargo lui add badge record_page    # copy components into src/ui/, yours to edit
+```
+
+On [Loco](https://loco.rs), `cargo lui install` sets an app up in one command: the
+dependency with the `loco` feature (pinned to the installer's commit until the crate is
+published), the scaffold templates, a layout view, the app's `Look`, the 404 page, the strict
+CSP layer and this line in `App::initializers`; controllers then take `ui: Ui` like any Axum
+handler and return `Result<Page>` or `Result<Redirect>`:
 
 ```rust
 async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
@@ -165,7 +209,11 @@ async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
 message plus what was typed, so a bad form is shown again instead of answered with an error
 (`loco::FieldErrors` does the same for Loco's model validation), and `loco-ui/loco-templates/` makes
 `cargo loco generate scaffold` write an HTML controller and Maud views (Post/Redirect/Get,
-paging, validation) instead of a JSON API. `cargo lui auth` adds sign-in, sign-up, forgot and
+paging, a search box and sortable columns that query the database, a CSV download,
+validation, a delete that asks first; `cargo lui scaffold .. --parent notebook` nests the
+list under its parent) instead of a JSON API. `cargo lui add` copies a component's file
+into the app as `ui.app_<name>(..)`, the whole file with its docs and CSS, for when yours
+differs; `cargo lui eject` copies all of loco-ui. `cargo lui auth` adds sign-in, sign-up, forgot and
 reset password, email verification and magic-link pages, all forms, with Loco's JWT in an
 `HttpOnly` cookie. [`examples/loco-app`](examples/loco-app) is a generated app, tested through
 Loco's router and Blitz; [`docs/loco.md`](docs/loco.md) covers install, controllers, forms,
@@ -225,7 +273,9 @@ component gives the HTML to another template engine.
   `Page::invalid()`, `Posted`, the flash that shows itself, layouts and markup blocks in `lui!`,
   `ui.table_query` with `sort_by`/`page_of`, rows from tuples): the demo's visible snippets went
   from 460 to 436 lines while showing more (the forms now sit inside them), and its route files
-  from 2,614 to 2,384 lines.
+  from 2,614 to 2,384 lines. Measured again on 2026-10-14 (M44), after later pages such as
+  `/table/minimal` and the description list: 502 snippet lines in 57 blocks, route files
+  2,580 lines.
 - Primitives come first: `ui.button`/`ui.link_button`, `ui.input`/`ui.checkbox`/`ui.switch`/
   `ui.radio_group`, `ui.badge`, `ui.card`, `Icon` (32 Lucide shapes as inline SVG),
   `ui.avatar`, and the layouts `ui.stack()`, `ui.cluster()`, `ui.grid(min)` (their content is
@@ -259,12 +309,15 @@ component gives the HTML to another template engine.
 
 ## What a page weighs
 
-Measured on the demo (M34), gzip at level 9; every page inlines the whole stylesheet, so
-there is no second request for CSS, and no script is required.
+Measured on the demo (M34; the stylesheet rows at M39), gzip at level 9. By default every page
+inlines the whole stylesheet, so there is no second request for CSS, and no script is required;
+`Page::linked_stylesheet()` links `/lui.css` instead (cached, ETag) and `Page::subset(..)`
+inlines only the components a page lists.
 
 | | raw | gzip |
 |---|---|---|
-| The whole stylesheet, every component and block (`stylesheet()`) | 116.9 KB | 20.0 KB |
+| The whole stylesheet, every component and block (`stylesheet()`) | 111.4 KB | 19.5 KB |
+| The base subset: layout, primitives and modes (`stylesheet_for(Component::BASE)`) | 32.3 KB | 7.0 KB |
 | A demo page, stylesheet, sidebar and props tables included (`/nav` … `/calendar`) | 136–160 KB | 22.9–26.0 KB |
 | `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 249 KB | 41.8 KB |
 | The index, every component live on it | 292 KB | 47.1 KB |
@@ -273,8 +326,8 @@ there is no second request for CSS, and no script is required.
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
-stylesheet stays under 128 KB (88 KB until M34), and every demo page's markup, the inlined stylesheet not
-counted, under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
+stylesheet stays under 112 KB (128 KB until M39, 88 KB until M34), and every demo page's markup, the inlined stylesheet not
+counted (nor the demo's own CSS, its `Look` since M39), under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
@@ -404,7 +457,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Component | Look after | Responsive by | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |
 |---|---|---|---|---|---|---|
 | Enhancement script | - | - | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent`, `HTML drag and drop` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6; 4 / 3.5 / 3.1 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
-| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | viewport | `@view-transition`, `prefers-color-scheme`, `custom properties` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1 | plain navigations (root never cross-fades); colours still switch by media query and data-theme | No |
+| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | content | `@view-transition`, `prefers-color-scheme`, `custom properties`, `@layer`, `light-dark()`, `forced-colors` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1; 99 / 97 / 15.4; 123 / 120 / 17.5; 89 / 89 / 16 | plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white | No |
 | Capability beacons | - | - | `@supports`, `selector()`, `background images`, `cookies` | 28 / 22 / 9; 83 / 69 / 14.1; 1 / 1 / 1; 1 / 1 / 1 | unknown browser gets every fallback; the first view always does | No |
 | Button | Radix Themes Button | content | `invoker commands`, `popovertarget`, `aria-busy`, `prefers-reduced-motion`, `translate` | 135 / 144 / 26.2; 114 / 125 / 17; 1 / 1 / 1; 74 / 63 / 10.1; 104 / 72 / 14.1 | a popover command becomes popovertarget; other commands need the component's own fallback; a shimmer button is at rest without translate | No |
 | Input, checkbox, switch, radio group | Radix Themes TextField, Checkbox, Switch, RadioGroup and RadioCards | container | `constraint validation`, `type=date`, `:user-invalid`, `role="switch"`, `appearance: none`, `<fieldset>`, `linear-gradient(in oklch` | 10 / 4 / 10.1; 20 / 57 / 14.1; 119 / 88 / 16.5; 1 / 1 / 1; 84 / 80 / 15.4; 1 / 1 / 1; 111 / 127 / 16.2 | none needed: native controls; the switch stays a checkbox without appearance: none; a gradient border is a plain one without in oklch gradients | Partly: a live character count while typing needs the enhancement script |
@@ -521,7 +574,7 @@ demo/src/site.rs            the component index, the page shell, the index page 
 demo/src/code.rs            the code under each component page: SOURCES, snippet(), syntect highlighting
 demo/src/tests.rs           the no-script test, strict CSP, snippets, state round trips
 demo/src/snapshot.rs        the static snapshot for GitHub Pages (scripts/snapshot.sh)
-.github/workflows/pages.yml builds the snapshot and deploys it to GitHub Pages
+.github/workflows/rust.yml  CI jobs; `pages` deploys the snapshot to GitHub Pages
 loco-ui/loco-templates/   Loco scaffold overrides: HTML controller + Maud views, Post/Redirect/Get
 examples/loco-app/          Loco app (sign-in, scaffolded notes); tests/pages.rs: one script, Blitz shots loco-*.png
 loco-ui-test/src/lib.rs   Page: render a route through Blitz, assert layout, screenshot
@@ -529,8 +582,22 @@ loco-ui-test/tests/       every route rendered and captured; layout assertions
 loco-ui-test/examples/probe.rs   render any HTML file through Blitz, print boxes
 tests/shots/                PNG per route and capability level, from Blitz
 scripts/verify.sh           the local verification pass (CI runs the slow checks)
+scripts/check-script.sh     the <script> grep, shared by verify.sh, CI and the commit hook
+loco-ui/src/_template.rs.txt  a component skeleton with a TODO per convention (not packaged)
 FINDINGS.md                 what works, what needs a fallback, what is impossible without JS
 CHANGELOG.md                what each version added; both crates share the version
+```
+
+Repo tooling, for Claude Code (plain Markdown that a person or another agent can follow too):
+
+```
+.claude/skills/new-component/   add a component: the template, every list to append to, the test behind each
+.claude/skills/look-check/      shoot a page with scripts/look.sh, compare with its reference, delete the PNGs
+.claude/skills/roadmap-tick/    close a ROADMAP box: the Done note, CHANGELOG, FINDINGS, README
+.claude/skills/release/         prepare a release up to, and not including, cargo publish
+.claude/skills/bench/, plain-writing/, rust-practices/   benchmarks, prose, Rust rules
+.claude/agents/component-reviewer.md   read-only check of one component against the nine conventions
+.claude/settings.json           hooks: cargo fmt after a .rs edit, scripts/check-script.sh before a commit
 ```
 
 ## License

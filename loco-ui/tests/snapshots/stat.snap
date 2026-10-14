@@ -1,0 +1,26 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<a class="lui-stat lui-stat-link" href="/errors">
+<p class="lui-stat-label">Error rate</p>
+<p class="lui-stat-value">0.4%</p>
+<p class="lui-stat-delta-row">
+<span class="lui-stat-delta lui-stat-good">
+<span aria-hidden="true">▼</span>
+<span class="lui-sr">down </span>-0.2 pt</span>
+</p>
+<p class="lui-stat-note">last 7 days</p>
+</a>
+
+caps: none
+<a class="lui-stat lui-stat-link" href="/errors">
+<p class="lui-stat-label">Error rate</p>
+<p class="lui-stat-value">0.4%</p>
+<p class="lui-stat-delta-row">
+<span class="lui-stat-delta lui-stat-good">
+<span aria-hidden="true">▼</span>
+<span class="lui-sr">down </span>-0.2 pt</span>
+</p>
+<p class="lui-stat-note">last 7 days</p>
+</a>

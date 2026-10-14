@@ -1,0 +1,5 @@
+error[E0080]: evaluation panicked: `tone="dangr"` is not a `Tone`: write one of `loco_ui::variant::Tone::NAMES`
+ --> tests/ui/unknown_choice.rs:5:42
+  |
+5 |     let _ = lui! { Button("Delete") tone="dangr"; };
+  |                                          ^^^^^^^ evaluation of `main::__LUI_CHOICE` failed here

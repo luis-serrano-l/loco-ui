@@ -110,7 +110,7 @@ async fn every_route_renders_and_is_captured() {
             if !inside_shadow_root {
                 assert!(page.is_visible("h1"), "{path} ({suffix}) has no visible h1");
                 assert!(
-                    page.is_visible(".lui-header"),
+                    page.is_visible(".lui-site-header"),
                     "{path} ({suffix}) has no header"
                 );
             }
@@ -1075,7 +1075,7 @@ async fn buttons_badges_and_icons() {
         page.is_visible("a.lui-button[href='/']"),
         "a link can look like a button"
     );
-    assert_eq!(page.count(".lui-stage .lui-badge"), 11);
+    assert_eq!(page.count(".lui-stage .lui-badge"), 13);
     let svg = page.bbox(".lui-stage svg.lui-icon").unwrap();
     assert!(
         (svg.width - 16.0).abs() < 1.0 && (svg.height - 16.0).abs() < 1.0,

@@ -69,6 +69,11 @@ try {
   await until(async () => (await js("return location.search")) === "?tab.demo=1", "tabs: URL follows the swap");
   assert(true, "tabs: URL follows the swap");
   assert(await navigations() === 1, "tabs: switched without a reload");
+  // M39: a swap that moved the URL says the new title through the script's role=status
+  // region, and the focus, lost with the replaced strip, lands in the new root, not <body>.
+  await until(async () => await js("var s = document.querySelector('body > div.lui-sr[role=status]'); return !!s && s.textContent === document.title"), "the swap announced");
+  assert(true, "tabs: the swap is announced in a role=status region");
+  assert(await js("return document.activeElement !== document.body && !!document.activeElement.closest('#lui-tabs-demo')"), "tabs: the focus lands in the new root, not on <body>");
   assert(await js("return getComputedStyle(document.querySelector('.lui-tabs details[open] .lui-tabs-mark')).viewTransitionName") === "lui-tabs-demo", "tabs: the underline, not the title, carries the view-transition-name");
   const fetched = (q) => js("return performance.getEntriesByType('resource').filter((r) => r.name.endsWith(arguments[0])).length", q);
   await js("document.querySelector(\".lui-tabs summary a[href*='tab.demo=2']\").dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))");

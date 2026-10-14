@@ -1,0 +1,64 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-flash">
+<div class="lui-flash-item lui-callout lui-callout-ok lui-flash-ok lui-flash-auto" role="status">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="circle-check">
+<circle cx="12" cy="12" r="10"/>
+<path d="m9 12 2 2 4-4"/>
+</svg>
+<p class="lui-flash-text">Saved.</p>
+<a class="lui-flash-dismiss" href="/settings" aria-label="Dismiss: Saved.">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</div>
+<div class="lui-flash-item lui-callout lui-callout-danger lui-flash-danger" role="alert">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="triangle-alert">
+<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+<path d="M12 9v4"/>
+<path d="M12 17h.01"/>
+</svg>
+<p class="lui-flash-text">Avatar too large.</p>
+<a class="lui-flash-dismiss" href="/settings" aria-label="Dismiss: Avatar too large.">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</div>
+</div>
+
+caps: none
+<div class="lui-flash">
+<div class="lui-flash-item lui-callout lui-callout-ok lui-flash-ok lui-flash-auto" role="status">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="circle-check">
+<circle cx="12" cy="12" r="10"/>
+<path d="m9 12 2 2 4-4"/>
+</svg>
+<p class="lui-flash-text">Saved.</p>
+<a class="lui-flash-dismiss" href="/settings" aria-label="Dismiss: Saved.">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</div>
+<div class="lui-flash-item lui-callout lui-callout-danger lui-flash-danger" role="alert">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="triangle-alert">
+<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+<path d="M12 9v4"/>
+<path d="M12 17h.01"/>
+</svg>
+<p class="lui-flash-text">Avatar too large.</p>
+<a class="lui-flash-dismiss" href="/settings" aria-label="Dismiss: Avatar too large.">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</div>
+</div>

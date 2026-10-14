@@ -45,6 +45,7 @@ pub struct Meter<'a> {
     optimum: Option<i64>,
     label: Option<&'a str>,
     id: Option<&'a str>,
+    strings: &'static crate::i18n::Strings,
 }
 
 impl Meter<'_> {
@@ -80,6 +81,7 @@ impl Ui {
             optimum: None,
             label: None,
             id: None,
+            strings: self.strings,
         }
     }
 }
@@ -122,13 +124,17 @@ impl Render for Meter<'_> {
             || format!("lui-meter-{}", slug(self.label.unwrap_or("meter"))),
             str::to_string,
         );
+        let (value, max) = (
+            self.strings.digits(self.value),
+            self.strings.digits(self.max),
+        );
         html! {
             div class="lui-progress-field" {
                 @if let Some(l) = self.label {
-                    label for=(id) { span { (l) } span class="lui-progress-value" { (self.value) " / " (self.max) } }
+                    label for=(id) { span { (l) } span class="lui-progress-value" { (value) " / " (max) } }
                 }
                 meter id=(id) class="lui-meter" value=(self.value) min=(self.min) max=(self.max)
-                    low=[self.low] high=[self.high] optimum=[self.optimum] { (self.value) " / " (self.max) }
+                    low=[self.low] high=[self.high] optimum=[self.optimum] { (value) " / " (max) }
             }
         }
     }

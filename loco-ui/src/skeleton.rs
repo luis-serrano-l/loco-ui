@@ -1,7 +1,7 @@
 //! # Skeleton
 //!
 //! Grey bars in the shape of content that is still coming: the placeholder for a streamed
-//! [`crate::Ui::slot`], a lazy panel, anything the server fills in later.
+//! `Ui::slot` (feature `http`), a lazy panel, anything the server fills in later.
 //!
 //! **Platform features:** `aria-busy="true"` and `role="status"` with a visually hidden
 //! label, so assistive technology hears "Loading" once instead of reading empty boxes; a

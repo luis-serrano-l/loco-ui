@@ -115,8 +115,7 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Actions, "Acciones")
     .with(Text::RowActions, "Acciones de la fila")
     .with(Text::WithSelected, "Con las filas elegidas:")
-    .with(Text::OneMatch, "1 resultado")
-    .with(Text::Matches, "{} resultados")
+    .with(Text::Matches, "one:{} resultado|other:{} resultados")
     .with(Text::ForQuery, "{} para \u{201c}{}\u{201d}")
     .with(Text::IsSelected, " elegido")
     .with(Text::Decrement, "restar")
@@ -140,6 +139,30 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Friday, "viernes")
     .with(Text::Saturday, "sábado")
     .with(Text::Sunday, "domingo")
+    .with(Text::MondayShort, "lu")
+    .with(Text::TuesdayShort, "ma")
+    .with(Text::WednesdayShort, "mi")
+    .with(Text::ThursdayShort, "ju")
+    .with(Text::FridayShort, "vi")
+    .with(Text::SaturdayShort, "sá")
+    .with(Text::SundayShort, "do")
+    .with(Text::RequiredHint, "* obligatorio")
+    .with(Text::FieldRequired, "Este campo es obligatorio.")
+    .with(Text::FieldEmail, "Escribe un correo electrónico válido.")
+    .with(Text::FieldUrl, "Escribe una URL válida.")
+    .with(Text::FieldLength, "Revisa la longitud.")
+    .with(Text::FieldRange, "Escribe un valor dentro del rango.")
+    .with(Text::FieldMustMatch, "Los valores no coinciden.")
+    .with(Text::FieldFormat, "Revisa el formato.")
+    .with(Text::FieldCheck, "Revisa este campo.")
+    .with(Text::FormCheck, "Revisa el formulario.")
+    .with(Text::New, "Nuevo")
+    .with(Text::Created, "Creado.")
+    .with(Text::Saved, "Guardado.")
+    .with(Text::Deleted, "Borrado.")
+    .with(Text::DeleteConfirm, "¿Borrar {}?")
+    .with(Text::CannotUndo, "No se puede deshacer.")
+    .with(Text::SkipToContent, "Saltar al contenido")
     .with(Text::SortThenBy, "Luego por {}")
     .with(Text::Filters, "Filtros")
     .with(Text::SelectAllMatching, "Elegir las {} filas que coinciden")
@@ -147,8 +170,27 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Open, "Abrir")
     .with(Text::OpenRow, "Abrir {}");
 
+/// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
+/// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as
+/// the first day of the week).
+pub static ARABIC: Strings = Strings::new("ar")
+    .with(Text::Next, "التالي")
+    .with(Text::Previous, "السابق")
+    .with(Text::Close, "إغلاق")
+    .with(Text::Cancel, "إلغاء")
+    .with(Text::Search, "بحث")
+    .with(Text::Submit, "إرسال")
+    .with(Text::LoadMore, "تحميل المزيد")
+    .with(Text::RowsPerPage, "صفوف في الصفحة")
+    .with(Text::PreviousMonth, "الشهر السابق")
+    .with(Text::NextMonth, "الشهر التالي")
+    .with(
+        Text::Matches,
+        "zero:لا نتائج|one:نتيجة واحدة|two:نتيجتان|few:{} نتائج|many:{} نتيجة|other:{} نتيجة",
+    );
+
 /// The languages the demo offers, English first (the default).
-pub static LANGUAGES: [&Strings; 2] = [&Strings::ENGLISH, &SPANISH];
+pub static LANGUAGES: [&Strings; 3] = [&Strings::ENGLISH, &SPANISH, &ARABIC];
 
 #[cfg(test)]
 mod tests {
@@ -160,6 +202,8 @@ mod tests {
             .into_iter()
             .filter(|t| SPANISH.get(*t) == Strings::ENGLISH.get(*t))
             .filter(|t| !matches!(t, Text::DayMonthYear | Text::MonthYear))
+            // No longer read: `Text::Matches` holds both forms.
+            .filter(|t| t.key() != "lui-one-match")
             .collect();
         assert!(same.is_empty(), "left in English: {same:?}");
     }

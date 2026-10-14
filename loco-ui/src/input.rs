@@ -9,7 +9,8 @@
 //! The look follows Radix Themes (TextField, TextArea, Checkbox, Switch, RadioGroup and
 //! RadioCards): a gray-7 border with no shadow, `.leading(..)`/`.trailing(..)` slots inside
 //! the border, help in gray-11 and the error after a warning icon, a drawn checkbox, radio and
-//! switch, and `.cards()` for a radio group of selectable cards.
+//! switch, and `.cards()` for a radio group of selectable cards. A text field takes Radix's
+//! sizes (`.size(..)`, 1 to 3) and its surface, soft or ghost variant (`.variant(..)`).
 //!
 //! **Platform features:** constraint validation (`required`, `pattern`, `min`, `max`,
 //! `maxlength`, `type=email`, baseline 2015; `type=date`/`time`/`datetime-local`, Chrome 20, Firefox 57 (93 for `datetime-local`),
@@ -77,6 +78,10 @@
 //!     option "team" "Team" description="Unlimited projects";
 //! } };
 //! assert_eq!(same.into_string(), tier);
+//! // A small soft field, the size and variant on its root.
+//! let q = ui.input("q", "Search").size(1).variant(Variant::Soft).render().into_string();
+//! assert!(q.starts_with(r#"<div class="lui-field" data-size="1" data-variant="soft">"#));
+//! assert_eq!(lui! { Input("q", "Search") size=1 variant="soft"; }.into_string(), q);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -84,6 +89,7 @@ use maud::{Markup, Render, html};
 use crate::Ui;
 use crate::icon::{Glyph, Icon};
 use crate::props::{Prop, PropKind};
+use crate::variant::{Size, Variant};
 
 /// Input type of a field.
 #[derive(Clone, Debug)]
@@ -184,6 +190,8 @@ pub(crate) struct Extra<'a> {
     gradient_border: bool,
     leading: Option<Glyph<'a>>,
     trailing: Option<Glyph<'a>>,
+    size: Size,
+    variant: Option<Variant>,
 }
 
 impl<'a> Field<'a> {
@@ -214,7 +222,8 @@ impl<'a> Field<'a> {
 /// **Setters.** Values and items: `.number(..)`, `.pattern(..)`, `.textarea(..)`, `.file(..)`,
 /// `.date(..)`, `.time(..)`, `.datetime(..)`, `.help(..)`, `.maxlength(..)`, `.value(..)`, `.error(..)`,
 /// `.placeholder(..)`, `.list(..)`, `.autocomplete(..)`, `.inputmode(..)`, `.step(..)`,
-/// `.aria_controls(..)`, `.form(..)`, `.class(..)`, `.id(..)`, `.leading(..)`, `.trailing(..)`; switches: `.email()`,
+/// `.aria_controls(..)`, `.form(..)`, `.class(..)`, `.id(..)`, `.leading(..)`, `.trailing(..)`,
+/// `.size(..)`, `.variant(..)`; switches: `.email()`,
 /// `.password()`, `.multiple()`, `.required()`, `.search()`, `.hide_label()`, `.autofocus()`,
 /// `.gradient_border()`;
 /// from a condition: `.checked(bool)`.
@@ -253,7 +262,7 @@ impl Input<'_> {
             .doc("The file picker takes several files."),
         Prop::new("required", PropKind::Switch, "")
             .attr("required")
-            .doc("The `required` attribute, and a `*` after the label."),
+            .doc("The `required` attribute, and a `*` after the label (hidden from screen readers, which say \"required\")."),
         Prop::new("help", PropKind::Value, "help: &'a str").doc("Help text under the field."),
         Prop::new("maxlength", PropKind::Number, "max: usize")
             .attr("maxlength")
@@ -307,6 +316,20 @@ impl Input<'_> {
             .doc("An icon or text inside the field's border, before the text."),
         Prop::new("trailing", PropKind::Value, "slot: impl Into<Glyph<'a>>")
             .doc("An icon or text inside the field's border, after the text."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("A text field's height and text: Radix's sizes 1 to 3."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("surface")
+        .doc("A text field's look: surface (a border), soft (a tint) or ghost (neither)."),
     ];
 }
 
@@ -420,7 +443,8 @@ impl<'a> Input<'a> {
         self
     }
 
-    /// The `required` attribute, and a `*` after the label.
+    /// The `required` attribute, and a `*` after the label. The star is `aria-hidden`: the
+    /// attribute already makes a screen reader say "required", in the browser's language.
     pub fn required(mut self) -> Self {
         self.0.required = true;
         self
@@ -534,6 +558,20 @@ impl<'a> Input<'a> {
     /// field a page leads with. A plain border without `in oklch` gradients.
     pub fn gradient_border(mut self) -> Self {
         self.0.extra.gradient_border = true;
+        self
+    }
+
+    /// A text field's height and text, Radix's sizes 1 to 3 (2 is the default); every size is
+    /// 2.75rem tall on a touch screen.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.0.extra.size = size.into();
+        self
+    }
+
+    /// A text field's look: surface (the default, a border), soft (a brand tint and no
+    /// border) or ghost (neither); solid and outline draw as surface.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.0.extra.variant = Some(variant);
         self
     }
 
@@ -652,13 +690,21 @@ impl Render for Field<'_> {
         }
         let echo = !matches!(self.kind, FieldKind::File { .. } | FieldKind::Password);
         let extra = &self.extra;
+        // Size and variant go on the root: the field, or the control when its label is hidden.
+        let size = (extra.size != Size::S2).then(|| extra.size.as_str());
+        let variant = extra.variant.map(Variant::as_str);
+        let slots = lead.is_some() || trail.is_some();
+        let bare = extra.hide_label
+            && !matches!(self.kind, FieldKind::Textarea { .. } | FieldKind::Select(_));
+        let on_input = bare && !slots;
         let gradient = extra.gradient_border.then_some("lui-input-gradient-border");
         let class = match (extra.class, gradient) {
             (Some(c), Some(g)) => Some(format!("{c} {g}")),
             (c, g) => c.or(g).map(str::to_string),
         };
         let control = html! {
-            input id=(id) class=[class.as_deref()] name=(self.name) type=(kind) value=[echo.then_some(self.value)]
+            input id=(id) class=[class.as_deref()] data-size=[size.filter(|_| on_input)] data-variant=[variant.filter(|_| on_input)]
+                name=(self.name) type=(kind) value=[echo.then_some(self.value)]
                 required[self.required] min=[min] max=[max] step=[extra.step] pattern=[pattern] title=[pattern.and(help)]
                 accept=[accept] multiple[multiple] maxlength=[self.maxlength] placeholder=[self.placeholder]
                 form=[extra.form] list=[extra.list] autocomplete=[extra.autocomplete] autofocus[extra.autofocus] inputmode=[extra.inputmode]
@@ -670,19 +716,19 @@ impl Render for Field<'_> {
                 span id=[slot_id(&id, side, glyph)] class={ "lui-input-" (side) } { (g) }
             } }
         };
-        let control = if lead.is_some() || trail.is_some() {
-            html! { div class="lui-input-slots" { (slot("leading", lead)) (control) (slot("trailing", trail)) } }
+        let control = if slots {
+            html! { div class="lui-input-slots" data-size=[size.filter(|_| bare)] data-variant=[variant.filter(|_| bare)] {
+                (slot("leading", lead)) (control) (slot("trailing", trail))
+            } }
         } else {
             control
         };
-        if extra.hide_label
-            && !matches!(self.kind, FieldKind::Textarea { .. } | FieldKind::Select(_))
-        {
+        if bare {
             return control;
         }
         html! {
-            div class="lui-field" {
-                label for=(id) { (self.label) @if self.required { " *" } }
+            div class="lui-field" data-size=[size] data-variant=[variant] {
+                label for=(id) { (self.label) @if self.required { " " (REQUIRED) } }
                 @if let FieldKind::Textarea { rows } = self.kind {
                     textarea id=(id) class=[gradient] name=(self.name) rows=(rows) required[self.required] maxlength=[self.maxlength] placeholder=[self.placeholder]
                         aria-invalid=[invalid] aria-describedby=[described.as_deref()] { (self.value) }
@@ -819,7 +865,7 @@ impl Render for RadioGroup<'_> {
         html! {
             fieldset class={ "lui-field lui-radio-group" @if self.cards { " lui-radio-cards" } }
                 aria-describedby=[described.as_deref()] aria-invalid=[self.error.map(|_| "true")] {
-                legend { (self.legend) @if self.required { " *" } }
+                legend { (self.legend) @if self.required { " " (REQUIRED) } }
                 div class="lui-radio-group-options" {
                     @for (i, (value, label, description)) in self.options.iter().enumerate() {
                         @let oid = format!("{id}-{i}");
@@ -843,6 +889,12 @@ impl Render for RadioGroup<'_> {
         }
     }
 }
+
+/// The visual mark of a required field. Hidden from screen readers, since the `required`
+/// attribute says it already; [`Text::RequiredHint`](crate::i18n::Text::RequiredHint)
+/// explains the star under a form.
+const REQUIRED: maud::PreEscaped<&str> =
+    maud::PreEscaped(r#"<span class="lui-field-required" aria-hidden="true">*</span>"#);
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
@@ -927,6 +979,16 @@ input:is([type=checkbox], [type=radio]):disabled:checked { background: var(--lui
 .lui-input-slots:has(> input:user-invalid) { border-color: var(--lui-danger); }
 .lui-input-slots:has(> input:disabled) { background: var(--lui-gray-2); border-color: var(--lui-gray-6); cursor: not-allowed; }
 .lui-input-leading, .lui-input-trailing { display: inline-flex; flex: none; white-space: nowrap; }
+/* .size(..) and .variant(..), on the field's root (the control itself when its label is
+   hidden): Radix TextField sizes 1 and 3 on the shared control heights, and its soft look (a
+   brand-3 tint, no border) and a ghost one (no border or fill). */
+:is(.lui-field[data-size="1"] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-size="1"]) { min-height: var(--lui-control-h-sm); font-size: 0.8125rem; }
+:is(.lui-field[data-size="1"] input, input[data-size="1"]) { padding-block: 0.25rem; }
+:is(.lui-field[data-size="3"] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-size="3"]) { min-height: var(--lui-control-h-lg); font-size: 1rem; line-height: 1.5rem; }
+:is(.lui-field[data-size="3"] input, input[data-size="3"]) { padding-block: 0.5rem; }
+:is(.lui-field[data-variant=soft] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-variant=soft]) { background-color: var(--lui-brand-3); border-color: transparent; }
+:is(.lui-field[data-variant=ghost] :is(input, textarea, .lui-input-slots), :is(input, .lui-input-slots)[data-variant=ghost]) { background-color: transparent; border-color: transparent; }
+:is(.lui-field[data-variant] .lui-input-slots, .lui-input-slots[data-variant]) > input { background-color: transparent; }
 /* .gradient_border(): the page's fill on the padding box over the ring gradient on the border box. */
 @supports (background: linear-gradient(in oklch, currentColor, transparent)) {
   :is(input, textarea).lui-input-gradient-border {
@@ -1018,7 +1080,7 @@ mod tests {
                 && g.contains(r#"aria-invalid="true""#)
         );
         assert_eq!(
-            g.matches("required").count(),
+            g.matches(" required").count(),
             1,
             "one required radio covers the group"
         );

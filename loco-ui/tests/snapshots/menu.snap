@@ -1,0 +1,112 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --account">
+<button type="button" class="lui-button" popovertarget="account" aria-haspopup="menu">Account<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</button>
+<nav id="account" popover style="position-anchor: --account; position-area: bottom span-left">
+<ul role="menu">
+<li role="presentation" class="lui-popover-heading">Signed in as Ada</li>
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/profile">
+<span class="lui-popover-icon" aria-hidden="true">@</span>
+<span class="lui-popover-text">Profile</span>
+<kbd class="lui-popover-kbd">g p</kbd>
+</a>
+</li>
+<li role="none">
+<a class="lui-popover-item lui-popover-disabled" role="menuitem" aria-disabled="true">
+<span class="lui-popover-text">Billing</span>
+</a>
+</li>
+<li role="separator" class="lui-popover-sep">
+</li>
+<li role="none" class="lui-popover-sub">
+<button type="button" class="lui-popover-item" role="menuitem" aria-haspopup="menu" popovertarget="account-theme" style="anchor-name: --account-theme">
+<span class="lui-popover-text">Theme</span> ▸</button>
+<nav id="account-theme" popover class="lui-popover-subnav" style="position-anchor: --account-theme; position-area: right span-bottom">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/?t=light">
+<span class="lui-popover-text">Light</span>
+</a>
+</li>
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/?t=dark">
+<span class="lui-popover-text">Dark</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li role="separator" class="lui-popover-sep">
+</li>
+<li role="none">
+<form method="post" action="/logout">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Sign out</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+
+caps: none
+<details class="lui-popover lui-popover-details lui-popover-end" id="account">
+<summary class="lui-button" aria-haspopup="menu">Account<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</summary>
+<nav>
+<ul role="menu">
+<li role="presentation" class="lui-popover-heading">Signed in as Ada</li>
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/profile">
+<span class="lui-popover-icon" aria-hidden="true">@</span>
+<span class="lui-popover-text">Profile</span>
+<kbd class="lui-popover-kbd">g p</kbd>
+</a>
+</li>
+<li role="none">
+<a class="lui-popover-item lui-popover-disabled" role="menuitem" aria-disabled="true">
+<span class="lui-popover-text">Billing</span>
+</a>
+</li>
+<li role="separator" class="lui-popover-sep">
+</li>
+<li role="none" class="lui-popover-sub">
+<details class="lui-popover-details lui-popover-right" id="account-theme">
+<summary class="lui-popover-item" role="menuitem" aria-haspopup="menu">
+<span class="lui-popover-text">Theme</span> ▸</summary>
+<nav>
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/?t=light">
+<span class="lui-popover-text">Light</span>
+</a>
+</li>
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/?t=dark">
+<span class="lui-popover-text">Dark</span>
+</a>
+</li>
+</ul>
+</nav>
+</details>
+</li>
+<li role="separator" class="lui-popover-sep">
+</li>
+<li role="none">
+<form method="post" action="/logout">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Sign out</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</details>

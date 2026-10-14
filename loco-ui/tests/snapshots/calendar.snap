@@ -1,0 +1,584 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-calendar-due" data-lui="swap" class="lui-calendar" role="radiogroup" aria-labelledby="lui-calendar-due-title" aria-required="true">
+<div class="lui-calendar-head">
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" role="link" aria-disabled="true" aria-label="Previous month">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+</a>
+<p id="lui-calendar-due-title" class="lui-calendar-title" aria-live="polite">September 2026</p>
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" href="/book?month.due=2026-10" aria-label="Next month">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</div>
+<table class="lui-calendar-grid" aria-labelledby="lui-calendar-due-title">
+<thead>
+<tr>
+<th scope="col" abbr="Sunday">Su</th>
+<th scope="col" abbr="Monday">Mo</th>
+<th scope="col" abbr="Tuesday">Tu</th>
+<th scope="col" abbr="Wednesday">We</th>
+<th scope="col" abbr="Thursday">Th</th>
+<th scope="col" abbr="Friday">Fr</th>
+<th scope="col" abbr="Saturday">Sa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-outside lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-08-30" disabled>
+<span aria-hidden="true">30</span>
+<span class="lui-sr">Sunday, 30 August 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-08-31" disabled>
+<span aria-hidden="true">31</span>
+<span class="lui-sr">Monday, 31 August 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-01" disabled>
+<span aria-hidden="true">1</span>
+<span class="lui-sr">Tuesday, 1 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-02" disabled>
+<span aria-hidden="true">2</span>
+<span class="lui-sr">Wednesday, 2 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-03" disabled>
+<span aria-hidden="true">3</span>
+<span class="lui-sr">Thursday, 3 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-04" disabled>
+<span aria-hidden="true">4</span>
+<span class="lui-sr">Friday, 4 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-05" disabled>
+<span aria-hidden="true">5</span>
+<span class="lui-sr">Saturday, 5 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-06" disabled>
+<span aria-hidden="true">6</span>
+<span class="lui-sr">Sunday, 6 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-07" disabled>
+<span aria-hidden="true">7</span>
+<span class="lui-sr">Monday, 7 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-08" disabled>
+<span aria-hidden="true">8</span>
+<span class="lui-sr">Tuesday, 8 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-09" disabled>
+<span aria-hidden="true">9</span>
+<span class="lui-sr">Wednesday, 9 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-10" required>
+<span aria-hidden="true">10</span>
+<span class="lui-sr">Thursday, 10 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-11" required>
+<span aria-hidden="true">11</span>
+<span class="lui-sr">Friday, 11 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-12" disabled>
+<span aria-hidden="true">12</span>
+<span class="lui-sr">Saturday, 12 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-13" disabled>
+<span aria-hidden="true">13</span>
+<span class="lui-sr">Sunday, 13 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-14" required>
+<span aria-hidden="true">14</span>
+<span class="lui-sr">Monday, 14 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-15" required>
+<span aria-hidden="true">15</span>
+<span class="lui-sr">Tuesday, 15 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-16" required>
+<span aria-hidden="true">16</span>
+<span class="lui-sr">Wednesday, 16 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-17" required>
+<span aria-hidden="true">17</span>
+<span class="lui-sr">Thursday, 17 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-18" required>
+<span aria-hidden="true">18</span>
+<span class="lui-sr">Friday, 18 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-19" disabled>
+<span aria-hidden="true">19</span>
+<span class="lui-sr">Saturday, 19 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-20" disabled>
+<span aria-hidden="true">20</span>
+<span class="lui-sr">Sunday, 20 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-21" required>
+<span aria-hidden="true">21</span>
+<span class="lui-sr">Monday, 21 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-22" required>
+<span aria-hidden="true">22</span>
+<span class="lui-sr">Tuesday, 22 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-23" required>
+<span aria-hidden="true">23</span>
+<span class="lui-sr">Wednesday, 23 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-today" aria-current="date">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-24" required>
+<span aria-hidden="true">24</span>
+<span class="lui-sr">Thursday, 24 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-25" required>
+<span aria-hidden="true">25</span>
+<span class="lui-sr">Friday, 25 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-26" disabled>
+<span aria-hidden="true">26</span>
+<span class="lui-sr">Saturday, 26 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-27" disabled>
+<span aria-hidden="true">27</span>
+<span class="lui-sr">Sunday, 27 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-28" required>
+<span aria-hidden="true">28</span>
+<span class="lui-sr">Monday, 28 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-29" required>
+<span aria-hidden="true">29</span>
+<span class="lui-sr">Tuesday, 29 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day" title="Invoice due">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-30" required>
+<span aria-hidden="true">30</span>
+<span class="lui-sr">Wednesday, 30 September 2026, Invoice due</span>
+<span class="lui-calendar-dots" aria-hidden="true">
+<span>
+</span>
+</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-10-01" required>
+<span aria-hidden="true">1</span>
+<span class="lui-sr">Thursday, 1 October 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-10-02" required>
+<span aria-hidden="true">2</span>
+<span class="lui-sr">Friday, 2 October 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-10-03" disabled>
+<span aria-hidden="true">3</span>
+<span class="lui-sr">Saturday, 3 October 2026</span>
+</label>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+caps: none
+<div id="lui-calendar-due" data-lui="swap" class="lui-calendar" role="radiogroup" aria-labelledby="lui-calendar-due-title" aria-required="true">
+<div class="lui-calendar-head">
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" role="link" aria-disabled="true" aria-label="Previous month">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+</a>
+<p id="lui-calendar-due-title" class="lui-calendar-title" aria-live="polite">September 2026</p>
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" href="/book?month.due=2026-10" aria-label="Next month">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</div>
+<table class="lui-calendar-grid" aria-labelledby="lui-calendar-due-title">
+<thead>
+<tr>
+<th scope="col" abbr="Sunday">Su</th>
+<th scope="col" abbr="Monday">Mo</th>
+<th scope="col" abbr="Tuesday">Tu</th>
+<th scope="col" abbr="Wednesday">We</th>
+<th scope="col" abbr="Thursday">Th</th>
+<th scope="col" abbr="Friday">Fr</th>
+<th scope="col" abbr="Saturday">Sa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-outside lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-08-30" disabled>
+<span aria-hidden="true">30</span>
+<span class="lui-sr">Sunday, 30 August 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-08-31" disabled>
+<span aria-hidden="true">31</span>
+<span class="lui-sr">Monday, 31 August 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-01" disabled>
+<span aria-hidden="true">1</span>
+<span class="lui-sr">Tuesday, 1 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-02" disabled>
+<span aria-hidden="true">2</span>
+<span class="lui-sr">Wednesday, 2 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-03" disabled>
+<span aria-hidden="true">3</span>
+<span class="lui-sr">Thursday, 3 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-04" disabled>
+<span aria-hidden="true">4</span>
+<span class="lui-sr">Friday, 4 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-05" disabled>
+<span aria-hidden="true">5</span>
+<span class="lui-sr">Saturday, 5 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-06" disabled>
+<span aria-hidden="true">6</span>
+<span class="lui-sr">Sunday, 6 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-07" disabled>
+<span aria-hidden="true">7</span>
+<span class="lui-sr">Monday, 7 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-08" disabled>
+<span aria-hidden="true">8</span>
+<span class="lui-sr">Tuesday, 8 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-09" disabled>
+<span aria-hidden="true">9</span>
+<span class="lui-sr">Wednesday, 9 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-10" required>
+<span aria-hidden="true">10</span>
+<span class="lui-sr">Thursday, 10 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-11" required>
+<span aria-hidden="true">11</span>
+<span class="lui-sr">Friday, 11 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-12" disabled>
+<span aria-hidden="true">12</span>
+<span class="lui-sr">Saturday, 12 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-13" disabled>
+<span aria-hidden="true">13</span>
+<span class="lui-sr">Sunday, 13 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-14" required>
+<span aria-hidden="true">14</span>
+<span class="lui-sr">Monday, 14 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-15" required>
+<span aria-hidden="true">15</span>
+<span class="lui-sr">Tuesday, 15 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-16" required>
+<span aria-hidden="true">16</span>
+<span class="lui-sr">Wednesday, 16 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-17" required>
+<span aria-hidden="true">17</span>
+<span class="lui-sr">Thursday, 17 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-18" required>
+<span aria-hidden="true">18</span>
+<span class="lui-sr">Friday, 18 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-19" disabled>
+<span aria-hidden="true">19</span>
+<span class="lui-sr">Saturday, 19 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-20" disabled>
+<span aria-hidden="true">20</span>
+<span class="lui-sr">Sunday, 20 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-21" required>
+<span aria-hidden="true">21</span>
+<span class="lui-sr">Monday, 21 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-22" required>
+<span aria-hidden="true">22</span>
+<span class="lui-sr">Tuesday, 22 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-23" required>
+<span aria-hidden="true">23</span>
+<span class="lui-sr">Wednesday, 23 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-today" aria-current="date">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-24" required>
+<span aria-hidden="true">24</span>
+<span class="lui-sr">Thursday, 24 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-25" required>
+<span aria-hidden="true">25</span>
+<span class="lui-sr">Friday, 25 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-26" disabled>
+<span aria-hidden="true">26</span>
+<span class="lui-sr">Saturday, 26 September 2026</span>
+</label>
+</td>
+</tr>
+<tr>
+<td>
+<label class="lui-calendar-day lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-27" disabled>
+<span aria-hidden="true">27</span>
+<span class="lui-sr">Sunday, 27 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-28" required>
+<span aria-hidden="true">28</span>
+<span class="lui-sr">Monday, 28 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-29" required>
+<span aria-hidden="true">29</span>
+<span class="lui-sr">Tuesday, 29 September 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day" title="Invoice due">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-09-30" required>
+<span aria-hidden="true">30</span>
+<span class="lui-sr">Wednesday, 30 September 2026, Invoice due</span>
+<span class="lui-calendar-dots" aria-hidden="true">
+<span>
+</span>
+</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-10-01" required>
+<span aria-hidden="true">1</span>
+<span class="lui-sr">Thursday, 1 October 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-10-02" required>
+<span aria-hidden="true">2</span>
+<span class="lui-sr">Friday, 2 October 2026</span>
+</label>
+</td>
+<td>
+<label class="lui-calendar-day lui-calendar-outside lui-calendar-off">
+<input class="lui-calendar-radio" type="radio" name="due" value="2026-10-03" disabled>
+<span aria-hidden="true">3</span>
+<span class="lui-sr">Saturday, 3 October 2026</span>
+</label>
+</td>
+</tr>
+</tbody>
+</table>
+</div>

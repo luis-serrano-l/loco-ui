@@ -927,6 +927,63 @@ is not drawn only because it sits behind the motion query.
   `AddUserRefToNotes` migration fails there. The app's notes table is recreated instead,
   which drops the notes written before it (development data only).
 
+### M46 · Tests that would have caught the audit's bugs
+
+- **Where `cargo test --workspace` spends its time** (2026-10-14, 12 cores, warm debug build,
+  `RUSTC_BOOTSTRAP=1 cargo test --workspace -- -Z unstable-options --report-time`): the
+  Blitz crate's `every_route_renders_and_is_captured` 248 s (all of `loco-ui-test/tests/demo.rs`
+  252 s), the example app's `every_page_works_without_script` 69 s, the library's doctests
+  25 s, the `lui!` `trybuild` errors 19 s, the demo's unit tests 13 s (the conformance test is
+  all of it), the rest under 5 s each. Proptest and the snapshots take under 1 s. So
+  `scripts/verify.sh` leaves the Blitz crate to `--full` and CI. `RUSTC_BOOTSTRAP` changes
+  the build fingerprint and rebuilds the whole workspace once.
+- **html5ever finds no parse error on any route.** Maud's output is well formed; what the
+  conformance test catches are document-level problems (repeated ids, links in
+  `<summary>`) that no single component's doctest can see.
+
+
+
+### M38 · One variant system
+
+- **`Tone::Info` is the brand scale for now.** The palette has one colour each for ok, warn
+  and danger and full scales only for gray and the brand, so `tone="info"` paints like
+  `tone="brand"` until M39 adds `--lui-info-*`. Ok, warn and danger tints are
+  `color-mix(in srgb, ..)` of their one colour, as the alert's callout already did.
+- **`Size` has three values; Radix gives Dialog four and Avatar five.** `Dialog::size` and
+  `Avatar::size` keep their `u8` (1 to 4 and 1 to 5), so `size=4` on a dialog still means
+  Radix's size 4. Every other `.size(..)` takes `impl Into<Size>`.
+- **A choice's string is checked by name, not by type.** `lui!` sees tokens, not types, so it
+  treats a string given to an attribute named `size`, `tone`, `variant` or `radius` as a
+  name in `loco_ui::variant`. A component with a string setter of one of those names would
+  need `x=("..")` in `lui!`; none has one.
+### M39 · CSS that an app can own
+
+- **Stylesheet size and speed.** Before (`23e9e06`): 117 240 bytes, 19 967 gzipped (level 9).
+  After: 111 358 bytes, 19 546 gzipped; the base subset (`stylesheet_for(Component::BASE)`)
+  is 32 251 bytes, 6 990 gzipped. `cargo bench -p loco-ui --bench render`: `stylesheet`
+  1.52 ns to 0.83 ns, `layout` 30.0 µs to 20.0 µs (Ryzen 5 5600H; the before run shared the
+  machine with other builds, so the layout gain is partly noise).
+- **`light-dark()` is used unconditionally.** It is Baseline 2024 (Chrome 123, Firefox 120,
+  Safari 17.5, https://caniuse.com/mdn-css_types_color_light-dark). An older browser drops
+  every colour token and shows the default black on white: readable, not themed. The
+  `Cap::LightDark` beacon is informational only; no markup branches on it.
+- **Blitz always takes the light side of `light-dark()`.** Stylo's servo device answers
+  `is_dark_color_scheme` with `false`, so a `data-theme="dark"` page lays out light in
+  `tests/shots/` (https://github.com/servo/stylo/blob/main/style/device/servo.rs; no upstream
+  issue yet, the owner files it). Layout is unaffected.
+- **`style-src-attr`** (Chrome 75, Firefox 108, Safari 15.4,
+  https://caniuse.com/mdn-http_headers_content-security-policy_style-src-attr) lets a linked
+  page keep `style=""` attributes while `<style>` elements need a hash. A browser without it
+  falls back to `style-src` and refuses the attributes: computed widths (progress, range
+  fill) fall back to their CSS defaults.
+- **`Page::subset` takes an explicit list** instead of recording which builders rendered.
+  Recording needs a mark in every `Render` impl (55 files, all being edited by other
+  milestones); a list is one call and cannot miss a component built outside `ui`.
+- **Naming against M38.** Control heights are `--lui-size-1..3` (M38's plan said
+  `--lui-size-n-h`) and the ramp type is `layout::Radius` (M38 has `variant::Radius`); the
+  merge picks one. `Look::with_tokens` was folded into `Ui::tokens`. Shadows have one
+  geometry for both schemes (the light one) with colours in `light-dark()`.
+
 ### M41 · Data table
 
 - **Resizing and dragging columns need script; they stay out.** A resize handle needs pointer

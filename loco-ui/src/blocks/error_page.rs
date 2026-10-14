@@ -1,7 +1,7 @@
 //! # Error page
 //!
 //! The page for a 404 or a 500: the status, what happened in a sentence, and a way home, in
-//! the site's look instead of the framework's plain text. [`not_found`] is an Axum handler
+//! the site's look instead of the framework's plain text. `not_found` (feature `axum`) is an Axum handler
 //! for `Router::fallback`, so every unknown path gets it; on Loco, add it in `after_routes`.
 //!
 //! **Platform features:** none of its own; the HTTP status is set on the response.

@@ -54,7 +54,7 @@ use std::fmt::{self, Write};
 
 use crate::button::Button;
 use crate::enhance;
-use crate::i18n::Text;
+use crate::i18n::{Strings, Text};
 use crate::input::Input;
 use crate::table::{Encoded, Keys, SortValue, View, sort_text};
 use crate::{Caps, Icon};
@@ -135,7 +135,7 @@ pub(crate) fn paged(view: View, total: usize, page: usize, per_page: usize) -> M
         div id=(enhance::swap_id("lui-paged-table", id)) data-lui="swap" class="lui-paged-table" {
             (table.render(false))
             nav class="lui-paged-table-nav" aria-label=(t(Text::Pages)) {
-                output class="lui-paged-table-range" { (strings.fill(Text::RangeOf, &[&Thousands(first), &Thousands(last), &Thousands(total)])) }
+                output class="lui-paged-table-range" { (strings.fill(Text::RangeOf, &[&strings.digits(first), &strings.digits(last), &strings.digits(total)])) }
                 ul class="lui-paged-table-pages" {
                     @if page > 1 {
                         @let (first, prev) = (link(1).to_string(), link(page - 1).to_string());
@@ -143,13 +143,13 @@ pub(crate) fn paged(view: View, total: usize, page: usize, per_page: usize) -> M
                         li { (page_button(&caps, &prev, t(Text::Previous), false).rel("prev").body(html! { (Icon::ChevronLeft) (t(Text::Previous)) })) }
                     }
                     li class="lui-paged-table-of" aria-hidden="true" {
-                        (t(Text::Page)) " " (Thousands(page)) " " (strings.fill(Text::OfTotal, &[&Thousands(pages)]))
+                        (t(Text::Page)) " " (strings.digits(page)) " " (strings.fill(Text::OfTotal, &[&strings.digits(pages)]))
                     }
                     @for slot in window(page, pages) {
                         @match slot {
                             Some(n) => li class="lui-paged-table-num" {
                                 @let h = link(n).to_string();
-                                (page_button(&caps, &h, "", n == page).current(n == page).body(html! { (Thousands(n)) }))
+                                (page_button(&caps, &h, "", n == page).current(n == page).body(html! { (strings.digits(n)) }))
                             },
                             None => li class="lui-paged-table-gap" aria-hidden="true" { "…" },
                         }
@@ -165,7 +165,7 @@ pub(crate) fn paged(view: View, total: usize, page: usize, per_page: usize) -> M
                         @for (k, v) in carried("") { input type="hidden" name=(k) value=(v); }
                         span { (t(Text::Page)) }
                         (Input::number_within(&keys.page, t(Text::Page), Some(1), Some(pages as i64)).hide_label().class("lui-paged-table-page").inputmode("numeric").id(&jump_id).value(&page_text))
-                        span { (strings.fill(Text::OfTotal, &[&Thousands(pages)])) }
+                        span { (strings.fill(Text::OfTotal, &[&strings.digits(pages)])) }
                         (Button::new(caps, t(Text::Go)))
                     }
                 }
@@ -213,33 +213,10 @@ fn window(page: usize, pages: usize) -> Vec<Option<usize>> {
     out
 }
 
-/// `1234567` as `1,234,567`.
+/// `1234567` as `1,234,567`, in English; a page writes the visitor's language's
+/// separators ([`crate::i18n::Strings::number`]).
 pub fn thousands(n: usize) -> String {
-    Thousands(n).to_string()
-}
-
-/// [`thousands`] written straight into the page: no `String` per number.
-struct Thousands(usize);
-
-impl fmt::Display for Thousands {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (mut digits, mut len, mut n) = ([0u8; 20], 0, self.0);
-        loop {
-            digits[len] = b'0' + (n % 10) as u8;
-            len += 1;
-            n /= 10;
-            if n == 0 {
-                break;
-            }
-        }
-        for i in (0..len).rev() {
-            f.write_char(digits[i] as char)?;
-            if i > 0 && i % 3 == 0 {
-                f.write_char(',')?;
-            }
-        }
-        Ok(())
-    }
+    Strings::ENGLISH.digits(n).to_string()
 }
 
 /// `href?<carried pairs>page.<id>=<page>`, written into the attribute as it renders.

@@ -1,0 +1,105 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-palette">
+<button type="button" class="lui-button lui-palette-open" popovertarget="palette" accesskey="k" aria-keyshortcuts="Alt+Shift+K">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="search">
+<circle cx="11" cy="11" r="8"/>
+<path d="m21 21-4.3-4.3"/>
+</svg>
+<span>Search</span>
+<kbd class="lui-palette-kbd">Alt+Shift+K</kbd>
+</button>
+<div id="palette" class="lui-palette-panel" popover>
+<search>
+<form method="get" action="/search" class="lui-palette-form">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="search">
+<circle cx="11" cy="11" r="8"/>
+<path d="m21 21-4.3-4.3"/>
+</svg>
+<input id="palette-q" class="lui-palette-input" name="q" type="search" value="new" placeholder="Type a command or a page" list="palette-list" autocomplete="off" autofocus aria-label="Search">
+<button type="submit" class="lui-button lui-button-primary lui-button-small" data-size="1" data-tone="brand" data-variant="solid">Go</button>
+</form>
+</search>
+<datalist id="palette-list">
+<option value="Open settings">
+</option>
+<option value="New invoice">
+</option>
+</datalist>
+<div class="lui-palette-group">
+<p class="lui-palette-heading">Go to</p>
+<ul>
+<li>
+<a href="/settings">
+<span class="lui-palette-label">Open settings</span>
+</a>
+</li>
+<li>
+<a href="/invoices/new">
+<span class="lui-palette-label">New invoice</span>
+</a>
+</li>
+</ul>
+</div>
+</div>
+<section class="lui-palette-results" aria-labelledby="palette-results">
+<h2 id="palette-results">1 match for “new”</h2>
+<div class="lui-palette-group">
+<p class="lui-palette-heading">Go to</p>
+<ul>
+<li>
+<a href="/invoices/new">
+<span class="lui-palette-label">New invoice</span>
+</a>
+</li>
+</ul>
+</div>
+</section>
+</div>
+
+caps: none
+<div class="lui-palette">
+<details class="lui-palette-details" id="palette" open>
+<summary class="lui-button lui-palette-open" accesskey="k" aria-keyshortcuts="Alt+Shift+K">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="search">
+<circle cx="11" cy="11" r="8"/>
+<path d="m21 21-4.3-4.3"/>
+</svg>
+<span>Search</span>
+<kbd class="lui-palette-kbd">Alt+Shift+K</kbd>
+</summary>
+<div class="lui-palette-panel">
+<search>
+<form method="get" action="/search" class="lui-palette-form">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="search">
+<circle cx="11" cy="11" r="8"/>
+<path d="m21 21-4.3-4.3"/>
+</svg>
+<input id="palette-q" class="lui-palette-input" name="q" type="search" value="new" placeholder="Type a command or a page" list="palette-list" autocomplete="off" autofocus aria-label="Search">
+<button type="submit" class="lui-button lui-button-primary lui-button-small" data-size="1" data-tone="brand" data-variant="solid">Go</button>
+</form>
+</search>
+<datalist id="palette-list">
+<option value="Open settings">
+</option>
+<option value="New invoice">
+</option>
+</datalist>
+<section class="lui-palette-results" aria-labelledby="palette-results">
+<h2 id="palette-results">1 match for “new”</h2>
+<div class="lui-palette-group">
+<p class="lui-palette-heading">Go to</p>
+<ul>
+<li>
+<a href="/invoices/new">
+<span class="lui-palette-label">New invoice</span>
+</a>
+</li>
+</ul>
+</div>
+</section>
+</div>
+</details>
+</div>

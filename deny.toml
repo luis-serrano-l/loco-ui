@@ -1,0 +1,48 @@
+# cargo-deny for the published crates. CI runs it on loco-ui's graph (which holds loco-ui-caps
+# and loco-ui-macros) with every feature on and dev-dependencies left out:
+#   cargo deny --manifest-path loco-ui/Cargo.toml --all-features --exclude-dev check
+# The demo, the Blitz harness and the example app are not shipped, so their crates are not
+# checked here.
+
+[graph]
+all-features = true
+exclude-dev = true
+
+[advisories]
+# Unmaintained crates deep in loco-rs are not ours to replace; vulnerabilities still fail.
+unmaintained = "workspace"
+yanked = "warn"
+
+[licenses]
+# Permissive licences only, so an app built on loco-ui stays MIT-compatible.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "CC0-1.0",
+    "Unlicense",
+    "Unicode-3.0",
+    # webpki-roots (Mozilla's root certificates, through loco-rs).
+    "CDLA-Permissive-2.0",
+    # colored (through loco-rs), file-level copyleft only.
+    "MPL-2.0",
+]
+confidence-threshold = 0.9
+
+[bans]
+# loco-rs pulls in two majors of about thirty crates (base64, colored, windows-sys): not ours
+# to fix, and listing them buries the real findings.
+multiple-versions = "allow"
+wildcards = "deny"
+# Path dependencies between the workspace crates carry a version, so they are not wildcards.
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

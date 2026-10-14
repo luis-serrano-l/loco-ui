@@ -1,0 +1,22 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<dl class="lui-description-list lui-description-list-stacked">
+<div class="lui-description-list-item">
+<dt>Status</dt>
+<dd>
+<span class="lui-badge lui-badge-ok" data-tone="ok">Active</span>
+</dd>
+</div>
+</dl>
+
+caps: none
+<dl class="lui-description-list lui-description-list-stacked">
+<div class="lui-description-list-item">
+<dt>Status</dt>
+<dd>
+<span class="lui-badge lui-badge-ok" data-tone="ok">Active</span>
+</dd>
+</div>
+</dl>

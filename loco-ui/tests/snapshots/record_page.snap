@@ -1,0 +1,90 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-record">
+<div class="lui-record-head">
+<h1>Invoice 42</h1>
+<div class="lui-record-actions">
+<a class="lui-button" href="/invoices/42/edit">Edit</a>
+<div class="lui-dialog lui-dialog-danger">
+<button type="button" class="lui-button" command="show-modal" commandfor="lui-record-delete" aria-haspopup="dialog">Delete</button>
+<dialog id="lui-record-delete" class="lui-dialog-sm" closedby="any" aria-labelledby="lui-record-delete-title">
+<h2 id="lui-record-delete-title" class="lui-dialog-title">Delete Invoice 42?</h2>
+<form method="post" action="/invoices/42/delete" class="lui-dialog-form">
+<div class="lui-dialog-body">
+<p>This cannot be undone.</p>
+</div>
+<input type="hidden" name="returns_to" value="/">
+<div class="lui-dialog-actions">
+<button type="button" class="lui-button" command="close" commandfor="lui-record-delete">Cancel</button>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
+</div>
+</form>
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" data-size="1" data-tone="neutral" data-variant="ghost" command="close" commandfor="lui-record-delete" aria-label="Close">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</button>
+</dialog>
+</div>
+</div>
+</div>
+<div class="lui-record-fields">
+<dl class="lui-description-list">
+<div class="lui-description-list-item">
+<dt>Customer</dt>
+<dd>Ada</dd>
+</div>
+<div class="lui-description-list-item">
+<dt>Total</dt>
+<dd>€120</dd>
+</div>
+</dl>
+</div>
+</div>
+
+caps: none
+<div class="lui-record">
+<div class="lui-record-head">
+<h1>Invoice 42</h1>
+<div class="lui-record-actions">
+<a class="lui-button" href="/invoices/42/edit">Edit</a>
+<div class="lui-dialog lui-dialog-danger">
+<a class="lui-button lui-dialog-open" href="#lui-record-delete" role="button">Delete</a>
+<dialog id="lui-record-delete" class="lui-dialog-sm" closedby="any" aria-labelledby="lui-record-delete-title">
+<h2 id="lui-record-delete-title" class="lui-dialog-title">Delete Invoice 42?</h2>
+<form method="post" action="/invoices/42/delete" class="lui-dialog-form">
+<div class="lui-dialog-body">
+<p>This cannot be undone.</p>
+</div>
+<input type="hidden" name="returns_to" value="/">
+<div class="lui-dialog-actions">
+<a class="lui-button lui-dialog-cancel" href="#" role="button">Cancel</a>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
+</div>
+</form>
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" data-size="1" data-tone="neutral" data-variant="ghost" href="#" aria-label="Close">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</dialog>
+</div>
+</div>
+</div>
+<div class="lui-record-fields">
+<dl class="lui-description-list">
+<div class="lui-description-list-item">
+<dt>Customer</dt>
+<dd>Ada</dd>
+</div>
+<div class="lui-description-list-item">
+<dt>Total</dt>
+<dd>€120</dd>
+</div>
+</dl>
+</div>
+</div>

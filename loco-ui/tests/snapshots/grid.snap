@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-grid lui-gap-2" style="--lui-grid-min: 10rem">
+<p>x</p>
+</div>
+
+caps: none
+<div class="lui-grid lui-gap-2" style="--lui-grid-min: 10rem">
+<p>x</p>
+</div>

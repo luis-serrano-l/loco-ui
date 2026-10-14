@@ -1,0 +1,70 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<search class="lui-combobox">
+<form method="get" action="/langs">
+<ul class="lui-combobox-chips" aria-label="Selected">
+<li class="lui-combobox-chip">Zig<input type="hidden" name="sel" value="Zig">
+<a href="/langs?q=ru" aria-label="Remove Zig">×</a>
+</li>
+</ul>
+<input id="q-input" class="lui-combobox-input" name="q" type="search" value="ru" placeholder="Type a language" list="q-options" autocomplete="off" aria-label="Language" aria-controls="q-results">
+<datalist id="q-options">
+<optgroup label="Systems">
+<option value="Rust">
+</option>
+<option value="Zig">
+</option>
+</optgroup>
+<option value="Ruby">
+</option>
+</datalist>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Search</button>
+</form>
+<div id="q-results" class="lui-combobox-results" aria-live="polite">
+<p class="lui-combobox-status">2 matches</p>
+<ul class="lui-combobox-list" aria-label="Results">
+<li>
+<a href="/langs?q=ru&amp;sel=Zig&amp;sel=Rust">Rust</a>
+</li>
+<li>
+<a href="/langs?q=ru&amp;sel=Zig&amp;sel=Ruby">Ruby</a>
+</li>
+</ul>
+</div>
+</search>
+
+caps: none
+<search class="lui-combobox">
+<form method="get" action="/langs">
+<ul class="lui-combobox-chips" aria-label="Selected">
+<li class="lui-combobox-chip">Zig<input type="hidden" name="sel" value="Zig">
+<a href="/langs?q=ru" aria-label="Remove Zig">×</a>
+</li>
+</ul>
+<input id="q-input" class="lui-combobox-input" name="q" type="search" value="ru" placeholder="Type a language" list="q-options" autocomplete="off" aria-label="Language" aria-controls="q-results">
+<datalist id="q-options">
+<optgroup label="Systems">
+<option value="Rust">
+</option>
+<option value="Zig">
+</option>
+</optgroup>
+<option value="Ruby">
+</option>
+</datalist>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Search</button>
+</form>
+<div id="q-results" class="lui-combobox-results" aria-live="polite">
+<p class="lui-combobox-status">2 matches</p>
+<ul class="lui-combobox-list" aria-label="Results">
+<li>
+<a href="/langs?q=ru&amp;sel=Zig&amp;sel=Rust">Rust</a>
+</li>
+<li>
+<a href="/langs?q=ru&amp;sel=Zig&amp;sel=Ruby">Ruby</a>
+</li>
+</ul>
+</div>
+</search>

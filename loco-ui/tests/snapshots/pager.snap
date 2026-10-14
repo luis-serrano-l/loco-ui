@@ -1,0 +1,58 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-pager--list" data-lui="swap" class="lui-pager">
+<ol class="lui-pager-list" style="view-transition-name: lui-pager-list">
+<li>Row 1</li>
+<li>Row 2</li>
+<li>Row 3</li>
+<li>Row 4</li>
+<li>Row 5</li>
+<li>Row 6</li>
+<li>Row 7</li>
+<li>Row 8</li>
+<li>Row 9</li>
+<li>Row 10</li>
+<li id="more" class="lui-pager-anchor">Row 11</li>
+<li>Row 12</li>
+<li>Row 13</li>
+<li>Row 14</li>
+<li>Row 15</li>
+<li>Row 16</li>
+<li>Row 17</li>
+<li>Row 18</li>
+<li>Row 19</li>
+<li>Row 20</li>
+</ol>
+<p class="lui-note">Showing 20 of 30</p>
+<a class="lui-button lui-pager-more" href="/list?page=3#more">Load more</a>
+</div>
+
+caps: none
+<div id="lui-pager--list" data-lui="swap" class="lui-pager">
+<ol class="lui-pager-list">
+<li>Row 1</li>
+<li>Row 2</li>
+<li>Row 3</li>
+<li>Row 4</li>
+<li>Row 5</li>
+<li>Row 6</li>
+<li>Row 7</li>
+<li>Row 8</li>
+<li>Row 9</li>
+<li>Row 10</li>
+<li id="more" class="lui-pager-anchor">Row 11</li>
+<li>Row 12</li>
+<li>Row 13</li>
+<li>Row 14</li>
+<li>Row 15</li>
+<li>Row 16</li>
+<li>Row 17</li>
+<li>Row 18</li>
+<li>Row 19</li>
+<li>Row 20</li>
+</ol>
+<p class="lui-note">Showing 20 of 30</p>
+<a class="lui-button lui-pager-more" href="/list?page=3#more">Load more</a>
+</div>

@@ -18,7 +18,8 @@
 //!
 //! The look follows Radix Themes SegmentedControl: a gray track, items of one width, the
 //! picked one a raised chip; with one pick the chip slides between items (CSS only, `:has()`
-//! and a transition). A narrow container scrolls the row inside itself.
+//! and a transition), in Radix's sizes 1 to 3 (`.size(..)`) and radii (`.radius(..)`). A
+//! narrow container scrolls the row inside itself.
 //!
 //! **Fallback:** without `:has()` (Chrome < 105, Firefox < 121) the checked item takes the
 //! chip look itself and nothing slides.
@@ -43,6 +44,12 @@
 //!     value "bold";
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // Smaller, and a pill.
+//! let m = ui.toggle_group("view", "View").option("list", "List").option("grid", "Grid").size(1).radius(Radius::Full);
+//! let html = m.render().into_string();
+//! assert!(html.contains(r#"data-size="1" data-radius="full""#));
+//! let same = lui! { ToggleGroup("view", "View") size=1 radius="full" { option "list" "List"; option "grid" "Grid"; } };
+//! assert_eq!(same.into_string(), html);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -50,10 +57,12 @@ use maud::{Markup, Render, html};
 use crate::Ui;
 use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
+use crate::variant::{Radius, Size};
 
 /// Pressable options, made by [`Ui::toggle_group`].
 ///
-/// **Setters.** Values and items: `.option(..)`, `.icon(..)`, `.value(..)`; switches: `.multiple()`.
+/// **Setters.** Values and items: `.option(..)`, `.icon(..)`, `.value(..)`, `.size(..)`,
+/// `.radius(..)`; switches: `.multiple()`.
 #[derive(Clone, Debug)]
 pub struct ToggleGroup<'a> {
     name: &'a str,
@@ -61,6 +70,8 @@ pub struct ToggleGroup<'a> {
     items: Vec<(&'a str, &'a str, Option<Glyph<'a>>)>,
     picked: Vec<String>,
     multi: bool,
+    size: Size,
+    radius: Option<Radius>,
 }
 
 impl ToggleGroup<'_> {
@@ -78,6 +89,12 @@ impl ToggleGroup<'_> {
         Prop::new("multiple", PropKind::Switch, "")
             .attr("type")
             .doc("Several options may be pressed (checkboxes, not radios)."),
+        Prop::new("size", PropKind::Choice { of: Size::NAMES }, "size: impl Into<Size>")
+            .default("2")
+            .doc("The items' height and text: Radix's sizes 1 to 3."),
+        Prop::new("radius", PropKind::Choice { of: Radius::NAMES }, "radius: Radius")
+            .default("medium")
+            .doc("The corners of the track and the chip, from square to a pill."),
     ];
 }
 
@@ -91,6 +108,8 @@ impl Ui {
             items: Vec::new(),
             picked: self.params(name).map(str::to_string).collect(),
             multi: false,
+            size: Size::S2,
+            radius: None,
         }
     }
 }
@@ -138,11 +157,28 @@ impl<'a> ToggleGroup<'a> {
     }
 }
 
+impl ToggleGroup<'_> {
+    /// The items' height and text, Radix's sizes 1 to 3 (2 is the default); every size is
+    /// 2.75rem tall on a touch screen.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
+
+    /// The corners of the track and the chip: none, small, medium (the default), large or
+    /// full (a pill).
+    pub fn radius(mut self, radius: Radius) -> Self {
+        self.radius = Some(radius);
+        self
+    }
+}
+
 impl Render for ToggleGroup<'_> {
     fn render(&self) -> Markup {
         let kind = if self.multi { "checkbox" } else { "radio" };
         html! {
             fieldset class={ "lui-toggle-group" @if !self.multi { " lui-toggle-group-one" } }
+                data-size=[(self.size != Size::S2).then(|| self.size.as_str())] data-radius=[self.radius.map(Radius::as_str)]
                 style={ "--lui-toggle-n: " (self.items.len().max(1)) } {
                 legend class="lui-sr" { (self.label) }
                 @for (value, text, icon) in &self.items {
@@ -171,16 +207,24 @@ pub const CSS: &str = r#"
 .lui-toggle-group {
   position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr;
   justify-self: start; align-self: start; max-width: 100%; box-sizing: border-box; overflow-x: auto;
-  margin: 0; padding: 2px; border: 0; border-radius: var(--lui-radius); background: var(--lui-gray-3);
+  margin: 0; padding: 2px; border: 0; border-radius: var(--lui-toggle-radius, var(--lui-radius)); background: var(--lui-gray-3);
 }
+/* .radius(..) sets the track's corners, and the chip's 2px inside them. */
+.lui-toggle-group[data-radius=none] { --lui-toggle-radius: 0px; }
+.lui-toggle-group[data-radius=small] { --lui-toggle-radius: var(--lui-radius-sm); }
+.lui-toggle-group[data-radius=medium] { --lui-toggle-radius: var(--lui-radius); }
+.lui-toggle-group[data-radius=large] { --lui-toggle-radius: var(--lui-radius-lg); }
+.lui-toggle-group[data-radius=full] { --lui-toggle-radius: 9999px; }
 .lui-toggle-group-item { position: relative; z-index: 1; display: flex; }
 .lui-toggle-group-input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
 .lui-toggle-group-face {
   display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 0.375rem; white-space: nowrap;
   min-width: calc(var(--lui-control-h) - 4px); height: calc(var(--lui-control-h) - 4px); padding: 0 0.75rem; box-sizing: border-box;
-  border-radius: calc(var(--lui-radius) - 2px); font-size: 0.875rem; font-weight: 500; color: var(--lui-gray-11); cursor: pointer;
+  border-radius: calc(var(--lui-toggle-radius, var(--lui-radius)) - 2px); font-size: 0.875rem; font-weight: 500; color: var(--lui-gray-11); cursor: pointer;
   transition: color var(--lui-duration-fast), background-color var(--lui-duration-fast);
 }
+.lui-toggle-group[data-size="1"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-sm) - 4px); height: calc(var(--lui-control-h-sm) - 4px); padding: 0 0.5rem; font-size: 0.8125rem; }
+.lui-toggle-group[data-size="3"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-lg) - 4px); height: calc(var(--lui-control-h-lg) - 4px); padding: 0 1rem; font-size: 1rem; }
 .lui-toggle-group-face:hover { color: var(--lui-fg); }
 .lui-toggle-group-input:checked + .lui-toggle-group-face { color: var(--lui-fg); background: var(--lui-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lui-line) 70%, transparent), var(--lui-shadow-xs), var(--lui-highlight); }
 .lui-toggle-group-input:focus-visible + .lui-toggle-group-face { outline: 2px solid var(--lui-ring); outline-offset: -2px; }
@@ -188,7 +232,7 @@ pub const CSS: &str = r#"
   .lui-toggle-group-one .lui-toggle-group-input:checked + .lui-toggle-group-face { background: transparent; box-shadow: none; }
   .lui-toggle-group-one::before {
     content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--lui-toggle-n, 1));
-    translate: calc(100% * var(--lui-toggle-at, 0)) 0; border-radius: calc(var(--lui-radius) - 2px);
+    translate: calc(100% * var(--lui-toggle-at, 0)) 0; border-radius: calc(var(--lui-toggle-radius, var(--lui-radius)) - 2px);
     background: var(--lui-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lui-line) 70%, transparent), var(--lui-shadow-xs), var(--lui-highlight);
     transition: translate var(--lui-duration) var(--lui-ease-spring);
   }

@@ -1,0 +1,136 @@
+//! # Widget
+//!
+//! TODO(1, one file): copy this file to `loco-ui/src/<name>.rs`, replace `widget`/`Widget`
+//! everywhere, and delete every TODO line before the first commit. The checklist of lists to
+//! append to is `.claude/skills/new-component/SKILL.md`.
+//!
+//! TODO(2, header): one paragraph on what it does, then "After <library> <Component>" (the
+//! look it copies: Radix Themes by default, else Origin UI, shadcn/ui, Tremor or Dice UI).
+//!
+//! **Platform features:** a `<div>`. TODO the elements and CSS it is built on, each with its
+//! baseline (Chrome N, Firefox N, Safari N), and the `Cap` it branches on, if any. Every
+//! `features` name in its `spec::SPECS` entry appears here (`doc_headers_match_the_spec`).
+//!
+//! **Accessibility:** TODO the role, name and keyboard path, and "Checked by axe-core in
+//! headless Firefox on every demo route, both capability variants, light and dark (no serious
+//! or critical violation)."
+//!
+//! **What it does not do without script:** TODO what the enhancement script adds, or
+//! "nothing is missing".
+//!
+//! **Fallback:** TODO what a browser without the platform feature shows (one variant per
+//! `caps` branch, never both), or "none needed".
+//!
+//! TODO(2, doctest): the common call first, then one with setters, then the same call in
+//! `lui!` with an `assert_eq!` on the HTML (a test fails without the `lui!` twin).
+//!
+//! ```rust
+//! use loco_ui::prelude::*;
+//! let ui = Ui::default();
+//! let html = ui.widget("Label").render().into_string();
+//! assert_eq!(html, r#"<div class="lui-widget">Label</div>"#);
+//! // The same in `lui!`:
+//! let same = lui! { Widget("Label"); };
+//! assert_eq!(same.into_string(), html);
+//! let quiet = ui.widget("Label").quiet().render().into_string();
+//! assert_eq!(lui! { Widget("Label") quiet; }.into_string(), quiet);
+//! ```
+
+use maud::{Markup, Render, html};
+
+use crate::Ui;
+use crate::props::{Prop, PropKind};
+
+// TODO(5): every builder is `Clone` and `Debug` (`every_builder_is_clone_and_debug`), and its
+// doc names its setters under **Setters.**: the tests find builders by that line, so keep the
+// `///` lines and `#[derive]` directly above `pub struct` (no `//` line between them).
+/// A widget, made by [`Ui::widget`].
+///
+/// **Setters.** Values: `.id(..)`; switches: `.quiet()`.
+#[derive(Clone, Debug)]
+pub struct Widget<'a> {
+    label: &'a str,
+    id: Option<String>,
+    quiet: bool,
+}
+
+impl Widget<'_> {
+    // TODO(5, PROPS): one `Prop` per public setter, in the order written below
+    // (`every_setter_is_in_props`, `props_follow_the_conventions`). Kinds: `Switch` (no
+    // argument, switches on), `Condition` (takes a bool from a route), `Value`, `Number`, `Item` (an
+    // adder), `Modifier` (changes the item added last). `.attr("x")` only when the setter sets
+    // the HTML attribute `x`, and then the setter is named after it.
+    /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
+    /// [`crate::props()`] and kept in step with the setters by a test.
+    pub const PROPS: &'static [Prop] = &[
+        Prop::new("id", PropKind::Value, "id: &str")
+            .attr("id")
+            .doc("Replace the id derived from the label."),
+        Prop::new("quiet", PropKind::Switch, "").doc("A lighter look."),
+    ];
+}
+
+impl Ui {
+    // TODO(5, constructor): required arguments only, text first; everything else a setter.
+    // Read query and cookie state here from `self.param(..)` / `self.state()`, not from an
+    // argument. Keep `&self.caps` (or what you need of `self`) in the builder if it branches.
+    /// A widget reading `label`.
+    pub fn widget<'a>(&self, label: &'a str) -> Widget<'a> {
+        Widget {
+            label,
+            id: None,
+            quiet: false,
+        }
+    }
+}
+
+impl<'a> Widget<'a> {
+    /// Replace the id derived from the label.
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_owned());
+        self
+    }
+
+    /// A lighter look.
+    pub fn quiet(mut self) -> Self {
+        self.quiet = true;
+        self
+    }
+}
+
+impl Render for Widget<'_> {
+    fn render(&self) -> Markup {
+        // TODO(5, ids): an id the caller does not care about comes from `crate::slug(label)`.
+        let _id = self.id.clone().unwrap_or_else(|| crate::slug(self.label));
+        // TODO(4, classes): one `lui-widget` class on the root, `lui-widget-<part>` on parts.
+        // TODO(8, primitives): buttons, inputs, badges, cards, icons and layouts come from
+        // `ui.button`, `ui.input(..).hide_label()`, `ui.badge`, `ui.card`, `Icon`, `ui.stack`..
+        // never a raw `<button>` or visible `<input>`.
+        // TODO(5, caps): `if self.caps.has(Cap::X) { modern } else { fallback }`, one emitted.
+        // TODO(5, swap): a root that updates in place gets
+        // `id=(crate::enhance::swap_id("widget", key)) data-lui="swap"`, same markup without script.
+        // TODO(i18n): no English literal here; words come from `ui.text(Text::..)`
+        // (`components_write_no_english_outside_the_string_table`).
+        let class = if self.quiet {
+            "lui-widget lui-widget-quiet"
+        } else {
+            "lui-widget"
+        };
+        html! { div class=(class) { (self.label) } }
+    }
+}
+
+// TODO(3, CSS): append `widget::CSS` to `COMPONENT_CSS` in lib.rs. Colours only through
+// `--lui-*` tokens (`no_colour_literal_outside_tokens`); no selector on a bare `button` or
+// `input` (`only_the_primitives_select_bare_buttons_and_inputs`).
+// TODO(9, responsive): a root that changes layout sets `container: lui-widget / inline-size`;
+// the narrow layout is the base, wider ones go in `@container lui-widget (width >= 30rem)` or
+// `(width >= 48rem)`; viewport `@media` only for `prefers-*` and `pointer`; every clickable
+// part is at least `var(--lui-hit)` (44px) tall under `@media (pointer: coarse)`; nothing
+// overflows at 320px.
+/// Styles for this component; included in [`crate::stylesheet`].
+pub const CSS: &str = r#"
+/* After <library> <Component>: TODO the measurements copied (heights, paddings, radii). */
+.lui-widget { display: block; padding: 0.5rem 0.75rem; border-radius: var(--lui-radius-sm); color: var(--lui-fg); }
+.lui-widget.lui-widget-quiet { color: var(--lui-gray-11); }
+"#;

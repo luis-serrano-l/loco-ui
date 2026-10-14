@@ -1,0 +1,80 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-tabs-docs" data-lui="swap" class="lui-tabs lui-tabs-vertical" style="--lui-tabs-n: 3">
+<form method="get" action="/docs" class="lui-tabs-select">
+<select name="tab.docs" aria-label="Tab">
+<option value="0">Install</option>
+<option value="1" selected>Use (3)</option>
+<option value="2">Changelog</option>
+</select>
+<button type="submit" class="lui-button">Go</button>
+</form>
+<details name="docs">
+<summary>
+<a href="/docs?tab.docs=0">Install</a>
+</summary>
+<div class="lui-tabs-panel">
+<p>cargo add</p>
+</div>
+</details>
+<details name="docs" open>
+<summary>
+<a href="/docs?tab.docs=1">Use <span class="lui-tabs-badge">3</span>
+</a>
+<span class="lui-tabs-mark" style="view-transition-name: lui-tabs-docs; view-transition-class: lui-tabs-mark">
+</span>
+</summary>
+<div class="lui-tabs-panel">
+<p>html!</p>
+</div>
+</details>
+<details name="docs">
+<summary>
+<a href="/docs?tab.docs=2">Changelog</a>
+</summary>
+<div class="lui-tabs-panel">
+<span class="lui-tabs-lazy">
+</span>
+</div>
+</details>
+</div>
+
+caps: none
+<div id="lui-tabs-docs" data-lui="swap" class="lui-tabs lui-accordion">
+<form method="get" action="/docs" class="lui-tabs-select">
+<select name="tab.docs" aria-label="Tab">
+<option value="0">Install</option>
+<option value="1" selected>Use (3)</option>
+<option value="2">Changelog</option>
+</select>
+<button type="submit" class="lui-button">Go</button>
+</form>
+<details name="docs">
+<summary>
+<a href="/docs?tab.docs=0">Install</a>
+</summary>
+<div class="lui-accordion-body">
+<p>cargo add</p>
+</div>
+</details>
+<details name="docs" open>
+<summary>
+<a href="/docs?tab.docs=1">Use <span class="lui-tabs-badge">3</span>
+</a>
+</summary>
+<div class="lui-accordion-body">
+<p>html!</p>
+</div>
+</details>
+<details name="docs">
+<summary>
+<a href="/docs?tab.docs=2">Changelog</a>
+</summary>
+<div class="lui-accordion-body">
+<span class="lui-tabs-lazy">
+</span>
+</div>
+</details>
+</div>

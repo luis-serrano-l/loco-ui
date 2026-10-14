@@ -713,17 +713,10 @@ pub(crate) fn cols_from_query<'a>(
     (!keys.is_empty()).then_some(keys)
 }
 
-/// How much room a table's cells get: [`Density::Comfortable`] (the default) or
-/// [`Density::Compact`], whose cells have half the padding and smaller text, for a dense
-/// admin list. The names follow the page-wide density M39 plans; a table's own setting wins.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Density {
-    /// Half the cell padding (`--lui-space-1` by `--lui-space-2`) and 0.8125rem text.
-    Compact,
-    /// The default: `0.5rem` cell padding, 0.875rem text.
-    #[default]
-    Comfortable,
-}
+/// How much room a table's cells get: the page-wide [`Density`] (M39). On a table,
+/// [`Density::Compact`] halves the cell padding and makes the text smaller, for a dense admin
+/// list; the table's own setting wins over the page's.
+pub use crate::layout::Density;
 
 /// What one render of a table needs, worked out by [`Table`] from its setters and the
 /// request; a paged table draws the same view with the page's rows and its page size kept.
@@ -1704,7 +1697,7 @@ mod tests {
             .into_string();
         assert!(m.contains("aria-busy=\"true\"") && m.contains("lui-table-skeleton"));
         assert!(m.contains("<form method=\"post\" action=\"/b\" id=\"lui-table-t-bulk\""));
-        assert!(m.contains("<button type=\"submit\" class=\"lui-button lui-button-small\" name=\"action\" value=\"x\">X</button>"), "{m}");
+        assert!(m.contains("<button type=\"submit\" class=\"lui-button lui-button-small\" data-size=\"1\" name=\"action\" value=\"x\">X</button>"), "{m}");
         assert_eq!(crate::slug("src/a.txt"), "src-a-txt");
     }
 

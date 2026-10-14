@@ -1,0 +1,54 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-dialog lui-dialog-danger">
+<button type="button" class="lui-button" command="show-modal" commandfor="confirm" aria-haspopup="dialog">Delete account</button>
+<dialog id="confirm" class="lui-dialog-sm" closedby="closerequest" aria-labelledby="confirm-title" open>
+<h2 id="confirm-title" class="lui-dialog-title">Delete account?</h2>
+<form method="post" action="/account/delete" class="lui-dialog-form">
+<div class="lui-dialog-body">
+<p>This cannot be undone.</p>
+<label>Reason <input name="reason">
+</label>
+</div>
+<input type="hidden" name="returns_to" value="/settings">
+<div class="lui-dialog-actions">
+<button type="button" class="lui-button" command="close" commandfor="confirm">Keep it</button>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
+</div>
+</form>
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" data-size="1" data-tone="neutral" data-variant="ghost" command="close" commandfor="confirm" aria-label="Close">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</button>
+</dialog>
+</div>
+
+caps: none
+<div class="lui-dialog lui-dialog-danger">
+<a class="lui-button lui-dialog-open" href="#confirm" role="button">Delete account</a>
+<dialog id="confirm" class="lui-dialog-sm" closedby="closerequest" aria-labelledby="confirm-title" open>
+<h2 id="confirm-title" class="lui-dialog-title">Delete account?</h2>
+<form method="post" action="/account/delete" class="lui-dialog-form">
+<div class="lui-dialog-body">
+<p>This cannot be undone.</p>
+<label>Reason <input name="reason">
+</label>
+</div>
+<input type="hidden" name="returns_to" value="/settings">
+<div class="lui-dialog-actions">
+<a class="lui-button lui-dialog-cancel" href="#" role="button">Keep it</a>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
+</div>
+</form>
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" data-size="1" data-tone="neutral" data-variant="ghost" href="#" aria-label="Close">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
+<path d="M18 6 6 18"/>
+<path d="m6 6 12 12"/>
+</svg>
+</a>
+</dialog>
+</div>

@@ -1,0 +1,46 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-field">
+<label for="f-food">Food</label>
+<span class="lui-select">
+<span class="lui-select-search">
+<input id="food-filter" class="lui-select-filter" name="food-q" type="search" value="k" placeholder="Filter" aria-label="Filter options">
+<button type="submit" class="lui-button" formmethod="get" formaction="/shop" formnovalidate>Filter</button>
+</span>
+<select id="f-food" name="food">
+<button type="button" class="lui-select-trigger">
+<selectedcontent>
+</selectedcontent>
+</button>
+<optgroup label="Fruit">
+<option value="kiwi">
+<b>Kiwi</b>
+</option>
+</optgroup>
+<optgroup label="Vegetables">
+<option value="leek" selected>Leek</option>
+</optgroup>
+</select>
+</span>
+</div>
+
+caps: none
+<div class="lui-field">
+<label for="f-food">Food</label>
+<span class="lui-select">
+<span class="lui-select-search">
+<input id="food-filter" class="lui-select-filter" name="food-q" type="search" value="k" placeholder="Filter" aria-label="Filter options">
+<button type="submit" class="lui-button" formmethod="get" formaction="/shop" formnovalidate>Filter</button>
+</span>
+<select id="f-food" name="food">
+<optgroup label="Fruit">
+<option value="kiwi">Kiwi</option>
+</optgroup>
+<optgroup label="Vegetables">
+<option value="leek" selected>Leek</option>
+</optgroup>
+</select>
+</span>
+</div>

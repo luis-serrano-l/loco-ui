@@ -79,6 +79,7 @@ pub struct Stat<'a> {
     reveal: bool,
     sparkline: Vec<f64>,
     progress: Option<(u64, u64)>,
+    strings: &'static crate::i18n::Strings,
 }
 
 impl Stat<'_> {
@@ -109,6 +110,7 @@ impl Ui {
         Stat {
             label,
             value,
+            strings: self.strings,
             ..Stat::default()
         }
     }
@@ -211,7 +213,7 @@ impl Render for Stat<'_> {
                 }
             }
             @if let Some((v, m)) = self.progress {
-                progress class="lui-stat-progress" value=(v) max=(m) aria-label=(self.label) { (v) " / " (m) }
+                progress class="lui-stat-progress" value=(v) max=(m) aria-label=(self.label) { (self.strings.digits(v)) " / " (self.strings.digits(m)) }
             }
             @if let Some(n) = self.note { p class="lui-stat-note" { (n) } }
             @if self.sparkline.len() > 1 { (spark(&self.sparkline)) }

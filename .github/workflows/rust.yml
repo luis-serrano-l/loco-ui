@@ -45,16 +45,10 @@ jobs:
         cargo clippy -p loco-ui --all-targets
         cargo clippy -p loco-ui --features http --all-targets
         cargo clippy -p loco-ui --features loco --all-targets
+        cargo clippy -p loco-ui --features cli --all-targets
     # The enhancement tag is built in loco-ui/src/enhance.rs; nothing else may write one.
     - name: No <script> outside enhance.rs
-      run: |
-        if grep -rn '<script' loco-ui/src demo/src loco-ui-test/src examples/loco-app/src \
-             | grep -v '^loco-ui/src/enhance.rs:' \
-             | grep -v 'matches("<script")' \
-             | grep -v '^\S*:\s*//' \
-             | grep -v 'code { "<script>" }'; then
-          echo "found a <script> mention outside enhance.rs and its test"; exit 1
-        fi
+      run: scripts/check-script.sh
 
   test:
     runs-on: ubuntu-latest
@@ -75,6 +69,9 @@ jobs:
       run: |
         cargo test -p loco-ui --features loco loco
         cargo test -p loco-ui --features loco --doc loco
+    # The installer is behind `cli` (its toml_edit stays out of the library); its quick tests.
+    - name: Tests (cli feature)
+      run: cargo test -p loco-ui --features cli --bin cargo-lui --test install
 
   # Blitz layout assertions and the screenshots in tests/shots/.
   shots:
@@ -90,12 +87,14 @@ jobs:
     - name: Blitz tests
       run: cargo test -p loco-ui-test
 
-  # `cargo lui install` on a fresh `loco new` copy, then `cargo check` of the result.
+  # `cargo lui install`, `add`, `new` and `eject` on a fresh `loco new` copy, then builds of the results.
   install:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
     - uses: Swatinem/rust-cache@v2
       with:
         key: ${{ github.job }}
@@ -106,7 +105,7 @@ jobs:
       with:
         tool: sea-orm-cli@2
     - name: Installer
-      run: cargo test -p loco-ui --test install -- --include-ignored
+      run: cargo test -p loco-ui --features cli --test install -- --include-ignored
 
   # The enhancement script in headless Firefox, then axe-core on every route (fails on any
   # serious or critical violation). The runner image has Firefox and geckodriver.
@@ -139,12 +138,83 @@ jobs:
       env:
         RUSTDOCFLAGS: -D warnings
 
+  # The build docs.rs runs: nightly with `--cfg docsrs`, so feature badges come from `doc_cfg`.
+  docsrs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@nightly
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: Rustdoc as docs.rs builds it
+      run: cargo +nightly doc --no-deps --all-features -p loco-ui -p loco-ui-caps -p loco-ui-macros
+      env:
+        RUSTDOCFLAGS: --cfg docsrs -D warnings
+
+  # The `rust-version` in the three published manifests. Up to `axum`: the `loco` feature
+  # needs 1.94, which loco-rs 1.2 declares itself.
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@1.88
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: Check on 1.88
+      run: cargo check -p loco-ui-caps -p loco-ui-macros -p loco-ui --features loco-ui/axum,loco-ui-caps/axum
+
+  # What `cargo publish` would upload, built from the packaged files alone.
+  publish-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: Package
+      run: cargo package -p loco-ui-caps -p loco-ui-macros -p loco-ui
+
+  # Licences, advisories and sources of what the published crates pull in (deny.toml).
+  deny:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-deny
+    - name: cargo deny
+      run: cargo deny --manifest-path loco-ui/Cargo.toml --all-features --exclude-dev check
+
+  # Public API changes against the branch a PR targets. Breaking changes are expected until
+  # 0.2.0 is tagged, so this only reports for now.
+  semver:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-semver-checks
+    - name: cargo semver-checks
+      run: cargo semver-checks -p loco-ui -p loco-ui-caps --baseline-rev origin/${{ github.base_ref }}
+
   # The static snapshot of the demo (scripts/snapshot.sh) on GitHub Pages. Pages serves files
   # only: every page renders and <dialog>, popover, <details> and tooltips work, while forms,
   # cookies and paging need `cargo run -p demo` (each page carries a banner saying so).
   # Turn Pages on in the repository settings with "GitHub Actions" as the source.
   pages:
-    needs: [lint, test, shots, install, browser, docs]
+    # `deny` and `semver` stay out: a new advisory upstream should not hold back the demo.
+    needs: [lint, test, shots, install, browser, docs, docsrs, msrv, publish-dry-run]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

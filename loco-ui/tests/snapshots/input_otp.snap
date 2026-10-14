@@ -1,0 +1,22 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-otp" style="--lui-otp-cells: 4; --lui-otp-at: 0">
+<div class="lui-field">
+<label for="f-code">Code</label>
+<input id="f-code" class="lui-otp-input" name="code" type="text" value="" pattern="[0-9]{4}" title="4 digits" maxlength="4" autocomplete="one-time-code" inputmode="numeric" aria-describedby="f-code-help f-code-count">
+<small id="f-code-help" class="lui-field-help">4 digits</small>
+<output id="f-code-count" for="f-code" class="lui-field-count">0 / 4</output>
+</div>
+</div>
+
+caps: none
+<div class="lui-otp" style="--lui-otp-cells: 4; --lui-otp-at: 0">
+<div class="lui-field">
+<label for="f-code">Code</label>
+<input id="f-code" class="lui-otp-input" name="code" type="text" value="" pattern="[0-9]{4}" title="4 digits" maxlength="4" autocomplete="one-time-code" inputmode="numeric" aria-describedby="f-code-help f-code-count">
+<small id="f-code-help" class="lui-field-help">4 digits</small>
+<output id="f-code-count" for="f-code" class="lui-field-count">0 / 4</output>
+</div>
+</div>

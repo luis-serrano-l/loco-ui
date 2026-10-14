@@ -47,8 +47,10 @@
 //! ```
 
 // docs.rs builds with nightly and `--cfg docsrs`: feature-gated items get a "requires feature" badge.
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs)]
+#![forbid(unsafe_code)]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 pub mod accordion;
 pub mod alert;
@@ -118,6 +120,7 @@ pub mod toggle_group;
 pub mod tooltip;
 pub mod ui;
 pub mod upload;
+pub mod variant;
 pub mod wizard;
 
 /// Server-side feature detection: the [`loco_ui_caps`] crate, re-exported so `loco_ui::caps`
@@ -159,6 +162,7 @@ pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::Saved;
     pub use crate::lui;
+    pub use crate::variant::{Radius, Size, Tone, Variant};
     pub use crate::{
         Cap, Caps, Icon, MenuItem, Page, Posted, Redirect, Row, TableQuery, Theme, Ui,
     };
@@ -230,18 +234,294 @@ pub(crate) fn gap_class(n: u8) -> &'static str {
     }
 }
 
-/// All component stylesheets, concatenated once per process. `layout` inlines this once per page.
+/// The cascade layers of [`stylesheet`], in order. An app's own CSS is unlayered, so it wins
+/// over every one of them without `!important`.
+pub const LAYERS: &str = "@layer lui.reset, lui.tokens, lui.components, lui.blocks, lui.modes;";
+
+/// The stylesheet from its parts: the layer order, `@view-transition`, then each layer.
+fn layered(components: &[&str], blocks: &[&str]) -> String {
+    let mut css = String::with_capacity(160 * 1024);
+    for part in [
+        LAYERS,
+        layout::VIEW_TRANSITION,
+        "\n@layer lui.reset{",
+        layout::RESET,
+    ] {
+        css.push_str(part);
+    }
+    css.push_str("}\n@layer lui.tokens{");
+    css.push_str(&layout::Tokens::DEFAULT.css());
+    css.push_str("}\n@layer lui.components{");
+    for part in components {
+        css.push_str(part);
+    }
+    css.push_str(&caps::beacon_css());
+    css.push_str("}\n@layer lui.blocks{");
+    for part in blocks {
+        css.push_str(part);
+    }
+    css.push_str("}\n@layer lui.modes{");
+    css.push_str(layout::MODES);
+    css.push('}');
+    minify_css(&css)
+}
+
+/// All component stylesheets, in their cascade layers, built once per process. `ui.page`
+/// inlines this once per page, or links it as `/lui.css` with `Page::linked_stylesheet`.
 pub fn stylesheet() -> &'static str {
     static CSS: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    CSS.get_or_init(|| {
-        let beacons = caps::beacon_css();
-        let tokens = layout::Tokens::default().css();
-        let mut parts = vec![tokens.as_str()];
-        parts.extend(COMPONENT_CSS);
-        parts.extend(blocks::CSS);
-        parts.push(beacons.as_str());
-        minify_css(&parts.join("\n"))
+    CSS.get_or_init(|| layered(COMPONENT_CSS, &blocks::CSS))
+}
+
+/// The stylesheet with only `components`' CSS, plus the reset, the tokens, the layout and
+/// the primitives every component builds on ([`Component::BASE`]), in the same layers.
+/// Built once per distinct list and then kept; `Page::subset` inlines it instead of the
+/// whole sheet.
+///
+/// ```rust
+/// use loco_ui::{Component, stylesheet, stylesheet_for};
+/// let css = stylesheet_for(&[Component::Dialog]);
+/// assert!(css.contains(".lui-dialog") && !css.contains(".lui-kanban"));
+/// assert!(css.len() < stylesheet().len() / 2);
+/// ```
+pub fn stylesheet_for(components: &[Component]) -> &'static str {
+    subset_sheet(components)
+}
+
+/// [`stylesheet_for`] behind one more reference, so a `Page` holds it in 8 bytes.
+pub(crate) fn subset_sheet(components: &[Component]) -> &'static &'static str {
+    use std::collections::HashMap;
+    use std::sync::{Mutex, OnceLock};
+    static BUILT: OnceLock<Mutex<HashMap<u128, &'static &'static str>>> = OnceLock::new();
+    let bit = |c: &Component| 1u128 << (*c as u32);
+    let key = components
+        .iter()
+        .chain(Component::BASE)
+        .fold(0, |bits, c| bits | bit(c));
+    let mut built = BUILT
+        .get_or_init(Mutex::default)
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    built.entry(key).or_insert_with(|| {
+        let parts: Vec<&str> = (Component::ALL.iter())
+            .filter(|c| key & bit(c) != 0)
+            .map(|c| c.css())
+            .collect();
+        let blocks: &[&str] = if key & bit(&Component::Blocks) != 0 {
+            &blocks::CSS
+        } else {
+            &[]
+        };
+        let css: &'static str = Box::leak(layered(&parts, blocks).into_boxed_str());
+        Box::leak(Box::new(css))
     })
+}
+
+/// One component's stylesheet, for [`stylesheet_for`]: a variant per entry of
+/// [`COMPONENT_CSS`], in its order, and `Blocks` for every block. A test fails when the two
+/// lists drift apart, so a new component adds its variant at the end.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[allow(missing_docs)]
+pub enum Component {
+    Layout,
+    Button,
+    Input,
+    Badge,
+    Card,
+    Icon,
+    Avatar,
+    Stack,
+    Cluster,
+    Grid,
+    Split,
+    Calendar,
+    DatePicker,
+    Upload,
+    Kanban,
+    Sortable,
+    Tooltip,
+    Alert,
+    Progress,
+    Meter,
+    Separator,
+    Dialog,
+    Popover,
+    Tabs,
+    Accordion,
+    Combobox,
+    Pager,
+    Form,
+    ErrorSummary,
+    Counter,
+    Theme,
+    Flash,
+    Select,
+    Range,
+    Color,
+    Stream,
+    Table,
+    PagedTable,
+    Wizard,
+    Toast,
+    Breadcrumbs,
+    Skeleton,
+    EmptyState,
+    Stat,
+    Chart,
+    Sidebar,
+    NavMenu,
+    DescriptionList,
+    ToggleGroup,
+    ContextMenu,
+    InputOtp,
+    Drawer,
+    Palette,
+    Marquee,
+    /// The shared `data-radius` rules of [`variant`].
+    Variant,
+    Blocks,
+}
+
+impl Component {
+    /// Every variant, in [`COMPONENT_CSS`] order, `Blocks` included.
+    pub const ALL: &'static [Component] = &[
+        Component::Layout,
+        Component::Button,
+        Component::Input,
+        Component::Badge,
+        Component::Card,
+        Component::Icon,
+        Component::Avatar,
+        Component::Stack,
+        Component::Cluster,
+        Component::Grid,
+        Component::Split,
+        Component::Calendar,
+        Component::DatePicker,
+        Component::Upload,
+        Component::Kanban,
+        Component::Sortable,
+        Component::Tooltip,
+        Component::Alert,
+        Component::Progress,
+        Component::Meter,
+        Component::Separator,
+        Component::Dialog,
+        Component::Popover,
+        Component::Tabs,
+        Component::Accordion,
+        Component::Combobox,
+        Component::Pager,
+        Component::Form,
+        Component::ErrorSummary,
+        Component::Counter,
+        Component::Theme,
+        Component::Flash,
+        Component::Select,
+        Component::Range,
+        Component::Color,
+        Component::Stream,
+        Component::Table,
+        Component::PagedTable,
+        Component::Wizard,
+        Component::Toast,
+        Component::Breadcrumbs,
+        Component::Skeleton,
+        Component::EmptyState,
+        Component::Stat,
+        Component::Chart,
+        Component::Sidebar,
+        Component::NavMenu,
+        Component::DescriptionList,
+        Component::ToggleGroup,
+        Component::ContextMenu,
+        Component::InputOtp,
+        Component::Drawer,
+        Component::Palette,
+        Component::Marquee,
+        Component::Variant,
+        Component::Blocks,
+    ];
+
+    /// What [`stylesheet_for`] always includes: the layout and the primitives.
+    pub const BASE: &'static [Component] = &[
+        Component::Layout,
+        Component::Button,
+        Component::Input,
+        Component::Badge,
+        Component::Card,
+        Component::Icon,
+        Component::Stack,
+        Component::Cluster,
+        Component::Grid,
+        Component::Split,
+    ];
+
+    /// This component's `CSS`: empty for `Blocks` (its parts are [`blocks::CSS`]) and for
+    /// `Stream` without the `http` feature.
+    pub fn css(self) -> &'static str {
+        match self {
+            Component::Layout => layout::CSS,
+            Component::Button => button::CSS,
+            Component::Input => input::CSS,
+            Component::Badge => badge::CSS,
+            Component::Card => card::CSS,
+            Component::Icon => icon::CSS,
+            Component::Avatar => avatar::CSS,
+            Component::Stack => stack::CSS,
+            Component::Cluster => cluster::CSS,
+            Component::Grid => grid::CSS,
+            Component::Split => split::CSS,
+            Component::Calendar => calendar::CSS,
+            Component::DatePicker => date_picker::CSS,
+            Component::Upload => upload::CSS,
+            Component::Kanban => kanban::CSS,
+            Component::Sortable => sortable::CSS,
+            Component::Tooltip => tooltip::CSS,
+            Component::Alert => alert::CSS,
+            Component::Progress => progress::CSS,
+            Component::Meter => meter::CSS,
+            Component::Separator => separator::CSS,
+            Component::Dialog => dialog::CSS,
+            Component::Popover => popover::CSS,
+            Component::Tabs => tabs::CSS,
+            Component::Accordion => accordion::CSS,
+            Component::Combobox => combobox::CSS,
+            Component::Pager => pager::CSS,
+            Component::Form => form::CSS,
+            Component::ErrorSummary => error_summary::CSS,
+            Component::Counter => counter::CSS,
+            Component::Theme => theme::CSS,
+            Component::Flash => flash::CSS,
+            Component::Select => select::CSS,
+            Component::Range => range::CSS,
+            Component::Color => color::CSS,
+            #[cfg(feature = "http")]
+            Component::Stream => stream::CSS,
+            #[cfg(not(feature = "http"))]
+            Component::Stream => "",
+            Component::Table => table::CSS,
+            Component::PagedTable => paged_table::CSS,
+            Component::Wizard => wizard::CSS,
+            Component::Toast => toast::CSS,
+            Component::Breadcrumbs => breadcrumbs::CSS,
+            Component::Skeleton => skeleton::CSS,
+            Component::EmptyState => empty_state::CSS,
+            Component::Stat => stat::CSS,
+            Component::Chart => chart::CSS,
+            Component::Sidebar => sidebar::CSS,
+            Component::NavMenu => nav_menu::CSS,
+            Component::DescriptionList => description_list::CSS,
+            Component::ToggleGroup => toggle_group::CSS,
+            Component::ContextMenu => context_menu::CSS,
+            Component::InputOtp => input_otp::CSS,
+            Component::Drawer => drawer::CSS,
+            Component::Palette => palette::CSS,
+            Component::Marquee => marquee::CSS,
+            Component::Variant => variant::CSS,
+            Component::Blocks => "",
+        }
+    }
 }
 
 /// Strip comments and collapse whitespace in a stylesheet, leaving quoted strings alone. A
@@ -360,6 +640,7 @@ pub const COMPONENT_CSS: &[&str] = &[
     drawer::CSS,
     palette::CSS,
     marquee::CSS,
+    variant::CSS,
 ];
 
 #[cfg(test)]
@@ -409,9 +690,12 @@ mod tests {
             r#".a .b>p,a:hover{margin:0 8px;content:"  ← "}@media (min-width:60rem) and (x){.c{top:calc(1px + 2px)}}"#
         );
         let full = [
+            layout::RESET,
             layout::Tokens::default().css().as_str(),
             &COMPONENT_CSS.concat(),
             &caps::beacon_css(),
+            &blocks::CSS.concat(),
+            layout::MODES,
         ]
         .concat();
         let min = stylesheet();
@@ -436,7 +720,7 @@ mod tests {
     /// passed to `Page::tokens` reaches everything. Literals live in `layout::Tokens` alone.
     #[test]
     fn no_colour_literal_outside_tokens() {
-        for css in COMPONENT_CSS {
+        for css in COMPONENT_CSS.iter().chain(&[layout::RESET, layout::MODES]) {
             for line in css.lines() {
                 let hex = line.char_indices().any(|(i, c)| {
                     c == '#'
@@ -1058,6 +1342,10 @@ mod tests {
             "a file field (Input, Form) or an uploaded file with its size (Upload)",
         ),
         (
+            "size",
+            "a `Size` (1 to 3) everywhere but Avatar, Avatars and Dialog, which keep Radix's five and four sizes as a `u8`",
+        ),
+        (
             "submit",
             "Button's switch sets `type=\"submit\"`; Form's value is its button's text",
         ),
@@ -1514,6 +1802,238 @@ mod tests {
         );
     }
 
+    /// The stylesheet is five cascade layers in a fixed order, the minifier keeps them, and
+    /// nothing of the demo's own site is in it.
+    #[test]
+    fn the_stylesheet_is_layered() {
+        let css = stylesheet();
+        assert!(
+            css.starts_with("@layer lui.reset,lui.tokens,lui.components,lui.blocks,lui.modes;")
+        );
+        for layer in ["reset", "tokens", "components", "blocks", "modes"] {
+            assert_eq!(
+                css.matches(&format!("@layer lui.{layer}{{")).count(),
+                1,
+                "{layer}"
+            );
+        }
+        assert_eq!(
+            minify_css("@layer a, b;\n@layer a { p { margin: 0 } }"),
+            "@layer a,b;@layer a{p{margin:0}}"
+        );
+        assert!(
+            !css.contains(".lui-site")
+                && !css.contains(".lui-index")
+                && !css.contains(".lui-props")
+        );
+    }
+
+    /// `Component` has one variant per `COMPONENT_CSS` entry, in its order: a component
+    /// appended there needs its variant appended too.
+    #[test]
+    fn every_component_css_has_a_variant() {
+        let parts: Vec<&str> = (Component::ALL.iter())
+            .filter(|c| **c != Component::Blocks)
+            .map(|c| c.css())
+            .filter(|css| !css.is_empty())
+            .collect();
+        assert_eq!(
+            parts.len(),
+            COMPONENT_CSS.len(),
+            "a Component variant is missing"
+        );
+        for (i, (a, b)) in parts.iter().zip(COMPONENT_CSS).enumerate() {
+            assert!(a == b, "Component::ALL[{i}] is out of COMPONENT_CSS order");
+        }
+        for (i, c) in Component::ALL.iter().enumerate() {
+            assert_eq!(*c as usize, i, "{c:?} is out of place in Component::ALL");
+        }
+        let dialog = stylesheet_for(&[Component::Dialog]);
+        assert!(dialog.contains(".lui-dialog") && dialog.contains(".lui-button"));
+        assert!(!dialog.contains(".lui-kanban") && !dialog.contains(".lui-auth"));
+        assert!(
+            std::ptr::eq(dialog, stylesheet_for(&[Component::Dialog])),
+            "built once"
+        );
+    }
+
+    /// The text of every CSS const in the library's sources, per file name.
+    fn css_by_file() -> Vec<(String, String)> {
+        library_sources()
+            .into_iter()
+            .map(|path| {
+                let source = std::fs::read_to_string(&path).unwrap();
+                let mut css = String::new();
+                for start in source.match_indices(": &str = r#\"").map(|(i, _)| i) {
+                    let head = &source[..start];
+                    let name = head.rsplit("pub const ").next().unwrap_or("");
+                    if !matches!(name.trim(), "CSS" | "RESET" | "MODES") {
+                        continue;
+                    }
+                    let body = &source[start..];
+                    css.push_str(&body[..body.find("\"#;").unwrap()]);
+                }
+                let name = path.file_name().unwrap().to_string_lossy().to_string();
+                (name, css)
+            })
+            .filter(|(_, css)| !css.is_empty())
+            .collect()
+    }
+
+    /// Every `property: value` declaration in `css`.
+    fn declarations(css: &str) -> Vec<(String, String)> {
+        css.split(['{', '}', ';'])
+            .filter_map(|d| d.split_once(':'))
+            .map(|(p, v)| (p.trim().to_string(), v.trim().to_string()))
+            .collect()
+    }
+
+    /// Type sizes and stacking come from tokens: `font-size` is a `var(--lui-text-n)` (or
+    /// relative: `em`, `%`, `inherit`) and `z-index` a `var(--lui-z-*)` (or a local order
+    /// from -1 to 3 inside one component). The files listed still write literals and lose
+    /// their entry in M39's sweep, run after the other milestones merge.
+    #[test]
+    fn no_literal_font_size_or_z_outside_tokens() {
+        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
+        const PENDING_SWEEP: &[&str] = &[
+            "accordion.rs",
+            "alert.rs",
+            "app_shell.rs",
+            "auth_page.rs",
+            "avatar.rs",
+            "badge.rs",
+            "breadcrumbs.rs",
+            "button.rs",
+            "calendar.rs",
+            "card.rs",
+            "chart.rs",
+            "color.rs",
+            "combobox.rs",
+            "counter.rs",
+            "date_picker.rs",
+            "description_list.rs",
+            "dialog.rs",
+            "drawer.rs",
+            "empty_state.rs",
+            "error_page.rs",
+            "error_summary.rs",
+            "form.rs",
+            "input.rs",
+            "input_otp.rs",
+            "kanban.rs",
+            "nav_menu.rs",
+            "paged_table.rs",
+            "pager.rs",
+            "palette.rs",
+            "popover.rs",
+            "progress.rs",
+            "range.rs",
+            "select.rs",
+            "separator.rs",
+            "settings_page.rs",
+            "sidebar.rs",
+            "sortable.rs",
+            "stat.rs",
+            "table.rs",
+            "tabs.rs",
+            "toast.rs",
+            "toggle_group.rs",
+            "tooltip.rs",
+            "upload.rs",
+            "wizard.rs",
+        ];
+        let mut failed = Vec::new();
+        for (file, css) in css_by_file() {
+            let bad: Vec<String> = declarations(&css)
+                .into_iter()
+                .filter(|(p, v)| match p.as_str() {
+                    "font-size" => {
+                        !(v.starts_with("var(--lui-text-")
+                            || v == "inherit"
+                            || (v.ends_with("em") && !v.ends_with("rem"))
+                            || v.ends_with('%'))
+                    }
+                    "z-index" => {
+                        !(v.starts_with("var(--lui-z-")
+                            || matches!(v.as_str(), "auto" | "-1" | "0" | "1" | "2" | "3"))
+                    }
+                    _ => false,
+                })
+                .map(|(p, v)| format!("{p}: {v}"))
+                .collect();
+            match (bad.is_empty(), PENDING_SWEEP.contains(&file.as_str())) {
+                (false, false) => failed.push(format!("{file}: {bad:?}")),
+                (true, true) => failed.push(format!("{file} is clean: drop it from PENDING_SWEEP")),
+                _ => {}
+            }
+        }
+        assert!(failed.is_empty(), "{failed:#?}");
+    }
+
+    /// Component CSS uses logical properties (`margin-inline-start`, `inset-inline-end`,
+    /// `text-align: start`), so a right-to-left page mirrors. Transforms, `translate` and the
+    /// `inset` shorthand are fine. The files listed still use physical ones and lose their
+    /// entry in M39's sweep.
+    #[test]
+    fn no_physical_property_in_component_css() {
+        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
+        const PENDING_SWEEP: &[&str] = &[
+            "accordion.rs",
+            "avatar.rs",
+            "breadcrumbs.rs",
+            "button.rs",
+            "card.rs",
+            "color.rs",
+            "combobox.rs",
+            "date_picker.rs",
+            "dialog.rs",
+            "drawer.rs",
+            "error_summary.rs",
+            "form.rs",
+            "input.rs",
+            "input_otp.rs",
+            "paged_table.rs",
+            "pager.rs",
+            "palette.rs",
+            "popover.rs",
+            "range.rs",
+            "select.rs",
+            "sidebar.rs",
+            "table.rs",
+            "tabs.rs",
+            "toggle_group.rs",
+            "tooltip.rs",
+            "wizard.rs",
+        ];
+        let physical = |p: &str, v: &str| {
+            matches!(
+                p,
+                "left"
+                    | "right"
+                    | "margin-left"
+                    | "margin-right"
+                    | "padding-left"
+                    | "padding-right"
+            ) || p.starts_with("border-left")
+                || p.starts_with("border-right")
+                || (matches!(p, "text-align" | "float" | "clear") && matches!(v, "left" | "right"))
+        };
+        let mut failed = Vec::new();
+        for (file, css) in css_by_file() {
+            let bad: Vec<String> = declarations(&css)
+                .into_iter()
+                .filter(|(p, v)| physical(p, v))
+                .map(|(p, v)| format!("{p}: {v}"))
+                .collect();
+            match (bad.is_empty(), PENDING_SWEEP.contains(&file.as_str())) {
+                (false, false) => failed.push(format!("{file}: {bad:?}")),
+                (true, true) => failed.push(format!("{file} is clean: drop it from PENDING_SWEEP")),
+                _ => {}
+            }
+        }
+        assert!(failed.is_empty(), "{failed:#?}");
+    }
+
     /// Every component's CSS together, inlined once per page, stays under 64 KB (57.6 KB and
     /// 10.3 KB gzipped at M26; README "What a page weighs").
     #[test]
@@ -1521,9 +2041,11 @@ mod tests {
         // 64 KB until M29 added blocks, a chart and six components, 72 KB until M30's colour
         // scales, depth tokens and motion, 88 KB until M34 restyled every component after its
         // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
-        // (README: "What a page weighs").
+        // (README: "What a page weighs"). 128 KB until M39 folded the dark palette into
+        // light-dark() and moved the demo's CSS out: 117 240 bytes then, 111 358 after; 124 KB
+        // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens.
         assert!(
-            stylesheet().len() < 128 * 1024,
+            stylesheet().len() < 124 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -1637,6 +2159,7 @@ mod tests {
             ("drawer", drawer::CSS),
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
+            ("variant", variant::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -1785,5 +2308,697 @@ mod tests {
             let nested = html! { (part) }.into_string();
             assert!(nested.starts_with('<') && nested == part.render().into_string());
         }
+    }
+
+    use maud::Markup;
+
+    /// The example calls behind [`every_attr_prop_sets_its_attribute`]: for each builder and
+    /// setter whose `PROPS` entry names an HTML attribute, the builder without the setter and
+    /// with it, in that order.
+    type AttrExample = (&'static str, &'static str, fn(&Ui) -> [Markup; 2]);
+
+    const ATTR_EXAMPLES: &[AttrExample] = &[
+        ("Avatar", "src", |ui| {
+            [
+                ui.avatar("Ada").render(),
+                ui.avatar("Ada").src("/a.png").render(),
+            ]
+        }),
+        ("Badge", "href", |ui| {
+            [
+                ui.badge("New").render(),
+                ui.badge("New").href("/new").render(),
+            ]
+        }),
+        ("Button", "submit", |ui| {
+            [
+                ui.button("Go").command("close", "d").render(),
+                ui.button("Go").command("close", "d").submit().render(),
+            ]
+        }),
+        ("Button", "reset", |ui| {
+            [ui.button("Go").render(), ui.button("Go").reset().render()]
+        }),
+        ("Button", "command", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").command("show-modal", "d").render(),
+            ]
+        }),
+        ("Button", "popovertarget", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").popovertarget("p").render(),
+            ]
+        }),
+        ("Button", "form", |ui| {
+            [ui.button("Go").render(), ui.button("Go").form("f").render()]
+        }),
+        ("Button", "name", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").name("op").render(),
+            ]
+        }),
+        ("Button", "value", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").value("inc").render(),
+            ]
+        }),
+        ("Button", "aria_label", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").aria_label("Go on").render(),
+            ]
+        }),
+        ("Button", "class", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").class("x").render(),
+            ]
+        }),
+        ("Button", "disabled", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").disabled().render(),
+            ]
+        }),
+        ("Button", "id", |ui| {
+            [ui.button("Go").render(), ui.button("Go").id("go").render()]
+        }),
+        ("Button", "role", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").role("tab").render(),
+            ]
+        }),
+        ("Button", "title", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").title("Go on").render(),
+            ]
+        }),
+        ("Button", "style", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").style("order: 1").render(),
+            ]
+        }),
+        ("Button", "aria_haspopup", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").aria_haspopup("menu").render(),
+            ]
+        }),
+        ("Button", "pressed", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").pressed(true).render(),
+            ]
+        }),
+        ("Button", "accesskey", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").accesskey("g").render(),
+            ]
+        }),
+        ("Button", "aria_keyshortcuts", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").aria_keyshortcuts("Alt+G").render(),
+            ]
+        }),
+        ("Button", "formmethod", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").formmethod("get").render(),
+            ]
+        }),
+        ("Button", "formaction", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").formaction("/go").render(),
+            ]
+        }),
+        ("Button", "formnovalidate", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").formnovalidate().render(),
+            ]
+        }),
+        ("Button", "rel", |ui| {
+            [
+                ui.link_button("Go", "/go").render(),
+                ui.link_button("Go", "/go").rel("next").render(),
+            ]
+        }),
+        ("Button", "current", |ui| {
+            [
+                ui.link_button("Go", "/go").render(),
+                ui.link_button("Go", "/go").current(true).render(),
+            ]
+        }),
+        ("Calendar", "value", |ui| {
+            [
+                ui.calendar("due").radio().render(),
+                ui.calendar("due").radio().value("2026-09-24").render(),
+            ]
+        }),
+        ("Calendar", "required", |ui| {
+            [
+                ui.calendar("due").radio().render(),
+                ui.calendar("due").radio().required().render(),
+            ]
+        }),
+        ("Card", "id", |ui| {
+            [ui.card().render(), ui.card().id("plan").render()]
+        }),
+        ("Chart", "id", |ui| {
+            [
+                ui.chart("Signups").render(),
+                ui.chart("Signups").id("signups").render(),
+            ]
+        }),
+        ("Color", "value", |ui| {
+            [
+                ui.color("accent", "Accent").render(),
+                ui.color("accent", "Accent").value("#2f5bea").render(),
+            ]
+        }),
+        ("Combobox", "label", |ui| {
+            [
+                ui.combobox("q", "/s").render(),
+                ui.combobox("q", "/s").label("Language").render(),
+            ]
+        }),
+        ("Counter", "min", |ui| {
+            [
+                ui.counter("/c", 3).typed().render(),
+                ui.counter("/c", 3).typed().min(0).render(),
+            ]
+        }),
+        ("Counter", "max", |ui| {
+            [
+                ui.counter("/c", 3).typed().render(),
+                ui.counter("/c", 3).typed().max(9).render(),
+            ]
+        }),
+        ("Counter", "step", |ui| {
+            [
+                ui.counter("/c", 3).typed().render(),
+                ui.counter("/c", 3).typed().step(2).render(),
+            ]
+        }),
+        ("DatePicker", "value", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due")
+                    .native()
+                    .value("2026-09-24")
+                    .render(),
+            ]
+        }),
+        ("DatePicker", "min", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due")
+                    .native()
+                    .min("2026-01-01")
+                    .render(),
+            ]
+        }),
+        ("DatePicker", "max", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due")
+                    .native()
+                    .max("2026-12-31")
+                    .render(),
+            ]
+        }),
+        ("DatePicker", "required", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due").native().required().render(),
+            ]
+        }),
+        ("Dialog", "id", |ui| {
+            [
+                ui.dialog("Hi").render(),
+                ui.dialog("Hi").id("hello").render(),
+            ]
+        }),
+        ("Dialog", "open", |ui| {
+            [
+                ui.dialog("Hi").render(),
+                ui.dialog("Hi").open(true).render(),
+            ]
+        }),
+        ("Dialog", "closedby", |ui| {
+            [
+                ui.dialog("Hi").render(),
+                ui.dialog("Hi").closedby("closerequest").render(),
+            ]
+        }),
+        ("Drawer", "id", |ui| {
+            [
+                ui.drawer("Menu").render(),
+                ui.drawer("Menu").id("nav").render(),
+            ]
+        }),
+        ("Drawer", "open", |ui| {
+            [
+                ui.drawer("Menu").render(),
+                ui.drawer("Menu").open(true).render(),
+            ]
+        }),
+        ("Form", "value", |ui| {
+            [
+                ui.form("/f").text("n", "N").render(),
+                ui.form("/f").text("n", "N").value("Ada").render(),
+            ]
+        }),
+        ("Form", "id", |ui| {
+            [ui.form("/f").render(), ui.form("/f").id("profile").render()]
+        }),
+        ("Input", "email", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").email().render(),
+            ]
+        }),
+        ("Input", "password", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").password().render(),
+            ]
+        }),
+        ("Input", "pattern", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").pattern("[0-9]+", "Digits").render(),
+            ]
+        }),
+        ("Input", "multiple", |ui| {
+            [
+                ui.input("n", "N").file(".pdf").render(),
+                ui.input("n", "N").file(".pdf").multiple().render(),
+            ]
+        }),
+        ("Input", "required", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").required().render(),
+            ]
+        }),
+        ("Input", "maxlength", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").maxlength(8).render(),
+            ]
+        }),
+        ("Input", "value", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").value("Ada").render(),
+            ]
+        }),
+        ("Input", "checked", |ui| {
+            [
+                ui.checkbox("n", "N").render(),
+                ui.checkbox("n", "N").checked(true).render(),
+            ]
+        }),
+        ("Input", "placeholder", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").placeholder("Ada").render(),
+            ]
+        }),
+        ("Input", "search", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").search().render(),
+            ]
+        }),
+        ("Input", "list", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").list("names").render(),
+            ]
+        }),
+        ("Input", "autocomplete", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").autocomplete("name").render(),
+            ]
+        }),
+        ("Input", "autofocus", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").autofocus().render(),
+            ]
+        }),
+        ("Input", "inputmode", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").inputmode("numeric").render(),
+            ]
+        }),
+        ("Input", "step", |ui| {
+            [
+                ui.input("n", "N").number(0, 9).render(),
+                ui.input("n", "N").number(0, 9).step(3).render(),
+            ]
+        }),
+        ("Input", "aria_controls", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").aria_controls("results").render(),
+            ]
+        }),
+        ("Input", "form", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").form("f").render(),
+            ]
+        }),
+        ("Input", "class", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").class("x").render(),
+            ]
+        }),
+        ("Input", "id", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").id("name").render(),
+            ]
+        }),
+        ("RadioGroup", "value", |ui| {
+            [
+                ui.radio_group("p", "P").option("a", "A").render(),
+                ui.radio_group("p", "P")
+                    .option("a", "A")
+                    .value("a")
+                    .render(),
+            ]
+        }),
+        ("RadioGroup", "required", |ui| {
+            [
+                ui.radio_group("p", "P").option("a", "A").render(),
+                ui.radio_group("p", "P")
+                    .option("a", "A")
+                    .required()
+                    .render(),
+            ]
+        }),
+        ("Marquee", "duration", |ui| {
+            [
+                ui.marquee("M").text("a").render(),
+                ui.marquee("M").text("a").duration(20).render(),
+            ]
+        }),
+        ("Meter", "low", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).low(2).render(),
+            ]
+        }),
+        ("Meter", "high", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).high(8).render(),
+            ]
+        }),
+        ("Meter", "optimum", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).optimum(0).render(),
+            ]
+        }),
+        ("Meter", "id", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).id("disk").render(),
+            ]
+        }),
+        ("Palette", "accesskey", |ui| {
+            [
+                ui.palette("/s").render(),
+                ui.palette("/s").accesskey("p").render(),
+            ]
+        }),
+        ("Palette", "id", |ui| {
+            [
+                ui.palette("/s").render(),
+                ui.palette("/s").id("commands").render(),
+            ]
+        }),
+        ("Menu", "action", |ui| {
+            [
+                ui.menu("M").link("A", "/a").render(),
+                ui.menu("M").link("A", "/a").action("Go", "/go").render(),
+            ]
+        }),
+        ("Menu", "disabled", |ui| {
+            [
+                ui.menu("M").action("Go", "/go").render(),
+                ui.menu("M").action("Go", "/go").disabled().render(),
+            ]
+        }),
+        ("Menu", "id", |ui| {
+            [ui.menu("M").render(), ui.menu("M").id("more").render()]
+        }),
+        ("Progress", "id", |ui| {
+            [
+                ui.progress(1, 2).render(),
+                ui.progress(1, 2).id("upload").render(),
+            ]
+        }),
+        ("Range", "value", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").value(70).render(),
+            ]
+        }),
+        ("Range", "min", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").min(10).render(),
+            ]
+        }),
+        ("Range", "max", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").max(50).render(),
+            ]
+        }),
+        ("Range", "step", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").step(5).render(),
+            ]
+        }),
+        ("Stat", "href", |ui| {
+            [
+                ui.stat("A", "1").render(),
+                ui.stat("A", "1").href("/a").render(),
+            ]
+        }),
+        ("Tooltip", "id", |ui| {
+            [
+                ui.tooltip("Tip", html! { "x" }).render(),
+                ui.tooltip("Tip", html! { "x" }).id("tip").render(),
+            ]
+        }),
+        ("Upload", "accept", |ui| {
+            [
+                ui.upload("/u", "f").render(),
+                ui.upload("/u", "f").accept("image/*").render(),
+            ]
+        }),
+        ("Upload", "multiple", |ui| {
+            [
+                ui.upload("/u", "f").render(),
+                ui.upload("/u", "f").multiple().render(),
+            ]
+        }),
+        ("Upload", "href", |ui| {
+            [
+                ui.upload("/u", "f").file("a.txt", 1).render(),
+                ui.upload("/u", "f")
+                    .file("a.txt", 1)
+                    .href("/a.txt")
+                    .render(),
+            ]
+        }),
+        ("ErrorPage", "home", |ui| {
+            [
+                ui.error_page(404).render(),
+                ui.error_page(404).home("/dashboard").render(),
+            ]
+        }),
+        ("RecordPage", "edit", |ui| {
+            [
+                ui.record_page("R").render(),
+                ui.record_page("R").edit("/r/edit").render(),
+            ]
+        }),
+        ("RecordPage", "delete", |ui| {
+            [
+                ui.record_page("R").render(),
+                ui.record_page("R").delete("/r/delete").render(),
+            ]
+        }),
+        ("RecordPage", "back", |ui| {
+            [
+                ui.record_page("R").render(),
+                ui.record_page("R").back("/rs").render(),
+            ]
+        }),
+        ("ContextMenu", "action", |ui| {
+            [
+                ui.context_menu("C").link("A", "/a").render(),
+                ui.context_menu("C")
+                    .link("A", "/a")
+                    .action("Go", "/go")
+                    .render(),
+            ]
+        }),
+        ("ContextMenu", "disabled", |ui| {
+            [
+                ui.context_menu("C").action("Go", "/go").render(),
+                ui.context_menu("C").action("Go", "/go").disabled().render(),
+            ]
+        }),
+        ("ContextMenu", "id", |ui| {
+            [
+                ui.context_menu("C").render(),
+                ui.context_menu("C").id("more").render(),
+            ]
+        }),
+        ("InputOtp", "length", |ui| {
+            [
+                ui.input_otp("code", "Code").render(),
+                ui.input_otp("code", "Code").length(4).render(),
+            ]
+        }),
+        ("NavMenu", "link", |ui| {
+            [
+                ui.nav_menu("Main").render(),
+                ui.nav_menu("Main").link("A", "/a").render(),
+            ]
+        }),
+        ("NavMenu", "id", |ui| {
+            [
+                ui.nav_menu("Main").panel("P", [("A", "/a")]).render(),
+                ui.nav_menu("Main")
+                    .panel("P", [("A", "/a")])
+                    .id("top")
+                    .render(),
+            ]
+        }),
+        ("Sidebar", "link", |ui| {
+            [
+                ui.sidebar("Mail").render(),
+                ui.sidebar("Mail").link("A", "/a").render(),
+            ]
+        }),
+        ("Sidebar", "id", |ui| {
+            [
+                ui.sidebar("Mail").group("G").link("A", "/a").render(),
+                ui.sidebar("Mail")
+                    .group("G")
+                    .link("A", "/a")
+                    .id("side")
+                    .render(),
+            ]
+        }),
+        ("ToggleGroup", "option", |ui| {
+            [
+                ui.toggle_group("a", "A").render(),
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+            ]
+        }),
+        ("ToggleGroup", "value", |ui| {
+            [
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+                ui.toggle_group("a", "A")
+                    .option("l", "Left")
+                    .value("l")
+                    .render(),
+            ]
+        }),
+        ("ToggleGroup", "multiple", |ui| {
+            [
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+                ui.toggle_group("a", "A")
+                    .option("l", "Left")
+                    .multiple()
+                    .render(),
+            ]
+        }),
+    ];
+
+    /// Whether some tag in `html` carries the attribute `name`.
+    fn has_attribute(html: &str, name: &str) -> bool {
+        let needle = format!(" {name}");
+        html.split('<').skip(1).any(|tag| {
+            let tag = tag.split('>').next().unwrap_or("");
+            tag.match_indices(&needle).any(|(at, found)| {
+                matches!(
+                    tag[at + found.len()..].chars().next(),
+                    None | Some('=' | ' ' | '/')
+                )
+            })
+        })
+    }
+
+    /// Each setter whose `PROPS` entry names an HTML attribute sets that attribute, under
+    /// every capability and under none: the output changes and some tag carries it. Every
+    /// such setter needs an entry in [`ATTR_EXAMPLES`].
+    #[test]
+    fn every_attr_prop_sets_its_attribute() {
+        let mut wrong = Vec::new();
+        for component in props() {
+            for prop in component.props.iter().filter(|p| !p.attr.is_empty()) {
+                let name = format!("{}::{}", component.builder, prop.name);
+                let Some((.., example)) = ATTR_EXAMPLES
+                    .iter()
+                    .find(|(b, n, _)| *b == component.builder && *n == prop.name)
+                else {
+                    wrong.push(format!("{name}: no entry in ATTR_EXAMPLES"));
+                    continue;
+                };
+                for caps in [Caps::all(), Caps::NONE] {
+                    let [without, with] = example(&Ui::from(caps)).map(Markup::into_string);
+                    if without == with {
+                        wrong.push(format!("{name} changes nothing (caps {:?})", caps.names()));
+                    } else if !has_attribute(&with, prop.attr) {
+                        wrong.push(format!(
+                            "{name} sets no `{}` (caps {:?})",
+                            prop.attr,
+                            caps.names()
+                        ));
+                    }
+                }
+            }
+        }
+        for (builder, name, _) in ATTR_EXAMPLES {
+            let listed = props().iter().any(|c| {
+                c.builder == *builder
+                    && c.props
+                        .iter()
+                        .any(|p| p.name == *name && !p.attr.is_empty())
+            });
+            if !listed {
+                wrong.push(format!(
+                    "{builder}::{name}: in ATTR_EXAMPLES, but PROPS gives it no attr"
+                ));
+            }
+        }
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
     }
 }

@@ -1,7 +1,9 @@
 //! # Progress
 //!
 //! How far along a task is: a bar filled to a value out of a maximum, or an indeterminate
-//! bar when the server does not know yet.
+//! bar when the server does not know yet. Radix Themes Progress's props: three heights
+//! (`.size(..)`), a [`Tone`](crate::variant::Tone) for the fill, a soft or surface track
+//! (`.variant(..)`) and `.radius(..)`.
 //!
 //! **Platform features:** `<progress>` (baseline 2013) with its label tied by `<label for>`,
 //! so a screen reader says the value; `appearance: none` and the `::-webkit-progress-*` and
@@ -27,22 +29,32 @@
 //! // The same in `lui!`:
 //! let same = lui! { Progress(0, 0) label="Waiting"; };
 //! assert_eq!(same.into_string(), m);
+//! // A thin green bar on a tinted track, square ends.
+//! let m = ui.progress(9, 10).size(1).tone(Tone::Ok).variant(Variant::Soft).radius(Radius::None).render().into_string();
+//! assert!(m.starts_with(r#"<div class="lui-progress-field" data-size="1" data-tone="ok" data-variant="soft" data-radius="none">"#));
+//! assert_eq!(lui! { Progress(9, 10) size=1 tone="ok" variant="soft" radius="none"; }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::props::{Prop, PropKind};
+use crate::variant::{Radius, Size, Tone, Variant};
 use crate::{Ui, slug};
 
 /// A progress bar, made by [`Ui::progress`].
 ///
-/// **Setters.** Values and items: `.label(..)`, `.id(..)`.
+/// **Setters.** Values and items: `.label(..)`, `.id(..)`, `.size(..)`, `.tone(..)`,
+/// `.variant(..)`, `.radius(..)`.
 #[derive(Clone, Debug)]
 pub struct Progress<'a> {
     value: u64,
     max: u64,
     label: Option<&'a str>,
     id: Option<&'a str>,
+    size: Size,
+    tone: Option<Tone>,
+    variant: Option<Variant>,
+    radius: Option<Radius>,
 }
 
 impl Progress<'_> {
@@ -54,6 +66,30 @@ impl Progress<'_> {
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The bar's id instead of `lui-progress-<label>`."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("The bar's height: 0.25, 0.5 or 0.75rem."),
+        Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
+            .default("brand")
+            .doc("The fill's colour."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("surface")
+        .doc("Soft tints the track with the tone; the others keep the gray track."),
+        Prop::new(
+            "radius",
+            PropKind::Choice { of: Radius::NAMES },
+            "radius: Radius",
+        )
+        .default("full")
+        .doc("The ends of the track and the fill, from square to round."),
     ];
 }
 
@@ -65,6 +101,10 @@ impl Ui {
             max,
             label: None,
             id: None,
+            size: Size::S2,
+            tone: None,
+            variant: None,
+            radius: None,
         }
     }
 }
@@ -79,6 +119,31 @@ impl<'a> Progress<'a> {
     /// The bar's id instead of `lui-progress-<label>`.
     pub fn id(mut self, id: &'a str) -> Self {
         self.id = Some(id);
+        self
+    }
+
+    /// The bar's height: 0.25rem at size 1, 0.5rem at 2 (the default), 0.75rem at 3.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
+
+    /// The fill's colour: brand (the default), neutral, ok, warn, danger or info.
+    pub fn tone(mut self, tone: Tone) -> Self {
+        self.tone = Some(tone);
+        self
+    }
+
+    /// Soft tints the track with the tone (Radix's soft); surface, the default, and the
+    /// others keep the gray track.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
+
+    /// The ends of the track and the fill: none, small, medium, large or full (the default).
+    pub fn radius(mut self, radius: Radius) -> Self {
+        self.radius = Some(radius);
         self
     }
 }
@@ -96,7 +161,9 @@ impl Render for Progress<'_> {
             str::to_string,
         );
         html! {
-            div class="lui-progress-field" {
+            div class="lui-progress-field" data-size=[(self.size != Size::S2).then(|| self.size.as_str())]
+                data-tone=[self.tone.map(Tone::as_str)] data-variant=[self.variant.map(Variant::as_str)]
+                data-radius=[self.radius.map(Radius::as_str)] {
                 @if let Some(l) = self.label {
                     label for=(id) { span { (l) } @if known { span class="lui-progress-value" { (pct) "%" } } }
                 }
@@ -119,10 +186,23 @@ pub const CSS: &str = r#"
 .lui-progress-field label { display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500; }
 .lui-progress-value { color: var(--lui-muted); font-variant-numeric: tabular-nums; font-weight: 400; }
 .lui-progress {
-  appearance: none; display: block; width: 100%; height: 0.5rem; border: 0; border-radius: 9999px; overflow: hidden;
-  background: var(--lui-gray-4); accent-color: var(--lui-primary);
+  appearance: none; display: block; width: 100%; height: var(--lui-progress-h, 0.5rem); border: 0; border-radius: var(--lui-progress-radius, 9999px); overflow: hidden;
+  background: var(--lui-progress-track, var(--lui-gray-4)); accent-color: var(--lui-progress-fill, var(--lui-primary));
 }
 .lui-progress::-webkit-progress-bar { background: transparent; }
-.lui-progress::-webkit-progress-value { background: var(--lui-primary); border-radius: 9999px; transition: width var(--lui-duration-slow) var(--lui-ease-out); }
-.lui-progress::-moz-progress-bar { background: var(--lui-primary); border-radius: 9999px; }
+.lui-progress::-webkit-progress-value { background: var(--lui-progress-fill, var(--lui-primary)); border-radius: var(--lui-progress-radius, 9999px); transition: width var(--lui-duration-slow) var(--lui-ease-out); }
+.lui-progress::-moz-progress-bar { background: var(--lui-progress-fill, var(--lui-primary)); border-radius: var(--lui-progress-radius, 9999px); }
+/* .size(..), .tone(..), .variant(..) and .radius(..) on the field set the bar's custom
+   properties; soft tints the track with the fill. */
+.lui-progress-field[data-size="1"] { --lui-progress-h: 0.25rem; }
+.lui-progress-field[data-size="3"] { --lui-progress-h: 0.75rem; }
+.lui-progress-field[data-tone=neutral] { --lui-progress-fill: var(--lui-gray-11); }
+.lui-progress-field[data-tone=ok] { --lui-progress-fill: var(--lui-ok); }
+.lui-progress-field[data-tone=warn] { --lui-progress-fill: var(--lui-warn); }
+.lui-progress-field[data-tone=danger] { --lui-progress-fill: var(--lui-danger); }
+.lui-progress-field[data-variant=soft] { --lui-progress-track: color-mix(in srgb, var(--lui-progress-fill, var(--lui-primary)) 20%, transparent); }
+.lui-progress-field[data-radius=none] { --lui-progress-radius: 0; }
+.lui-progress-field[data-radius=small] { --lui-progress-radius: var(--lui-radius-sm); }
+.lui-progress-field[data-radius=medium] { --lui-progress-radius: var(--lui-radius); }
+.lui-progress-field[data-radius=large] { --lui-progress-radius: var(--lui-radius-lg); }
 "#;

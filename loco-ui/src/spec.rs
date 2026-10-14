@@ -137,13 +137,16 @@ pub const SPECS: &[ComponentSpec] = &[
         name: "Layout",
         module: "layout",
         look: "Radix Themes scales and depth, a Linear / Magic UI finish",
-        responsive: Responsive::Viewport,
+        responsive: Responsive::Content,
         features: &[
             f("@view-transition", b("126", "no", "18.2")),
             PREFERS_COLOR_SCHEME,
             f("custom properties", b("49", "31", "9.1")),
+            f("@layer", b("99", "97", "15.4")),
+            f("light-dark()", b("123", "120", "17.5")),
+            f("forced-colors", b("89", "89", "16")),
         ],
-        fallback: "plain navigations (root never cross-fades); colours still switch by media query and data-theme",
+        fallback: "plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {
@@ -947,10 +950,21 @@ pub fn to_json() -> String {
                     calls.join(", ")
                 ));
                 for (k, p) in b.props.iter().enumerate() {
+                    let kind = match p.kind {
+                        crate::props::PropKind::Choice { of } => {
+                            let of: Vec<String> = of.iter().map(|c| json_str(c)).collect();
+                            format!(
+                                "{}, \"choices\": [{}]",
+                                json_str(p.kind.as_str()),
+                                of.join(", ")
+                            )
+                        }
+                        _ => json_str(p.kind.as_str()),
+                    };
                     out.push_str(&format!(
                         "\n            {{ \"name\": {}, \"kind\": {}, \"args\": {}, \"default\": {}, \"attr\": {}, \"doc\": {} }}{}",
                         json_str(p.name),
-                        json_str(p.kind.as_str()),
+                        kind,
                         json_str(p.args),
                         json_str(p.default),
                         json_str(p.attr),

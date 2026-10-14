@@ -29,7 +29,7 @@
 //! **Responses.** [`Ui::page`] is the whole document; as an Axum response it also writes back
 //! the UI state the query changed and clears a flash it showed. [`Ui::redirect`] answers a
 //! form post (Post/Redirect/Get) with a flash and, with the `axum` feature, values kept in a
-//! cookie ([`crate::Saved`]).
+//! cookie (`Saved`).
 //!
 //! **Any server.** [`Ui::from_request`] takes the path, the query string and the whole
 //! `Cookie:` header, and `Ui::from(caps)` works where there is no request at all. The `axum`
@@ -43,8 +43,8 @@ use crate::{
     Caps, Theme, UiState,
     cookie::SetCookie,
     flash::{Level, stack},
-    i18n::{self, Strings, Text},
-    layout::{self, Look, Tokens},
+    i18n::{self, Dir, Strings, Text},
+    layout::{Doc, Look, Sheet, Tokens},
     state::{FLASH_COOKIE, decode, encode},
     theme::THEME_COOKIE,
 };
@@ -62,10 +62,14 @@ pub struct Ui {
     pub strings: &'static Strings,
     /// Whether the `lui-lang` cookie chose the language (then `Accept-Language` does not).
     lang_from_cookie: bool,
+    /// `?dir=rtl` or `?dir=ltr`, over the language's own direction.
+    dir: Option<Dir>,
     /// Every query parameter, decoded, in order: what components read their own input from.
     params: Vec<(String, String)>,
     /// The app's own look, applied by [`Ui::page`].
     look: Option<&'static Look>,
+    /// This request's own tokens, over the look's ([`Ui::tokens`]).
+    tokens: Option<Box<Tokens>>,
 }
 
 /// A request with no state: only what the browser supports.
@@ -93,20 +97,28 @@ impl Ui {
             .find(|(k, _)| *k == i18n::LANG_COOKIE)
             .map(|(_, v)| v);
         let strings = i18n::choose(lang, "");
+        let params: Vec<(String, String)> = query
+            .split('&')
+            .filter(|p| !p.is_empty())
+            .map(|p| p.split_once('=').unwrap_or((p, "")))
+            .map(|(k, v)| (decode(k).into_owned(), decode(v).into_owned()))
+            .collect();
+        // `dir` is also a sort direction's name (`asc`, `desc`): only the two writing
+        // directions count.
+        let dir = (params.iter())
+            .filter(|(k, _)| k == "dir")
+            .find_map(|(_, v)| Dir::parse(v));
         Ui {
+            dir,
             strings,
             lang_from_cookie: lang.is_some_and(|l| strings.lang().eq_ignore_ascii_case(l.trim())),
             caps: Caps::from_query(query)
                 .unwrap_or_else(|| Caps::from_cookie_header(cookie_header)),
             theme,
             state: UiState::from_request(path, query, cookie_header),
-            params: query
-                .split('&')
-                .filter(|p| !p.is_empty())
-                .map(|p| p.split_once('=').unwrap_or((p, "")))
-                .map(|(k, v)| (decode(k).into_owned(), decode(v).into_owned()))
-                .collect(),
+            params,
             look: None,
+            tokens: None,
         }
     }
 
@@ -127,10 +139,31 @@ impl Ui {
     }
 
     /// Render every page of this request under the app's [`Look`]: its tokens and CSS. The Axum
-    /// extractor does it when the request carries one ([`Look::layer`]); other servers call it.
+    /// extractor does it when the request carries one (`Look::layer`, feature `axum`); other servers call it.
     pub fn look(mut self, look: &'static Look) -> Ui {
         self.look = Some(look);
         self
+    }
+
+    /// Render every page of this request under `tokens`, over the [`Look`]'s: a theme that
+    /// changes per request, such as a tenant's palette read from a database.
+    ///
+    /// ```rust
+    /// use loco_ui::{layout::{Palette, Tokens}, prelude::*};
+    /// let brand = String::from("#0f766e");
+    /// let light = Palette { primary: brand.into(), ..Tokens::DEFAULT.light };
+    /// let ui = Ui::default().tokens(Tokens { light, ..Tokens::DEFAULT });
+    /// assert!(ui.page("T", html! {}).into_string().contains("--lui-primary: light-dark(#0f766e,"));
+    /// ```
+    pub fn tokens(mut self, tokens: Tokens) -> Ui {
+        self.tokens = Some(Box::new(tokens));
+        self
+    }
+
+    /// The look this request renders under, if any.
+    #[cfg(feature = "http")]
+    pub(crate) fn current_look(&self) -> Option<&'static Look> {
+        self.look
     }
 
     /// Whether the request was HTTPS: an app adds `; Secure` to its own cookies when it is.
@@ -143,9 +176,54 @@ impl Ui {
         self.strings.lang()
     }
 
+    /// Which way the page runs, as `<html dir>` says it: `?dir=rtl` or `?dir=ltr` when the
+    /// query has one, else the language's own ([`Strings::dir`]).
+    ///
+    /// ```rust
+    /// use loco_ui::{i18n::Dir, prelude::*};
+    /// assert_eq!(Ui::from_request("/", "", "").dir(), Dir::Ltr);
+    /// let ui = Ui::from_request("/", "dir=rtl", "");
+    /// assert_eq!(ui.dir(), Dir::Rtl);
+    /// assert!(ui.page("RTL", html! {}).into_string().contains(r#"<html lang="en" dir="rtl""#));
+    /// ```
+    pub fn dir(&self) -> Dir {
+        self.dir.unwrap_or(self.strings.dir())
+    }
+
     /// A component text in the visitor's language.
     pub fn text(&self, text: Text) -> &'static str {
         self.strings.get(text)
+    }
+
+    /// The app's own text `key` ([`Strings::with_custom`]) in the visitor's language, else
+    /// in the app's default language, else `key` itself, so a missing text shows.
+    ///
+    /// ```rust
+    /// use loco_ui::i18n::{self, Strings};
+    /// use loco_ui::prelude::*;
+    /// static ENGLISH: Strings = Strings::ENGLISH.with_custom(&[("notes.pinned", "Pinned"), ("notes.new", "New note")]);
+    /// static SPANISH: Strings = Strings::new("es").with_custom(&[("notes.pinned", "Fijada")]);
+    /// static LANGUAGES: [&Strings; 2] = [&ENGLISH, &SPANISH];
+    /// i18n::languages(&LANGUAGES);
+    /// let ui = Ui::from_request("/", "", "lui-lang=es");
+    /// assert_eq!(ui.text_key("notes.pinned"), "Fijada");
+    /// assert_eq!(ui.text_key("notes.new"), "New note");
+    /// assert_eq!(ui.text_key("notes.gone"), "notes.gone");
+    /// ```
+    pub fn text_key<'a>(&self, key: &'a str) -> &'a str {
+        (self.strings.custom(key))
+            .or_else(|| i18n::default_strings().custom(key))
+            .unwrap_or(key)
+    }
+
+    /// The counted text's form for `n` in the visitor's language ([`Strings::count`]).
+    pub fn count(&self, text: Text, n: u64) -> String {
+        self.strings.count(text, n)
+    }
+
+    /// `n` with the visitor's language's separators ([`Strings::number`]).
+    pub fn number(&self, n: f64) -> String {
+        self.strings.number(n)
     }
 
     /// A component text in the visitor's language, its placeholders filled.
@@ -218,20 +296,37 @@ impl Ui {
         let page = Page {
             caps: self.caps,
             theme: self.theme,
-            lang: self.strings.lang(),
+            strings: self.strings,
+            dir: self.dir(),
             title: title.into(),
             tokens: None,
             header: None,
+            linked: false,
+            subset: None,
             body,
             cookies: self.state.set_cookies().into(),
             css: Vec::new(),
             script: true,
             status: 200,
         };
-        let Some(look) = self.look else { return page };
-        let page = (look.css.iter()).fold(page.tokens(&look.tokens), |p, css| p.css(css));
-        match look.header {
-            Some(header) => page.header(header()),
+        let page = match self.look {
+            Some(look) => {
+                // The default tokens are in the stylesheet already: no second copy.
+                let page = if look.tokens == Tokens::DEFAULT {
+                    page
+                } else {
+                    page.tokens(&look.tokens)
+                };
+                let page = (look.css.iter()).fold(page, |p, css| p.css(css));
+                match look.header {
+                    Some(header) => page.header(header()),
+                    None => page,
+                }
+            }
+            None => page,
+        };
+        match &self.tokens {
+            Some(tokens) => page.tokens(tokens),
             None => page,
         }
     }
@@ -267,7 +362,8 @@ impl Deref for Ui {
 #[derive(Clone, Debug)]
 pub struct Page {
     caps: Caps,
-    lang: &'static str,
+    strings: &'static Strings,
+    dir: Dir,
     theme: Theme,
     title: Box<str>,
     tokens: Option<Box<Tokens>>,
@@ -279,6 +375,9 @@ pub struct Page {
     css: Vec<&'static str>,
     script: bool,
     status: u16,
+    // The sheet as two small fields, not a `Sheet`, to stay under the 128 bytes above.
+    linked: bool,
+    subset: Option<&'static &'static str>,
 }
 
 impl Page {
@@ -304,7 +403,7 @@ impl Page {
     }
 
     /// Leave out the enhancement script: the page is exactly what Blitz renders, and
-    /// [`crate::enhance::csp`] answers it with `script-src 'none'`
+    /// `enhance::csp` (feature `axum`) answers it with `script-src 'none'`
     /// ([`crate::enhance::CSP_NO_SCRIPT`]).
     pub fn without_script(mut self) -> Self {
         self.script = false;
@@ -326,7 +425,8 @@ impl Page {
         self
     }
 
-    /// Show `header` above `<main>` instead of loco-ui's own header; empty markup shows none.
+    /// Show `header` above `<main>`, after the skip link. A page has none until this or the
+    /// [`Look`] sets one.
     pub fn header(mut self, header: Markup) -> Self {
         self.header = Some(Box::new(header));
         self
@@ -334,8 +434,72 @@ impl Page {
 
     /// Render under other [`Tokens`] (a palette is a value, see `docs/theming.md`).
     pub fn tokens(mut self, tokens: &Tokens) -> Self {
-        self.tokens = Some(Box::new(*tokens));
+        self.tokens = Some(Box::new(tokens.clone()));
         self
+    }
+
+    /// Link the stylesheet (`<link rel="stylesheet" href="/lui.css?v=…">`) instead of
+    /// inlining it: the browser caches it across pages, each page is about 120 KB smaller,
+    /// and [`crate::enhance::csp`] answers it without `'unsafe-inline'` for `<style>`
+    /// elements (the token overrides and the app's CSS, still inline, go in by hash). The
+    /// Axum feature's [`crate::enhance::router`] serves the file.
+    ///
+    /// ```rust
+    /// use loco_ui::prelude::*;
+    /// let html = Ui::default().page("T", html! {}).linked_stylesheet().into_string();
+    /// assert!(html.contains(r#"<link rel="stylesheet" href="/lui.css?v="#) && !html.contains("<style>"));
+    /// ```
+    pub fn linked_stylesheet(mut self) -> Self {
+        self.linked = true;
+        self
+    }
+
+    /// Inline only the CSS of `components`, plus the layout and the primitives every page
+    /// needs ([`crate::Component::BASE`]), instead of the whole stylesheet: see
+    /// [`crate::stylesheet_for`]. A component left out renders unstyled, so list every one
+    /// the page shows.
+    ///
+    /// ```rust
+    /// use loco_ui::{Component, prelude::*};
+    /// let ui = Ui::default();
+    /// let html = ui.page("T", html! { (ui.dialog("Hi")) }).subset(&[Component::Dialog]).into_string();
+    /// assert!(html.contains(".lui-dialog") && !html.contains(".lui-kanban"));
+    /// ```
+    pub fn subset(mut self, components: &[crate::Component]) -> Self {
+        self.subset = Some(crate::subset_sheet(components));
+        self
+    }
+
+    /// The `'sha256-…'` sources of the `<style>` elements this page inlines, for a
+    /// `style-src` of your own; [`crate::enhance::csp`] uses them for a linked page.
+    pub fn style_hashes(&self) -> Vec<String> {
+        (self.doc().styles().iter())
+            .map(|(_, text)| crate::enhance::csp_hash(text))
+            .collect()
+    }
+
+    /// Whether the stylesheet is linked ([`Page::linked_stylesheet`]).
+    pub fn is_linked(&self) -> bool {
+        self.linked
+    }
+
+    fn doc(&self) -> Doc<'_> {
+        Doc {
+            caps: &self.caps,
+            strings: self.strings,
+            dir: self.dir,
+            title: &self.title,
+            theme: self.theme,
+            tokens: self.tokens.as_deref(),
+            css: &self.css,
+            header: self.header.as_deref(),
+            script: self.script,
+            sheet: match (self.linked, self.subset) {
+                (true, _) => Sheet::Linked,
+                (false, Some(css)) => Sheet::Subset(css),
+                (false, None) => Sheet::Inline,
+            },
+        }
     }
 
     /// The `Set-Cookie` values this page sends: changed UI state, and the shown flash cleared.
@@ -351,17 +515,7 @@ impl Page {
 
 impl Render for Page {
     fn render(&self) -> Markup {
-        layout::page(
-            &self.caps,
-            self.lang,
-            &self.title,
-            self.theme,
-            self.tokens.as_deref(),
-            &self.css,
-            self.header.as_deref(),
-            self.script,
-            self.body.clone(),
-        )
+        self.doc().render(self.body.clone())
     }
 }
 
@@ -557,6 +711,13 @@ mod axum_glue {
             if !self.script {
                 // For `enhance::csp`: this page may be served under `script-src 'none'`.
                 response.extensions_mut().insert(crate::enhance::NoScript);
+            }
+            if self.is_linked() {
+                // For `enhance::csp`: no inline stylesheet, so `<style>` needs no 'unsafe-inline'.
+                let hashes = self.style_hashes().join(" ");
+                response
+                    .extensions_mut()
+                    .insert(crate::enhance::StyleHashes(hashes));
             }
             with_cookies(response, self.cookies)
         }

@@ -2,10 +2,15 @@
 name = "loco-ui-macros"
 version = "0.1.0"
 edition = "2024"
+# Let-chains.
+rust-version = "1.88"
 description = "The `lui!` macro for loco-ui: Maud markup where components are written like elements"
-readme = "../README.md"
+readme = "README.md"
 license = "MIT"
 repository = "https://github.com/luis-serrano-l/loco-ui"
+homepage = "https://luis-serrano-l.github.io/loco-ui/"
+documentation = "https://docs.rs/loco-ui-macros"
+include = ["src/**/*", "tests/**/*", "README.md", "LICENSE"]
 keywords = ["maud", "ssr", "components", "axum"]
 categories = ["web-programming", "template-engine"]
 
@@ -19,4 +24,6 @@ quote = "1"
 [dev-dependencies]
 loco-ui = { path = "../loco-ui" }
 maud.workspace = true
+# Random token streams through the token walker must not panic (`mod tests`).
+proptest = "1.12.0"
 trybuild = "1"
