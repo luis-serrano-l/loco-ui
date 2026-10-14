@@ -7,8 +7,9 @@
 //! TODO(2, header): one paragraph on what it does, then "After <library> <Component>" (the
 //! look it copies: Radix Themes by default, else Origin UI, shadcn/ui, Tremor or Dice UI).
 //!
-//! **Platform features:** TODO the elements and CSS it is built on, each with its baseline
-//! (Chrome N, Firefox N, Safari N), and the `Cap` it branches on, if any.
+//! **Platform features:** a `<div>`. TODO the elements and CSS it is built on, each with its
+//! baseline (Chrome N, Firefox N, Safari N), and the `Cap` it branches on, if any. Every
+//! `features` name in its `spec::SPECS` entry appears here (`doc_headers_match_the_spec`).
 //!
 //! **Accessibility:** TODO the role, name and keyboard path, and "Checked by axe-core in
 //! headless Firefox on every demo route, both capability variants, light and dark (no serious
@@ -40,10 +41,12 @@ use maud::{Markup, Render, html};
 use crate::Ui;
 use crate::props::{Prop, PropKind};
 
+// TODO(5): every builder is `Clone` and `Debug` (`every_builder_is_clone_and_debug`), and its
+// doc names its setters under **Setters.**: the tests find builders by that line, so keep the
+// `///` lines and `#[derive]` directly above `pub struct` (no `//` line between them).
 /// A widget, made by [`Ui::widget`].
 ///
 /// **Setters.** Values: `.id(..)`; switches: `.quiet()`.
-// TODO(5): every builder is `Clone` and `Debug` (`every_builder_is_clone_and_debug`).
 #[derive(Clone, Debug)]
 pub struct Widget<'a> {
     label: &'a str,
@@ -52,13 +55,13 @@ pub struct Widget<'a> {
 }
 
 impl Widget<'_> {
-    /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
-    /// [`crate::props()`] and kept in step with the setters by a test.
     // TODO(5, PROPS): one `Prop` per public setter, in the order written below
     // (`every_setter_is_in_props`, `props_follow_the_conventions`). Kinds: `Switch` (no
     // argument, switches on), `Condition` (takes a bool from a route), `Value`, `Number`, `Item` (an
     // adder), `Modifier` (changes the item added last). `.attr("x")` only when the setter sets
     // the HTML attribute `x`, and then the setter is named after it.
+    /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
+    /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("id", PropKind::Value, "id: &str")
             .attr("id")
@@ -68,10 +71,10 @@ impl Widget<'_> {
 }
 
 impl Ui {
-    /// A widget reading `label`.
     // TODO(5, constructor): required arguments only, text first; everything else a setter.
     // Read query and cookie state here from `self.param(..)` / `self.state()`, not from an
     // argument. Keep `&self.caps` (or what you need of `self`) in the builder if it branches.
+    /// A widget reading `label`.
     pub fn widget<'a>(&self, label: &'a str) -> Widget<'a> {
         Widget {
             label,
@@ -117,7 +120,6 @@ impl Render for Widget<'_> {
     }
 }
 
-/// Styles for this component; included in [`crate::stylesheet`].
 // TODO(3, CSS): append `widget::CSS` to `COMPONENT_CSS` in lib.rs. Colours only through
 // `--lui-*` tokens (`no_colour_literal_outside_tokens`); no selector on a bare `button` or
 // `input` (`only_the_primitives_select_bare_buttons_and_inputs`).
@@ -125,6 +127,7 @@ impl Render for Widget<'_> {
 // the narrow layout is the base, wider ones go in `@container lui-widget (width >= 30rem)` or
 // `(width >= 48rem)`; viewport `@media` only for `prefers-*` and `pointer`; every clickable
 // part is at least 44px tall under `@media (pointer: coarse)`; nothing overflows at 320px.
+/// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After <library> <Component>: TODO the measurements copied (heights, paddings, radii). */
 .lui-widget { display: block; padding: 0.5rem 0.75rem; border-radius: var(--lui-radius-sm); color: var(--lui-fg); }
