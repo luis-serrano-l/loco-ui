@@ -35,7 +35,7 @@
 //! let old = Ui::from(Caps::ASSUMED);
 //! let m = old.hover_card("Release notes", html! { "What changed in 0.2." }).href("/changelog").id("notes");
 //! let html = m.render().into_string();
-//! assert!(html.contains(r#"<a href="/changelog">Release notes</a>"#) && html.contains(r#"popovertarget="notes""#));
+//! assert!(html.contains(r#"<a class="lui-hover-card-link" href="/changelog">Release notes</a>"#) && html.contains(r#"popovertarget="notes""#));
 //! assert!(html.contains(r#"popover="auto""#) && !html.contains("interestfor"));
 //! // The same in `lui!`:
 //! let ui = old;
@@ -120,7 +120,7 @@ impl Render for HoverCard<'_> {
         if !self.caps.has(Cap::Popover) {
             return html! {
                 span class="lui-hover-card" {
-                    @if let Some(href) = self.href { a href=(href) { (self.trigger) } }
+                    @if let Some(href) = self.href { a class="lui-hover-card-link" href=(href) { (self.trigger) } }
                     details {
                         @if self.href.is_some() {
                             summary class="lui-button lui-button-ghost lui-button-small lui-button-icon" aria-label=(more) { (Icon::ChevronDown) }
@@ -139,9 +139,9 @@ impl Render for HoverCard<'_> {
         html! {
             span class="lui-hover-card" {
                 @match (self.href, hover) {
-                    (Some(href), true) => a href=(href) interestfor=(id) { (self.trigger) },
+                    (Some(href), true) => a class="lui-hover-card-link" href=(href) interestfor=(id) { (self.trigger) },
                     (Some(href), false) => {
-                        a href=(href) { (self.trigger) }
+                        a class="lui-hover-card-link" href=(href) { (self.trigger) }
                         (button.small().icon_only().aria_label(&more).body(html! { (Icon::ChevronDown) }))
                     },
                     (None, true) => (button.interestfor(&id).class("lui-hover-card-trigger")),
@@ -160,7 +160,7 @@ pub const CSS: &str = r#"
    under its trigger where anchor positioning places it. A button trigger is a ghost button
    with the text colour of a link. */
 .lui-hover-card { position: relative; display: inline-flex; align-items: center; gap: var(--lui-space-1); vertical-align: baseline; }
-.lui-hover-card-trigger { color: var(--lui-link); padding-inline: var(--lui-space-1); }
+.lui-button.lui-hover-card-trigger { color: var(--lui-link); padding-inline: var(--lui-space-1); }
 .lui-hover-card-content {
   display: block; box-sizing: border-box; width: max-content; max-width: min(20rem, calc(100vw - 2rem)); margin: 0; padding: var(--lui-space-4);
   font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-fg); text-align: start; overflow-wrap: anywhere;
@@ -173,10 +173,14 @@ pub const CSS: &str = r#"
   .lui-hover-card-content[popover] { position-area: bottom; position-try-fallbacks: flip-block; margin-top: var(--lui-space-2); }
 }
 @supports not (position-area: bottom) { .lui-hover-card-content:popover-open { inset: 0; margin: auto; } }
-/* The <details> fallback: the card drops under the trigger in the page's flow. */
+/* The <details> fallback: the card drops under the trigger in the page's flow, so with no
+   anchor to place it by it can never run past the viewport's edge. */
 .lui-hover-card details { display: inline-block; }
 .lui-hover-card details > summary { list-style: none; }
 .lui-hover-card details > summary::-webkit-details-marker { display: none; }
-.lui-hover-card details > .lui-hover-card-content { position: absolute; z-index: var(--lui-z-popover); top: calc(100% + var(--lui-space-2)); inset-inline-start: 0; }
-@media (pointer: coarse) { .lui-hover-card-trigger { min-height: var(--lui-hit); } }
+.lui-hover-card details > .lui-hover-card-content { margin-top: var(--lui-space-2); }
+@media (pointer: coarse) {
+  .lui-hover-card-trigger, .lui-hover-card-link { min-height: var(--lui-hit); }
+  .lui-hover-card-link { display: inline-flex; align-items: center; }
+}
 "#;

@@ -21,7 +21,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 54] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -357,6 +357,48 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
         "Primitives",
         "@media (forced-colors: active), (prefers-contrast: more), print",
         "The controls drawn in CSS under forced colours and more contrast, emulated by a class.",
+    ),
+    (
+        "/pagination",
+        "Pagination",
+        "Navigation",
+        "<nav> of links, aria-current, rel=prev/next, <link rel> in the head, @container",
+        "Numbered page links with an ellipsis over the gaps, every page a URL.",
+    ),
+    (
+        "/steps",
+        "Steps",
+        "Navigation",
+        "<ol>, aria-current=step, @container",
+        "Where a visitor is in a process: done, current and still to come.",
+    ),
+    (
+        "/timeline",
+        "Timeline",
+        "Navigation",
+        "<ol>, <time datetime>, ::before, @container",
+        "What happened, in order, on a line with a dot or an icon per event.",
+    ),
+    (
+        "/tree",
+        "Tree",
+        "Navigation",
+        "nested <details>, aria-current, --lui-tree-depth",
+        "Folders that open and close, the current page's folders open.",
+    ),
+    (
+        "/collapsible",
+        "Collapsible",
+        "Navigation",
+        "<details name>, ::details-content",
+        "One section that shows and hides under a button.",
+    ),
+    (
+        "/hover-card",
+        "Hover card",
+        "Navigation",
+        "interestfor, popover=hint, popovertarget fallback",
+        "A preview card on hover and focus, or on click where hover cannot open it.",
     ),
 ];
 

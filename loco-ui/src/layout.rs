@@ -938,7 +938,7 @@ pub(crate) struct Doc<'a> {
     pub(crate) tokens: Option<&'a Tokens>,
     pub(crate) css: &'a [&'static str],
     /// `<link rel href>` pairs ([`crate::Page::link_rel`]).
-    pub(crate) links: &'a [(Box<str>, Box<str>)],
+    pub(crate) links: &'a [crate::ui::LinkRel],
     pub(crate) header: Option<&'a Markup>,
     pub(crate) script: bool,
     pub(crate) sheet: Sheet,

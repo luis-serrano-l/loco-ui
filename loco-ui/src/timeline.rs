@@ -168,29 +168,28 @@ impl Render for Timeline<'_> {
 pub const CSS: &str = r#"
 /* After the Flowbite Timeline: a 1px line at the start, a 0.75rem dot on it per event (or a
    1.5rem icon in a ring of the background), the date small and muted above a semibold title
-   and a muted description, 2.5rem between events. Its own container: from 30rem the dates
+   and a muted description, 2rem between events. Its own container: from 30rem the dates
    sit in an 8rem column, right-aligned, left of the line. */
-.lui-timeline { container: lui-timeline / inline-size; list-style: none; margin: 0; padding: 0; --lui-timeline-dot: var(--lui-gray-6); }
+.lui-timeline { container: lui-timeline / inline-size; list-style: none; margin: 0; padding: 0; --lui-timeline-dot: var(--lui-gray-6); --lui-timeline-rail: 0rem; }
 .lui-timeline > li {
-  position: relative; display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); column-gap: var(--lui-space-3);
+  position: relative; display: flex; flex-direction: column; padding-inline-start: calc(var(--lui-timeline-rail) + 2.25rem);
   padding-bottom: var(--lui-space-8); max-width: none; overflow-wrap: anywhere;
 }
 .lui-timeline > li:last-child { padding-bottom: 0; }
-/* The line: from under this event's dot down to the next one. */
+/* The line: from this event's dot down to the next one, under the dots. */
 .lui-timeline > li::before {
-  content: ""; position: absolute; inset-inline-start: calc(0.75rem - 0.5px); top: 0; bottom: 0; width: 1px; background: var(--lui-line);
+  content: ""; position: absolute; inset-inline-start: calc(var(--lui-timeline-rail) + 0.75rem - 0.5px); top: 0; bottom: 0;
+  width: 1px; background: var(--lui-line);
 }
 .lui-timeline > li:last-child::before { bottom: auto; height: 0.75rem; }
 .lui-timeline > li:first-child::before { top: 0.75rem; }
 .lui-timeline > li:only-child::before { display: none; }
-.lui-timeline > li > * { grid-column: 2; }
 .lui-timeline-dot {
-  grid-column: 1 !important; grid-row: 1 / span 3; position: relative; z-index: 1; justify-self: center; align-self: start;
-  width: 0.75rem; height: 0.75rem; margin-top: 0.375rem; border-radius: 50%;
-  background: var(--lui-timeline-dot); box-shadow: 0 0 0 3px var(--lui-bg);
+  position: absolute; inset-inline-start: calc(var(--lui-timeline-rail) + 0.375rem); top: 0.375rem;
+  width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--lui-timeline-dot); box-shadow: 0 0 0 3px var(--lui-bg);
 }
 .lui-timeline-icon {
-  display: grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-top: 0; font-size: var(--lui-text-1);
+  display: grid; place-items: center; inset-inline-start: var(--lui-timeline-rail); top: 0; width: 1.5rem; height: 1.5rem; font-size: var(--lui-text-1);
   background: color-mix(in srgb, var(--lui-timeline-dot) 18%, var(--lui-bg)); color: var(--lui-timeline-dot);
   box-shadow: 0 0 0 4px var(--lui-bg);
 }
@@ -204,10 +203,7 @@ pub const CSS: &str = r#"
 .lui-timeline-title { margin: 0; font-size: var(--lui-text-3); line-height: 1.5rem; font-weight: 600; color: var(--lui-fg); max-width: none; }
 .lui-timeline-description { margin: var(--lui-space-1) 0 0; font-size: var(--lui-text-2); color: var(--lui-muted); max-width: none; }
 @container lui-timeline (width >= 30rem) {
-  .lui-timeline > li { grid-template-columns: 8rem 1.5rem minmax(0, 1fr); }
-  .lui-timeline > li::before { inset-inline-start: calc(8rem + var(--lui-space-3) + 0.75rem - 0.5px); }
-  .lui-timeline > li > * { grid-column: 3; }
-  .lui-timeline-dot { grid-column: 2 !important; }
-  .lui-timeline > li > .lui-timeline-when { grid-column: 1; grid-row: 1 / span 3; margin: 0; text-align: end; }
+  .lui-timeline > li { --lui-timeline-rail: calc(8rem + var(--lui-space-3)); }
+  .lui-timeline-when { position: absolute; inset-inline-start: 0; top: 0; width: 8rem; margin: 0; text-align: end; }
 }
 "#;

@@ -68,6 +68,12 @@ blocks-shell|/blocks/shell|$shadcn/sidebar
 blocks-auth|/blocks/auth|
 blocks-record|/blocks/record|
 blocks-error|/no-such-page|
+pagination|/pagination?page.posts=7|$shadcn/pagination
+steps|/steps|$origin/stepper
+timeline|/timeline|https://flowbite.com/docs/components/timeline/
+tree|/tree?open.files=2|$origin/tree
+collapsible|/collapsible|$shadcn/collapsible
+hover-card|/hover-card|$radix/hover-card
 "
 if [ -n "$only" ] && ! echo "$pages" | grep -q "^$only|"; then
   echo "no page named $only in scripts/look.sh" >&2; exit 2

@@ -476,15 +476,15 @@ async fn settings_flash_and_form_values() {
 #[tokio::test]
 async fn caps_table_lists_every_flag() {
     let page = Page::render(demo::router(), "/caps", MODERN).await;
-    assert_eq!(page.count(".lui-caps-table tbody tr"), 9);
-    assert_eq!(page.count(".lui-yes"), 9);
+    assert_eq!(page.count(".lui-caps-table tbody tr"), 10);
+    assert_eq!(page.count(".lui-yes"), 10);
     let old = Page::render(demo::router(), "/caps", OLD).await;
-    assert_eq!(old.count(".lui-no"), 8);
+    assert_eq!(old.count(".lui-no"), 9);
     assert!(!old.exists(".lui-caps"), "probed browser gets no beacons");
     let fresh = Page::render(demo::router(), "/caps", "").await;
     assert_eq!(
         fresh.count(".lui-cap"),
-        9,
+        10,
         "unknown browser gets one beacon per flag"
     );
 }
@@ -939,7 +939,7 @@ async fn drawer_is_a_sidebar_when_wide_and_breadcrumbs_fold() {
         side.x + side.width <= content.x + 1.0,
         "sidebar left of the content"
     );
-    assert_eq!(page.count(".lui-breadcrumbs"), 2);
+    assert_eq!(page.count(".lui-breadcrumbs"), 3);
     assert!(page.exists(".lui-breadcrumbs li:last-child [aria-current=page]"));
     assert!(
         page.exists(".lui-breadcrumbs-fold details"),
@@ -1080,7 +1080,7 @@ async fn buttons_badges_and_icons() {
     );
     assert_eq!(
         page.count(".lui-stage svg.lui-icon"),
-        32,
+        33,
         "every icon in Icon::ALL"
     );
 }
@@ -1595,4 +1595,105 @@ async fn description_list_stacks_each_term_above_its_detail() {
         empty.height > 10.0,
         "an empty detail keeps a line (its dash)"
     );
+}
+
+/// Pagination: page 7 is current, and the head links the pages before and after (M40b).
+#[tokio::test]
+async fn pagination_marks_the_page_and_links_its_neighbours() {
+    let page = Page::render(demo::router(), "/pagination?page.posts=7", MODERN).await;
+    assert!(page.is_visible(".lui-pagination a[aria-current=page]"));
+    assert_eq!(
+        page.text(".lui-pagination a[aria-current=page]").as_deref(),
+        Some("7")
+    );
+    assert!(page.exists("link[rel=prev][href='/pagination?page.posts=6']"));
+    assert!(page.exists("link[rel=next][href='/pagination?page.posts=8']"));
+    assert!(page.is_visible(".lui-pagination a[rel=next]"));
+    assert!(page.is_visible("ol.lui-pager-list li"));
+}
+
+/// Steps: the current step is marked, done ones are links, the vertical list stacks (M40b).
+#[tokio::test]
+async fn steps_mark_done_and_current() {
+    let page = Page::render(demo::router(), "/steps", OLD).await;
+    assert_eq!(page.count("ol.lui-steps"), 2);
+    assert!(page.is_visible(".lui-steps-current .lui-steps-dot"));
+    assert!(page.exists(".lui-steps-done a[href='/steps']"));
+    assert!(page.exists(".lui-steps-vertical .lui-steps-error"));
+    let a = page.bbox(".lui-steps-vertical > li:nth-child(1)").unwrap();
+    let b = page.bbox(".lui-steps-vertical > li:nth-child(2)").unwrap();
+    assert!(b.y >= a.y + a.height - 1.0, "the vertical steps stack");
+}
+
+/// Timeline: every event has a dot or an icon before its title (M40b).
+#[tokio::test]
+async fn timeline_draws_a_dot_per_event() {
+    let page = Page::render(demo::router(), "/timeline", OLD).await;
+    assert_eq!(page.count(".lui-timeline > li"), 4);
+    assert_eq!(page.count(".lui-timeline-dot"), 4);
+    let dot = page
+        .bbox(".lui-timeline > li:nth-child(4) .lui-timeline-dot")
+        .unwrap();
+    let title = page
+        .bbox(".lui-timeline > li:nth-child(4) .lui-timeline-title")
+        .unwrap();
+    assert!(
+        dot.x + dot.width <= title.x,
+        "the dot sits before the title"
+    );
+    assert!(page.exists("time[datetime='2026-10-14']"));
+}
+
+/// Tree: the folders around the current page are open, its link is current, a folder that is
+/// a link keeps the link outside its summary, and `?open.files=2` opens one more (M40b).
+#[tokio::test]
+async fn tree_opens_the_folders_of_the_current_page() {
+    let page = Page::render(demo::router(), "/tree?open.files=2", OLD).await;
+    assert!(page.is_visible(".lui-tree a[aria-current=page]"));
+    assert_eq!(
+        page.text(".lui-tree a[aria-current=page] .lui-tree-label")
+            .as_deref(),
+        Some("tree.rs")
+    );
+    assert!(page.is_visible("a.lui-tree-row[href='/tree?f=src']"));
+    assert!(!page.exists(".lui-tree summary a"));
+    let outer = page
+        .bbox("a.lui-tree-row[href='/tree?f=lib.rs'] .lui-tree-label")
+        .unwrap();
+    let inner = page
+        .bbox(".lui-tree a[aria-current=page] .lui-tree-label")
+        .unwrap();
+    assert!(inner.x > outer.x, "a deeper node is indented");
+    assert!(page.is_visible("a.lui-tree-row[href='/tree?f=demo.rs']"));
+}
+
+/// Collapsible: closed by default, its trigger a button (M40b).
+#[tokio::test]
+async fn collapsible_starts_closed() {
+    let page = Page::render(demo::router(), "/collapsible", OLD).await;
+    assert_eq!(page.count("details.lui-collapsible"), 3);
+    assert!(page.is_visible("details.lui-collapsible > summary.lui-button"));
+    assert!(!page.is_visible("details.lui-collapsible .lui-collapsible-body li"));
+}
+
+/// Hover card: with interest invokers the triggers carry `interestfor`; without them a
+/// button opens the same popover by click (M40b).
+#[tokio::test]
+async fn hover_card_falls_back_to_a_click() {
+    let modern = Page::render(demo::router(), "/hover-card", MODERN).await;
+    assert!(modern.exists("[interestfor='lui-hover-card-ada']"));
+    assert!(modern.exists("#lui-hover-card-ada[popover=hint]"));
+    assert!(!modern.is_visible("#lui-hover-card-ada"));
+    let cookie = "lui-cap-probed=1; lui-cap-popover=1";
+    let old = Page::render(demo::router(), "/hover-card", cookie).await;
+    assert!(!old.exists("[interestfor]"));
+    assert!(old.is_visible("button[popovertarget='lui-hover-card-release-notes']"));
+    assert!(old.exists("#lui-hover-card-ada[popover=auto]"));
+}
+
+/// `current_prefix`: on `/sidebar/work/notes` the sidebar's "Work" link is current (M40b).
+#[tokio::test]
+async fn sidebar_marks_the_link_above_the_path() {
+    let page = Page::render(demo::router(), "/sidebar/work/notes", OLD).await;
+    assert!(page.is_visible("main a[href='/sidebar/work'][aria-current=page]"));
 }

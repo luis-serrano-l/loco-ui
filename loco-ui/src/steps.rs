@@ -231,6 +231,7 @@ pub const CSS: &str = r#"
 .lui-steps-error .lui-steps-title { color: var(--lui-danger); }
 .lui-steps-title a { color: inherit; text-decoration: none; }
 .lui-steps-title a:hover { text-decoration: underline; }
+@media (pointer: coarse) { .lui-steps-title a { display: inline-flex; align-items: center; min-height: var(--lui-hit); } }
 /* Connectors: down from each dot to the next (narrow), across (wide). */
 .lui-steps > li:not(:last-child)::after {
   content: ""; position: absolute; inset-inline-start: calc(var(--lui-steps-dot) / 2 - 1px); top: calc(var(--lui-steps-dot) + var(--lui-space-1));

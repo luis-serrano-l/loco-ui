@@ -375,8 +375,13 @@ pub struct Page {
     linked: bool,
     subset: Option<&'static &'static str>,
     /// `<link rel href>` pairs for the head ([`Page::link_rel`]), boxed for the same reason.
-    links: Option<Box<Vec<(Box<str>, Box<str>)>>>,
+    // One pointer when unset; a `Vec` or a boxed slice would cost 16 to 24 bytes on every page.
+    #[allow(clippy::box_collection)]
+    links: Option<Box<Vec<LinkRel>>>,
 }
+
+/// One `<link rel href>` in the head: the `rel`, then the `href`.
+pub(crate) type LinkRel = (Box<str>, Box<str>);
 
 impl Page {
     /// Answer `422 Unprocessable Content`: the form comes back with its messages, so a POST

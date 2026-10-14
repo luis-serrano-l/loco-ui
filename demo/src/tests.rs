@@ -177,9 +177,10 @@ async fn pages_ship_only_the_enhancement_script() {
             let markup = html.len()
                 - copies * loco_ui::stylesheet().len()
                 - site * crate::site::CSS_MINIFIED.len();
-            // M38 added data-* variant attributes and M45 a third language button and form hints.
+            // M38 added data-* variant attributes and M45 a third language button and form hints;
+            // M40b six navigation previews (about 11 KB).
             let budget = match path {
-                "/" => 200,
+                "/" => 216,
                 // M39's theme builder: density, radius, fonts and the colour-role table.
                 p if p.starts_with("/theme") => 64,
                 _ => 48,

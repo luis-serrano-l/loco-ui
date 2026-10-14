@@ -131,6 +131,38 @@ Everything below also ships in 0.2.0, the first publish.
 - `RecordPage::delete` opens a dialog that asks first ("Delete Invoice 42?",
   `Text::DeleteConfirm`, `Text::CannotUndo`) instead of posting at once.
 
+#### M40b
+
+- `ui.pagination(href)`: numbered page links with an ellipsis over each gap, Previous and
+  Next (`rel=prev/next`), `aria-current` on the page shown, read from `?page=` or
+  `?page.<id>=` (`.id()`); `.total()`, `.per_page()`, `.window()`, `.param(key, value)`,
+  `.first_last()`, and `current()`, `pages()`, `range()` and `link(n)` for the handler.
+  Under 30rem only the first, current and last page stay numbered. `Pagination::link_rels`
+  puts `<link rel="prev|next">` in the head through the new `Page::link_rel(rel, href)`.
+- `ui.steps()`: a stepper of `.step(title)` with `.done()`, `.current()`, `.invalid()`,
+  `.optional()`, `.href()`, `.description()`, and `.vertical()`. The wizard draws its
+  progress with it: its step list's classes are now `lui-steps-*` (**Breaking** for CSS
+  that selected `.lui-wizard-steps`, `-dot`, `-label`, `-done`, `-current`, `-error`); a
+  done step reads "completed" to assistive tech (`Text::Completed`).
+- `ui.timeline()`: `.event(title)` with `.when()`, `.datetime()` (a `<time datetime>`),
+  `.description()`, `.icon()` and `.tone()`; the dates take a column of their own from 30rem.
+- `ui.tree(label)`: nested `<details>` folders from `.node(label)` with `.link()`,
+  `.icon()`, `.children(|t| ..)` and `.open(bool)`; `?open.<id>=` opens folders, and the
+  folders around the current page open by themselves. A folder that is also a link keeps
+  the link beside its `<summary>`, never in it. New `Icon::Folder`.
+- `ui.collapsible(trigger, body)`: one `<details>` under a button, `.open()`, `.ghost()`,
+  `.name()` for an exclusive group; height animates under `@supports
+  selector(::details-content)`.
+- `ui.hover_card(trigger, body)`: `interestfor` and `popover="hint"` where the new
+  `Cap::InterestInvokers` beacon (`@supports selector(:interest-source)`) fires; elsewhere
+  the same card opens by click through `popovertarget` (a chevron button after a link
+  trigger), and without popover it is a `<details>`. `.href()`, `.id()`. Button gains
+  `.interestfor(id)`; `Text::MoreAbout`.
+- Sidebar, NavMenu and AppShell: `.current_prefix()` marks `/projects` current on
+  `/projects/42` (the longest such link wins; `/` only matches itself). Breadcrumbs:
+  `.max(n)` crumbs before the middle folds (4 by default) and `.separator(glyph)` in place
+  of the chevron.
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
