@@ -180,10 +180,14 @@ async fn pages_ship_only_the_enhancement_script() {
             // M38 added data-* variant attributes and M45 a third language button and form hints;
             // M40a six pages of typography and layout (205 KB on the index then, and six more
             // sidebar links on every page).
+            // M40d the banner, popover and carousel previews.
             let budget = match path {
-                "/" => 216,
+                "/" => 240, // 228 KB with M40a and M40d together
+
                 // M39's theme builder: density, radius, fonts and the colour-role table.
                 p if p.starts_with("/theme") => 64,
+                // M40d: six components, with the props tables of their new setters.
+                "/feedback" => 56,
                 _ => 52,
             } * 1024;
             assert!(

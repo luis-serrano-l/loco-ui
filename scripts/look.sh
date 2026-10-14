@@ -75,6 +75,9 @@ prose|/prose|https://ui.shadcn.com/docs/components/typography
 container|/container|$radix/container
 scroll-area|/scroll-area|$radix/scroll-area
 spinner|/spinner|$radix/spinner
+banner|/banner|$origin/banner
+popover-card|/popover-card|$radix/popover
+carousel|/carousel|$shadcn/carousel
 "
 if [ -n "$only" ] && ! echo "$pages" | grep -q "^$only|"; then
   echo "no page named $only in scripts/look.sh" >&2; exit 2

@@ -10,7 +10,7 @@ caps: all
 <path d="m6 9 6 6 6-6"/>
 </svg>
 </button>
-<nav id="nav-main-products" popover style="position-anchor: --nav-main-products; position-area: bottom span-right">
+<nav id="nav-main-products" popover style="position-anchor: --nav-main-products; position-area: block-end span-inline-end">
 <ul role="menu">
 <li role="none">
 <a class="lui-popover-item" role="menuitem" href="/mail">

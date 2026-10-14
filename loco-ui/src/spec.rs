@@ -1073,6 +1073,46 @@ pub const SPECS: &[ComponentSpec] = &[
         fallback: "none needed",
         needs_js: NeedsJs::No,
     },
+    ComponentSpec {
+        name: "Banner",
+        module: "banner",
+        look: "Origin UI Banner",
+        responsive: Responsive::Container,
+        features: &[
+            f("<aside>", ALWAYS),
+            COOKIE,
+            f("<form method=\"post\">", ALWAYS),
+        ],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Popover",
+        module: "popover_card",
+        look: "Radix Themes Popover",
+        responsive: Responsive::Content,
+        features: &[
+            f("popover", b("114", "125", "17")),
+            f("anchor-name", b("125", "147", "26")),
+            f("position-try-fallbacks", b("128", "147", "26")),
+            f("@starting-style", b("117", "129", "17.5")),
+        ],
+        fallback: "centred in the viewport without anchor positioning; a <details> disclosure without popover",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Carousel",
+        module: "carousel",
+        look: "shadcn/ui Carousel",
+        responsive: Responsive::Container,
+        features: &[
+            f("scroll-snap-type", b("69", "68", "11")),
+            f("::scroll-button()", b("135", "no", "no")),
+            f("::scroll-marker", b("135", "no", "no")),
+        ],
+        fallback: "fragment links to each slide's id stand in for the scroll buttons and markers",
+        needs_js: NeedsJs::No,
+    },
 ];
 
 fn json_str(s: &str) -> String {
@@ -1287,6 +1327,9 @@ mod tests {
         ("spacer", include_str!("spacer.rs")),
         ("spinner", include_str!("spinner.rs")),
         ("indicator", include_str!("indicator.rs")),
+        ("banner", include_str!("banner.rs")),
+        ("popover_card", include_str!("popover_card.rs")),
+        ("carousel", include_str!("carousel.rs")),
     ];
 
     fn header(source: &str) -> String {

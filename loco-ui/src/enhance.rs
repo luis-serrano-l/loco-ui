@@ -47,6 +47,9 @@
 //! inside the form as the upload goes out, when the form has one), opens
 //! the `:target` dialog fallback as a real modal, moves through an open popover menu with the
 //! arrow keys, searches a combobox as you type and walks its results with the arrow keys.
+//! A form marked `data-lui="autosubmit"` (a menu's checkbox or radio item) is sent when one
+//! of its controls changes, and `<html data-lui-script>` lets CSS hide the buttons that only
+//! the script-less page needs.
 //! After a swap, an element marked `autofocus` in the new markup takes the focus (a form sent
 //! back with an error summary starts there, as it would on a page load); otherwise the
 //! element that had the focus gets it back, and when that element is gone the focus moves to
@@ -79,7 +82,7 @@ pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
-// Every request says it is the script's (the server may answer with less) and wants HTML.
+// Every request says it is the script's (the server may send less), wants HTML.
 var init = function (priority) { return { credentials: "same-origin", priority: priority || "high", headers: { "Lui-Enhance": "1", Accept: "text/html" } }; };
 var load = function (url, req) {
   // fetch cannot report upload progress: a form with a <progress data-lui-progress> posts
@@ -297,9 +300,11 @@ document.addEventListener("click", function (e) {
   });
 });
 
-// The narrow-screen tab select submits on change (its Go button stays for everyone else).
+// The tabs select and data-lui=autosubmit forms submit on change.
+document.documentElement.dataset.luiScript = "";
 document.addEventListener("change", function (e) {
-  if (e.target.matches(".lui-tabs-select select") && e.target.form) submit(e.target.form, null);
+  var f = e.target.form;
+  if (f && e.target.closest(".lui-tabs-select,[data-lui=autosubmit]") && !submit(f)) f.requestSubmit();
   // A table's "all matching" box also ticks (or clears) the boxes on this page.
   if (e.target.matches(".lui-table-all")) e.target.closest(".lui-table").querySelectorAll(".lui-table-check").forEach(function (c) { c.checked = e.target.checked; });
 });
@@ -330,15 +335,14 @@ document.addEventListener("input", function (e) {
   }
 });
 
-// Arrow keys walk the items of the open menu the focus is in (or that this button opened),
-// and the combobox input plus its results.
+// Arrow keys walk the open menu (or the one this button opened) and a combobox.
 document.addEventListener("keydown", function (e) {
   if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
   var box = e.target.closest(".lui-popover"), menu = e.target.closest(".lui-popover nav"), items;
   if (!menu && box) menu = box.querySelector("nav:popover-open, details[open] > nav");
   var combo = e.target.closest(".lui-combobox");
   if (combo) items = Array.prototype.slice.call(combo.querySelectorAll("input[type=search], .lui-combobox-list a[href]"));
-  else if (menu) items = Array.prototype.filter.call(menu.querySelectorAll("a[href], button:not(:disabled), summary"), function (el) {
+  else if (menu) items = Array.prototype.filter.call(menu.querySelectorAll("a[href],button:not(:disabled):not(.lui-popover-apply),summary,input[role]"), function (el) {
     return el.closest("nav") === menu;
   });
   else return;
@@ -419,7 +423,7 @@ addEventListener("popstate", function (e) {
 "##;
 
 /// [`JS`] as served: comment lines and indentation dropped, nothing else touched. The budget
-/// (14.5 KB) applies to this; the source keeps its comments for the reader.
+/// (15 KB) applies to this; the source keeps its comments for the reader.
 pub fn served() -> &'static str {
     static SERVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     SERVED.get_or_init(|| {
@@ -687,9 +691,14 @@ mod axum_glue {
 
     /// Serves [`served`] at [`SCRIPT_PATH`] and [`crate::stylesheet`] at
     /// [`crate::layout::STYLESHEET_PATH`], each immutable for a year (their URLs carry a
-    /// hash); the stylesheet also answers `If-None-Match` with `304`.
+    /// hash); the stylesheet also answers `If-None-Match` with `304`. Also answers
+    /// [`crate::banner::DISMISS_PATH`], the close form of a banner or an alert.
     pub fn router() -> Router {
         Router::new()
+            .route(
+                crate::banner::DISMISS_PATH,
+                axum::routing::post(crate::banner::dismiss),
+            )
             .route(
                 SCRIPT_PATH,
                 get(|| async {
@@ -738,10 +747,11 @@ mod tests {
     use super::*;
 
     #[test]
+    // 13.5 KB from M40d: the menu items that submit on change (data-lui="autosubmit").
     fn script_is_small_and_plain() {
         // 13 KB served and 16 KB of source until M41's select-all box.
         assert!(
-            served().len() < 15360, // 13 KB until M41's select-all and M40a's copy button
+            served().len() < 15360, // 13 KB until M41's select-all, M40a's copy button and M40d's autosubmit
             "enhance.js is {} bytes served",
             served().len()
         );

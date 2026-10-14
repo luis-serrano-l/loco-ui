@@ -7,7 +7,7 @@ caps: all
 <path d="m6 9 6 6 6-6"/>
 </svg>
 </button>
-<nav id="account" popover style="position-anchor: --account; position-area: bottom span-left">
+<nav id="account" popover style="position-anchor: --account; position-area: block-end span-inline-start">
 <ul role="menu">
 <li role="presentation" class="lui-popover-heading">Signed in as Ada</li>
 <li role="none">

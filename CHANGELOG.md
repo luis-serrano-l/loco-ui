@@ -8,6 +8,33 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 Everything below also ships in 0.2.0, the first publish.
 
+#### M40d
+
+- New components: `ui.banner(text)` (a full-width bar, `.tone()`, `.link()`, `.dismiss()`
+  through a POST to `/lui/dismiss` that sets `lui-dismiss-<id>`, so it stays closed without
+  script; `AppShell::banner`), `ui.popover(trigger, body)` (a generic popover, module
+  `popover_card`, class `lui-popover-card`: `.side()`, `.align()`, `.arrow()`, a
+  `<details>` fallback) and `ui.carousel(label)` (`scroll-snap`, `.item()`, buttons and dots
+  from `::scroll-button()`/`::scroll-marker` where supported, links to `#<id>-<n>` slides
+  elsewhere). New prelude types `Side`, `Align` and `toast::Position`.
+- Anchor positioning is shared: Menu, Popover and Tooltip take their `position-area` from one
+  table (logical keywords, `block-end span-inline-start`) and flip with
+  `position-try-fallbacks`. Tooltip gains `.side()` and `.delay(ms)`.
+- Menu: `.checkbox(text, action, name)` and `.radio(text, action, name, value)` items with a
+  `.checked(bool)` modifier, each its own form with an Apply button; with script the form
+  posts on change (`data-lui="autosubmit"` in `enhance.rs`) and the button is hidden.
+- Toasts `.position()`, `.duration(ms)`, `.action(label, href)`, `.max(n)`; Flash `.title()`,
+  `.action()`; Alert `.info()`, `.action(Button)`, `.dismiss()`, `.id()`; Skeleton
+  `.circle()`, `.rect(w, h)`, `.avatar_lines(n)`; EmptyState takes several links and
+  actions; Progress `.indeterminate()` and `.show_value()`.
+- Dialog `.description()` (`aria-describedby`), `.footer(markup)`, `.fullscreen()`; Drawer
+  `.side()` and `.size()`; ErrorPage words for 401, 403, 422 and 503 (new `Text` keys,
+  Spanish in the demo).
+- **Breaking:** Progress prints its percentage only with `.show_value()`; Menu positions are
+  logical keywords (`block-end span-inline-start` instead of `bottom span-left`).
+- Budgets: stylesheet 124 to 136 KB, served `enhance.js` 13 to 13.5 KB.
+- Demo: `/banner`, `/popover-card`, `/carousel`; `/blocks/error?status=` shows each page.
+
 #### M37
 
 - Ready for crates.io and docs.rs, nothing published: `rust-version = "1.88"` (the `loco`

@@ -7,7 +7,9 @@
 //! The look follows the shadcn Sheet: a header (title, `.description(..)`, the close ×), the
 //! navigation scrolling in the middle and a `.footer(..)` pinned to the bottom. Under a 30rem
 //! viewport it is the shadcn Drawer instead: the same `<dialog>` rises from the bottom with a
-//! grab handle and rounded top corners, at most 85vh tall.
+//! grab handle and rounded top corners, at most 85vh tall. `.side(..)` opens it from the end
+//! edge, the top or the bottom instead of the start, and `.size(..)` makes it narrower or
+//! wider (18, 24 or 32rem; the height for the top and bottom).
 //!
 //! **Platform features:**
 //! - `<dialog>` opened as a modal by an invoker button, `command="show-modal"` (Chrome 135+,
@@ -51,18 +53,24 @@
 //! assert!(m.contains(r#"aria-describedby="menu-description""#) && m.contains(r#"<div class="lui-drawer-foot">"#));
 //! let same = lui! { Drawer("Menu") description="Everything in the app." footer={ a href="/signout" { "Sign out" } }; };
 //! assert_eq!(same.into_string(), m);
+//! // From the end edge, wide.
+//! let m = ui.drawer("Filters").side(Side::End).size(3).render().into_string();
+//! assert!(m.contains(r#"class="lui-drawer-panel" data-side="end" data-size="3""#));
+//! assert_eq!(lui! { Drawer("Filters") side=(Side::End) size=3; }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
+use crate::popover_card::Side;
 use crate::props::{Prop, PropKind};
+use crate::variant::Size;
 use crate::{Cap, Icon, Ui, slug};
 
 /// Navigation in a drawer beside the page's content, made by [`Ui::drawer`].
 ///
 /// **Setters.** Values and items: `.nav(..)`, `.body(..)`, `.id(..)`, `.title(..)`,
-/// `.description(..)`, `.footer(..)`; switches:
+/// `.description(..)`, `.footer(..)`, `.side(..)`, `.size(..)`; switches:
 /// `.sidebar()`; from a condition: `.open(bool)`.
 #[derive(Clone, Debug)]
 pub struct Drawer<'a> {
@@ -76,6 +84,8 @@ pub struct Drawer<'a> {
     footer: Option<Markup>,
     sidebar: bool,
     open: bool,
+    side: Side,
+    size: Size,
 }
 
 impl Drawer<'_> {
@@ -99,6 +109,16 @@ impl Drawer<'_> {
         Prop::new("open", PropKind::Condition, "open: bool")
             .attr("open")
             .doc("Render it open (non-modal) from the server."),
+        Prop::new("side", PropKind::Choice { of: Side::NAMES }, "side: Side")
+            .default("start")
+            .doc("The edge it slides in from."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("18, 24 or 32rem wide (tall, from the top or bottom)."),
     ];
 }
 
@@ -117,6 +137,8 @@ impl Ui {
             footer: None,
             sidebar: false,
             open: false,
+            side: Side::Start,
+            size: Size::S2,
         }
     }
 }
@@ -170,6 +192,20 @@ impl<'a> Drawer<'a> {
         self.open = open;
         self
     }
+
+    /// The edge it slides in from: start (the default), end, top or bottom. On a phone-width
+    /// viewport every side but the top rises from the bottom, as a sheet.
+    pub fn side(mut self, side: Side) -> Self {
+        self.side = side;
+        self
+    }
+
+    /// 18, 24 (the default) or 32rem wide, at most 85% of the viewport; the height, for the
+    /// top and bottom.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
 }
 
 impl Render for Drawer<'_> {
@@ -185,7 +221,11 @@ impl Render for Drawer<'_> {
             ref footer,
             sidebar,
             open,
+            side,
+            size,
         } = *self;
+        let side = (side != Side::Start).then(|| side.as_str());
+        let size = (size != Size::S2).then(|| size.as_str());
         let desc_id = format!("{id}-description");
         let invokers = ui.has(Cap::Invokers);
         let open = open || ui.state.dialog() == Some(id);
@@ -200,7 +240,7 @@ impl Render for Drawer<'_> {
                 } @else {
                     (ui.link_button(label, &open_href).class("lui-drawer-open").body(menu).role("button"))
                 }
-                dialog id=(id) class="lui-drawer-panel" closedby="any" aria-labelledby=(title_id)
+                dialog id=(id) class="lui-drawer-panel" data-side=[side] data-size=[size] closedby="any" aria-labelledby=(title_id)
                     aria-describedby=[description.map(|_| &desc_id)] open[open] {
                     div class="lui-drawer-head" {
                         p id=(title_id) class="lui-drawer-title" { (title) }
@@ -234,7 +274,7 @@ pub const CSS: &str = r#"
   color: var(--lui-fg); background: var(--lui-popover); border: 0; border-inline-end: 1px solid var(--lui-line);
 }
 .lui-drawer-panel:modal, .lui-drawer-panel:target {
-  display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; height: 100dvh; max-height: none; width: min(24rem, 85vw); z-index: 10;
+  display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; height: 100dvh; max-height: none; width: min(var(--lui-drawer-size, 24rem), 85vw); z-index: 10;
   padding: var(--lui-space-6); box-shadow: var(--lui-shadow-lg), var(--lui-highlight);
 }
 .lui-drawer-panel:target { box-shadow: var(--lui-shadow-lg), var(--lui-highlight), 0 0 0 100vmax var(--lui-overlay); }
@@ -257,13 +297,20 @@ pub const CSS: &str = r#"
 .lui-drawer-panel li a:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
 .lui-drawer-panel li a[aria-current] { background: var(--lui-accent); color: var(--lui-on-accent); font-weight: 500; }
 .lui-drawer-content { min-width: 0; }
+/* .size(..) and .side(..): the end edge mirrors the start; top and bottom span the width. */
+.lui-drawer-panel[data-size="1"] { --lui-drawer-size: 18rem; }
+.lui-drawer-panel[data-size="3"] { --lui-drawer-size: 32rem; }
+.lui-drawer-panel[data-side=end]:is(:modal, :target) { inset: 0 0 0 auto; border-inline-end: 0; border-inline-start: 1px solid var(--lui-line); }
+.lui-drawer-panel:is([data-side=top], [data-side=bottom]):is(:modal, :target) { inset-inline: 0; width: 100%; height: auto; max-height: min(var(--lui-drawer-size, 24rem), 85vh); border: 0; }
+.lui-drawer-panel[data-side=top]:is(:modal, :target) { inset-block: 0 auto; border-block-end: 1px solid var(--lui-line); }
+.lui-drawer-panel[data-side=bottom]:is(:modal, :target) { inset-block: auto 0; border-block-start: 1px solid var(--lui-line); }
 /* The bottom sheet: a phone-width viewport. */
 @media (max-width: 30rem) {
-  .lui-drawer-panel:modal, .lui-drawer-panel:target {
+  .lui-drawer-panel:not([data-side=top]):modal, .lui-drawer-panel:not([data-side=top]):target {
     inset: auto 0 0 0; width: 100%; height: auto; max-height: 85vh; padding-top: var(--lui-space-8);
     border: 0; border-top: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg) var(--lui-radius-lg) 0 0;
   }
-  .lui-drawer-panel:modal::before, .lui-drawer-panel:target::before {
+  .lui-drawer-panel:not([data-side=top]):modal::before, .lui-drawer-panel:not([data-side=top]):target::before {
     content: ""; position: absolute; top: var(--lui-space-3); left: 50%; translate: -50% 0;
     width: 3rem; height: 0.375rem; border-radius: 9999px; background: var(--lui-gray-5);
   }
@@ -287,7 +334,10 @@ pub const CSS: &str = r#"
   transition: translate var(--lui-duration-slow) var(--lui-ease-out),
     display var(--lui-duration-slow) allow-discrete, overlay var(--lui-duration-slow) allow-discrete;
 }
-@media (max-width: 30rem) { .lui-drawer-panel, .lui-drawer-panel:modal { --lui-drawer-away: 0 100%; } }
+.lui-drawer-panel[data-side=end] { --lui-drawer-away: 100% 0; }
+.lui-drawer-panel[data-side=top] { --lui-drawer-away: 0 -100%; }
+.lui-drawer-panel[data-side=bottom] { --lui-drawer-away: 0 100%; }
+@media (max-width: 30rem) { .lui-drawer-panel:not([data-side=top]), .lui-drawer-panel:not([data-side=top]):modal { --lui-drawer-away: 0 100%; } }
 .lui-drawer-panel:not([open]):not(:target) { translate: var(--lui-drawer-away); }
 @starting-style { .lui-drawer-panel:modal, .lui-drawer-panel:target { translate: var(--lui-drawer-away); } }
 .lui-drawer-panel::backdrop {

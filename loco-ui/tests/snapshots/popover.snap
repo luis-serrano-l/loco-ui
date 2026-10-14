@@ -1,0 +1,22 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-popover-card" data-side="top" data-align="end">
+<button type="button" class="lui-button" popovertarget="share-2" style="anchor-name: --share-2" aria-haspopup="dialog">Share</button>
+<div id="share-2" class="lui-popover-card-panel" popover role="dialog" aria-label="Share" style="position-anchor: --share-2; position-area: block-start span-inline-start">
+<span class="lui-popover-card-arrow" aria-hidden="true">
+</span>
+<p>Copied.</p>
+</div>
+</div>
+
+caps: none
+<details class="lui-popover-card lui-popover-card-details" data-side="top" data-align="end">
+<summary class="lui-button" aria-haspopup="dialog">Share</summary>
+<div id="share-2" class="lui-popover-card-panel" role="dialog" aria-label="Share">
+<span class="lui-popover-card-arrow" aria-hidden="true">
+</span>
+<p>Copied.</p>
+</div>
+</details>

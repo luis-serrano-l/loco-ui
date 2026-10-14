@@ -1,14 +1,16 @@
 //! # Progress
 //!
 //! How far along a task is: a bar filled to a value out of a maximum, or an indeterminate
-//! bar when the server does not know yet. Radix Themes Progress's props: three heights
+//! bar (`.indeterminate()`) when the server does not know yet; `.show_value()` writes the
+//! percentage beside it. Radix Themes Progress's props: three heights
 //! (`.size(..)`), a [`Tone`](crate::variant::Tone) for the fill, a soft or surface track
 //! (`.variant(..)`) and `.radius(..)`.
 //!
 //! **Platform features:** `<progress>` (baseline 2013) with its label tied by `<label for>`,
 //! so a screen reader says the value; `appearance: none` and the `::-webkit-progress-*` and
 //! `::-moz-progress-bar` pseudo-elements draw it in the shadcn shape. An indeterminate bar is
-//! a `<progress>` with no value.
+//! a `<progress>` with no value, matched by `:indeterminate` (baseline 2020) and drawn as a
+//! sliding stripe that `prefers-reduced-motion: reduce` stops.
 //!
 //! **Accessibility:** a native `<progress>` with its label. Checked by axe-core in headless
 //! Firefox on every demo route, both capability variants, light and dark (no serious or
@@ -24,10 +26,14 @@
 //! let ui = Ui::default();
 //! let m = ui.progress(33, 100).label("Upload").render().into_string();
 //! assert!(m.contains(r#"<progress id="lui-progress-upload" class="lui-progress" value="33" max="100">33%</progress>"#));
-//! let m = ui.progress(0, 0).label("Waiting").render().into_string();
+//! assert!(!m.contains("lui-progress-value"), "the percentage only with .show_value()");
+//! let m = ui.progress(33, 100).label("Upload").show_value().render().into_string();
+//! assert!(m.contains(r#"<span class="lui-progress-value">33%</span>"#));
+//! assert_eq!(lui! { Progress(33, 100) label="Upload" show_value; }.into_string(), m);
+//! let m = ui.progress(0, 100).label("Waiting").indeterminate().render().into_string();
 //! assert!(m.contains(r#"class="lui-progress">"#) && !m.contains("value="));
 //! // The same in `lui!`:
-//! let same = lui! { Progress(0, 0) label="Waiting"; };
+//! let same = lui! { Progress(0, 100) label="Waiting" indeterminate; };
 //! assert_eq!(same.into_string(), m);
 //! // A thin green bar on a tinted track, square ends.
 //! let m = ui.progress(9, 10).size(1).tone(Tone::Ok).variant(Variant::Soft).radius(Radius::None).render().into_string();
@@ -44,7 +50,7 @@ use crate::{Ui, slug};
 /// A progress bar, made by [`Ui::progress`].
 ///
 /// **Setters.** Values and items: `.label(..)`, `.id(..)`, `.size(..)`, `.tone(..)`,
-/// `.variant(..)`, `.radius(..)`.
+/// `.variant(..)`, `.radius(..)`; switches: `.indeterminate()`, `.show_value()`.
 #[derive(Clone, Debug)]
 pub struct Progress<'a> {
     value: u64,
@@ -55,14 +61,15 @@ pub struct Progress<'a> {
     tone: Option<Tone>,
     variant: Option<Variant>,
     radius: Option<Radius>,
+    indeterminate: bool,
+    show_value: bool,
 }
 
 impl Progress<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
-        Prop::new("label", PropKind::Value, "text: &'a str")
-            .doc("A label above the bar, with the percentage beside it."),
+        Prop::new("label", PropKind::Value, "text: &'a str").doc("A label above the bar."),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The bar's id instead of `lui-progress-<label>`."),
@@ -90,11 +97,16 @@ impl Progress<'_> {
         )
         .default("full")
         .doc("The ends of the track and the fill, from square to round."),
+        Prop::new("indeterminate", PropKind::Switch, "")
+            .doc("No value yet: a stripe slides along the track."),
+        Prop::new("show_value", PropKind::Switch, "")
+            .doc("The percentage beside the label, or above the bar without one."),
     ];
 }
 
 impl Ui {
-    /// A bar filled to `value` of `max`; `max` of 0 draws an indeterminate bar.
+    /// A bar filled to `value` of `max`; [`Progress::indeterminate`] when there is no value
+    /// yet (a `max` of 0 draws one too).
     pub fn progress<'a>(&self, value: u64, max: u64) -> Progress<'a> {
         Progress {
             value,
@@ -105,12 +117,14 @@ impl Ui {
             tone: None,
             variant: None,
             radius: None,
+            indeterminate: false,
+            show_value: false,
         }
     }
 }
 
 impl<'a> Progress<'a> {
-    /// A label above the bar, with the percentage beside it.
+    /// A label above the bar.
     pub fn label(mut self, text: &'a str) -> Self {
         self.label = Some(text);
         self
@@ -146,11 +160,24 @@ impl<'a> Progress<'a> {
         self.radius = Some(radius);
         self
     }
+
+    /// No value yet: the `<progress>` has none, and a stripe slides along the track.
+    pub fn indeterminate(mut self) -> Self {
+        self.indeterminate = true;
+        self
+    }
+
+    /// The percentage beside the label, or above the bar without one.
+    pub fn show_value(mut self) -> Self {
+        self.show_value = true;
+        self
+    }
 }
 
 impl Render for Progress<'_> {
     fn render(&self) -> Markup {
-        let known = self.max > 0;
+        let known = self.max > 0 && !self.indeterminate;
+        let shown = known && self.show_value;
         let pct = if known {
             (self.value.min(self.max) * 100) / self.max
         } else {
@@ -164,8 +191,11 @@ impl Render for Progress<'_> {
             div class="lui-progress-field" data-size=[(self.size != Size::S2).then(|| self.size.as_str())]
                 data-tone=[self.tone.map(Tone::as_str)] data-variant=[self.variant.map(Variant::as_str)]
                 data-radius=[self.radius.map(Radius::as_str)] {
-                @if let Some(l) = self.label {
-                    label for=(id) { span { (l) } @if known { span class="lui-progress-value" { (pct) "%" } } }
+                @if self.label.is_some() || shown {
+                    label for=(id) {
+                        span { @if let Some(l) = self.label { (l) } }
+                        @if shown { span class="lui-progress-value" { (pct) "%" } }
+                    }
                 }
                 @if known {
                     progress id=(id) class="lui-progress" value=(self.value.min(self.max)) max=(self.max) { (pct) "%" }
@@ -205,4 +235,12 @@ pub const CSS: &str = r#"
 .lui-progress-field[data-radius=small] { --lui-progress-radius: var(--lui-radius-sm); }
 .lui-progress-field[data-radius=medium] { --lui-progress-radius: var(--lui-radius); }
 .lui-progress-field[data-radius=large] { --lui-progress-radius: var(--lui-radius-lg); }
+/* Indeterminate: a stripe a third of the track wide slides across it. */
+.lui-progress:indeterminate {
+  background-image: linear-gradient(90deg, transparent 0 33%, var(--lui-progress-fill, var(--lui-primary)) 33% 67%, transparent 67%);
+  background-size: 300% 100%; animation: lui-progress-slide 1.4s ease-in-out infinite;
+}
+.lui-progress:indeterminate::-moz-progress-bar { background: transparent; }
+@keyframes lui-progress-slide { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .lui-progress:indeterminate { animation: none; background-position: 50% 0; } }
 "#;

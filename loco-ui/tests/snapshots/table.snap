@@ -83,7 +83,7 @@ caps: all
 <td class="lui-table-menu">
 <div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --lui-table-files-a-txt">
 <button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" popovertarget="lui-table-files-a-txt" aria-label="Row actions" aria-haspopup="menu">⋯</button>
-<nav id="lui-table-files-a-txt" popover style="position-anchor: --lui-table-files-a-txt; position-area: bottom span-left">
+<nav id="lui-table-files-a-txt" popover style="position-anchor: --lui-table-files-a-txt; position-area: block-end span-inline-start">
 <ul role="menu">
 <li role="none">
 <a class="lui-popover-item" role="menuitem" href="/files/a.txt">

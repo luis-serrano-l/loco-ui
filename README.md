@@ -529,6 +529,9 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Spacer | Radix Themes Box flexGrow=1 | content | `flex: 1 1 auto` | 29 / 28 / 9 | an empty block outside a flex container | No |
 | Spinner | Radix Themes Spinner | - | `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 74 / 63 / 10.1 | none needed | No |
 | Indicator | Origin UI notification badge | - | `inset-inline-end`, `translate` | 87 / 63 / 14.1; 104 / 72 / 14.1 | none needed | No |
+| Banner | Origin UI Banner | container | `<aside>`, `cookie`, `<form method="post">` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
+| Popover | Radix Themes Popover | content | `popover`, `anchor-name`, `position-try-fallbacks`, `@starting-style` | 114 / 125 / 17; 125 / 147 / 26; 128 / 147 / 26; 117 / 129 / 17.5 | centred in the viewport without anchor positioning; a <details> disclosure without popover | No |
+| Carousel | shadcn/ui Carousel | container | `scroll-snap-type`, `::scroll-button()`, `::scroll-marker` | 69 / 68 / 11; 135 / no / no; 135 / no / no | fragment links to each slide's id stand in for the scroll buttons and markers | No |
 <!-- matrix:end -->
 
 ## Findings

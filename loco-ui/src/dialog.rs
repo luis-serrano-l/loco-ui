@@ -3,7 +3,10 @@
 //! A modal opened by a button and closed by a button, with no script. It can carry a title
 //! with a close control, a size (Radix's 1–4), a `danger` variant, and a footer that is a real form: a
 //! confirm button posting to a URL beside a cancel button, so "Delete account?" is one round
-//! trip and the server redirects back to the page that opened it.
+//! trip and the server redirects back to the page that opened it. `.description(..)` adds a
+//! line under the title that names the dialog's purpose to assistive tech too,
+//! `.footer(..)` puts markup at the start of the button row, and `.fullscreen()` fills the
+//! viewport.
 //!
 //! **Platform features:**
 //! - `<dialog>` element (baseline 2022), its `::backdrop`, and `closedby` (Chrome 134+,
@@ -82,6 +85,15 @@
 //! let wide = ui.dialog("Terms").size(4).render().into_string();
 //! assert!(wide.contains(r#"class="lui-dialog-xl""#));
 //! assert_eq!(lui! { Dialog("Terms") size=4; }.into_string(), wide);
+//!
+//! // A description, markup in the footer, and the whole viewport.
+//! let m = ui.dialog("Edit photo").title("Edit photo").description("Crop and rotate before saving.")
+//!     .footer(html! { a href="/help" { "Help" } }).fullscreen().render().into_string();
+//! assert!(m.contains(r#"class="lui-dialog-md lui-dialog-full""#) && m.contains(r#"aria-describedby="edit-photo-description""#));
+//! assert!(m.contains(r#"<p id="edit-photo-description" class="lui-dialog-description">"#) && m.contains(r#"<div class="lui-dialog-footer"><a href="/help">"#));
+//! let same = lui! { Dialog("Edit photo") title="Edit photo" description="Crop and rotate before saving."
+//!     footer={ a href="/help" { "Help" } } fullscreen; };
+//! assert_eq!(same.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -115,8 +127,9 @@ impl DialogSize {
 /// a "Close" button, unless told otherwise.
 ///
 /// **Setters.** Values and items: `.body(..)`, `.id(..)`, `.title(..)`, `.confirm(..)`,
-/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`; switches: `.small()`,
-/// `.large()`, `.danger()`; from a condition: `.open(bool)`.
+/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`,
+/// `.description(..)`, `.footer(..)`; switches: `.small()`, `.large()`, `.danger()`,
+/// `.fullscreen()`; from a condition: `.open(bool)`.
 #[derive(Clone, Debug)]
 pub struct Dialog<'a> {
     ui: &'a Ui,
@@ -132,6 +145,9 @@ pub struct Dialog<'a> {
     close: &'a str,
     cancel: &'a str,
     closedby: &'a str,
+    description: Option<&'a str>,
+    footer: Option<Markup>,
+    fullscreen: bool,
 }
 
 impl Dialog<'_> {
@@ -165,6 +181,12 @@ impl Dialog<'_> {
             .doc("Label of the cancel button beside the confirm button."),
         Prop::new("closedby", PropKind::Value, "closedby: &'a str").default("any").attr("closedby")
             .doc("The `closedby` attribute."),
+        Prop::new("description", PropKind::Value, "text: &'a str")
+            .doc("A line under the title, tied to the dialog by `aria-describedby`."),
+        Prop::new("footer", PropKind::Value, "footer: Markup")
+            .doc("Markup at the start of the button row (a link, a note, a checkbox)."),
+        Prop::new("fullscreen", PropKind::Switch, "")
+            .doc("Fill the viewport, without the rounded frame."),
     ];
 }
 
@@ -187,6 +209,9 @@ impl Ui {
             close: self.text(Text::Close),
             cancel: self.text(Text::Cancel),
             closedby: "any",
+            description: None,
+            footer: None,
+            fullscreen: false,
         }
     }
 }
@@ -277,6 +302,26 @@ impl<'a> Dialog<'a> {
         self.closedby = closedby;
         self
     }
+
+    /// A line under the title, tied to the dialog by `aria-describedby` so a screen reader
+    /// says it on opening.
+    pub fn description(mut self, text: &'a str) -> Self {
+        self.description = Some(text);
+        self
+    }
+
+    /// Markup at the start of the button row (a link, a note, a checkbox inside the confirm
+    /// form); the buttons stay at the end.
+    pub fn footer(mut self, footer: Markup) -> Self {
+        self.footer = Some(footer);
+        self
+    }
+
+    /// Fill the viewport, without the rounded frame: an editor, a long form on a phone.
+    pub fn fullscreen(mut self) -> Self {
+        self.fullscreen = true;
+        self
+    }
 }
 
 impl Render for Dialog<'_> {
@@ -295,7 +340,14 @@ impl Render for Dialog<'_> {
             close,
             cancel,
             closedby,
+            description,
+            ref footer,
+            fullscreen,
         } = *self;
+        let desc_id = format!("{id}-description");
+        let footer = footer
+            .as_ref()
+            .map(|f| html! { div class="lui-dialog-footer" { (f) } });
         let open = open || ui.state.dialog() == Some(id);
         let returns_to = returns_to.unwrap_or(ui.state.path());
         let returns_to = (!returns_to.is_empty()).then_some(returns_to);
@@ -309,13 +361,16 @@ impl Render for Dialog<'_> {
                 } @else {
                     (ui.link_button(trigger, &open_href).class("lui-dialog-open").role("button"))
                 }
-                dialog id=(id) class=(size.class()) closedby=(closedby) aria-labelledby=[title.map(|_| &title_id)] open[open] {
+                dialog id=(id) class={ (size.class()) @if fullscreen { " lui-dialog-full" } } closedby=(closedby) aria-labelledby=[title.map(|_| &title_id)]
+                    aria-describedby=[description.map(|_| &desc_id)] open[open] {
                     @if let Some(t) = title { h2 id=(title_id) class="lui-dialog-title" { (t) } }
+                    @if let Some(d) = description { p id=(desc_id) class="lui-dialog-description" { (d) } }
                     @if let Some((label, action)) = confirm {
                         form method="post" action=(action) class="lui-dialog-form" {
                             div class="lui-dialog-body" { (body) }
                             @if let Some(to) = returns_to { input type="hidden" name="returns_to" value=(to); }
                             div class="lui-dialog-actions" {
+                                (footer.clone().unwrap_or_default())
                                 @if invokers {
                                     (ui.button(cancel).command("close", id))
                                 } @else {
@@ -328,10 +383,11 @@ impl Render for Dialog<'_> {
                         div class="lui-dialog-body" { (body) }
                         @if invokers {
                             form method="dialog" class="lui-dialog-actions" {
+                                (footer.clone().unwrap_or_default())
                                 (ui.button(close).primary())
                             }
                         } @else {
-                            p class="lui-dialog-actions" { (ui.link_button(close, "#").primary().role("button")) }
+                            div class="lui-dialog-actions" { (footer.clone().unwrap_or_default()) (ui.link_button(close, "#").primary().role("button")) }
                         }
                     }
                     // Last in the markup so the dialog's focusing steps skip it for the first field.
@@ -383,6 +439,10 @@ pub const CSS: &str = r#"
    the small control height is --lui-hit), 70% opacity until hovered. */
 .lui-dialog-close { position: absolute; top: var(--lui-space-3); right: var(--lui-space-3); opacity: 0.7; }
 .lui-dialog-close:hover { opacity: 1; }
+.lui-dialog-description { flex: none; margin: 0 2.5rem var(--lui-space-3) 0; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); color: var(--lui-muted); }
+.lui-dialog-footer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); margin-inline-end: auto; font-size: var(--lui-text-2); }
+/* .fullscreen(): the whole viewport, square corners, no border. */
+.lui-dialog dialog.lui-dialog-full { width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; border: 0; border-radius: 0; }
 
 /* Narrow screens: the footer stacks, full width, confirm on top. */
 @media (max-width: 30rem) {

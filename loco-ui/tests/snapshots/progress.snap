@@ -5,7 +5,6 @@ caps: all
 <div class="lui-progress-field">
 <label for="lui-progress-upload">
 <span>Upload</span>
-<span class="lui-progress-value">33%</span>
 </label>
 <progress id="lui-progress-upload" class="lui-progress" value="33" max="100">33%</progress>
 </div>
@@ -14,7 +13,6 @@ caps: none
 <div class="lui-progress-field">
 <label for="lui-progress-upload">
 <span>Upload</span>
-<span class="lui-progress-value">33%</span>
 </label>
 <progress id="lui-progress-upload" class="lui-progress" value="33" max="100">33%</progress>
 </div>

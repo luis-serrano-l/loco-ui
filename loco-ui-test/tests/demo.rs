@@ -1679,3 +1679,55 @@ async fn typography_and_layout_primitives() {
         Some("3")
     );
 }
+/// Banners span the stage; a dismissed one is gone, the others stay.
+#[tokio::test]
+async fn banners_span_the_page_and_stay_closed_once_closed() {
+    let page = Page::render(demo::router(), "/banner", MODERN).await;
+    assert_eq!(page.count("aside.lui-banner"), 3);
+    assert!(page.exists("aside.lui-banner form[action='/lui/dismiss'] input[name=id][value=v0-2]"));
+    let (banner, h1) = (
+        page.bbox("aside.lui-banner").unwrap(),
+        page.bbox("h1").unwrap(),
+    );
+    assert!(
+        banner.width >= h1.width,
+        "a banner is as wide as the page's content"
+    );
+    let closed = Page::render(
+        demo::router(),
+        "/banner",
+        &format!("{MODERN}; lui-dismiss-v0-2=1"),
+    )
+    .await;
+    assert_eq!(
+        closed.count("aside.lui-banner"),
+        2,
+        "the dismiss cookie hides the first"
+    );
+}
+
+/// The popover's trigger shows and its panel stays hidden until opened; without the popover
+/// attribute it is a closed `<details>`.
+#[tokio::test]
+async fn popover_panels_wait_for_their_button() {
+    let page = Page::render(demo::router(), "/popover-card", MODERN).await;
+    assert!(page.is_visible(".lui-popover-card > button[popovertarget=share]"));
+    assert!(!page.is_visible("#share"), "a closed popover is not drawn");
+    let old = Page::render(demo::router(), "/popover-card", OLD).await;
+    assert!(old.is_visible("details.lui-popover-card > summary"));
+    assert!(!old.is_visible("details.lui-popover-card > .lui-popover-card-panel"));
+}
+
+/// The carousel shows one slide at a time in a row that scrolls; the fallback links are there.
+#[tokio::test]
+async fn carousel_shows_one_slide_and_its_links() {
+    let page = Page::render(demo::router(), "/carousel", MODERN).await;
+    assert_eq!(page.count(".lui-carousel-item"), 4);
+    let (first, second) = (
+        page.bbox("#steps-1").unwrap(),
+        page.bbox("#steps-2").unwrap(),
+    );
+    assert!(second.x >= first.x + first.width, "slides sit side by side");
+    assert_eq!(page.count(".lui-carousel-dots a[href^='#steps-']"), 4);
+    assert!(page.exists("#steps-1 a.lui-carousel-next[href='#steps-2']"));
+}

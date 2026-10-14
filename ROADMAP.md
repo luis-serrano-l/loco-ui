@@ -2672,27 +2672,62 @@ Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` 
   `.autocomplete()`, `.disabled()`, `.readonly()`, `.width(Size)`.
 
 **M40d · Feedback and overlays** (demo groups `feedback.rs`, `overlays.rs`)
-- [ ] `ui.banner(text)`: full-width top bar, `.tone()`, `.link(..)`, `.dismiss()` via a
+- [x] `ui.banner(text)`: full-width top bar, `.tone()`, `.link(..)`, `.dismiss()` via a
   cookie-backed form (`lui-dismiss-<id>`) so it stays closed without script; AppShell
   `.banner(..)` slot.
-- [ ] `ui.popover(trigger, body)`: generic non-menu popover (`popover=auto`, anchor
+  Done: `banner.rs`, `<aside class="lui-banner">` with `.tone()`, `.link(label, href)`,
+  `.id()` and `.dismiss()`; the close button posts to `/lui/dismiss` (mounted with the
+  script route), which sets `lui-dismiss-<id>` for a year and redirects back (local paths
+  only); `Ui::dismissed(id)` reads it. `AppShell::banner(markup)` puts it above the bar.
+  Origin UI Banner look; the text centres from 30rem. Demo `/banner` with a button that
+  clears the cookie.
+- [x] `ui.popover(trigger, body)`: generic non-menu popover (`popover=auto`, anchor
   positioning with `position-try` fallbacks, `.side(Top|Bottom|Start|End)`, `.align()`,
   `.arrow()`), Menu/Tooltip/HoverCard reuse its positioning CSS; Tooltip gains `.side()`
   and `.delay()`.
-- [ ] Menu: `.checkbox(label, name, checked)` and `.radio(label, name, value)` items that
+  Done: `popover_card.rs` (the builder is `Popover`, class `lui-popover-card`, since Menu
+  owns `lui-popover`): a `popover` panel with `role=dialog`, `.side(Side)`, `.align(Align)`,
+  `.arrow()`, `.id()`; without the popover attribute a `<details>`. `popover_card::area`
+  is the one `position-area` table, used by Menu (logical keywords now) and Tooltip, all
+  with `position-try-fallbacks: flip-block, flip-inline`. Tooltip `.side()` (`.below()`
+  kept as Bottom) and `.delay(ms)`. There is no HoverCard in the library, so nothing to
+  reuse there; the arrow does not follow a flip (FINDINGS). Demo `/popover-card`.
+- [x] Menu: `.checkbox(label, name, checked)` and `.radio(label, name, value)` items that
   post a form on change (no script: a submit button per item; with script: auto-submit
   via enhance.rs `data-lui="autosubmit"`), `.trigger(Button)`.
-- [ ] Toasts: `.position(TopEnd|BottomEnd|..)`, `.duration(ms)`, `.action(label, href)`,
+  Done: `.checkbox(text, action, name)` and `.radio(text, action, name, value)` with a
+  `.checked(bool)` modifier (an action is needed for the form, and `checked` follows the
+  modifier rule); each item is its own `<form data-lui="autosubmit">` with an Apply button
+  that `[data-lui-script]` hides; `enhance.rs` submits on change (covered in
+  `browser-check.mjs`). `.trigger(Button)` is M38b's and was left to it. Demo `/popover`
+  View menu, state in `?grid=`/`?density=`.
+- [x] Toasts: `.position(TopEnd|BottomEnd|..)`, `.duration(ms)`, `.action(label, href)`,
   `.max(n)`; Flash: `.title()`, `.action()`; Alert: `.dismiss()` (cookie form, as banner),
   `.action(Button)`, `info` tone; Skeleton: `.circle()`, `.rect(w, h)`, `.avatar_lines(n)`;
   EmptyState: several actions; Progress: `.indeterminate()` instead of `max = 0`,
   `.size()`, `.tone()`, `.show_value()`.
-- [ ] `ui.carousel()`: `scroll-snap` + `.item(markup)`, prev/next as `::scroll-button()`
+  Done: Toasts `.position(Position)` (six corners and edges), `.duration(ms)`,
+  `.action(label, href)` on the newest, `.max(n)`; Flash `.title()`, `.action()`; Alert
+  `.info()`, `.action(Button)`, `.dismiss()` (the banner's cookie form) and `.id()`;
+  Skeleton `.circle()`, `.rect(w, h)`, `.avatar_lines(n)`; EmptyState keeps every `.link`
+  and `.action` (posts first, the first one primary); Progress `.indeterminate()` (max 0
+  still means it) and `.show_value()`; `.size()`/`.tone()` already existed from M38. The
+  percentage now prints only with `.show_value()` (breaking).
+- [x] `ui.carousel()`: `scroll-snap` + `.item(markup)`, prev/next as `::scroll-button()`
   under `@supports`, else anchor links to `#item-n` targets; dots via `::scroll-marker`
   with the same fallback. Document the Chromium-only parts in FINDINGS with the spec link.
-- [ ] Drawer `.side(Start|End|Top|Bottom)` and `.size()`; Dialog `.description()`
+  Done: `carousel.rs`, `ui.carousel(label)` (a label for `aria-label`, so it takes one),
+  `.item(markup)`, `.id()`; slides `#<id>-<n>` with `role=group` and "Slide n of m";
+  `::scroll-button()`/`::scroll-marker` under `@supports`, else per-slide previous/next
+  links and a dots nav. Chromium-only parts and spec link in FINDINGS. Demo `/carousel`.
+- [x] Drawer `.side(Start|End|Top|Bottom)` and `.size()`; Dialog `.description()`
   (`aria-describedby`), `.footer(markup)`, `.fullscreen()`; ErrorPage for 401, 403, 422,
   503 with `Text` keys.
+  Done: Drawer `.side(Side)` and `.size(1..3)` (18, 24 or 32rem through
+  `--lui-drawer-size`; on a phone a side drawer stays a bottom sheet); Dialog
+  `.description()` (`aria-describedby`), `.footer(markup)`, `.fullscreen()`; ErrorPage maps
+  401, 403, 422 and 503 to new `Text` keys (Spanish in `demo/src/spanish.rs`). Demo
+  `/dialog`, `/blocks/error?status=`.
 
 Verify (each agent): `cargo test --workspace`, `cargo test -p loco-ui --doc`,
 `cargo test -p demo pages_ship_only_the_enhancement_script`, `cargo test -p loco-ui-test`

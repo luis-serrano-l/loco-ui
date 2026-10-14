@@ -528,7 +528,10 @@
             { "name": "returns_to", "kind": "value", "args": "path: &'a str", "default": "", "attr": "", "doc": "Where the server should send the browser after the confirm form, posted as a hidden `returns_to` field." },
             { "name": "close", "kind": "value", "args": "label: &'a str", "default": "Close", "attr": "", "doc": "Label of the closing button when there is no confirm form." },
             { "name": "cancel", "kind": "value", "args": "label: &'a str", "default": "Cancel", "attr": "", "doc": "Label of the cancel button beside the confirm button." },
-            { "name": "closedby", "kind": "value", "args": "closedby: &'a str", "default": "any", "attr": "closedby", "doc": "The `closedby` attribute." }
+            { "name": "closedby", "kind": "value", "args": "closedby: &'a str", "default": "any", "attr": "closedby", "doc": "The `closedby` attribute." },
+            { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, tied to the dialog by `aria-describedby`." },
+            { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Markup at the start of the button row (a link, a note, a checkbox)." },
+            { "name": "fullscreen", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fill the viewport, without the rounded frame." }
           ]
         }
       ]
@@ -555,6 +558,9 @@
           "props": [
             { "name": "link", "kind": "item", "args": "text: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link." },
             { "name": "action", "kind": "item", "args": "text: &'a str, action: &'a str", "default": "", "attr": "action", "doc": "A `<form method=\"post\">` button posting to `action`." },
+            { "name": "checkbox", "kind": "item", "args": "text: &'a str, action: &'a str, name: &'a str", "default": "", "attr": "", "doc": "A checkbox in its own form posting `name=on` (or nothing) to `action`." },
+            { "name": "radio", "kind": "item", "args": "text: &'a str, action: &'a str, name: &'a str, value: &'a str", "default": "", "attr": "", "doc": "A radio button in its own form posting `name=value` to `action`." },
+            { "name": "checked", "kind": "modifier", "args": "checked: bool", "default": "", "attr": "checked", "doc": "The checkbox or radio item is ticked." },
             { "name": "group", "kind": "item", "args": "text: &'a str", "default": "", "attr": "", "doc": "A section heading." },
             { "name": "separator", "kind": "item", "args": "", "default": "", "attr": "", "doc": "A rule between groups." },
             { "name": "submenu", "kind": "item", "args": "text: &'a str, items: impl IntoIterator<Item = I>", "default": "", "attr": "", "doc": "A nested menu of `items` (`MenuItem`s or `(text, href)` links)." },
@@ -965,7 +971,9 @@
           "props": [
             { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A dismiss link on each message, back to this page (which no longer has the flash)." },
             { "name": "auto_hide", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fade calm messages out after a few seconds." },
-            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Each message's callout: soft, surface or outline, as on an alert." }
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Each message's callout: soft, surface or outline, as on an alert." },
+            { "name": "title", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A bold line over each message." },
+            { "name": "action", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link button under each message (\"Undo\", \"View\")." }
           ]
         }
       ]
@@ -1205,11 +1213,15 @@
             { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something went wrong." },
             { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something to watch." },
             { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something worked." },
+            { "name": "info", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something to know: the brand scale, the default." },
             { "name": "surface", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A paler tint inside a border in the level's colour." },
             { "name": "outline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No tint: a border in the level's colour on the page." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "Radix's sizes 1 to 3: the padding, gaps and text." },
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "info", "attr": "", "doc": "The colour; danger also makes it `role=\"alert\"`." },
-            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Soft, surface or outline; ghost drops the frame, and solid draws as soft." }
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Soft, surface or outline; ghost drops the frame, and solid draws as soft." },
+            { "name": "action", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "A button or link button under the text." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The id its dismiss cookie is named after instead of the title's slug." },
+            { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A close button that keeps it closed with a `lui-dismiss-<id>` cookie." }
           ]
         }
       ]
@@ -1233,12 +1245,14 @@
           "status": "stable",
           "calls": ["ui.progress(value: u64, max: u64)"],
           "props": [
-            { "name": "label", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A label above the bar, with the percentage beside it." },
+            { "name": "label", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A label above the bar." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The bar's id instead of `lui-progress-<label>`." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The bar's height: 0.25, 0.5 or 0.75rem." },
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "brand", "attr": "", "doc": "The fill's colour." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "Soft tints the track with the tone; the others keep the gray track." },
-            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "full", "attr": "", "doc": "The ends of the track and the fill, from square to round." }
+            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "full", "attr": "", "doc": "The ends of the track and the fill, from square to round." },
+            { "name": "indeterminate", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No value yet: a stripe slides along the track." },
+            { "name": "show_value", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The percentage beside the label, or above the bar without one." }
           ]
         }
       ]
@@ -1288,7 +1302,9 @@
           "status": "stable",
           "calls": ["ui.tooltip(text: &str, trigger: Markup)"],
           "props": [
-            { "name": "below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Show the text under the trigger instead of above it." },
+            { "name": "below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Show the text under the trigger instead of above it: `.side(Side::Bottom)`." },
+            { "name": "side", "kind": "choice", "choices": ["top", "bottom", "start", "end"], "args": "side: Side", "default": "top", "attr": "", "doc": "The side of the trigger the text shows on." },
+            { "name": "delay", "kind": "number", "args": "ms: u32", "default": "0", "attr": "", "doc": "How long the pointer rests on the trigger before the text shows, in milliseconds." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The tooltip's id, `lui-tooltip-<slug of the text>` by default." }
           ]
         }
@@ -1340,7 +1356,11 @@
           "status": "stable",
           "calls": ["ui.toasts()"],
           "props": [
-            { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A close link on each toast, back to this page." }
+            { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A close link on each toast, back to this page." },
+            { "name": "position", "kind": "choice", "choices": ["top-start", "top-center", "top-end", "bottom-start", "bottom-center", "bottom-end"], "args": "position: Position", "default": "bottom-end", "attr": "", "doc": "Where the stack sits: a corner, or the middle of the top or bottom edge." },
+            { "name": "duration", "kind": "number", "args": "ms: u32", "default": "5000", "attr": "", "doc": "How long a calm toast stays before it fades, in milliseconds." },
+            { "name": "action", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link button on the newest toast (\"Undo\", \"View\")." },
+            { "name": "max", "kind": "number", "args": "n: usize", "default": "all", "attr": "", "doc": "Show only the newest `n` toasts." }
           ]
         }
       ]
@@ -1391,7 +1411,10 @@
           "calls": ["ui.skeleton(lines: usize)"],
           "props": [
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Loading", "attr": "", "doc": "What screen readers hear instead of \"Loading\"." },
-            { "name": "heading", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Start with a wider, taller bar standing in for a heading." }
+            { "name": "heading", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Start with a wider, taller bar standing in for a heading." },
+            { "name": "circle", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A 2.5rem circle beside the lines, standing in for an avatar." },
+            { "name": "rect", "kind": "value", "args": "width: &'a str, height: &'a str", "default": "", "attr": "", "doc": "A block of that CSS width and height above the lines (an image, a chart)." },
+            { "name": "avatar_lines", "kind": "number", "args": "n: usize", "default": "0", "attr": "", "doc": "`n` rows of a circle beside two lines, after the rest: a list of people." }
           ]
         }
       ]
@@ -1415,8 +1438,8 @@
           "props": [
             { "name": "icon", "kind": "value", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, above the title, hidden from screen readers." },
             { "name": "body", "kind": "value", "args": "text: Markup", "default": "", "attr": "", "doc": "One or two sentences." },
-            { "name": "link", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link to follow." },
-            { "name": "action", "kind": "value", "args": "label: &'a str, action: &'a str", "default": "", "attr": "", "doc": "A button posting to `action`." }
+            { "name": "link", "kind": "item", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link to follow; add as many as needed." },
+            { "name": "action", "kind": "item", "args": "label: &'a str, action: &'a str", "default": "", "attr": "", "doc": "A button posting to `action`; the first is the primary one." }
           ]
         }
       ]
@@ -1680,7 +1703,9 @@
             { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, the panel's description." },
             { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Actions pinned to the bottom of the panel, under the scrolling navigation." },
             { "name": "sidebar", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A permanent sidebar above 60rem." },
-            { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open (non-modal) from the server." }
+            { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open (non-modal) from the server." },
+            { "name": "side", "kind": "choice", "choices": ["top", "bottom", "start", "end"], "args": "side: Side", "default": "start", "attr": "", "doc": "The edge it slides in from." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "18, 24 or 32rem wide (tall, from the top or bottom)." }
           ]
         }
       ]
@@ -2153,6 +2178,86 @@
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "danger", "attr": "", "doc": "The badge's colour." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "{n} new", "attr": "", "doc": "What a screen reader says instead of the count in words." },
             { "name": "dot", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A dot instead of the number." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Banner",
+      "module": "banner",
+      "look": "Origin UI Banner",
+      "responsive": "container",
+      "features": [
+        { "name": "<aside>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "cookie", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "<form method=\"post\">", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Banner",
+          "lui": "Banner",
+          "status": "beta",
+          "calls": ["ui.banner(text: &str)"],
+          "props": [
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "neutral", "attr": "", "doc": "The bar's colour: neutral is the dark bar, the others a tint." },
+            { "name": "link", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link after the text, with an arrow." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The id its dismiss cookie is named after instead of the text's slug." },
+            { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A close button that keeps it closed with a `lui-dismiss-<id>` cookie." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Popover",
+      "module": "popover_card",
+      "look": "Radix Themes Popover",
+      "responsive": "content",
+      "features": [
+        { "name": "popover", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
+        { "name": "anchor-name", "baseline": { "chrome": "125", "firefox": "147", "safari": "26" } },
+        { "name": "position-try-fallbacks", "baseline": { "chrome": "128", "firefox": "147", "safari": "26" } },
+        { "name": "@starting-style", "baseline": { "chrome": "117", "firefox": "129", "safari": "17.5" } }
+      ],
+      "fallback": "centred in the viewport without anchor positioning; a <details> disclosure without popover",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Popover",
+          "lui": "Popover",
+          "status": "beta",
+          "calls": ["ui.popover(trigger: &str, body: Markup)"],
+          "props": [
+            { "name": "side", "kind": "choice", "choices": ["top", "bottom", "start", "end"], "args": "side: Side", "default": "bottom", "attr": "", "doc": "The side of the button it opens on; it flips when there is no room." },
+            { "name": "align", "kind": "choice", "choices": ["start", "center", "end", "baseline", "stretch"], "args": "align: Align", "default": "start", "attr": "", "doc": "How it lines up with the button along that side." },
+            { "name": "arrow", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A small arrow pointing at the button." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The panel's id instead of the trigger's slug." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Carousel",
+      "module": "carousel",
+      "look": "shadcn/ui Carousel",
+      "responsive": "container",
+      "features": [
+        { "name": "scroll-snap-type", "baseline": { "chrome": "69", "firefox": "68", "safari": "11" } },
+        { "name": "::scroll-button()", "baseline": { "chrome": "135", "firefox": "no", "safari": "no" } },
+        { "name": "::scroll-marker", "baseline": { "chrome": "135", "firefox": "no", "safari": "no" } }
+      ],
+      "fallback": "fragment links to each slide's id stand in for the scroll buttons and markers",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Carousel",
+          "lui": "Carousel",
+          "status": "beta",
+          "calls": ["ui.carousel(label: &str)"],
+          "props": [
+            { "name": "item", "kind": "item", "args": "markup: Markup", "default": "", "attr": "", "doc": "A slide." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The prefix of the slides' ids (`<id>-<n>`) instead of the label's slug." }
           ]
         }
       ]

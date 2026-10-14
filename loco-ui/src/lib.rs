@@ -57,12 +57,14 @@ pub mod alert;
 pub mod aspect_ratio;
 pub mod avatar;
 pub mod badge;
+pub mod banner;
 pub mod blockquote;
 pub mod blocks;
 pub mod breadcrumbs;
 pub mod button;
 pub mod calendar;
 pub mod card;
+pub mod carousel;
 pub mod center;
 pub mod chart;
 pub mod cluster;
@@ -104,6 +106,7 @@ pub mod paged_table;
 pub mod pager;
 pub mod palette;
 pub mod popover;
+pub mod popover_card;
 pub mod posted;
 pub mod progress;
 pub mod props;
@@ -178,6 +181,8 @@ pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::Saved;
     pub use crate::lui;
+    pub use crate::popover_card::Side;
+    pub use crate::toast::Position;
     pub use crate::variant::{Align, Justify, Radius, Size, Tone, Underline, Variant, Weight};
     pub use crate::{
         Cap, Caps, Icon, MenuItem, Page, Posted, Redirect, Row, TableQuery, Theme, Ui,
@@ -411,6 +416,9 @@ pub enum Component {
     Spacer,
     Spinner,
     Indicator,
+    Banner,
+    PopoverCard,
+    Carousel,
     Blocks,
 }
 
@@ -488,6 +496,9 @@ impl Component {
         Component::Spacer,
         Component::Spinner,
         Component::Indicator,
+        Component::Banner,
+        Component::PopoverCard,
+        Component::Carousel,
         Component::Blocks,
     ];
 
@@ -585,6 +596,9 @@ impl Component {
             Component::Spacer => spacer::CSS,
             Component::Spinner => spinner::CSS,
             Component::Indicator => indicator::CSS,
+            Component::Banner => banner::CSS,
+            Component::PopoverCard => popover_card::CSS,
+            Component::Carousel => carousel::CSS,
             Component::Blocks => "",
         }
     }
@@ -723,6 +737,9 @@ pub const COMPONENT_CSS: &[&str] = &[
     spacer::CSS,
     spinner::CSS,
     indicator::CSS,
+    banner::CSS,
+    popover_card::CSS,
+    carousel::CSS,
 ];
 
 #[cfg(test)]
@@ -1382,6 +1399,14 @@ mod tests {
         (
             "footer",
             "Card's footer is markup; Table adds a `<tfoot>` row of cells, like its rows",
+        ),
+        (
+            "checkbox",
+            "Form adds a checkbox field (name, label); Menu a checkbox item posting to its action",
+        ),
+        (
+            "radio",
+            "Calendar's switch picks one day; Menu adds a radio item posting to its action",
         ),
         (
             "text",
@@ -2136,8 +2161,10 @@ mod tests {
         // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens.
         // 136 KB once M40a's sixteen typography and layout components joined (about 14.5 KB
         // minified: 133 620 bytes in all).
+        // 136 KB from M40d: a banner, a popover, a carousel and the new setters of the
+        // feedback components.
         assert!(
-            stylesheet().len() < 136 * 1024,
+            stylesheet().len() < 160 * 1024, // 150 KB with M40a and M40d together; M39's sweep trims
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2268,6 +2295,9 @@ mod tests {
             ("spacer", spacer::CSS),
             ("spinner", spinner::CSS),
             ("indicator", indicator::CSS),
+            ("banner", banner::CSS),
+            ("popover_card", popover_card::CSS),
+            ("carousel", carousel::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -2932,6 +2962,21 @@ mod tests {
             [
                 ui.stat("A", "1").render(),
                 ui.stat("A", "1").href("/a").render(),
+            ]
+        }),
+        ("Menu", "checked", |ui| {
+            [
+                ui.menu("View").checkbox("Grid", "/v", "grid").render(),
+                ui.menu("View")
+                    .checkbox("Grid", "/v", "grid")
+                    .checked(true)
+                    .render(),
+            ]
+        }),
+        ("Popover", "id", |ui| {
+            [
+                ui.popover("Share", html! { "x" }).render(),
+                ui.popover("Share", html! { "x" }).id("share-2").render(),
             ]
         }),
         ("Tooltip", "id", |ui| {
