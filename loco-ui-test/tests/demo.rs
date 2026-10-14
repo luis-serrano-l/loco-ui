@@ -984,7 +984,7 @@ async fn stats_and_empty_state() {
         "a card can be a link"
     );
     assert!(page.is_visible(".lui-empty-title"));
-    assert!(page.exists(".lui-empty-actions a[href='/dashboard']"));
+    assert!(page.exists(".lui-empty-actions form[action='/dashboard'] button"));
     let full = Page::render(demo::router(), "/dashboard", MODERN).await;
     assert!(!full.exists(".lui-stage .lui-empty"));
 }

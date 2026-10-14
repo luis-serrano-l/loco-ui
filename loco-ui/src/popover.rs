@@ -521,7 +521,7 @@ fn menu_from(
     html! {
         @if !popover {
             details class={ "lui-popover lui-popover-details " (placement.class()) } id=(id) {
-                summary class=(summary_class) aria-haspopup="menu" aria-label=[compact.then_some(label)] { (face) }
+                summary class=(summary_class) aria-haspopup="menu" aria-label=[trigger.label()] { (face) }
                 nav { (list) }
             }
         } @else if anchor {

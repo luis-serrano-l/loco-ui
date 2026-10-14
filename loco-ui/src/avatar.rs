@@ -2,7 +2,7 @@
 //!
 //! A round picture of a person, with their initials underneath for when there is no picture
 //! or it fails to load. After Radix Themes Avatar: five sizes, the initials on a soft brand
-//! tint, or any [`Tone`](crate::variant::Tone) soft or solid, and `.radius(..)` for the
+//! tint, or any [`Tone`] soft or solid, and `.radius(..)` for the
 //! corners.
 //!
 //! **Platform features:** the initials are painted first and the `<img>` is stacked over

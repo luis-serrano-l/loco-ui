@@ -3,7 +3,7 @@
 //! How far along a task is: a bar filled to a value out of a maximum, or an indeterminate
 //! bar (`.indeterminate()`) when the server does not know yet; `.show_value()` writes the
 //! percentage beside it. Radix Themes Progress's props: three heights
-//! (`.size(..)`), a [`Tone`](crate::variant::Tone) for the fill, a soft or surface track
+//! (`.size(..)`), a [`Tone`] for the fill, a soft or surface track
 //! (`.variant(..)`) and `.radius(..)`.
 //!
 //! **Platform features:** `<progress>` (baseline 2013) with its label tied by `<label for>`,

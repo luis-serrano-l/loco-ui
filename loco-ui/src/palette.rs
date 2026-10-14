@@ -150,7 +150,7 @@ impl Palette<'_> {
 
 impl Ui {
     /// A palette `#lui-palette` whose searches go to `action`; add destinations with
-    /// [`Palette::command`].
+    /// [`Palette::link`].
     pub fn palette<'a>(&'a self, action: &'a str) -> Palette<'a> {
         Palette {
             ui: self,

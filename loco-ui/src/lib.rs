@@ -558,7 +558,7 @@ impl Component {
         Component::Spinner,
     ];
 
-    /// This component's `CSS`: empty for `Blocks` (its parts are [`blocks::CSS`]) and for
+    /// This component's `CSS`: empty for `Blocks` (its parts are `blocks::CSS`) and for
     /// `Stream` without the `http` feature.
     pub fn css(self) -> &'static str {
         match self {

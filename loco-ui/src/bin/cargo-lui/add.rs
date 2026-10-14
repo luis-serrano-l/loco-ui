@@ -33,22 +33,20 @@ use crate::{Options, edit::add_line, is_word};
 
 /// The components a copy of builds on loco-ui's public API alone, so it compiles in an app.
 /// The others call helpers loco-ui keeps to itself (the shared search box, `labelled`, the
-/// menu placement, `gap_class`, ..); copying one of those copies its use of them too, which
-/// does not compile outside the crate. `flash` is left out too: its cookie is named
-/// `lui-flash` like its class, and the copy's renamed class would rename the cookie the
-/// redirects set. `tests/install.rs` copies every one of these into a
-/// fresh Loco app and builds it.
-pub const COPYABLE: [&str; 26] = [
+/// menu placement, `gap_class`, a button's link and part setters behind the dialog, drawer
+/// and tooltip triggers, the field internals the input shares with the select and range,
+/// ..); copying one of those copies its use of them too, which does not compile outside the
+/// crate. `flash` is left out too: its cookie is named `lui-flash` like its class, and the
+/// copy's renamed class would rename the cookie the redirects set. `tests/install.rs` copies
+/// every one of these into a fresh Loco app and builds it.
+pub const COPYABLE: [&str; 22] = [
     "accordion",
     "avatar",
     "badge",
     "breadcrumbs",
     "card",
     "chart",
-    "dialog",
-    "drawer",
     "error_summary",
-    "input",
     "marquee",
     "meter",
     "progress",
@@ -57,7 +55,6 @@ pub const COPYABLE: [&str; 26] = [
     "stat",
     "tabs",
     "toast",
-    "tooltip",
     "description_list",
     "input_otp",
     "blocks/auth_page",

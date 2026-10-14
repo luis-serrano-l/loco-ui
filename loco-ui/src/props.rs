@@ -136,8 +136,9 @@ impl Prop {
 /// first. The items it applies to are its [`Prop::applies_to`] in `props`, so the props table
 /// and the check cannot disagree. A release build keeps the old behaviour: the modifier
 /// changes whatever was added last, or nothing.
+#[doc(hidden)]
 #[track_caller]
-pub(crate) fn check_last<B>(props: &[Prop], method: &str, last: Option<&str>) {
+pub fn check_last<B>(props: &[Prop], method: &str, last: Option<&str>) {
     if cfg!(debug_assertions) {
         // `loco_ui::popover::Menu<'_>` reads `Menu`.
         let path = std::any::type_name::<B>()

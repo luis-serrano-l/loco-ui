@@ -169,15 +169,18 @@ pub const CSS: &str = r#"
   font-size: 0.75rem; line-height: 1rem; font-weight: 400; text-align: center;
   color: var(--lui-gray-1); background: var(--lui-gray-12); border-radius: var(--lui-radius-sm);
   box-shadow: var(--lui-shadow-md);
-  opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s;
+  opacity: 0; visibility: hidden; transition: opacity 0.15s, visibility 0.15s, display 0.15s allow-discrete;
+  /* Out of the layout at rest, so a tooltip beside a button at the edge never widens the page. */
+  display: none;
 }
 .lui-tooltip[data-side=bottom] .lui-tooltip-text { bottom: auto; top: calc(100% + 6px); }
 .lui-tooltip:is([data-side=start], [data-side=end]) .lui-tooltip-text { left: auto; bottom: auto; inset-block-start: 50%; translate: 0 -50%; }
 .lui-tooltip[data-side=start] .lui-tooltip-text { inset-inline-end: calc(100% + 6px); }
 .lui-tooltip[data-side=end] .lui-tooltip-text { inset-inline-start: calc(100% + 6px); }
-.lui-tooltip:hover .lui-tooltip-text, .lui-tooltip:focus-within .lui-tooltip-text { opacity: 1; visibility: visible; }
+.lui-tooltip:hover .lui-tooltip-text, .lui-tooltip:focus-within .lui-tooltip-text { opacity: 1; visibility: visible; display: block; }
+@starting-style { .lui-tooltip:hover .lui-tooltip-text, .lui-tooltip:focus-within .lui-tooltip-text { opacity: 0; } }
 /* .delay(ms): the hover waits; focus does not, and leaving hides at once. */
 .lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { transition-delay: var(--lui-tooltip-delay, 0s); }
-@media (hover: none) { .lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { opacity: 0; visibility: hidden; } }
+@media (hover: none) { .lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { opacity: 0; visibility: hidden; display: none; } }
 @media (prefers-reduced-motion: reduce) { .lui-tooltip-text { transition: none; } }
 "#;

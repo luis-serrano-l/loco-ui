@@ -1279,7 +1279,8 @@ impl Strings {
 
     /// Any number written as Rust writes it (`i64`, `usize`, `f64`), regrouped: no `String`
     /// per number when written straight into a page.
-    pub(crate) fn digits<T: Display>(&self, n: T) -> Digits<'_, T> {
+    #[doc(hidden)]
+    pub fn digits<T: Display>(&self, n: T) -> Digits<'_, T> {
         Digits(self, n)
     }
 
@@ -1392,7 +1393,9 @@ fn fill_in(template: &str, args: &[&dyn Display]) -> String {
 }
 
 /// A number regrouped with a language's separators, made by [`Strings::digits`].
-pub(crate) struct Digits<'a, T>(&'a Strings, T);
+#[doc(hidden)]
+#[derive(Clone, Copy, Debug)]
+pub struct Digits<'a, T>(&'a Strings, T);
 
 impl<T: Display> Display for Digits<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

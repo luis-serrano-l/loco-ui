@@ -104,11 +104,11 @@ fn menus(ui: &Ui) -> Markup {
                 }
                 Menu("View") {
                     group "Show";
-                    checkbox "Grid lines" "/popover/view" "grid" checked=(ui.state.get("grid") == Some("on"));
+                    checkbox "Grid lines" "/popover/view" "grid" checked=(ui.param("grid") == Some("on"));
                     separator();
                     group "Density";
-                    radio "Compact" "/popover/view" "density" "compact" checked=(ui.state.get("density") == Some("compact"));
-                    radio "Comfortable" "/popover/view" "density" "comfortable" checked=(ui.state.get("density") != Some("compact"));
+                    radio "Compact" "/popover/view" "density" "compact" checked=(ui.param("density") == Some("compact"));
+                    radio "Comfortable" "/popover/view" "density" "comfortable" checked=(ui.param("density") != Some("compact"));
                 }
                 // end code
             }
@@ -127,8 +127,7 @@ struct ViewForm {
 }
 
 /// A checkbox or radio item's form: the density when the radio sent one, else the grid box
-/// (absent when unticked). Back to the menu with the choice in the URL, which the `lui-ui`
-/// cookie then remembers.
+/// (absent when unticked). Back to the menu with the choice in the URL.
 async fn popover_view(ui: Ui, Form(form): Form<ViewForm>) -> Redirect {
     match (form.density.as_deref(), form.grid) {
         (Some("compact"), _) => ui.redirect("/popover?density=compact"),

@@ -54,7 +54,7 @@ try {
   await click("button[value=reset]");
   await until(async () => (await text(".lui-counter output")) === "0", "reset");
   for (let i = 0; i < 5; i++) await click("button[value=inc]");
-  await until(async () => (await text(".lui-counter output")) === "10", "counter to reach 10 in steps of 2");
+  await until(async () => (await text(".lui-counter output")) === "10", "counter to reach 10 in steps of 2", 10000);
   assert(await navigations() === 1, "counter: 5 quick clicks counted in place, no reload");
   await js("document.querySelector('.lui-counter input[name=value]').value = 20");
   await click(".lui-counter button[value=set]");

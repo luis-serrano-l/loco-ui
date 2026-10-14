@@ -2,7 +2,7 @@
 //!
 //! A callout in the page, after Radix Themes Callout: a title, a line or two of explanation
 //! and an icon, in an info, danger, warning or success tone (or any
-//! [`Tone`](crate::variant::Tone) with `.tone(..)`), soft by default or `.surface()`,
+//! [`Tone`] with `.tone(..)`), soft by default or `.surface()`,
 //! `.outline()` (`.variant(..)`), at Radix's sizes 1 to 3. For a message that stays where it
 //! is, unlike a flash or a toast. `.action(..)` adds a button under the text, and
 //! `.dismiss()` a close button that keeps it closed, as a [`crate::banner::Banner`] does.

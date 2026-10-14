@@ -45,7 +45,7 @@ route in `crate::enhance::router` (Loco's initializer mounts it too); another se
 answers it with `dismiss_cookie`.
 
 **Accessibility:** a complementary landmark named by its text; the close button is named
-"Dismiss: <text>". Checked by axe-core in headless Firefox on every demo route, both
+"Dismiss: &lt;text&gt;". Checked by axe-core in headless Firefox on every demo route, both
 capability variants, light and dark (no serious or critical violation).
 
 **What it does not do without script:** close in place: closing is a round trip (with the

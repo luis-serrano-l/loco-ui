@@ -2,7 +2,7 @@
 //!
 //! A short label beside something: a status, a count, a tag. After Radix Themes Badge: a tone
 //! (the brand by default; `.secondary()` gray, `.danger()`, `.ok()`, `.warn()`, or any
-//! [`Tone`](crate::variant::Tone) with `.tone(..)`) in a variant (soft by default: a tint with
+//! [`Tone`] with `.tone(..)`) in a variant (soft by default: a tint with
 //! darker text; `.solid()`, `.surface()`, `.outline()`, or `.variant(..)`), at Radix's size 1
 //! unless `.size(..)` says 2 or 3, with no wrapping.
 //!

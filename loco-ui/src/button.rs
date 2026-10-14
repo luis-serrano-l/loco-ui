@@ -1,8 +1,8 @@
 //! # Button
 //!
 //! The one button every other component builds on, drawn after Radix Themes' Button and
-//! IconButton: a neutral outline by default, then any [`Tone`](crate::variant::Tone) in any
-//! [`Variant`](crate::variant::Variant) (`.tone(..)`, `.variant(..)`), with switches for the
+//! IconButton: a neutral outline by default, then any [`Tone`] in any
+//! [`Variant`] (`.tone(..)`, `.variant(..)`), with switches for the
 //! common ones: solid (`.primary()` with the brand gradient, `.danger()`), `.soft()`,
 //! `.surface()` and `.ghost()`, which compose (`.danger().ghost()` is a red ghost button);
 //! three sizes (`.size(1..=3)`, `.small()` for 1); `.radius(..)`; a square icon button. Pressed, busy and disabled each have their own look: a busy
@@ -593,6 +593,12 @@ impl<'a> Button<'a> {
     /// `data-tone` and `data-variant`, unless the button is the default neutral outline.
     fn look_attrs(&self) -> Option<(Tone, Variant)> {
         Some(self.look()).filter(|look| *look != (Tone::Neutral, Variant::Outline))
+    }
+
+    /// The `aria-label` set with [`Button::aria_label`], for a part that copies the button's
+    /// look onto another element (a menu's `<summary>`).
+    pub(crate) fn label(&self) -> Option<&'a str> {
+        self.label
     }
 
     pub(crate) fn classes(&self) -> String {
