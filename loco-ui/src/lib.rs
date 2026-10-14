@@ -47,8 +47,10 @@
 //! ```
 
 // docs.rs builds with nightly and `--cfg docsrs`: feature-gated items get a "requires feature" badge.
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs)]
+#![forbid(unsafe_code)]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 pub mod accordion;
 pub mod alert;

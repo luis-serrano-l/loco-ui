@@ -23,7 +23,7 @@
 //! lands: replace the root, replace its children, or add them at the end or the start. The
 //! request is the same either way, so the server may answer an enhanced request (headers
 //! `Lui-Enhance: 1` and `Accept: text/html`) with only the fragment it needs to; without the
-//! script it is a full navigation to the same URL. [`slim`] does that for every page: an
+//! script it is a full navigation to the same URL. `slim` (feature `axum`) does that for every page: an
 //! enhanced request gets the page without its inline stylesheet, which the document already
 //! has, and every HTML answer says `Vary: Lui-Enhance, Cookie`. User actions fetch with
 //! `priority: "high"`. Links inside an element marked `data-lui-prefetch` are fetched at low
@@ -55,7 +55,7 @@
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
 //! own move form with its new index.
 //!
-//! [`script_tag`] goes at the end of `<body>`; [`router`] serves the file with a content
+//! [`script_tag`] goes at the end of `<body>`; `router` (feature `axum`) serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
 //!
 //! ```rust
@@ -394,13 +394,13 @@ pub fn served() -> &'static str {
 /// only from this origin (the script is a same-origin file, never inline), no plugins, no
 /// `<base>`, no framing, forms posting only here. Styles need `'unsafe-inline'`: the
 /// stylesheet is inlined once per page and a few per-element custom properties travel in
-/// `style` attributes. [`csp`] sends it.
+/// `style` attributes. `csp` (feature `axum`) sends it.
 pub const CSP: &str = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 
 /// [`CSP`] with `script-src 'none'`, for a page built with `Page::without_script`.
 pub const CSP_NO_SCRIPT: &str = "default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 
-/// The response extension `Page::without_script` leaves for [`csp`].
+/// The response extension `Page::without_script` leaves for `csp` (feature `axum`).
 #[derive(Clone, Copy, Debug)]
 pub struct NoScript;
 

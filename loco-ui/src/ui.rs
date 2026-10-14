@@ -29,7 +29,7 @@
 //! **Responses.** [`Ui::page`] is the whole document; as an Axum response it also writes back
 //! the UI state the query changed and clears a flash it showed. [`Ui::redirect`] answers a
 //! form post (Post/Redirect/Get) with a flash and, with the `axum` feature, values kept in a
-//! cookie ([`crate::Saved`]).
+//! cookie (`Saved`).
 //!
 //! **Any server.** [`Ui::from_request`] takes the path, the query string and the whole
 //! `Cookie:` header, and `Ui::from(caps)` works where there is no request at all. The `axum`
@@ -127,7 +127,7 @@ impl Ui {
     }
 
     /// Render every page of this request under the app's [`Look`]: its tokens and CSS. The Axum
-    /// extractor does it when the request carries one ([`Look::layer`]); other servers call it.
+    /// extractor does it when the request carries one (`Look::layer`, feature `axum`); other servers call it.
     pub fn look(mut self, look: &'static Look) -> Ui {
         self.look = Some(look);
         self
@@ -298,7 +298,7 @@ impl Page {
     }
 
     /// Leave out the enhancement script: the page is exactly what Blitz renders, and
-    /// [`crate::enhance::csp`] answers it with `script-src 'none'`
+    /// `enhance::csp` (feature `axum`) answers it with `script-src 'none'`
     /// ([`crate::enhance::CSP_NO_SCRIPT`]).
     pub fn without_script(mut self) -> Self {
         self.script = false;
