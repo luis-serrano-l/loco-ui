@@ -290,6 +290,18 @@ pub enum Text {
     Saturday,
     /// "Sunday": calendar.
     Sunday,
+    /// "New": the scaffold's new-record page and button ("New note").
+    New,
+    /// "Created.": the scaffold's flash after a create.
+    Created,
+    /// "Saved.": the scaffold's flash after an update.
+    Saved,
+    /// "Deleted.": the scaffold's flash after a delete.
+    Deleted,
+    /// "Delete {}?": record page: the delete dialog's title.
+    DeleteConfirm,
+    /// "This cannot be undone.": record page: the delete dialog's text.
+    CannotUndo,
 }
 
 /// How many texts there are.
@@ -297,7 +309,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 125] = [
+    pub const ALL: [Text; 131] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -423,6 +435,12 @@ impl Text {
         Text::Friday,
         Text::Saturday,
         Text::Sunday,
+        Text::New,
+        Text::Created,
+        Text::Saved,
+        Text::Deleted,
+        Text::DeleteConfirm,
+        Text::CannotUndo,
     ];
 
     /// The month `number`, 1 to 12.
@@ -576,6 +594,12 @@ const ENGLISH: [&str; N] = [
     "Friday",
     "Saturday",
     "Sunday",
+    "New",
+    "Created.",
+    "Saved.",
+    "Deleted.",
+    "Delete {}?",
+    "This cannot be undone.",
 ];
 
 /// One language's texts. Start from [`Strings::new`] (English with another tag) and set

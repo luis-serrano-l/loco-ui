@@ -139,7 +139,13 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Thursday, "jueves")
     .with(Text::Friday, "viernes")
     .with(Text::Saturday, "sábado")
-    .with(Text::Sunday, "domingo");
+    .with(Text::Sunday, "domingo")
+    .with(Text::New, "Nuevo")
+    .with(Text::Created, "Creado.")
+    .with(Text::Saved, "Guardado.")
+    .with(Text::Deleted, "Borrado.")
+    .with(Text::DeleteConfirm, "¿Borrar {}?")
+    .with(Text::CannotUndo, "No se puede deshacer.");
 
 /// The languages the demo offers, English first (the default).
 pub static LANGUAGES: [&Strings; 2] = [&Strings::ENGLISH, &SPANISH];
