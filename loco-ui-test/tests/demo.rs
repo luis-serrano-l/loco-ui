@@ -526,7 +526,7 @@ async fn table_sort_links_and_pages() {
     )
     .await;
     assert_eq!(
-        page.count(".lui-table thead th a"),
+        page.count(".lui-table thead th a:not(.lui-table-then)"),
         2,
         "every visible column header is a sort link"
     );
@@ -563,7 +563,7 @@ async fn table_sort_links_and_pages() {
         5,
         "a checkbox per row, owned by the bulk form"
     );
-    assert!(page.exists("form#lui-table-files-bulk[method=post][action='/table/bulk'] button[name=action][value=archive]"));
+    assert!(page.exists("form#lui-table-files-bulk[method=post][action^='/table/bulk?sort.files=-size'] button[name=action][value=archive]"));
     assert_eq!(
         page.count("tbody .lui-table-menu .lui-popover"),
         5,

@@ -169,12 +169,14 @@ fn kinds_table(ui: &Ui) -> Markup {
         .filter(shown)
         .filter(|f| query.matches(f.0))
         .collect();
-    // Grouped by kind, so the kind always sorts first.
-    files.sort_by(|a, b| a.2.cmp(b.2));
     query.sort_by(&mut files, |a, b, key| match key {
         "kind" => a.2.cmp(b.2),
         _ => a.0.cmp(b.0),
     });
+    // Grouped by kind: a stable sort by kind last keeps the visitor's order inside each group.
+    if query.sort().first().is_none_or(|s| s.0 != "kind") {
+        files.sort_by(|a, b| a.2.cmp(b.2));
+    }
     let links: Vec<String> = files
         .iter()
         .map(|f| format!("/table?q.files.name={}", f.0))

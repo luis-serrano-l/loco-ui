@@ -2588,28 +2588,67 @@ the orchestrator sequences it: M38 box 1–2 first, then spawn M40c on top).
 
 Goal: the table page is the one visitors compare; make its feature table win.
 
-- [ ] Multi-column sort: `?files.sort=name,-size` (comma list, `-` for descending), header
+- [x] Multi-column sort: `?files.sort=name,-size` (comma list, `-` for descending), header
   shows the sort index badge; `t.sort()` returns `&[(key, desc)]` (**Breaking**: was one
   pair); `Table::paged_from` and the Loco `paged` helper order by every key.
-- [ ] Per-column filters: `.column(..).filter()` renders an input in a filter row (shown via
+  Done: the key is `?sort.<id>=name,-size` (key first, as every table key since M33), and
+  `dir.<id>` is gone. A header link sorts by that column alone or flips it when it is the
+  first key; a `+` link (`.lui-table-then`, "Then sort by …") adds a column as the next key;
+  each sorted header shows its place (`.lui-table-sort-index`) once there are two keys, and
+  `aria-sort` goes on the first only. `Table::sort()` and `TableQuery::sort()` return
+  `&[(&str, bool)]`; `TableQuery::sort_by` compares key by key. `paged_from` only takes the
+  total, so the Loco side is a new `loco::order_by(select, sort, |key| column)` that adds one
+  `ORDER BY` per key (doctest pins the SQL). The scaffold templates do not sort yet (M43).
+- [x] Per-column filters: `.column(..).filter()` renders an input in a filter row (shown via
   `<details>` "Filters"), keys `files.f.<col>`; `t.filters()` for the route; `filter_select`
   joins the row. Select-all: a checkbox that submits `all=1` for the current filter (the
   bulk form carries the query), documented as "all matching", since a client-side
   select-all needs script (enhance.rs upgrades it to tick the visible boxes).
-- [ ] `<caption>` (`.caption(text)`, visually hidden by default), `<tfoot>` via
+  Done: the modifier is `.filterable()` (`.filter()` already returns the search text) and
+  the key `?q.<id>.<col>=`, beside the search's `q.<id>`. A `<details class="lui-table-filters">`
+  "Filters" with a count badge holds a text box per filterable column and the selects; it
+  stays open while a filter is set and opens as a row of its own, so it never covers the
+  table. `Table::filters()`, `TableQuery::filters()` and `matches_in(key, text)`; Clear drops
+  the search and every column filter. `.bulk(..).select_all()` adds a header checkbox
+  (`name=all value=1`, "Select all matching") and puts the query on the bulk form's action;
+  enhance.rs ticks the page's boxes when it changes. The demo's bulk handler acts on every
+  matching file with `all=1`.
+- [x] `<caption>` (`.caption(text)`, visually hidden by default), `<tfoot>` via
   `.total(col, text)`/`.footer(Row)`, `.striped()`, `.density(Density)` (from M39 tokens),
   `.frozen_first()` (`position: sticky; inset-inline-start: 0`), `.group_by(col)` rendering
   group header rows, `.empty(markup)` slot, `Row::disabled()` (no checkbox), row
   `.href()` whole-row link (Radix Table doesn't; copy Tremor), row tone.
-- [ ] Column resize/reorder: declared out of scope without script; `.width(col, css)` and
+  Done: all of them, shown on the /table page (caption, totals) and on a new
+  `/table/rows` page (stripes, compact, groups, row links, tones, a disabled row, a footer
+  row, an empty slot), kept off /table so the page stays under its 48 KB markup budget.
+  Kept different: the caption is always visually hidden (no setter to show it); `Density`
+  is a local `table::Density { Compact, Comfortable }` until M39's tokens land (the merger
+  swaps it); the row tone is three switches, `Row::ok()`, `.warn()`, `.danger()`, until M38's
+  `Tone`; no `.frozen_first()` setter, since the first column has been sticky by default since
+  M34, and its CSS now uses `inset-inline-start`. A row link is a stretched `<a>` in a last
+  cell (`.lui-table-row-link`, `::after` over the row), so the row stays a real `<tr>` and the
+  cells keep their own links and checkboxes above it. `.empty()` takes any `Render`
+  (**Breaking**: it took text). Group headers do not collapse.
+- [x] Column resize/reorder: declared out of scope without script; `.width(col, css)` and
   `cols` order from `?files.cols=` already reorder; FINDINGS records the decision.
-- [ ] Export: `.json()` beside `.csv()`; a `table.rs` split: move the 258-line `table_in`
+  Done: FINDINGS M41 records it; the /table Features matrix lists it as out of scope.
+- [x] Export: `.json()` beside `.csv()`; a `table.rs` split: move the 258-line `table_in`
   into `table/{head,body,foot,toolbar}.rs` (pure refactor, same HTML, a golden test pins
   the output of `/table` before the split).
-- [ ] Delete the legacy `TableOptions` + `table_with` path; delete bare query keys (if
+  Done: `.json(href)` writes "Download JSON" with the current query; the demo serves
+  `/table.json`. The golden test (`tables_render_their_golden_markup`, `GOLDEN=write`
+  rewrites `demo/tests/golden/`) landed first and passed unchanged across the split commit.
+- [x] Delete the legacy `TableOptions` + `table_with` path; delete bare query keys (if
   M38 has not); `docs/api.md` table section; `/table` demo gets a "Features" matrix
   (what works without script, what the script adds, what is out of scope) and the
   `/table/minimal` snippet stays small.
+  Done: `TableOptions`, `table_with` and `PagedTableOptions` are gone (**Breaking**), and so
+  are the bare `q`, `sort`, `dir`, `page`, `cols` keys and `Keys::dir`. docs/api.md has the
+  new keys with a doctest and a "Data table features" table. /table ends with a 14-row
+  Features matrix; /table/minimal is unchanged apart from `-size`.
+  Bench (noisy machine, load ~17 from parallel worktrees): table 1 000 rows 370.6 µs before,
+  391.6 then 269.8 µs after; paged table 49.1 µs before, 85.1 then 45.2 µs after. Within
+  the noise; no regression shown (FINDINGS M41).
 
 Key files: `table.rs` (owned by this agent), `paged_table.rs`, `loco.rs` (`paged_from`),
 `demo/src/routes/table.rs`, `scripts/browser-check.mjs` (sort test).

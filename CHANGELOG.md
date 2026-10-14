@@ -8,6 +8,28 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### `loco-ui`
 
+#### M41 · Data table
+
+- **Breaking:** a table sorts by several keys: `?sort.<id>=name,-size` (`-` for descending,
+  most significant first). `dir.<id>` is gone; `Table::sort()` and `TableQuery::sort()` return
+  `&[(&str, bool)]` instead of one `Option` pair; `Keys::dir` is gone. A header's `+` link adds
+  its column as the next key, and each sorted header shows its place. New
+  `loco::order_by(select, sort, |key| column)` orders a SeaORM query by every key.
+- **Breaking:** the bare `q`, `sort`, `dir`, `page` and `cols` keys (deprecated in M33) are no
+  longer read. Rewrite `?sort=size&dir=desc` as `?sort.<id>=-size`.
+- **Breaking:** `TableOptions`, `ui.table_with` and `PagedTableOptions` are removed; the
+  builder covers them. `Table::empty` takes any `Render`, not only text.
+- Column filters: `.column(..).filterable()` adds a text box to a "Filters" panel, read from
+  `?q.<id>.<col>=` (`Table::filters()`, `TableQuery::filters()`, `matches_in`).
+- `.bulk(..).select_all()`: a header checkbox posting `all=1` with the query on the form, so
+  the route acts on every matching row; the enhancement script ticks the page's boxes too.
+- `.caption(text)`, `.total(key, text)` and `.footer(row)` (a `<tfoot>`), `.striped()`,
+  `.density(Density::Compact)`, `.group_by(key)` (group header rows), `.json(href)`, and on a
+  row `.href(url)` (the whole row is a link), `.disabled()`, `.ok()`, `.warn()`, `.danger()`.
+- The renderer is split into `table/{toolbar,head,body,foot}.rs`, pinned by a golden test.
+- Demo: /table shows the caption, totals, column filters, select-all, JSON and a Features
+  matrix; the new /table/rows shows groups, row links, tones, stripes and the compact density.
+
 - Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
   (`?x=%aé`) no longer panics while it is decoded. A redirect whose target holds a control
   character (`/signin?next=/%0A`) now goes to `/` instead of panicking in
