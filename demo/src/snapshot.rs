@@ -17,13 +17,15 @@ use tower::ServiceExt;
 /// The text every exported page carries (the test looks for it).
 pub const BANNER: &str = "Static snapshot";
 
-/// One exported file: its name under the output directory and its HTML.
+/// One exported file: its name under the output directory and its HTML (or text, for the
+/// `llms` files).
 pub struct File {
     pub name: String,
     pub html: String,
 }
 
-/// Every page of the snapshot, modern variants first in [`PATHS`] order.
+/// Every page of the snapshot, modern variants first in [`PATHS`] order, then `llms.txt`,
+/// `llms-full.txt` and each component's `.md` ([`crate::llms::files`]).
 pub async fn pages() -> Vec<File> {
     let modern = Cap::ALL
         .map(|c| format!("lui-cap-{}=1", c.name()))
@@ -45,6 +47,14 @@ pub async fn pages() -> Vec<File> {
                 html: finish(&plain, &names, Some(name), true),
             });
         }
+    }
+    // The AI-readable docs beside the pages, at the paths the server answers them on.
+    for (path, text) in crate::llms::files() {
+        let name = path
+            .strip_prefix("components/")
+            .unwrap_or(&path)
+            .to_string();
+        files.push(File { name, html: text });
     }
     files
 }
@@ -180,7 +190,8 @@ mod tests {
         let pages = pages().await;
         assert!(pages.len() >= PATHS.len());
         let names: Vec<&str> = pages.iter().map(|p| p.name.as_str()).collect();
-        for page in &pages {
+        // The pages; `llms.txt` and the `.md` files are text.
+        for page in pages.iter().filter(|p| p.name.ends_with(".html")) {
             assert!(page.html.contains(BANNER), "{}: no banner", page.name);
             assert_eq!(page.html.matches("<script").count(), 0, "{}", page.name);
             assert!(

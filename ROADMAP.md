@@ -2787,16 +2787,49 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   `data-theme=light` and `dark`; a "Script off" toggle already exists; add a width toggle
   (narrow/medium/wide stage via `container` width class) so container queries are visible.
   Copy button on snippets: `data-lui="copy"` upgraded by enhance.rs (absent without script).
-- [ ] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
+- [x] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
   `.meta(name, content)`, `.og(..)`, `.link_rel(rel, href)`, `.stylesheet(href)` (for apps
   with their own CSS), `.head(markup)` escape hatch; `layout::meta()` emits them; the demo
   sets description + OG per page and a favicon (an inline SVG data URI of the mark).
-- [ ] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
+  Done: the setters live on `Page` in `ui.rs` and fill a `Head` struct that `Doc::head`
+  writes in two places: description, canonical, icon, meta and `og:*` right after
+  `<title>`, the links (`.link_rel`, `.stylesheet`) and `.head(markup)` after the styles,
+  so an app's stylesheet comes after the library's. `.og(property, content)` takes the
+  property without `og:`, one call per property, rather than a fixed title/description
+  pair. `.icon` adds `type="image/svg+xml"` for an `.svg` or SVG `data:` URI. The page's
+  header moved into the same box, so `Page` stays under clippy's 128 bytes. `Page` has no
+  `PROPS` (it is not a component builder), so the setters are in `docs/api.md` instead.
+  The CSP needed no change: `img-src 'self' data:` was already there for the inline images
+  and covers the favicon. The demo's `site::page` sets the description from `COMPONENTS`
+  (a fixed sentence off the component pages), `og:type`, `og:site_name`, `og:title` and
+  `og:description`, and the mark (three bars on indigo 9) as an SVG `data:` URI; the test
+  `pages_carry_a_description_og_and_favicon` checks them.
+- [x] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
   (index), `docs/llms-full.txt` (every component: constructor, props table, keyboard,
   anatomy, the doc header, the `lui!` example) and `docs/components/<name>.md`; the demo
   serves them at `/llms.txt`, `/llms-full.txt`, `/<component>.md` (content negotiation:
   `Accept: text/markdown` on a component page returns the `.md`); the snapshot exports
   them. A `/changelog` page renders CHANGELOG.md.
+  Done: `demo/src/llms.rs` makes the files from `loco_ui::props()`, `spec::SPECS` and each
+  module's `//!` header. A `demo/build.rs` lists every `loco-ui/src/*.rs`, `blocks/*.rs`
+  and `loco-ui-caps` as `include_str!`, so a new component is picked up with no list to
+  edit. A component is every spec module (README order) plus the builder modules the spec
+  leaves out (the blocks), 63 files named by the module's last part (`auth_page.md`). Each
+  `.md` has the constructors with their `lui!` names, a props table per builder, the
+  platform features with Chrome/Firefox/Safari versions, fallback, needs-script, the demo
+  page, then the header with headings moved down, rustdoc's hidden `# ` lines dropped from
+  Rust blocks and intra-doc links written as plain code. Links in `llms.txt` are relative
+  (`dialog.md`), so they work on the server and in the snapshot root. Negotiation is a demo
+  middleware outside `slim` and `csp`: on a component page (one whose snippet calls a
+  builder), `text/markdown` listed before `text/html`, or without it, gets the Markdown of
+  every module the page calls, and both answers carry `Vary: accept`. The snapshot writes
+  the files beside the pages. `llms_files_are_in_step_with_the_sources` compares the
+  files on disk, stale `components/*.md` included, and
+  `llms_files_are_served_and_pages_answer_markdown` checks the routes, negotiation and the
+  snapshot. Left for the other M42 boxes: keyboard and anatomy join each `.md` when the
+  per-component sections box adds `KEYS` and the anatomy (they are data `llms.rs` can
+  read then), and the `/changelog` page goes with `docs.rs`, the Markdown renderer that box
+  adds.
 - [ ] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
   `tests/pages.rs` writes, copied into `docs/examples/`), each linked to the source file.
   Blocks gallery grows with M40's banner/steps/timeline and three new blocks

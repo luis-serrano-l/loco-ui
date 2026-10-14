@@ -938,6 +938,8 @@ pub(crate) struct Doc<'a> {
     pub(crate) tokens: Option<&'a Tokens>,
     pub(crate) css: &'a [&'static str],
     pub(crate) header: Option<&'a Markup>,
+    /// What the page's head setters add ([`crate::Page::description`] and the rest).
+    pub(crate) head: Option<&'a crate::ui::Head>,
     pub(crate) script: bool,
     pub(crate) sheet: Sheet,
 }
@@ -953,6 +955,7 @@ impl<'a> Doc<'a> {
             tokens: None,
             css: &[],
             header: None,
+            head: None,
             script: true,
             sheet: Sheet::Inline,
         }
@@ -981,16 +984,19 @@ impl<'a> Doc<'a> {
         out
     }
 
-    /// `<head>`: charset, viewport, title, the view-transition hold and the styles.
+    /// `<head>`: charset, viewport, title, the page's meta, the view-transition hold, the
+    /// styles, then the page's links and extra markup.
     pub(crate) fn head(&self) -> Markup {
         html! {
             head {
                 (meta(self.title))
+                @if let Some(head) = self.head { (head.meta()) }
                 // Hold a cross-document view transition until `#main` is parsed. Streamed
                 // pages must not: their parse ends only when the last slot has filled.
                 @if self.caps.has(crate::Cap::ViewTransitions) { link rel="expect" href="#main" blocking="render"; }
                 @if self.sheet == Sheet::Linked { link rel="stylesheet" href=(stylesheet_url()); }
                 @for (class, text) in self.styles() { style class=[class] { (PreEscaped(text)) } }
+                @if let Some(head) = self.head { (head.links()) }
             }
         }
     }

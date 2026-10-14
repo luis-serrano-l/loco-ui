@@ -131,6 +131,24 @@ Everything below also ships in 0.2.0, the first publish.
 - `RecordPage::delete` opens a dialog that asks first ("Delete Invoice 42?",
   `Text::DeleteConfirm`, `Text::CannotUndo`) instead of posting at once.
 
+#### M42
+
+- `Page` head setters: `.description(..)`, `.canonical(..)`, `.icon(..)` (an SVG file or
+  `data:` URI gets `type="image/svg+xml"`), `.meta(name, content)`, `.og(property, content)`,
+  `.link_rel(rel, href)`, `.stylesheet(href)` (linked after the library's styles) and
+  `.head(markup)` for anything else. The meta follow `<title>`; the links and the markup
+  close `<head>`. `Page` stays under 128 bytes: the header and these share one box.
+- The demo gives every page a description (on a component page, what it is for), Open Graph
+  type, site name, title and description, and the mark as an inline SVG favicon. The strict
+  CSP already allows `img-src 'self' data:`, so nothing changed there.
+- AI-readable docs: `cargo run -p demo -- spec write` also writes `docs/llms.txt` (an index
+  in the llmstxt.org shape), `docs/llms-full.txt` and `docs/components/<name>.md` (the
+  constructors, the props table, the platform features with their baselines, the fallback
+  and the `//!` header with its `lui!` example). The demo serves them at `/llms.txt`,
+  `/llms-full.txt` and `/<name>.md`; a component page asked for with `Accept: text/markdown`
+  answers with its components' Markdown (`Vary: Accept`). The snapshot exports them, and a
+  demo test fails when the files fall behind the sources.
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached

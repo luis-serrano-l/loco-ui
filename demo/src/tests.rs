@@ -1359,3 +1359,143 @@ mod conformance {
         }
     }
 }
+
+/// `docs/llms.txt`, `docs/llms-full.txt` and `docs/components/*.md` are what
+/// `crate::llms::files` makes from the sources, with no stale component file left over.
+#[test]
+fn llms_files_are_in_step_with_the_sources() {
+    let docs = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs");
+    let files = crate::llms::files();
+    for (path, text) in &files {
+        let on_disk = std::fs::read_to_string(docs.join(path)).unwrap_or_default();
+        assert!(
+            on_disk == *text,
+            "docs/{path} is stale: run `cargo run -p demo -- spec write`"
+        );
+    }
+    let mut listed: Vec<String> = std::fs::read_dir(docs.join("components"))
+        .unwrap()
+        .map(|e| format!("components/{}", e.unwrap().file_name().to_string_lossy()))
+        .collect();
+    listed.sort();
+    let mut made: Vec<String> = files
+        .iter()
+        .map(|f| f.0.clone())
+        .filter(|p| p.starts_with("components/"))
+        .collect();
+    made.sort();
+    assert_eq!(listed, made, "run `cargo run -p demo -- spec write`");
+    let full = &files[1].1;
+    for c in loco_ui::props() {
+        assert!(
+            full.contains(&format!("## Props of `{}`", c.builder)) || c.props.is_empty(),
+            "{}",
+            c.builder
+        );
+    }
+    assert!(
+        full.contains("`loco_ui::dialog`") && full.contains("**Fallback:**"),
+        "the doc headers are in"
+    );
+    assert!(!full.contains("](crate::"), "rustdoc links are plain text");
+}
+
+/// The server answers `/llms.txt`, `/llms-full.txt` and `/<component>.md`; a component page
+/// asked for with `Accept: text/markdown` answers with that Markdown, a browser's `Accept`
+/// still gets HTML, and both say `Vary: Accept`.
+#[tokio::test]
+async fn llms_files_are_served_and_pages_answer_markdown() {
+    let get = |path: &'static str, accept: &'static str| async move {
+        let req = Request::get(path)
+            .header("accept", accept)
+            .body(Body::empty())
+            .unwrap();
+        let res = router().oneshot(req).await.unwrap();
+        let kind = res.headers()["content-type"].to_str().unwrap().to_string();
+        let vary: Vec<String> = (res.headers().get_all("vary").iter())
+            .map(|v| v.to_str().unwrap().to_string())
+            .collect();
+        let body = axum::body::to_bytes(res.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        (kind, vary, String::from_utf8(body.to_vec()).unwrap())
+    };
+    let files = crate::llms::files();
+    let (kind, _, body) = get("/llms.txt", "*/*").await;
+    assert_eq!(
+        (kind.as_str(), body.as_str()),
+        ("text/plain; charset=utf-8", files[0].1.as_str())
+    );
+    assert!(body.contains("](dialog.md)") && body.contains("(llms-full.txt)"));
+    let (_, _, body) = get("/llms-full.txt", "*/*").await;
+    assert_eq!(body, files[1].1);
+    let (kind, _, body) = get("/dialog.md", "*/*").await;
+    assert!(
+        kind.starts_with("text/markdown") && body.starts_with("# Dialog\n"),
+        "{kind}"
+    );
+    let (kind, vary, body) = get("/dialog", "text/markdown, text/html;q=0.9").await;
+    assert!(
+        kind.starts_with("text/markdown") && body.starts_with("# Dialog\n"),
+        "{kind}"
+    );
+    assert!(vary.iter().any(|v| v == "accept"), "{vary:?}");
+    let browser = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+    let (kind, vary, body) = get("/dialog", browser).await;
+    assert!(
+        kind.starts_with("text/html") && body.starts_with("<!DOCTYPE html>"),
+        "{kind}"
+    );
+    assert!(vary.iter().any(|v| v == "accept"), "{vary:?}");
+    let (kind, ..) = get("/", "text/markdown").await;
+    assert!(
+        kind.starts_with("text/html"),
+        "the index is not a component page"
+    );
+    let names: Vec<String> = crate::snapshot::pages()
+        .await
+        .into_iter()
+        .map(|f| f.name)
+        .collect();
+    for name in ["llms.txt", "llms-full.txt", "dialog.md", "auth_page.md"] {
+        assert!(names.iter().any(|n| n == name), "the snapshot has {name}");
+    }
+}
+
+/// Every page says what it is to a link preview: a description (on a component page, what
+/// it is for), Open Graph title and description, and the mark as an inline SVG favicon, which
+/// the strict CSP's `img-src 'self' data:` allows.
+#[tokio::test]
+async fn pages_carry_a_description_og_and_favicon() {
+    let dialog = COMPONENTS.iter().find(|c| c.0 == "/dialog").unwrap().4;
+    for (path, what) in [("/dialog", dialog), ("/", "HTML-first")] {
+        let res = router()
+            .oneshot(Request::get(path).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        let csp = res.headers()["content-security-policy"]
+            .to_str()
+            .unwrap()
+            .to_string();
+        assert!(csp.contains("img-src 'self' data:"), "{csp}");
+        let body = axum::body::to_bytes(res.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let html = String::from_utf8(body.to_vec()).unwrap();
+        let head = &html[..html.find("</head>").unwrap()];
+        assert!(
+            head.contains(&format!("<meta name=\"description\" content=\"{what}")),
+            "{path}"
+        );
+        assert!(
+            head.contains("<meta property=\"og:title\" content=\""),
+            "{path}"
+        );
+        assert!(head.contains("<meta property=\"og:description\""), "{path}");
+        assert!(
+            head.contains("<link rel=\"icon\" href=\"data:image/svg+xml,"),
+            "{path}"
+        );
+        assert!(head.contains("type=\"image/svg+xml\""), "{path}");
+    }
+}
