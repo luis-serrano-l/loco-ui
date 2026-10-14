@@ -2253,39 +2253,73 @@ M44. Shared lists (`lib.rs`, `props::COMPONENTS`, `SPECS`, `PATHS`, `SOURCES`, t
 
 Goal: the publish, when the owner says yes, works the first time.
 
-- [ ] Replace `#![cfg_attr(docsrs, feature(doc_auto_cfg))]` with
+- [x] Replace `#![cfg_attr(docsrs, feature(doc_auto_cfg))]` with
   `#![cfg_attr(docsrs, feature(doc_cfg))]` in `loco-ui/src/lib.rs:50` and
   `loco-ui-caps/src/lib.rs:50` (nightly 1.92 merged `doc_auto_cfg` into `doc_cfg`; auto
   cfg annotations are on by default under `doc_cfg` now). Add a CI job `docsrs` that runs
   `RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --no-deps --all-features -p loco-ui -p loco-ui-caps`.
-- [ ] `rust-version = "1.88"` in all three published manifests (let-chains at
+  Done: both `lib.rs:50` say `feature(doc_cfg)`. The `docsrs` job runs the docs.rs command
+  with `-p loco-ui-macros` added and `-D warnings`; clean on nightly 1.98 (2026-06-12).
+- [x] `rust-version = "1.88"` in all three published manifests (let-chains at
   `demo/src/site.rs:495`; verify with `cargo msrv find` or `cargo +1.88 check --workspace`),
   and an `msrv` CI job on that toolchain.
-- [ ] `#![forbid(unsafe_code)]` and `#![deny(rustdoc::broken_intra_doc_links)]` in the
+  Done: proved, not guessed. `cargo +1.88 check` of the three crates with `axum` passes;
+  with `--ignore-rust-version` 1.87 fails on let-chains in `loco-ui-macros/src/lib.rs:73`
+  (and the lock's `encoding_rs` asks 1.88 anyway). The `loco` feature cannot build on 1.88:
+  loco-rs 1.2 declares 1.94, so the `msrv` job stops at `axum` and the manifest comment and
+  README say so. `cargo msrv` is installed but not needed for this.
+- [x] `#![forbid(unsafe_code)]` and `#![deny(rustdoc::broken_intra_doc_links)]` in the
   three crates. Fix the 10 default-feature rustdoc warnings: links to feature-gated items
   (`crate::Saved` at `ui.rs:32`, `wizard.rs:221`; `Look::layer` `ui.rs:130`;
   `crate::enhance::csp` `ui.rs:301`; stream header) become plain code spans with the
   feature named, or `#[cfg_attr(feature = "axum", doc = "[`Saved`](crate::Saved)")]`.
   Verify: `cargo doc --no-deps -p loco-ui` clean with no features, with `axum`, with `loco`.
-- [ ] Manifests: `homepage` (Pages URL), `documentation` (docs.rs), `include`/`exclude`
+  Done: ten broken links in `loco-ui` (the two `Saved`, `Look::layer`, `enhance::csp`, plus
+  `not_found`, `slim`, `router` and two `csp` in `enhance.rs`, `Ui::slot` in `skeleton.rs`)
+  and `router` in `loco-ui-caps`. All became code spans naming the feature, the simpler of
+  the two forms. Clean with no features, `http`, `axum` and `loco`.
+- [x] Manifests: `homepage` (Pages URL), `documentation` (docs.rs), `include`/`exclude`
   so each crate packages its own `LICENSE` (copy to each crate dir, or `license-file`),
   `loco-ui-macros` gets a short `README.md` of its own instead of `../README.md`.
   `cargo package -p loco-ui-caps -p loco-ui-macros -p loco-ui --allow-dirty` in CI
   (`publish-dry-run` job; `loco-ui` needs the path deps to have `version`, already set).
-- [ ] `cargo-deny` (`deny.toml`: licenses allow-list, advisories) and `cargo semver-checks`
+  Done: `homepage`, `documentation` and an explicit `include` in all three; `LICENSE` copied
+  into each crate dir (and `NOTICE` into `loco-ui`), `loco-ui-macros/README.md` new. The
+  `include` replaces `exclude = ["tests/fresh-loco-app"]`. `cargo package` of the three
+  packages and builds them from the local registry (loco-ui: 91 files, 357 KiB compressed);
+  it warns that `spin` 0.9.8 and `yoke-derive` 0.8.3 in the lock are yanked.
+- [x] `cargo-deny` (`deny.toml`: licenses allow-list, advisories) and `cargo semver-checks`
   as CI jobs (semver one `continue-on-error` until 0.2 is tagged).
-- [ ] `.github/`: `CONTRIBUTING.md` (the nine conventions in short, `scripts/verify.sh`,
+  Done: `deny.toml` checks loco-ui's own graph (all features, no dev-dependencies, so not
+  the demo or example app): permissive licences only (MPL-2.0 for `colored` and
+  CDLA-Permissive-2.0 for `webpki-roots`, both through loco-rs), advisories, sources;
+  duplicate versions allowed (loco-rs brings about thirty). `cargo deny 0.20.2 ... check`
+  passes locally. `semver` runs on pull requests against the base branch; cargo-semver-checks
+  is not installed here, so that job is unverified.
+- [x] `.github/`: `CONTRIBUTING.md` (the nine conventions in short, `scripts/verify.sh`,
   how to add a component — points at the new skill, M44), `SECURITY.md`,
   `ISSUE_TEMPLATE/{bug,component}.md`, `PULL_REQUEST_TEMPLATE.md`, `dependabot.yml`
   (cargo + npm in `scripts/`, monthly).
-- [ ] README head: badges (crates.io, docs.rs, CI, MSRV, license) under the title; an
+  Done: all six files. CONTRIBUTING names the M44 `new-component` skill as planned, since
+  it does not exist yet.
+- [x] README head: badges (crates.io, docs.rs, CI, MSRV, license) under the title; an
   `## Install` heading right after the first paragraph with three tabs' worth of text
   (Axum, Loco, any server); note that `cargo add loco-ui` works only after the publish and
   show the git form until then. Fix the stale `pages.yml` mention at `README.md:524` and
   `BLOCKED.md:37`.
-- [ ] CHANGELOG: rewrite `[0.1.0]` as "unpublished prototype" and move every Unreleased
+  Done: five badges (crates.io and docs.rs show "not found" until the publish). `## Install`
+  follows the three opening paragraphs rather than the demo link line, so the pitch still
+  comes first: the git dependency, then one paragraph each for Axum, Loco and any server
+  with the `cargo add` form "after the publish". Both stale `pages.yml` mentions now point
+  at the `pages` job in `rust.yml`.
+- [x] CHANGELOG: rewrite `[0.1.0]` as "unpublished prototype" and move every Unreleased
   item into `[0.2.0] - unreleased`, since the API described under 0.1.0 no longer exists.
   Decision recorded: first publish is 0.2.0.
+  Done: `[0.1.0] - 2026-09-23 (unpublished prototype)` is one paragraph. The old Unreleased
+  items sit under `[0.2.0] - unreleased` in milestone groups (after M36, M36, M35, M33, M32,
+  M14 to M16), wording unchanged. `[Unreleased]` stays on top, holding M37 and later
+  milestones, all bound for 0.2.0. Versions are still 0.1.0 in the manifests: the bump is
+  the release step's (M44 `release` skill).
 
 Key files: both `lib.rs:50`, three `Cargo.toml`, `.github/workflows/rust.yml`, README,
 CHANGELOG. Verify: new CI jobs green locally (`cargo +nightly doc` with the flag,
