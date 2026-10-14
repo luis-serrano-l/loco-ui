@@ -927,3 +927,17 @@ is not drawn only because it sits behind the motion query.
   `AddUserRefToNotes` migration fails there. The app's notes table is recreated instead,
   which drops the notes written before it (development data only).
 
+
+### M38 · One variant system
+
+- **`Tone::Info` is the brand scale for now.** The palette has one colour each for ok, warn
+  and danger and full scales only for gray and the brand, so `tone="info"` paints like
+  `tone="brand"` until M39 adds `--lui-info-*`. Ok, warn and danger tints are
+  `color-mix(in srgb, ..)` of their one colour, as the alert's callout already did.
+- **`Size` has three values; Radix gives Dialog four and Avatar five.** `Dialog::size` and
+  `Avatar::size` keep their `u8` (1 to 4 and 1 to 5), so `size=4` on a dialog still means
+  Radix's size 4. Every other `.size(..)` takes `impl Into<Size>`.
+- **A choice's string is checked by name, not by type.** `lui!` sees tokens, not types, so it
+  treats a string given to an attribute named `size`, `tone`, `variant` or `radius` as a
+  name in `loco_ui::variant`. A component with a string setter of one of those names would
+  need `x=("..")` in `lui!`; none has one.
