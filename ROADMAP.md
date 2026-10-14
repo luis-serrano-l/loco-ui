@@ -2750,28 +2750,67 @@ delete it; run `look-check` on `/button`. Parallel: yes, no code conflicts.
 
 ## M45 · i18n that survives a second language
 
-- [ ] `Strings::dir()` (`ltr`/`rtl`), set on `<html>`; `Text::Plural { one, other }` or a
+- [x] `Strings::dir()` (`ltr`/`rtl`), set on `<html>`; `Text::Plural { one, other }` or a
   `Strings::count(Text, n)` with a per-language plural rule fn (`PluralRule::{One, Few,
   Many, Other}` CLDR categories for en/es/fr/de/ar/ru/pl as data; an app language passes
   its own fn in `i18n::languages`); `OneMatch/Matches` migrate to it.
-- [ ] Numbers: `Strings::number(f64)` with grouping and decimal separators per language
+  Done: `Dir` and `Strings::dir()`, written as `<html dir>` (one attribute in `layout.rs`
+  plus a `dir` parameter of the internal `page`); `Ui` reads `?dir=ltr|rtl` and ignores any
+  other value, since the table's sort direction is also called `dir`. `Strings::count(text,
+  n)` with `Plural::{Zero, One, Two, Few, Many, Other}` (all six, since Arabic needs zero
+  and two; the category is named `Plural`, the rule `PluralRule = fn(u64) -> Plural`). The
+  rules for en, es, fr, de, ar, he, ru, pl are a small table keyed by tag; an app language
+  passes its own with `Strings::with_plural` rather than through `i18n::languages`, so
+  `languages` keeps its signature. A counted text writes its forms `one:..|other:..`.
+  `Text::Matches` holds both forms and `Text::OneMatch` is deprecated, kept for the table
+  order.
+- [x] Numbers: `Strings::number(f64)` with grouping and decimal separators per language
   (data in `Strings`), used by paged table range, stat, meter, counter, pagination.
   Dates: `Strings::date(Date)` long/short, weekday abbreviations as explicit arrays
   (`weekdays_short`) instead of the 2-char slice (`calendar.rs:373`); week start per
   language (`first_day`), `.sunday_first()` overrides.
-- [ ] App keys: `Text` stays `#[non_exhaustive]`; add `Strings::custom(key: &'static str)`
+  Done: `Strings::number(f64)` with group and decimal separators and CLDR
+  `minimumGroupingDigits` (Spanish 1234 but 12.345); a crate-private `digits` writes any
+  integer exactly (an `i64` counter at its maximum would lose digits through `f64`). Used
+  by the paged table's range, page numbers and jump, the pager, counter (value, bounds,
+  step), meter and stat's progress text; `paged_table::thousands` stays, English.
+  `Strings::date` and `date_long`; the weekday abbreviations are seven new `Text` keys
+  (`MondayShort`..) rather than a separate array, so `from_lookup` fills them too.
+  `Strings::first_day()` (en and es Monday, en-US and he Sunday, ar Saturday),
+  `with_first_day`, and `.sunday_first()` overrides. Spanish /calendar renders as before
+  (the abbreviations match the old two letters), so no new shot.
+- [x] App keys: `Text` stays `#[non_exhaustive]`; add `Strings::custom(key: &'static str)`
   with an app table (`i18n::languages` takes `&[(&str, &str)]` extras), so an app's own
   component reads `ui.text_key("notes.pinned")`; `Box::leak` in `from_lookup`
   (`i18n.rs:687-704`) replaced by a `OnceLock<Vec<Strings>>` registry.
-- [ ] Required marker: `Text::Required` ("required") rendered as `<span aria-hidden>*</span>`
+  Done: `Strings::with_custom(&[(key, text)])`, `Strings::custom(key)` and
+  `ui.text_key(key)`, which falls back to the default language's table, then the key. The
+  extras live on `Strings`, not in `i18n::languages`, whose shape is unchanged. The
+  registry is a fixed array of 32 slots, each three `OnceLock`s (tag, looked-up texts, the
+  table pointing into them), so a table is `&'static` without `Box::leak` or `unsafe`; past
+  32 languages `from_lookup` returns English. A lookup table has no custom texts: the app
+  reads its own keys from the same lookup.
+- [x] Required marker: `Text::Required` ("required") rendered as `<span aria-hidden>*</span>`
   plus a visually-hidden word, or `aria-required` only (the `required` attribute already
   says it): pick aria-only plus the visual star, translatable `Text::RequiredHint` in the
   form's description ("* required"). Validator fallback messages (`loco.rs:372-385`) go
   through `Text`. `Text::month(0)` guarded. Deprecated `layout()` deleted (hardcoded "en").
-- [ ] Demo: Spanish table completed for every new key (test exists:
+  Done: aria-only plus the visual star: `<span class="lui-field-required"
+  aria-hidden="true">*</span>` in inputs and radio groups, and a form with a required field
+  shows `Text::RequiredHint` ("* required", `.lui-form-hint`) above its button, also
+  aria-hidden. The validator codes map to `Text::Field*` (and `Text::FormCheck` for an
+  unreadable form); `Valid` uses the visitor's language from the request's cookie and
+  `Accept-Language`, `FieldErrors::from` and `Submitted` the default one
+  (`Submitted::strings(ui.strings)` for the visitor's). `Text::month(0)` is January.
+  `layout()` and `layout_with()` both deleted.
+- [x] Demo: Spanish table completed for every new key (test exists:
   `components_write_no_english_outside_the_string_table`); add a `?dir=rtl` showcase
   shared with M39's RTL box (one of them owns `Ui` parsing of `dir`; M45 owns it, M39
   only the CSS).
+  Done: Spanish covers every new key (the test skips only the deprecated `OneMatch`). An
+  Arabic table of 11 texts joins the language buttons; `Strings::new("ar")` brings
+  `dir="rtl"`, the Arabic plural rule and Saturday first. `?dir=rtl` works on any page.
+  `pages_run_right_to_left` in `demo/src/tests.rs` checks both. The logical CSS is M39's.
 
 Key files: `i18n.rs`, `calendar.rs`, `paged_table.rs`, `input.rs` (marker),
 `demo/src/spanish.rs`. Verify: unit tests for plural categories and number formats,

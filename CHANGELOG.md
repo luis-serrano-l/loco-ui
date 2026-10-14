@@ -6,6 +6,40 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
+#### M45
+
+- `Strings` carries more than words. `Strings::new(tag)` takes CLDR data for en, es, fr, de,
+  ar, he, ru and pl from the tag (English's for any other): `dir()` (written as
+  `<html dir>`), a plural rule, number separators and the first day of the week, each
+  overridden by `with_dir`, `with_plural`, `with_number` and `with_first_day`. `?dir=rtl` or
+  `?dir=ltr` on any page overrides the direction (`ui.dir()`).
+- `Strings::count(text, n)` and `ui.count(..)` pick a counted text's form: a text written
+  `one:{} match|other:{} matches` holds one form per CLDR category (`Plural`), `other`
+  standing in for a missing one. `Text::Matches` is written that way; `Text::OneMatch` is
+  deprecated and no longer read.
+- `Strings::number(f64)` and `ui.number(..)` write `1,234.5`, `1.234,5`, `1234` / `12.345`
+  (Spanish) or `1 234,5`. The paged table's range and page numbers, the pager, counter,
+  meter and stat use them.
+- `Strings::date` and `Strings::date_long`. The calendar's column heads come from new texts
+  (`Text::MondayShort` to `SundayShort`) instead of the first two letters of the weekday,
+  and its rows start on the language's first day; `.sunday_first()` still wins.
+- App texts: `Strings::with_custom(&[(key, text)])`, read by `Strings::custom(key)` and
+  `ui.text_key(key)` (visitor's language, then the default one, then the key).
+- `Strings::from_lookup` keeps its tables in a fixed `OnceLock` registry (32 languages)
+  instead of leaking a box per table.
+- The star after a required label is `<span class="lui-field-required" aria-hidden="true">`;
+  a form with a required field shows "* required" (`Text::RequiredHint`, also hidden from
+  screen readers, which hear the `required` attribute).
+- Validator messages (`FieldErrors`, `Submitted`, `Valid`) come from new `Text::Field*` and
+  `Text::FormCheck` texts: `Valid` writes the visitor's language, the others the app's
+  default; `Submitted::strings(ui.strings)` picks the visitor's.
+- `Text::month(0)` no longer underflows. `i18n::languages(&[])` no longer panics on the next
+  request.
+- **Breaking:** `layout::layout` and `layout::layout_with` are deleted (both wrote
+  `lang="en"`); use `ui.page(..)`. `Strings` gained fields, so a struct literal of it no
+  longer compiles (its fields were private already); its `PartialEq` leaves out the plural
+  rule.
+
 ### `loco-ui`
 
 - Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
