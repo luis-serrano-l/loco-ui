@@ -31,7 +31,7 @@
 //! let paid = ui.badge("Paid").ok().render().into_string();
 //! assert!(paid.contains("lui-badge lui-badge-ok"));
 //! let tag = ui.badge("rust").outline().href("/tags/rust").render().into_string();
-//! assert!(tag.starts_with(r#"<a class="lui-badge lui-badge-outline" href="/tags/rust">"#));
+//! assert!(tag.starts_with(r#"<a class="lui-badge lui-badge-outline" data-variant="outline" href="/tags/rust">"#));
 //! // Opt-in motion: a light sweeps across it.
 //! let new = ui.badge("New").shimmer().render().into_string();
 //! assert_eq!(new, r#"<span class="lui-badge lui-badge-shimmer">New</span>"#);

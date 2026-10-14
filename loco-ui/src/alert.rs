@@ -23,7 +23,7 @@
 //! let m = ui.alert("Heads up").description("You can add components to your app.").render().into_string();
 //! assert!(m.contains(r#"role="status""#) && m.contains("Heads up"));
 //! let m = ui.alert("Payment failed").danger().description("Your card was declined.").render().into_string();
-//! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-danger" role="alert""#));
+//! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-danger" data-tone="danger" role="alert""#));
 //! // The same in `lui!`:
 //! let same = lui! { Alert("Payment failed") danger description="Your card was declined."; };
 //! assert_eq!(same.into_string(), m);
