@@ -32,7 +32,7 @@ node scripts/bench-swap.mjs [runs] # click-to-paint of in-place updates: the scr
 scripts/look.sh [--only <name>] [--tag <tag>] [--no-ref]  # Firefox shots of every page (light/dark, 1280/768/420) beside its M34 reference, into target/look/[<tag>/]
 cargo run -p demo -- spec write    # regenerate spec/components.json and the README feature matrix from loco_ui::spec::SPECS
 scripts/snapshot.sh [dir]          # static GitHub Pages snapshot of every GET page into target/site/
-cargo run -p loco-ui -- install <app> --dep-path "$PWD/loco-ui"   # the cargo-lui installer on a Loco app (also `auth`); tests/install.rs runs it on tests/fresh-loco-app
+cargo run -p loco-ui --features cli -- install <app> --dep-path "$PWD/loco-ui"   # the cargo-lui installer on a Loco app (also `auth`, `add`, `new`, `eject`; `--help`); tests/install.rs runs it on tests/fresh-loco-app
 scripts/verify.sh                  # fmt check, clippy, tests, <script> grep; run before committing. Clippy at every feature level, the installer test, rustdoc and the browser check run only in CI (.github/workflows/rust.yml, parallel jobs); never run them all locally
 ```
 

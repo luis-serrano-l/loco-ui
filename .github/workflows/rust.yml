@@ -45,6 +45,7 @@ jobs:
         cargo clippy -p loco-ui --all-targets
         cargo clippy -p loco-ui --features http --all-targets
         cargo clippy -p loco-ui --features loco --all-targets
+        cargo clippy -p loco-ui --features cli --all-targets
     # The enhancement tag is built in loco-ui/src/enhance.rs; nothing else may write one.
     - name: No <script> outside enhance.rs
       run: |
@@ -75,6 +76,9 @@ jobs:
       run: |
         cargo test -p loco-ui --features loco loco
         cargo test -p loco-ui --features loco --doc loco
+    # The installer is behind `cli` (its toml_edit stays out of the library); its quick tests.
+    - name: Tests (cli feature)
+      run: cargo test -p loco-ui --features cli --bin cargo-lui --test install
 
   # Blitz layout assertions and the screenshots in tests/shots/.
   shots:
@@ -90,12 +94,14 @@ jobs:
     - name: Blitz tests
       run: cargo test -p loco-ui-test
 
-  # `cargo lui install` on a fresh `loco new` copy, then `cargo check` of the result.
+  # `cargo lui install`, `add`, `new` and `eject` on a fresh `loco new` copy, then builds of the results.
   install:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
     - uses: Swatinem/rust-cache@v2
       with:
         key: ${{ github.job }}
@@ -106,7 +112,7 @@ jobs:
       with:
         tool: sea-orm-cli@2
     - name: Installer
-      run: cargo test -p loco-ui --test install -- --include-ignored
+      run: cargo test -p loco-ui --features cli --test install -- --include-ignored
 
   # The enhancement script in headless Firefox, then axe-core on every route (fails on any
   # serious or critical violation). The runner image has Firefox and geckodriver.

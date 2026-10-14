@@ -149,11 +149,20 @@ search as you type, in-place table sort, wizard steps, live range output, theme)
 
 ## Use with Loco
 
-On [Loco](https://loco.rs), `cargo lui install` (from `cargo install --git
-https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui`) sets an app up in one
-command: the dependency with the `loco` feature, the scaffold templates, a layout view and
-this line in `App::initializers`; controllers then take `ui: Ui` like any Axum handler and return `Result<Page>` or
-`Result<Redirect>`:
+`cargo lui` is the installer:
+
+```sh
+cargo install --git https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui --features cli
+cargo lui new my_app               # a new Axum app; `--loco` for a Loco one with accounts
+cargo lui install                  # in an existing Loco app
+cargo lui add badge record_page    # copy components into src/ui/, yours to edit
+```
+
+On [Loco](https://loco.rs), `cargo lui install` sets an app up in one command: the
+dependency with the `loco` feature (pinned to the installer's commit until the crate is
+published), the scaffold templates, a layout view, the app's `Look`, the 404 page, the strict
+CSP layer and this line in `App::initializers`; controllers then take `ui: Ui` like any Axum
+handler and return `Result<Page>` or `Result<Redirect>`:
 
 ```rust
 async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
@@ -165,7 +174,11 @@ async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
 message plus what was typed, so a bad form is shown again instead of answered with an error
 (`loco::FieldErrors` does the same for Loco's model validation), and `loco-ui/loco-templates/` makes
 `cargo loco generate scaffold` write an HTML controller and Maud views (Post/Redirect/Get,
-paging, validation) instead of a JSON API. `cargo lui auth` adds sign-in, sign-up, forgot and
+paging, a search box and sortable columns that query the database, a CSV download,
+validation, a delete that asks first; `cargo lui scaffold .. --parent notebook` nests the
+list under its parent) instead of a JSON API. `cargo lui add` copies a component's file
+into the app as `ui.app_<name>(..)`, the whole file with its docs and CSS, for when yours
+differs; `cargo lui eject` copies all of loco-ui. `cargo lui auth` adds sign-in, sign-up, forgot and
 reset password, email verification and magic-link pages, all forms, with Loco's JWT in an
 `HttpOnly` cookie. [`examples/loco-app`](examples/loco-app) is a generated app, tested through
 Loco's router and Blitz; [`docs/loco.md`](docs/loco.md) covers install, controllers, forms,

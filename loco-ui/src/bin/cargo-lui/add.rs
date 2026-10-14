@@ -170,7 +170,7 @@ pub fn add(options: &Options) -> Result<(), String> {
     }
     if !options.view && !options.diff {
         let first = Names::new(resolve(&options.names[0])?, &options.prefix);
-        if let Some(method) = main_builder(first.module).and_then(|c| method_of(c)) {
+        if let Some(method) = main_builder(first.module).and_then(method_of) {
             let new = format!("{}_{method}", first.prefix);
             println!(
                 "done: `use crate::ui::*;`, then `ui.{new}(..)`, or `{}(..)` in `lui!`",
@@ -409,12 +409,14 @@ fn vendor(source: &str, names: &Names, crate_name: &str) -> Result<String, Strin
         .split_inclusive('\n')
         .filter(|l| {
             let l = l.trim();
-            !matches!(
+            let feature = matches!(
                 l,
                 r#"#[cfg(feature = "axum")]"#
                     | r#"#[cfg(feature = "http")]"#
                     | r#"#[cfg(feature = "loco")]"#
-            ) && !(l.starts_with("#[cfg_attr(docsrs") || l.starts_with("#![cfg_attr(docsrs"))
+            );
+            let docsrs = l.starts_with("#[cfg_attr(docsrs") || l.starts_with("#![cfg_attr(docsrs");
+            !feature && !docsrs
         })
         .collect();
     let (text, methods) = take_impl_ui(&text)?;
@@ -975,7 +977,7 @@ fn copy_tree(from: &Path, to: &Path, files: &crate::Files) -> Result<(), String>
         }
         if path.is_dir() {
             copy_tree(&path, &to.join(&name), files)?;
-        } else if name != "Cargo.toml" || from.join("src").is_dir() == false {
+        } else if name != "Cargo.toml" || !from.join("src").is_dir() {
             match fs::read_to_string(&path) {
                 Ok(text) => files.write(&to.join(&name), &text)?,
                 Err(_) if !files.dry_run => {
