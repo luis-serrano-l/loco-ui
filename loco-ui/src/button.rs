@@ -283,7 +283,7 @@ impl<'a> Button<'a> {
 
     /// The same button as a link to `href` with `role="button"`: a component's trigger
     /// where the browser has no invoker commands.
-    pub(crate) fn to_link(mut self, href: &'a str) -> Self {
+    pub(crate) fn linking(mut self, href: &'a str) -> Self {
         self.href = Some(href);
         self.attrs.role = self.attrs.role.or(Some("button"));
         self

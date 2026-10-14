@@ -345,7 +345,7 @@ impl Render for Dialog<'_> {
                 } @else if invokers {
                     (opener.command("show-modal", id).aria_haspopup("dialog"))
                 } @else {
-                    (opener.to_link(&open_href).part("lui-dialog-open"))
+                    (opener.linking(&open_href).part("lui-dialog-open"))
                 }
                 dialog id=(id) class=(size.class()) closedby=(closedby) aria-labelledby=[title.map(|_| &title_id)] open[open] {
                     @if let Some(t) = title { h2 id=(title_id) class="lui-dialog-title" { (t) } }

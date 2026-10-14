@@ -230,7 +230,7 @@ impl Render for Drawer<'_> {
                 } @else if invokers {
                     (opener.command("show-modal", id).aria_haspopup("dialog"))
                 } @else {
-                    (opener.to_link(&open_href))
+                    (opener.linking(&open_href))
                 }
                 dialog id=(id) class="lui-drawer-panel" closedby="any" aria-labelledby=(title_id)
                     aria-describedby=[description.map(|_| &desc_id)] open[open] {
