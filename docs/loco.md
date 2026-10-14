@@ -17,23 +17,71 @@ notes model, every page working with script off, tested through Loco's own route
 ## Install
 
 One command sets a Loco app up: it adds the two dependencies below, the initializer line,
-the scaffold templates and a `src/views/layout.rs` (a page with a header, registered in
-`src/views/mod.rs`). Running it again changes nothing, and a file you edited is kept
-(`--force` overwrites the templates and the layout).
+the scaffold templates, a `src/views/layout.rs` (a page with a header) and a
+`src/views/look.rs` (the app's [`Look`](../loco-ui/src/layout.rs): tokens and extra CSS),
+both registered in `src/views/mod.rs`, and two hooks in `src/app.rs`: `before_routes` gives
+every path no route answers loco-ui's 404 page, and `after_routes` layers the look and the
+strict Content-Security-Policy (`loco_ui::enhance::csp`) over every page. Running it again
+changes nothing, a file you edited is kept (`--force` overwrites it), a hook the app already
+defines is left alone with a note, and `--dry-run` prints what would change. The manifest is
+edited with `toml_edit`, so comments, CRLF line ends and `[dependencies.x]` tables stay.
 
 ```sh
-cargo install --git https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui
+cargo install --git https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui --features cli
 cargo lui install            # in the app's directory, or `cargo lui install path/to/app`
+cargo lui --help             # every command
 ```
 
-`loco-ui/tests/install.rs` runs it on a fresh `loco new` app and `cargo check`s the result.
-By hand, the same steps are the rest of this page:
+`loco-ui/tests/install.rs` runs it on a fresh `loco new` app and builds the result. By hand,
+the same steps are the rest of this page:
 
 ```toml
-# Cargo.toml of the Loco app (the crate is not on crates.io yet: use git or a path)
-loco-ui = { git = "https://github.com/luis-serrano-l/loco-ui", features = ["loco"] }
+# Cargo.toml of the Loco app. The crate is not on crates.io yet: `install` pins the git
+# dependency to the commit the installer was built from (`--rev` names another).
+loco-ui = { git = "https://github.com/luis-serrano-l/loco-ui", rev = "<commit>", features = ["loco"] }
 maud = "0.27" # `html!` expands to `maud::` paths, so the app names it too
 ```
+
+### A new app
+
+`cargo lui new my_app` writes an Axum app: the app shell with home and settings, the theme
+toggle, the 404 page, the CSP layer, a `Look`, a test that every page answers without a
+script of its own, and `scripts/check.sh` (format, clippy, tests, no `<script>` in the
+source). `cargo lui new my_app --loco` runs `loco new` (SQLite, blocking workers, no assets;
+`--from DIR` copies an existing Loco app instead), then `install` and `auth`, and adds the
+same pages and a demo account (`demo@example.com` / `demo-password`) made on the first start
+in development. The files come from `loco-ui/loco-templates/new/`.
+
+### Copying a component
+
+`cargo lui add badge` copies `loco-ui/src/badge.rs`, from the app's own loco-ui dependency,
+into `src/ui/app_badge.rs`: the whole file, its `//!` header, doctests, `PROPS` and `CSS`.
+Rust calls a type's own method before a trait's, so a copy named `ui.badge(..)` would never
+run; the copy is `ui.app_badge(..)` (`AppBadge(..)` in `lui!`, classes `app-badge`), and
+`--prefix acme` names it `acme_badge`. Its `impl Ui` becomes an extension trait,
+`AppBadgeExt`, the pattern [docs/components.md](components.md) describes. `src/ui/mod.rs`
+re-exports each copy, so `use crate::ui::*;` brings them all, and the copy's `CSS` joins the
+`css` list in `src/views/look.rs`.
+
+```sh
+cargo lui list                     # what can be copied
+cargo lui info badge               # its setters
+cargo lui add badge --dry-run      # what would be written; --view prints the file
+cargo lui add badge --diff         # your copy beside loco-ui's current one
+cargo lui eject                    # all of loco-ui into vendor/, the dependency a path to it
+```
+
+`list` names the 26 components whose files use loco-ui's public API only; the others call
+helpers private to the crate (the shared search box, `labelled`, the menu placement), and
+`eject` is the way to own those.
+
+### Nested scaffolds
+
+`cargo lui scaffold note title:string! notebook:references --parent notebook` runs
+`cargo loco generate scaffold` with `LUI_PARENT=notebook`, which the templates read: the
+controller gets `nested_routes()`, `/notebooks/{id}/notes` (that notebook's notes, searched
+and sorted like the list) and `/notebooks/{id}/notes/new` (the form with the notebook
+chosen).
 
 ## The initializer line
 
@@ -218,7 +266,19 @@ cargo fmt
 That writes the migration and model as usual, then `src/controllers/notes.rs` (list with
 paging, show, new, create, edit, update, delete; every change a form post and a redirect with
 a flash; the form re-rendered with values and messages on bad input) and `src/views/notes.rs`
-(`list`, `show`, `form`, `values`), and registers the routes in `app.rs`. The handlers take
+(`list`, `show`, `form`, `values`), and registers the routes in `app.rs`.
+
+The list's search box and column headers work: `query()` in the controller reads
+`ui.table_query("notes", SORTABLE)` and turns the search text into a SeaORM
+`Condition::any()` of `LIKE '%text%'` over the text columns (`string` and `text` fields;
+SQLite's `LIKE` ignores ASCII case, Postgres's does not, so use `ILIKE` there by hand), and
+the sort into `order_by(column, Order::Desc | Asc)`, then by id. Every column is
+`sortable` in the view. `/notes/export.csv` answers the same search and sort as CSV, every
+row rather than one page (the table's "Download CSV" link), with a leading `=`, `+` or `@`
+escaped so a spreadsheet does not run it. The show page's Delete opens a dialog that asks
+first ([`RecordPage`](../loco-ui/src/blocks/record_page.rs)). The controller ends with a test of
+`query()`'s SQL (`cargo test --lib`), and its flash messages and titles come from
+`Text::Created`, `Saved`, `Deleted`, `New` and `Edit`, so they follow the visitor's language. The handlers take
 `auth::JWT` unless you pass `--no-auth`. Needs: a `src/views/mod.rs`, a
 `tests/models/mod.rs` (the model generator adds a test there), and `sea-orm-cli` 2 for the
 entities step. Field kinds map to controls:
@@ -256,8 +316,9 @@ so. `examples/loco-app`'s `tasks` are owned, and its page test checks that a sec
 - The `owasp` preset sends `Clear-Site-Data: "cache","cookies","storage"` on every response,
   which wipes the flash, the theme and the sign-in cookie on each page. Use `github`, or
   override that header.
-- loco-ui's strict `csp` layer is not added for you; add
-  `axum::middleware::from_fn(loco_ui::enhance::csp)` in `after_routes` to use it.
+- `cargo lui install` adds loco-ui's strict `csp` layer in `after_routes`
+  (`axum::middleware::from_fn(loco_ui::enhance::csp)`). It keeps a policy an answer already
+  has, so with `secure_headers` turned on (it is off unless configured) Loco's policy wins.
 
 ## Blocks and the 404 page
 

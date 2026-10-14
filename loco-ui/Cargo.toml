@@ -27,6 +27,9 @@ axum = ["http", "dep:axum", "dep:bytes", "dep:serde", "dep:serde_urlencoded", "d
 # Loco on top of `axum`: an initializer that mounts `/lui/enhance.js` and `/lui/caps`, and
 # `Valid<T>`, a form extractor that reports every bad field (`serde_path_to_error`). Loco's
 # `with-db` (what every app with a database has on) for `Table::paged_from(&PagerMeta)`.
+# The `cargo lui` binary: `toml_edit` for the app's manifest, `serde_json` for `cargo
+# metadata`. The library never uses them.
+cli = ["dep:toml_edit", "dep:serde_json"]
 loco = ["axum", "dep:loco-rs", "loco-rs/with-db", "dep:async-trait", "dep:serde_path_to_error", "dep:chrono", "dep:serde_json"]
 
 [dependencies]
@@ -45,6 +48,7 @@ async-trait = { version = "0.1", optional = true }
 serde_path_to_error = { version = "0.1", optional = true }
 chrono = { version = "0.4", optional = true, default-features = false, features = ["std"] }
 serde_json = { version = "1", optional = true }
+toml_edit = { version = "0.22", optional = true }
 
 [dev-dependencies]
 serde.workspace = true
@@ -67,6 +71,14 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 proptest = "1.12.0"
 # HTML snapshots of every component's header example (tests/snapshots.rs): `cargo insta review`.
 insta = "1.49.0"
+
+[[bin]]
+name = "cargo-lui"
+required-features = ["cli"]
+
+[[test]]
+name = "install"
+required-features = ["cli"]
 
 [[bench]]
 name = "render"

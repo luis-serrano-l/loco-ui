@@ -243,8 +243,9 @@
 //!   response, which wipes the flash, the theme and the sign-in cookie on each page. Use
 //!   `github`, or `owasp` with that header overridden.
 //!
-//! The strict [`csp`](crate::enhance::csp) layer is not added: an app states its own policy
-//! (add `axum::middleware::from_fn(loco_ui::enhance::csp)` in `after_routes` to use ours).
+//! The strict [`csp`](crate::enhance::csp) layer is not part of the initializer: an app
+//! states its own policy. `cargo lui install` adds ours in `after_routes`
+//! (`axum::middleware::from_fn(loco_ui::enhance::csp)`).
 //!
 //! Loco answers a signed-out request to a handler that takes `auth::JWT` with a JSON 401.
 //! [`SignIn`] (which `cargo lui auth` adds beside [`Initializer`]) turns that into a

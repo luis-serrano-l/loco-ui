@@ -155,7 +155,13 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::FieldMustMatch, "Los valores no coinciden.")
     .with(Text::FieldFormat, "Revisa el formato.")
     .with(Text::FieldCheck, "Revisa este campo.")
-    .with(Text::FormCheck, "Revisa el formulario.");
+    .with(Text::FormCheck, "Revisa el formulario.")
+    .with(Text::New, "Nuevo")
+    .with(Text::Created, "Creado.")
+    .with(Text::Saved, "Guardado.")
+    .with(Text::Deleted, "Borrado.")
+    .with(Text::DeleteConfirm, "¿Borrar {}?")
+    .with(Text::CannotUndo, "No se puede deshacer.");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

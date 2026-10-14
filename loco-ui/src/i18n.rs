@@ -350,6 +350,18 @@ pub enum Text {
     FieldCheck,
     /// "Check the form.": a posted form that could not be read at all.
     FormCheck,
+    /// "New": the scaffold's new-record page and button ("New note").
+    New,
+    /// "Created.": the scaffold's flash after a create.
+    Created,
+    /// "Saved.": the scaffold's flash after an update.
+    Saved,
+    /// "Deleted.": the scaffold's flash after a delete.
+    Deleted,
+    /// "Delete {}?": record page: the delete dialog's title.
+    DeleteConfirm,
+    /// "This cannot be undone.": record page: the delete dialog's text.
+    CannotUndo,
 }
 
 /// How many texts there are.
@@ -358,7 +370,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 142] = [
+    pub const ALL: [Text; 148] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -501,6 +513,12 @@ impl Text {
         Text::FieldFormat,
         Text::FieldCheck,
         Text::FormCheck,
+        Text::New,
+        Text::Created,
+        Text::Saved,
+        Text::Deleted,
+        Text::DeleteConfirm,
+        Text::CannotUndo,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -676,6 +694,12 @@ const ENGLISH: [&str; N] = [
     "Check the format.",
     "Check this field.",
     "Check the form.",
+    "New",
+    "Created.",
+    "Saved.",
+    "Deleted.",
+    "Delete {}?",
+    "This cannot be undone.",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

@@ -103,6 +103,34 @@ Everything below also ships in 0.2.0, the first publish.
   `data-tone` and `data-variant`. **Breaking** in the HTML: a primary, danger, ghost, soft or
   surface button, a small or large one, and a toned badge carry the new attributes.
 
+#### M43
+
+- **Breaking (installer):** the `cargo-lui` binary needs the new `cli` feature
+  (`cargo install --git .. loco-ui --bin cargo-lui --features cli`). The feature brings
+  `toml_edit` and `serde_json` for the binary only; `cargo tree -p loco-ui` without it lists
+  no new crate.
+- `cargo lui add <name>..` copies a component's file from the app's loco-ui dependency into
+  `src/ui/app_<name>.rs`, whole (header, doctests, `PROPS`, `CSS`), as `ui.app_<name>(..)`
+  with an `App<Name>Ext` trait, registered in `src/ui/mod.rs`, `src/lib.rs` and the `css`
+  list of the app's `Look`. `--prefix`, `--dry-run`, `--diff`, `--view`, `--force`; `cargo lui
+  list`, `cargo lui info <name>` (the setters), `cargo lui eject` (all of loco-ui into
+  `vendor/`). 26 components can be copied; the rest use crate-private helpers.
+- `cargo lui new <app>` writes an Axum app (app shell, settings, theme toggle, 404 page, CSP,
+  `Look`, a page test, `scripts/check.sh`); `--loco` builds on `loco new` (or `--from DIR`)
+  with `install`, `auth` and a demo account seeded in development.
+- `cargo lui install` adds `src/views/look.rs` and the `before_routes` (404 page) and
+  `after_routes` (look and strict CSP) hooks, pins the git dependency to the installer's
+  commit (`--rev` overrides), edits `Cargo.toml` with `toml_edit` (CRLF and dotted tables
+  kept), and takes `--dry-run`, `--help` and `--version`.
+- The scaffold's list searches (`LIKE` over text columns) and sorts (every column
+  `sortable`) in SQL through `ui.table_query`, has a CSV download (`/<plural>/export.csv`),
+  and ends with a generated test of its query; `cargo lui scaffold .. --parent <model>` adds
+  `/<parents>/{id}/<plural>` routes. Its titles and flashes use `Text::New`, `Edit`,
+  `Created`, `Saved`, `Deleted`. The scaffold's `views::<plural>::list` takes a `base` path
+  (**breaking** for a template copy that calls it, not for generated apps).
+- `RecordPage::delete` opens a dialog that asks first ("Delete Invoice 42?",
+  `Text::DeleteConfirm`, `Text::CannotUndo`) instead of posting at once.
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
