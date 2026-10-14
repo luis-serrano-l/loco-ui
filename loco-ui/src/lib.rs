@@ -1014,6 +1014,10 @@ mod tests {
     /// Names two or more builders use for setters of a different shape, each with the reason.
     const SAME_NAME_OTHER_SHAPE: &[(&str, &str)] = &[
         (
+            "footer",
+            "Card's footer is markup; Table adds a `<tfoot>` row of cells, like its rows",
+        ),
+        (
             "text",
             "Form adds a text field (name, label); Marquee adds a line of text",
         ),

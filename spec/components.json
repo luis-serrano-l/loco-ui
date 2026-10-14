@@ -667,7 +667,7 @@
       "look": "shadcn data table, Origin UI",
       "responsive": "container",
       "features": [
-        { "name": "?sort.<id>=<col>&dir.<id>=asc|desc", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "?sort.<id>=<col>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "<search>", "baseline": { "chrome": "118", "firefox": "118", "safari": "17" } },
         { "name": "aria-sort", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "form attribute", "baseline": { "chrome": "10", "firefox": "4", "safari": "5.1" } },
@@ -678,7 +678,7 @@
         { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } },
         { "name": "aria-busy", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
       ],
-      "fallback": "none needed: sorting, filtering, column choice and the bulk form are plain navigations and posts; no select-all without script",
+      "fallback": "none needed: sorting, filtering, column choice and the bulk form are plain navigations and posts; select-all posts `all=1` with the query instead of ticking boxes",
       "needs_js": "no",
       "builders": [
         {
@@ -690,7 +690,12 @@
             { "name": "key", "kind": "value", "args": "key: &'a str", "default": "", "attr": "", "doc": "The value posted for this row when its checkbox is ticked; also names its menu." },
             { "name": "detail", "kind": "value", "args": "detail: Markup", "default": "", "attr": "", "doc": "A block shown under the first cell when its `<details>` is opened." },
             { "name": "values", "kind": "value", "args": "values: impl IntoIterator<Item = &'a str>", "default": "", "attr": "", "doc": "The raw text of each cell, in column order, for editing the row in place." },
-            { "name": "menu", "kind": "value", "args": "items: impl IntoIterator<Item = MenuItem<'a>>", "default": "", "attr": "", "doc": "Items of the row's action menu (needs a `key`)." }
+            { "name": "menu", "kind": "value", "args": "items: impl IntoIterator<Item = MenuItem<'a>>", "default": "", "attr": "", "doc": "Items of the row's action menu (needs a `key`)." },
+            { "name": "href", "kind": "value", "args": "href: &'a str", "default": "", "attr": "", "doc": "The whole row links to `href`: a click anywhere on it that is not a control opens it." },
+            { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row cannot be selected or opened: no checkbox, no row link, muted." },
+            { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row tinted with the `--lui-ok` tone." },
+            { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row tinted with the `--lui-warn` tone." },
+            { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row tinted with the `--lui-danger` tone." }
           ]
         },
         {
@@ -701,6 +706,7 @@
           "props": [
             { "name": "column", "kind": "item", "args": "key: &'a str, label: &'a str", "default": "", "attr": "", "doc": "A column." },
             { "name": "sortable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last sorts the table." },
+            { "name": "filterable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last gets a text box in the \"Filters\" panel, `?q.<id>.<key>=`." },
             { "name": "numeric", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last holds numbers." },
             { "name": "editable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last becomes a text box when its row is edited in place (`Table::edit`)." },
             { "name": "edit", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "Rows (with a `Row::key`) can be edited in place." },
@@ -714,9 +720,17 @@
             { "name": "paged_from", "kind": "value", "args": "meta: &PagerMeta", "default": "", "attr": "", "doc": "Page the rows from what Loco's `query::fetch_page` or `query::paginate` returns (feature `loco`)." },
             { "name": "choose_columns", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A \"Columns\" chooser." },
             { "name": "bulk", "kind": "value", "args": "action: &'a str, buttons: impl IntoIterator<Item = (&'a str, &'a str)>", "default": "", "attr": "", "doc": "A checkbox per row (rows need a `Row::key`) and a bar of `(value, label)` buttons posting to `action`." },
+            { "name": "select_all", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A header checkbox posting `all=1` to the bulk action, whose URL carries the query: every row the filter matches." },
             { "name": "csv", "kind": "value", "args": "href: &'a str", "default": "", "attr": "", "doc": "A \"Download CSV\" link to `href` with the current sort, filter and columns appended." },
-            { "name": "empty", "kind": "value", "args": "message: &'a str", "default": "No rows match.", "attr": "", "doc": "What the body says when there are no rows." },
-            { "name": "loading", "kind": "condition", "args": "loading: bool", "default": "off", "attr": "", "doc": "Skeleton rows with `aria-busy` instead of the rows." }
+            { "name": "json", "kind": "value", "args": "href: &'a str", "default": "", "attr": "", "doc": "A \"Download JSON\" link to `href` with the current sort, filter and columns appended." },
+            { "name": "empty", "kind": "value", "args": "message: impl Render", "default": "No rows match.", "attr": "", "doc": "What the body says when there are no rows: text, or markup (a call to action)." },
+            { "name": "loading", "kind": "condition", "args": "loading: bool", "default": "off", "attr": "", "doc": "Skeleton rows with `aria-busy` instead of the rows." },
+            { "name": "caption", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A `<caption>` naming the table for assistive tech, visually hidden." },
+            { "name": "total", "kind": "value", "args": "key: &'a str, text: &'a str", "default": "", "attr": "", "doc": "The cell of the column `key` in a totals row in `<tfoot>`." },
+            { "name": "footer", "kind": "item", "args": "row: impl Into<Row<'a>>", "default": "", "attr": "", "doc": "A row in `<tfoot>`, after the totals." },
+            { "name": "striped", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Every other row on a gray band." },
+            { "name": "density", "kind": "value", "args": "density: Density", "default": "Density::Comfortable", "attr": "", "doc": "`Density::Compact` halves the cell padding." },
+            { "name": "group_by", "kind": "value", "args": "key: &'a str", "default": "", "attr": "", "doc": "A group header row wherever the column `key`'s cell changes (rows sorted by it)." }
           ]
         }
       ]

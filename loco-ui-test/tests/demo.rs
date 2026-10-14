@@ -521,7 +521,7 @@ async fn blitz_has_no_declarative_shadow_dom() {
 async fn table_sort_links_and_pages() {
     let page = Page::render(
         demo::router(),
-        "/table?sort.files=size&dir.files=desc&q.files=a&per.files=5&page.files=2&cols.files=name,size",
+        "/table?sort.files=-size&q.files=a&per.files=5&page.files=2&cols.files=name,size",
         MODERN,
     )
     .await;
@@ -531,7 +531,7 @@ async fn table_sort_links_and_pages() {
         "every visible column header is a sort link"
     );
     assert!(
-        page.exists("th[aria-sort=descending] a[href*='sort.files=size'][href*='dir.files=asc']"),
+        page.exists("th[aria-sort=descending] a[href*='sort.files=size&']"),
         "sorted column flips direction"
     );
     assert!(
@@ -557,7 +557,7 @@ async fn table_sort_links_and_pages() {
         page.exists(".lui-table-cols a[aria-pressed=true][href*='cols.files=size']"),
         "and to hiding Name"
     );
-    assert!(page.exists("a.lui-table-csv[download][href='/table.csv?sort.files=size&dir.files=desc&q.files=a&per.files=5&cols.files=name%2Csize']"), "CSV link carries the whole state");
+    assert!(page.exists("a.lui-table-csv[download][href='/table.csv?sort.files=-size&q.files=a&per.files=5&cols.files=name%2Csize']"), "CSV link carries the whole state");
     assert_eq!(
         page.count("tbody input[type=checkbox][name=row][form='lui-table-files-bulk']"),
         5,

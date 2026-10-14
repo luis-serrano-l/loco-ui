@@ -53,7 +53,8 @@
 //! A tab title opens its panel and slides the underline on the click itself; the server's
 //! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
-//! own move form with its new index.
+//! own move form with its new index. A table's "select all matching" box ticks the row
+//! boxes on the page as well.
 //!
 //! [`script_tag`] goes at the end of `<body>`; [`router`] serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
@@ -276,6 +277,11 @@ document.addEventListener("click", function (e) {
 // The narrow-screen tab select submits on change (its Go button stays for everyone else).
 document.addEventListener("change", function (e) {
   if (e.target.matches(".lui-tabs-select select") && e.target.form) submit(e.target.form, null);
+  // A table's "all matching" box also ticks (or clears) the boxes on this page.
+  if (e.target.matches(".lui-table-all")) {
+    var table = e.target.closest(".lui-table");
+    if (table) [].forEach.call(table.querySelectorAll(".lui-table-check"), function (c) { c.checked = e.target.checked; });
+  }
 });
 
 var typing;

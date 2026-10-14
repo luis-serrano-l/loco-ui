@@ -548,7 +548,7 @@ async fn palette_exact_name_redirects_and_toast_posts_stack() {
     assert_eq!(res.status(), 303);
     assert_eq!(
         res.headers().get("location").unwrap(),
-        "/table?sort.files=size&dir.files=desc"
+        "/table?sort.files=-size"
     );
     let res = router()
         .oneshot(Request::get("/palette?q=zzz").body(Body::empty()).unwrap())
@@ -911,7 +911,7 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
             .unwrap();
         String::from_utf8(bytes.to_vec()).unwrap()
     };
-    let page = html("/table?q.try=zzz&sort.files=size&dir.files=desc").await;
+    let page = html("/table?q.try=zzz&sort.files=-size").await;
     assert!(
         page.contains(r#"id="lui-table-try""#),
         "the playground table is on the page"
@@ -925,14 +925,14 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
         "the playground keeps its own search"
     );
     assert!(
-        page.contains(r#"href="/table?sort.files=size&amp;dir.files=asc&amp;per.files=10""#),
+        page.contains(r#"href="/table?sort.files=size&amp;per.files=10""#),
         "the files table's links carry only its own keys"
     );
     let page = html("/table?q.files=zzz").await;
     assert!(page.contains("No files match this filter.") && page.contains("<td>a.txt</td>"));
-    // The bare keys of before still reach the files table, for one release.
+    // The bare keys of before M33 are no longer read (M41).
     let page = html("/table?q=zzz").await;
-    assert!(page.contains("No files match this filter."));
+    assert!(page.contains("1–10 of 36"));
 }
 
 /// The markup of the `/table` and `/table/minimal` tables, pinned for a set of requests in
@@ -947,7 +947,7 @@ fn tables_render_their_golden_markup() {
         (
             "table-sorted-filtered-paged",
             "/table",
-            "sort.files=size&dir.files=desc&q.files=s&page.files=2",
+            "sort.files=-size&q.files=s&page.files=2",
             "lui-ui=per.files=5",
         ),
         (
@@ -957,12 +957,18 @@ fn tables_render_their_golden_markup() {
             "",
         ),
         ("table-loading", "/table", "loading=1", ""),
+        (
+            "table-multi-sort-column-filter",
+            "/table",
+            "sort.files=kind,-size&q.files.kind=source",
+            "",
+        ),
         ("table-empty", "/table", "q.files=zzz", ""),
         ("minimal-default", "/table/minimal", "", ""),
         (
             "minimal-sorted",
             "/table/minimal",
-            "sort.minimal=size&dir.minimal=desc&q.minimal=s&page.minimal=2",
+            "sort.minimal=-size&q.minimal=s&page.minimal=2",
             "lui-ui=per.minimal=5",
         ),
     ];

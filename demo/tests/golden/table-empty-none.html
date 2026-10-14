@@ -5,6 +5,16 @@
 <form method="get" action="/table">
 <input type="hidden" name="per.files" value="10">
 <input id="lui-table-files-q" class="lui-table-filter-input" name="q.files" type="search" value="zzz" placeholder="Filter rows…" autocomplete="off" aria-label="Filter rows">
+<details class="lui-table-filters">
+<summary class="lui-button">Filters<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</summary>
+<div class="lui-table-filters-body">
+<input id="lui-table-files-q-name" class="lui-table-filters-input" name="q.files.name" type="text" value="" placeholder="Name" autocomplete="off" aria-label="Name">
+<input id="lui-table-files-q-kind" class="lui-table-filters-input" name="q.files.kind" type="text" value="" placeholder="Kind" autocomplete="off" aria-label="Kind">
+</div>
+</details>
 <button type="submit" class="lui-button">Filter</button>
 <a class="lui-table-clear" href="/table?per.files=10">Clear</a>
 </form>
@@ -35,9 +45,16 @@
 <path d="m7 10 5 5 5-5"/>
 <path d="M12 15V3"/>
 </svg>Download CSV</a>
+<a class="lui-button lui-button-small lui-table-json" href="/table.json?q.files=zzz&amp;per.files=10" download>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="download">
+<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+<path d="m7 10 5 5 5-5"/>
+<path d="M12 15V3"/>
+</svg>Download JSON</a>
 </div>
 <div class="lui-table-scroll lui-table-has-select">
 <table>
+<caption class="lui-sr">Files</caption>
 <colgroup>
 <col class="lui-table-select-col">
 <col>
@@ -48,16 +65,16 @@
 <thead>
 <tr>
 <th scope="col" class="lui-table-select">
-<span class="lui-sr">Select</span>
+<input type="checkbox" class="lui-table-all" name="all" value="1" form="lui-table-files-bulk" aria-label="Select all 0 matching rows">
 </th>
 <th scope="col" class="">
-<a href="/table?sort.files=name&amp;dir.files=asc&amp;q.files=zzz&amp;per.files=10">Name</a>
+<a href="/table?sort.files=name&amp;q.files=zzz&amp;per.files=10">Name</a>
 </th>
 <th scope="col" class=" lui-table-num lui-table-p2">
-<a href="/table?sort.files=size&amp;dir.files=asc&amp;q.files=zzz&amp;per.files=10">Size</a>
+<a href="/table?sort.files=size&amp;q.files=zzz&amp;per.files=10">Size</a>
 </th>
 <th scope="col" class=" lui-table-p3">
-<a href="/table?sort.files=kind&amp;dir.files=asc&amp;q.files=zzz&amp;per.files=10">Kind</a>
+<a href="/table?sort.files=kind&amp;q.files=zzz&amp;per.files=10">Kind</a>
 </th>
 <th scope="col" class="lui-table-edit">
 <span class="lui-sr">Edit</span>
@@ -69,9 +86,21 @@
 <td colspan="5" class="lui-table-empty">No files match this filter.</td>
 </tr>
 </tbody>
+<tfoot>
+<tr class="lui-table-total">
+<td class="lui-table-select">
+</td>
+<td>0 files</td>
+<td class="lui-table-num lui-table-p2">0 KB</td>
+<td class="lui-table-p3">
+</td>
+<td>
+</td>
+</tr>
+</tfoot>
 </table>
 </div>
-<form method="post" action="/table/bulk" id="lui-table-files-bulk" class="lui-table-bulk">
+<form method="post" action="/table/bulk?q.files=zzz&amp;per.files=10" id="lui-table-files-bulk" class="lui-table-bulk">
 <span>With the selected rows:</span>
 <button type="submit" class="lui-button lui-button-small" name="action" value="archive">Archive</button>
 <button type="submit" class="lui-button lui-button-small" name="action" value="delete">Delete</button>

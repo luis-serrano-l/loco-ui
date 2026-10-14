@@ -139,7 +139,13 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Thursday, "jueves")
     .with(Text::Friday, "viernes")
     .with(Text::Saturday, "sábado")
-    .with(Text::Sunday, "domingo");
+    .with(Text::Sunday, "domingo")
+    .with(Text::SortThenBy, "Luego por {}")
+    .with(Text::Filters, "Filtros")
+    .with(Text::SelectAllMatching, "Elegir las {} filas que coinciden")
+    .with(Text::DownloadJson, "Descargar JSON")
+    .with(Text::Open, "Abrir")
+    .with(Text::OpenRow, "Abrir {}");
 
 /// The languages the demo offers, English first (the default).
 pub static LANGUAGES: [&Strings; 2] = [&Strings::ENGLISH, &SPANISH];

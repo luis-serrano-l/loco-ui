@@ -290,6 +290,18 @@ pub enum Text {
     Saturday,
     /// "Sunday": calendar.
     Sunday,
+    /// "Then by {}": table: the link that adds a column as the next sort key.
+    SortThenBy,
+    /// "Filters": table: the panel of column filters.
+    Filters,
+    /// "Select all {} matching rows": table: the select-all box.
+    SelectAllMatching,
+    /// "Download JSON": table.
+    DownloadJson,
+    /// "Open": table: the row links column.
+    Open,
+    /// "Open {}": table: a row's link.
+    OpenRow,
 }
 
 /// How many texts there are.
@@ -297,7 +309,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 125] = [
+    pub const ALL: [Text; 131] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -423,6 +435,12 @@ impl Text {
         Text::Friday,
         Text::Saturday,
         Text::Sunday,
+        Text::SortThenBy,
+        Text::Filters,
+        Text::SelectAllMatching,
+        Text::DownloadJson,
+        Text::Open,
+        Text::OpenRow,
     ];
 
     /// The month `number`, 1 to 12.
@@ -576,6 +594,12 @@ const ENGLISH: [&str; N] = [
     "Friday",
     "Saturday",
     "Sunday",
+    "Then by {}",
+    "Filters",
+    "Select all {} matching rows",
+    "Download JSON",
+    "Open",
+    "Open {}",
 ];
 
 /// One language's texts. Start from [`Strings::new`] (English with another tag) and set

@@ -20,7 +20,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 47] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -349,6 +349,13 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 47] = [
         "Primitives",
         "<input type=color>, --lui-* custom properties, a GET form, a CSS download",
         "Pick the colours and the radius, see a few components in them, download theme.css.",
+    ),
+    (
+        "/table/rows",
+        "Table, rows",
+        "Server state",
+        "group rows, stretched row links, tones, <tfoot>",
+        "Rows grouped by a column, linked as a whole, toned or disabled.",
     ),
 ];
 
@@ -696,6 +703,7 @@ fn wide(href: &str) -> bool {
             "/kanban",
             "/table",
             "/table/minimal",
+            "/table/rows",
             "/theme",
             "/nav",
             "/inputs",

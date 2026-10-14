@@ -7,7 +7,7 @@
 //!
 //! **Platform features:**
 //! - Ordinary links to `?page.<id>=n` that keep the table's sort, filter, columns and page
-//!   size (`sort.<id>`, `dir.<id>`, `q.<id>`, `cols.<id>`, `per.<id>`); the current page is `aria-current="page"` and the previous/next links are `rel="prev"` /
+//!   size (`sort.<id>`, `q.<id>`, `q.<id>.<col>`, `cols.<id>`, `per.<id>`); the current page is `aria-current="page"` and the previous/next links are `rel="prev"` /
 //!   `rel="next"`. Past seven pages only the first, the last and the current one's neighbours
 //!   are numbered; the gaps are an `aria-hidden` ellipsis.
 //! - `<form method="get">` with `<input type="number">` (`min`, `max`) to jump to a page, and another
@@ -33,12 +33,12 @@
 //! page link still names it, so a shared URL shows the same rows for everyone. The page
 //! itself (`page.<id>`), like the sort and the filter, is a query key only: a bookmark of the
 //! bare path starts on page 1. Each key carries the table's id, so two paged tables on one page
-//! page on their own; the bare `page` of before is still read for one release.
+//! page on their own.
 //!
 //! ```rust
 //! use loco_ui::{prelude::*, table::Row};
 //! // The URL's sort, filter and page, and the page size the visitor picked before.
-//! let ui = Ui::from_request("/table", "sort.files=name&dir.files=desc&q.files=a&page.files=20", "lui-ui=per.files=25");
+//! let ui = Ui::from_request("/table", "sort.files=-name&q.files=a&page.files=20", "lui-ui=per.files=25");
 //! let files = ui.table("files", "/table").column("name", "Name").sortable().column("note", "Note");
 //! assert_eq!((files.page(), files.per_page()), (20, 25), "what a database query needs");
 //! // Only this page's rows, and the total after filtering.
@@ -56,7 +56,7 @@ use crate::button::Button;
 use crate::enhance;
 use crate::i18n::Text;
 use crate::input::Input;
-use crate::table::{Encoded, Keys, View};
+use crate::table::{Encoded, Keys, SortValue, View, sort_text};
 use crate::{Caps, Icon};
 
 /// Page sizes offered in the select.
@@ -89,28 +89,30 @@ pub(crate) fn paged(view: View, total: usize, page: usize, per_page: usize) -> M
         (page - 1) * per_page + 1
     };
     let last = (page * per_page).min(total);
-    let dir = |d: bool| if d { "desc" } else { "asc" };
     let cols_value = view.cols.map(|c| c.join(","));
+    let filter_keys = view.filter_keys(&keys);
+    let sort_text = sort_text(view.sort);
     // Hidden fields shared by both forms: everything in the URL except what the form sets.
     let carried = |skip: &str| {
-        let mut pairs: Vec<(&str, &str)> = Vec::with_capacity(5);
-        if let Some((k, d)) = view.sort {
-            pairs.extend([(keys.sort.as_str(), k), (keys.dir.as_str(), dir(d))]);
+        let mut pairs: Vec<(&str, &str)> = Vec::with_capacity(6);
+        if !view.sort.is_empty() {
+            pairs.push((keys.sort.as_str(), sort_text.as_str()));
         }
-        if !view.filter.is_empty() {
-            pairs.push((&keys.q, view.filter));
-        }
-        pairs.extend(view.keep.iter().copied());
-        if let Some(c) = &cols_value {
-            pairs.push((&keys.cols, c));
-        }
+        pairs.extend(view.pairs(&keys, &filter_keys, cols_value.as_deref()));
         if skip != per_key {
             pairs.push((per_key.as_str(), &per));
         }
         pairs
     };
+    // The page links: the sort as the header links write it (commas kept), then the rest.
     let mut base = String::new();
-    for (k, v) in carried("") {
+    if !view.sort.is_empty() {
+        let _ = write!(base, "{}={}&", Encoded(&keys.sort), SortValue(view.sort));
+    }
+    for (k, v) in carried("")
+        .into_iter()
+        .skip(usize::from(!view.sort.is_empty()))
+    {
         let _ = write!(base, "{}={}&", Encoded(k), Encoded(v));
     }
     let link = |page: usize| PageLink {
@@ -304,14 +306,9 @@ mod tests {
 
     #[test]
     fn links_keep_sort_filter_and_size() {
-        let m = paged_table(
-            "sort.t=n&dir.t=desc&q.t=x&page.t=2",
-            "lui-ui=per.t=5",
-            0,
-            12,
-        );
+        let m = paged_table("sort.t=-n&q.t=x&page.t=2", "lui-ui=per.t=5", 0, 12);
         assert!(
-            m.contains("href=\"/t?sort.t=n&amp;dir.t=desc&amp;q.t=x&amp;per.t=5&amp;page.t=3\""),
+            m.contains("href=\"/t?sort.t=-n&amp;q.t=x&amp;per.t=5&amp;page.t=3\""),
             "{m}"
         );
         assert!(m.contains("rel=\"prev\"") && m.contains("rel=\"next\""));
@@ -359,7 +356,7 @@ mod tests {
 
     #[test]
     fn the_query_state_and_all_rows_are_enough() {
-        let query = "sort.t=n&dir.t=desc&q.t=r%C3%A9&page.t=3&cols.t=n&other=1";
+        let query = "sort.t=-n&q.t=r%C3%A9&page.t=3&cols.t=n&other=1";
         let m = paged_table(query, "lui-ui=per.t=5", 12, 12);
         assert!(m.contains("11–12 of 12"), "{m}");
         assert!(
@@ -367,9 +364,7 @@ mod tests {
             "sliced to page 3"
         );
         assert!(
-            m.contains(
-                "sort.t=n&amp;dir.t=desc&amp;q.t=r%C3%A9&amp;cols.t=n&amp;per.t=5&amp;page.t=2"
-            ),
+            m.contains("sort.t=-n&amp;q.t=r%C3%A9&amp;cols.t=n&amp;per.t=5&amp;page.t=2"),
             "{m}"
         );
         let m = paged_table("", "lui-ui=per.t=100000", 12, 12);

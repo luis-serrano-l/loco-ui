@@ -120,7 +120,7 @@ try {
   await go("/table?per.files=5");
   await click(".lui-table th a[href*='sort.files=size']");
   await until(async () => (await js("return document.querySelector('.lui-table th[aria-sort]')?.textContent.trim()")) === "Size▲", "sort by size");
-  assert(await js("return location.search") === "?sort.files=size&dir.files=asc&per.files=5", "table: URL follows the sort");
+  assert(await js("return location.search") === "?sort.files=size&per.files=5", "table: URL follows the sort");
   assert(await navigations() === 1, "table: sorted without a reload");
   assert(await js("return document.querySelector('a[rel=next]').href.includes('sort.files=size')"), "table: the pager's links follow the sort swapped in place");
   await click(".lui-table-cols summary");

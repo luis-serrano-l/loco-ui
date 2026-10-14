@@ -1,20 +1,25 @@
 //! The table pages: `/table/minimal`, a table whose snippet is all its code, and `/table`,
-//! with sort, filter, paging, columns, CSV, in-place edit and bulk actions.
+//! with sort (several keys), search and column filters, paging, columns, CSV and JSON,
+//! in-place edit, bulk actions on the ticked or every matching row, a totals row and the
+//! features matrix; and `/table/rows`, the row-level features.
 
 use crate::site::page;
 use axum::{
-    Form, Router,
+    Form, Json, Router,
     response::IntoResponse,
     routing::{get, post},
 };
 use loco_ui::prelude::*;
+use loco_ui::table::Density;
 use serde::{Deserialize, Serialize};
 
 pub(crate) fn routes() -> Router {
     Router::new()
         .route("/table", get(table_page))
         .route("/table/minimal", get(minimal_page))
+        .route("/table/rows", get(rows_page))
         .route("/table.csv", get(table_csv))
+        .route("/table.json", get(table_json))
         .route("/table/bulk", post(table_bulk))
         .route("/table/edit", post(table_edit))
 }
@@ -24,6 +29,7 @@ pub(crate) fn routes() -> Router {
 pub(crate) const PREVIEWS: &[super::Preview] = &[
     ("/table", |ui| files_page(ui, &Kinds::default())),
     ("/table/minimal", minimal_table),
+    ("/table/rows", kinds_table),
 ];
 
 const FILES: [(&str, u32, &str); 12] = [
@@ -47,8 +53,9 @@ type File = (String, u32, &'static str);
 /// The table's columns, every one sortable; the CSV writes the visible ones.
 const COLUMNS: [&str; 3] = ["name", "size", "kind"];
 
-/// Thirty-six files filtered and sorted on the server as the table's query says, in one place
-/// for the page and the CSV.
+/// Thirty-six files filtered (search box and column filters) and sorted (every key) on the
+/// server as the table's query says, in one place for the page, the downloads and the bulk
+/// action on every matching row.
 fn files(query: &TableQuery) -> Vec<File> {
     let mut files: Vec<File> = ["src", "docs", "old"]
         .iter()
@@ -58,6 +65,7 @@ fn files(query: &TableQuery) -> Vec<File> {
                 .map(move |f| (format!("{dir}/{}", f.0), f.1 * (dir.len() as u32), f.2))
         })
         .filter(|f| query.matches(&f.0) || query.matches(f.2))
+        .filter(|f| query.matches_in("name", &f.0) && query.matches_in("kind", f.2))
         .collect();
     query.sort_by(&mut files, |a, b, key| match key {
         "size" => a.1.cmp(&b.1),
@@ -101,12 +109,18 @@ fn files_page(ui: &Ui, kinds: &Kinds) -> Markup {
     let query = ui.table_query("files", &COLUMNS);
     let files = files(&query);
     let (page, total) = query.page_of(&files);
-    lui! { Table("files", "/table") paged=(total) choose_columns csv="/table.csv" edit="/table/edit"
+    let bytes: u32 = files.iter().map(|f| f.1 / 1024).sum();
+    let size = format!("{} KB", loco_ui::paged_table::thousands(bytes as usize));
+    let count = format!("{total} files");
+    lui! { Table("files", "/table") paged=(total) choose_columns csv="/table.csv" json="/table.json"
+            edit="/table/edit" select_all caption="Files"
             empty="No files match this filter." loading=(ui.param("loading") == Some("1")) {
-        column "name" "Name" sortable;
+        column "name" "Name" sortable filterable;
         column "size" "Size" sortable numeric width="7rem" priority=2;
-        column "kind" "Kind" sortable editable width="9rem" priority=3;
+        column "kind" "Kind" sortable filterable editable width="9rem" priority=3;
         bulk "/table/bulk" ([("archive", "Archive"), ("delete", "Delete")]);
+        total "name" (&count);
+        total "size" (&size);
         rows (page.iter().map(|f| file_row(f, kinds)));
     } }
     // end code
@@ -143,24 +157,164 @@ async fn minimal_page(ui: Ui) -> Page {
     )
 }
 
-async fn table_page(ui: Ui, Saved(kinds): Saved<Kinds>) -> Page {
-    let table = files_page(&ui, &kinds);
+/// The row-level features on the twelve files: grouped by kind, links per row, tones, a
+/// disabled row, stripes, the compact density, a footer row and markup when nothing matches.
+fn kinds_table(ui: &Ui) -> Markup {
+    // code: /table/rows
+    let query = ui.table_query("kinds", &["kind", "name"]);
+    // Nine of the files, in five kinds; the scripts, pages and stylesheets stay out.
+    let shown = |f: &&(&str, u32, &str)| !["script", "page", "stylesheet"].contains(&f.2);
+    let mut files: Vec<_> = FILES
+        .iter()
+        .filter(shown)
+        .filter(|f| query.matches(f.0))
+        .collect();
+    // Grouped by kind, so the kind always sorts first.
+    files.sort_by(|a, b| a.2.cmp(b.2));
+    query.sort_by(&mut files, |a, b, key| match key {
+        "kind" => a.2.cmp(b.2),
+        _ => a.0.cmp(b.0),
+    });
+    let links: Vec<String> = files
+        .iter()
+        .map(|f| format!("/table?q.files.name={}", f.0))
+        .collect();
+    fn row<'a>((f, href): (&&(&'static str, u32, &'static str), &'a String)) -> Row<'a> {
+        let row = Row::from((f.0, f.2, f.1)).key(f.0).href(href);
+        match f {
+            (_, _, "backup") => row.disabled(),
+            (_, size, _) if *size > 1_000_000 => row.danger(),
+            (_, _, "generated") => row.warn(),
+            (_, _, "source") => row.ok(),
+            _ => row,
+        }
+    }
+    lui! { Table("kinds", "/table/rows") striped density=(Density::Compact) group_by="kind" caption="Files by kind"
+            empty={ "No file is called that. " a href="/table?q.files=" { "Search every file" } "." } {
+        column "name" "Name" sortable;
+        column "kind" "Kind" sortable priority=3;
+        column "size" "Bytes" numeric;
+        footer ((format!("{} files", files.len()), "", ""));
+        rows (files.iter().zip(&links).map(row));
+    } }
+    // end code
+}
+
+/// What the table does without script, what the script adds, and what is out of scope.
+const FEATURES: [(&str, &str, &str); 14] = [
+    (
+        "Sort by a column, flip it",
+        "Header link ?sort.files=size, -size",
+        "Swapped in place",
+    ),
+    (
+        "Sort by several columns",
+        "\"+\" link: ?sort.files=kind,-size; the header shows each key's place",
+        "Swapped in place",
+    ),
+    (
+        "Search all columns",
+        "<search> form, ?q.files=",
+        "Swapped in place",
+    ),
+    (
+        "Filter one column",
+        "\"Filters\" panel, ?q.files.kind=",
+        "Swapped in place",
+    ),
+    (
+        "Page, page size",
+        "Page links and two forms; the size is remembered",
+        "Swapped in place",
+    ),
+    (
+        "Show, hide, order columns",
+        "\"Columns\" links, ?cols.files=name,kind",
+        "Swapped in place",
+    ),
+    (
+        "Select rows, act on them",
+        "Checkboxes posting to one bulk form",
+        "Same",
+    ),
+    (
+        "Select all matching rows",
+        "Header box posts all=1; the form's URL carries the query",
+        "Also ticks the boxes on the page",
+    ),
+    (
+        "Edit a row in place",
+        "?edit.files=<key>, one form, Post/Redirect/Get",
+        "Swapped in place",
+    ),
+    (
+        "Row detail, row menu, row link",
+        "<details>, a popover menu, a stretched link",
+        "Menu keys move between items",
+    ),
+    (
+        "Totals, footer rows, groups",
+        "<tfoot> rows, group header rows",
+        "Same",
+    ),
+    ("Download CSV, JSON", "Links with the current query", "Same"),
+    (
+        "Resize or drag columns",
+        "Out of scope: needs script; .width(..) and ?cols.files= instead",
+        "Not added",
+    ),
+    (
+        "Collapse a group",
+        "Out of scope: a <details> cannot wrap table rows",
+        "Not added",
+    ),
+];
+
+async fn rows_page(ui: Ui) -> Page {
+    let table = kinds_table(&ui);
     page(
         &ui,
-        "Table",
+        "Table, rows",
         html! {
-            p { a href="/table/minimal" { "The minimal table" } " shows only sorting, filtering and paging. Click a header to sort, again to flip. Type to filter. Hide columns, tick rows for the bulk form, open a row's menu or its detail. The page size you pick is remembered for your next visit. Every state is a URL, including " a href="/table?loading=1" { "the loading one" } "." }
+            p { "Nine of the files grouped by kind, striped and compact: a row opens " a href="/table" { "the full table" } " filtered to it, the backup cannot be picked, and the tones mark large, generated and source files." }
             (table)
         },
     )
 }
 
+async fn table_page(ui: Ui, Saved(kinds): Saved<Kinds>) -> Page {
+    let table = files_page(&ui, &kinds);
+    let features = lui! { Table("features", "") hide_search caption="Features" {
+        column "feature" "Feature";
+        column "without" "Without script";
+        column "with" "With the enhancement script";
+        rows (FEATURES.iter().map(|(a, b, c)| (*a, *b, *c)));
+    } };
+    page(
+        &ui,
+        "Table",
+        html! {
+            p { a href="/table/minimal" { "The minimal table" } " shows only sorting, filtering and paging. Click a header to sort, again to flip, and \"+\" beside another to sort by it next. Type to filter, or open \"Filters\" for one column. Hide columns, tick rows (or every matching row) for the bulk form, open a row's menu or its detail. The page size you pick is remembered for your next visit. Every state is a URL, including " a href="/table?loading=1" { "the loading one" } "." }
+            (table)
+            p { a href="/table/rows" { "Table, rows" } " shows groups, whole-row links, tones, a disabled row, stripes and the compact density." }
+            h2 { "Features" }
+            (features)
+        },
+    )
+}
+
+/// Every matching file, as the table's query says, with the visible columns: for the CSV
+/// and JSON downloads.
+fn download(ui: &Ui) -> (Vec<&'static str>, Vec<File>) {
+    let query = ui.table_query("files", &COLUMNS);
+    (query.visible(&COLUMNS), files(&query))
+}
+
 /// The same rows as text/csv, for the sort, filter and columns in the URL.
 async fn table_csv(ui: Ui) -> impl IntoResponse {
-    let query = ui.table_query("files", &COLUMNS);
-    let columns = query.visible(&COLUMNS);
+    let (columns, files) = download(&ui);
     let mut csv = columns.join(",") + "\n";
-    for file in files(&query) {
+    for file in files {
         let cells = [
             ("name", file.0.clone()),
             ("size", file.1.to_string()),
@@ -183,6 +337,34 @@ async fn table_csv(ui: Ui) -> impl IntoResponse {
     )
 }
 
+/// One file in the JSON download; a hidden column is left out.
+#[derive(Serialize)]
+struct FileJson {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    size: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    kind: Option<&'static str>,
+}
+
+/// The same rows as JSON, for the sort, filter and columns in the URL.
+async fn table_json(ui: Ui) -> impl IntoResponse {
+    let (columns, files) = download(&ui);
+    let shown = |key: &str| columns.contains(&key);
+    let rows: Vec<FileJson> = files
+        .into_iter()
+        .map(|f| FileJson {
+            name: shown("name").then_some(f.0),
+            size: shown("size").then_some(f.1),
+            kind: shown("kind").then_some(f.2),
+        })
+        .collect();
+    (
+        [("content-disposition", "attachment; filename=\"files.json\"")],
+        Json(rows),
+    )
+}
 /// A row edited in place: the file's new kind, saved, then back to the page it came from.
 #[derive(Deserialize)]
 struct EditedRow {
@@ -212,9 +394,14 @@ async fn table_edit(
         .save(&kinds)
 }
 
-/// `row=<key>` per ticked box and `action=<value>` from the button: acknowledged with a flash.
+/// `row=<key>` per ticked box and `action=<value>` from the button, or `all=1` for every file
+/// the table's query matches (the form's URL carries it): acknowledged with a flash.
 async fn table_bulk(ui: Ui, posted: Posted) -> Redirect {
-    let rows = posted.all("row").count();
+    let rows = if posted.get("all") == "1" {
+        files(&ui.table_query("files", &COLUMNS)).len()
+    } else {
+        posted.all("row").count()
+    };
     let action = match posted.get("action") {
         "" => "delete",
         a => a,
