@@ -46,7 +46,7 @@
 //! use loco_ui::prelude::*;
 //! let ui = Ui::from(Caps::all());
 //! let hi = ui.dialog("Say hi").body(html! { p { "Hello." } });
-//! assert!(hi.render().into_string().contains(r#"commandfor="say-hi""#), "the id is the trigger's slug");
+//! assert!(hi.render().into_string().contains(r#"commandfor="lui-dialog-say-hi""#), "the id is the trigger's slug");
 //!
 //! let m = ui.dialog("Delete account")
 //!     .id("confirm")
@@ -89,15 +89,24 @@
 //! // A description, markup in the footer, and the whole viewport.
 //! let m = ui.dialog("Edit photo").title("Edit photo").description("Crop and rotate before saving.")
 //!     .footer(html! { a href="/help" { "Help" } }).fullscreen().render().into_string();
-//! assert!(m.contains(r#"class="lui-dialog-md lui-dialog-full""#) && m.contains(r#"aria-describedby="edit-photo-description""#));
-//! assert!(m.contains(r#"<p id="edit-photo-description" class="lui-dialog-description">"#) && m.contains(r#"<div class="lui-dialog-footer"><a href="/help">"#));
+//! assert!(m.contains(r#"class="lui-dialog-md lui-dialog-full""#) && m.contains(r#"aria-describedby="lui-dialog-edit-photo-description""#));
+//! assert!(m.contains(r#"<p id="lui-dialog-edit-photo-description" class="lui-dialog-description">"#) && m.contains(r#"<div class="lui-dialog-footer"><a href="/help">"#));
 //! let same = lui! { Dialog("Edit photo") title="Edit photo" description="Crop and rotate before saving."
 //!     footer={ a href="/help" { "Help" } } fullscreen; };
 //! assert_eq!(same.into_string(), m);
+//!
+//! // A styled opener of your own; the dialog sets its command. Or none at all.
+//! let ui = Ui::from(Caps::all());
+//! let styled = ui.dialog("Delete").trigger(ui.button("Delete").danger().leading(Icon::Trash)).render().into_string();
+//! assert!(styled.contains(r#"lui-button-danger""#) && styled.contains(r#"commandfor="lui-dialog-delete""#));
+//! assert_eq!(lui! { Dialog("Delete") trigger=(ui.button("Delete").danger().leading(Icon::Trash)); }.into_string(), styled);
+//! let bare = ui.dialog("Terms").no_trigger().render().into_string();
+//! assert!(bare.starts_with(r#"<div class="lui-dialog"><dialog id="lui-dialog-terms""#));
 //! ```
 
 use maud::{Markup, Render, html};
 
+use crate::button::Button;
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Icon, Ui, slug};
@@ -127,15 +136,18 @@ impl DialogSize {
 /// a "Close" button, unless told otherwise.
 ///
 /// **Setters.** Values and items: `.body(..)`, `.id(..)`, `.title(..)`, `.confirm(..)`,
-/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`,
-/// `.description(..)`, `.footer(..)`; switches: `.small()`, `.large()`, `.danger()`,
+/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`, `.trigger(..)`,
+/// `.description(..)`, `.footer(..)`; switches: `.small()`, `.large()`, `.danger()`, `.no_trigger()`,
 /// `.fullscreen()`; from a condition: `.open(bool)`.
 #[derive(Clone, Debug)]
 pub struct Dialog<'a> {
     ui: &'a Ui,
-    id: String,
+    id: Option<&'a str>,
     trigger: &'a str,
     body: Markup,
+    description: Option<&'a str>,
+    footer: Option<Markup>,
+    fullscreen: bool,
     open: bool,
     title: Option<&'a str>,
     size: DialogSize,
@@ -145,9 +157,8 @@ pub struct Dialog<'a> {
     close: &'a str,
     cancel: &'a str,
     closedby: &'a str,
-    description: Option<&'a str>,
-    footer: Option<Markup>,
-    fullscreen: bool,
+    button: Option<Button<'a>>,
+    no_trigger: bool,
 }
 
 impl Dialog<'_> {
@@ -156,8 +167,8 @@ impl Dialog<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("body", PropKind::Value, "body: Markup")
             .doc("What the dialog says."),
-        Prop::new("id", PropKind::Value, "id: &str").attr("id")
-            .doc("The dialog's id instead of the trigger's slug."),
+        Prop::new("id", PropKind::Value, "id: &'a str").attr("id")
+            .doc("The dialog's id instead of `lui-dialog-` and the trigger's slug."),
         Prop::new("open", PropKind::Condition, "open: bool").attr("open")
             .doc("Render the dialog already open (non-modal, no backdrop)."),
         Prop::new("title", PropKind::Value, "title: &'a str")
@@ -171,6 +182,12 @@ impl Dialog<'_> {
             .doc("`.size(3)`: 42 rem wide."),
         Prop::new("danger", PropKind::Switch, "")
             .doc("A red solid confirm button."),
+        Prop::new("description", PropKind::Value, "text: &'a str")
+            .doc("A line under the title, tied to the dialog by `aria-describedby`."),
+        Prop::new("footer", PropKind::Value, "footer: Markup")
+            .doc("Markup at the start of the button row (a link, a note, a checkbox)."),
+        Prop::new("fullscreen", PropKind::Switch, "")
+            .doc("Fill the viewport, without the rounded frame."),
         Prop::new("confirm", PropKind::Value, "label: &'a str, action: &'a str")
             .doc("A confirm button labelled `label`."),
         Prop::new("returns_to", PropKind::Value, "path: &'a str")
@@ -181,23 +198,24 @@ impl Dialog<'_> {
             .doc("Label of the cancel button beside the confirm button."),
         Prop::new("closedby", PropKind::Value, "closedby: &'a str").default("any").attr("closedby")
             .doc("The `closedby` attribute."),
-        Prop::new("description", PropKind::Value, "text: &'a str")
-            .doc("A line under the title, tied to the dialog by `aria-describedby`."),
-        Prop::new("footer", PropKind::Value, "footer: Markup")
-            .doc("Markup at the start of the button row (a link, a note, a checkbox)."),
-        Prop::new("fullscreen", PropKind::Switch, "")
-            .doc("Fill the viewport, without the rounded frame."),
+        Prop::new("trigger", PropKind::Value, "button: Button<'a>")
+            .doc("The opener as a styled button of the caller's (`ui.button(..).danger()`); its command or link is the dialog's."),
+        Prop::new("no_trigger", PropKind::Switch, "")
+            .doc("No opener: a link to `?dialog=<id>` or a button elsewhere opens it."),
     ];
 }
 
 impl Ui {
-    /// A dialog opened by a button labelled `trigger`. Its id is the trigger's slug
-    /// (`"Delete account"` is `delete-account`); it renders open when the URL says
-    /// `?dialog=<id>`.
+    /// A dialog opened by a button labelled `trigger`. Its id is `lui-dialog-` and the
+    /// trigger's slug (`"Delete account"` is `lui-dialog-delete-account`); it renders open
+    /// when the URL says `?dialog=<id>`.
     pub fn dialog<'a>(&'a self, trigger: &'a str) -> Dialog<'a> {
         Dialog {
+            description: None,
+            footer: None,
+            fullscreen: false,
             ui: self,
-            id: slug(trigger),
+            id: None,
             trigger,
             body: Markup::default(),
             open: false,
@@ -209,9 +227,8 @@ impl Ui {
             close: self.text(Text::Close),
             cancel: self.text(Text::Cancel),
             closedby: "any",
-            description: None,
-            footer: None,
-            fullscreen: false,
+            button: None,
+            no_trigger: false,
         }
     }
 }
@@ -223,9 +240,10 @@ impl<'a> Dialog<'a> {
         self
     }
 
-    /// The dialog's id instead of the trigger's slug; it must be unique on the page.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = id.to_string();
+    /// The dialog's id instead of `lui-dialog-` and the trigger's slug; it must be unique on
+    /// the page.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -296,6 +314,21 @@ impl<'a> Dialog<'a> {
         self
     }
 
+    /// The opener as a styled button of the caller's (`ui.button("Delete").danger()`) in place
+    /// of the plain one: its look, icons and size are kept, and the dialog sets what opens it
+    /// (`command="show-modal"`, or a link to `#id` without invoker commands).
+    pub fn trigger(mut self, button: Button<'a>) -> Self {
+        self.button = Some(button);
+        self
+    }
+
+    /// No opener: the dialog alone, opened by `?dialog=<id>`, a link to `#id` or a button
+    /// elsewhere with `.command("show-modal", id)`.
+    pub fn no_trigger(mut self) -> Self {
+        self.no_trigger = true;
+        self
+    }
+
     /// The `closedby` attribute: `any` (Escape and outside click, the default),
     /// `closerequest` (Escape only) or `none`.
     pub fn closedby(mut self, closedby: &'a str) -> Self {
@@ -328,7 +361,7 @@ impl Render for Dialog<'_> {
     fn render(&self) -> Markup {
         let Dialog {
             ui,
-            ref id,
+            id,
             trigger,
             ref body,
             open,
@@ -340,15 +373,18 @@ impl Render for Dialog<'_> {
             close,
             cancel,
             closedby,
+            ref button,
+            no_trigger,
             description,
             ref footer,
             fullscreen,
         } = *self;
+        let id = &id.map_or_else(|| format!("lui-dialog-{}", slug(trigger)), str::to_string);
         let desc_id = format!("{id}-description");
         let footer = footer
             .as_ref()
             .map(|f| html! { div class="lui-dialog-footer" { (f) } });
-        let open = open || ui.state.dialog() == Some(id);
+        let open = open || ui.state.dialog_is(id);
         let returns_to = returns_to.unwrap_or(ui.state.path());
         let returns_to = (!returns_to.is_empty()).then_some(returns_to);
         let invokers = ui.has(Cap::Invokers);
@@ -356,10 +392,12 @@ impl Render for Dialog<'_> {
         let open_href = format!("#{id}");
         html! {
             div class={ "lui-dialog" @if danger { " lui-dialog-danger" } } {
-                @if invokers {
-                    (ui.button(trigger).command("show-modal", id).aria_haspopup("dialog"))
+                @let opener = button.clone().unwrap_or_else(|| ui.button(trigger));
+                @if no_trigger {
+                } @else if invokers {
+                    (opener.command("show-modal", id).aria_haspopup("dialog"))
                 } @else {
-                    (ui.link_button(trigger, &open_href).class("lui-dialog-open").role("button"))
+                    (opener.linking(&open_href).part("lui-dialog-open"))
                 }
                 dialog id=(id) class={ (size.class()) @if fullscreen { " lui-dialog-full" } } closedby=(closedby) aria-labelledby=[title.map(|_| &title_id)]
                     aria-describedby=[description.map(|_| &desc_id)] open[open] {

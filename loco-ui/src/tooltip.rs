@@ -36,6 +36,10 @@
 //!     Button("") icon_only ghost aria_label="Copy" body=(html! { (Icon::Copy) });
 //! }); };
 //! assert_eq!(same.into_string(), m);
+//! // A button builder as the trigger.
+//! let copy = ui.button("").icon_only().ghost().aria_label("Copy").leading(Icon::Copy);
+//! let m = ui.tooltip("Copy the link", html! {}).trigger(copy).render().into_string();
+//! assert!(m.contains(r#"aria-label="Copy" aria-describedby="lui-tooltip-copy-the-link""#));
 //! // At the end of the trigger, after half a second.
 //! let m = ui.tooltip("Saved", html! { span { "3" } }).side(Side::End).delay(500).render().into_string();
 //! assert!(m.starts_with(r#"<span class="lui-tooltip" data-side="end" style="--lui-tooltip-delay: 500ms">"#));
@@ -44,13 +48,14 @@
 
 use maud::{Markup, PreEscaped, Render, html};
 
+use crate::button::Button;
 use crate::popover_card::Side;
 use crate::props::{Prop, PropKind};
 use crate::{Ui, slug};
 
 /// A trigger with a tooltip, made by [`Ui::tooltip`].
 ///
-/// **Setters.** Values and items: `.id(..)`, `.side(..)`, `.delay(..)`; switches: `.below()`.
+/// **Setters.** Values and items: `.id(..)`, `.side(..)`, `.delay(..)`, `.trigger(..)`; switches: `.below()`.
 #[derive(Clone, Debug)]
 pub struct Tooltip<'a> {
     text: &'a str,
@@ -58,6 +63,7 @@ pub struct Tooltip<'a> {
     side: Side,
     delay: Option<u32>,
     id: Option<&'a str>,
+    button: Option<Button<'a>>,
 }
 
 impl Tooltip<'_> {
@@ -77,6 +83,8 @@ impl Tooltip<'_> {
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The tooltip's id, `lui-tooltip-<slug of the text>` by default."),
+        Prop::new("trigger", PropKind::Value, "button: Button<'a>")
+            .doc("A button builder as the trigger, in place of the markup: it gets `aria-describedby` as an attribute."),
     ];
 }
 
@@ -89,6 +97,7 @@ impl Ui {
             side: Side::Top,
             delay: None,
             id: None,
+            button: None,
         }
     }
 }
@@ -117,6 +126,13 @@ impl<'a> Tooltip<'a> {
         self.id = Some(id);
         self
     }
+
+    /// A button builder as the trigger, in place of the markup given to [`Ui::tooltip`]: it
+    /// gets `aria-describedby` as an attribute instead of by editing the markup's text.
+    pub fn trigger(mut self, button: Button<'a>) -> Self {
+        self.button = Some(button);
+        self
+    }
 }
 
 impl Render for Tooltip<'_> {
@@ -135,7 +151,7 @@ impl Render for Tooltip<'_> {
         html! {
             span class="lui-tooltip" data-side=[(self.side != Side::Top).then(|| self.side.as_str())]
                 style=[self.delay.map(|ms| format!("--lui-tooltip-delay: {ms}ms"))] {
-                (PreEscaped(trigger))
+                @if let Some(b) = &self.button { (b.clone().describedby(&id)) } @else { (PreEscaped(trigger)) }
                 span id=(id) role="tooltip" class="lui-tooltip-text" { (self.text) }
             }
         }

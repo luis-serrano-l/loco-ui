@@ -766,10 +766,8 @@ fixed:
 Let through, with the reason, and nothing else:
 
 - `nested-interactive` on a `<summary>` that holds a link: the tabs, accordion and settings
-  design, where the link fills the summary so a no-script click goes to the server and the
-  open section is in the URL. A screen reader hears a disclosure button containing a link.
-  Moving to the ARIA tabs pattern would need script, which is the one thing this library
-  does not require.
+  design until M38, which dropped the `<details>` for plain links and `hidden` panels (see
+  M38 below); no longer let through.
 - `button-name` on the `<button><selectedcontent>` of a customisable select: Firefox does not
   support it (so it never gets that variant for real) and shows it empty only because the
   check forces the capability cookie.
@@ -956,6 +954,16 @@ is not drawn only because it sits behind the motion query.
   treats a string given to an attribute named `size`, `tone`, `variant` or `radius` as a
   name in `loco_ui::variant`. A component with a string setter of one of those names would
   need `x=("..")` in `lui!`; none has one.
+- **A link inside `<summary>` is not conforming, and the `<details>` gave nothing.** The tabs
+  and accordion titles were links filling a `<summary>` so that every click went to the
+  server; html-aria gives `<summary>` an implicit button, and axe's `nested-interactive`
+  and the demo's conformance test both flag a link inside it. Since the server decided what
+  was open anyway, both now render Radix's structure without `<details>`: a trigger link
+  (`aria-current` on a tab, `aria-expanded` and `aria-controls` on an accordion title) and a
+  panel that is `hidden` unless open, each with `data-state`. Lost: the accordion's
+  `interpolate-size` height animation, which only ran on a native toggle a click never made.
+  Gained: the tabs need no `::details-content` and no `Caps::DetailsContent` branch, so the
+  strip renders the same in every browser and in Blitz.
 ### M39 · CSS that an app can own
 
 - **Stylesheet size and speed.** Before (`23e9e06`): 117 240 bytes, 19 967 gzipped (level 9).

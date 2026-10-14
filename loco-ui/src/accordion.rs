@@ -5,20 +5,21 @@
 //! carry a summary line under its title and an icon before it, and a body can hold another
 //! accordion.
 //!
-//! **Platform features:** `<details name="group">` (baseline 2024) for exclusivity.
-//! `::details-content` (Chrome 131, Firefox 143, Safari 18.4) plus
-//! `interpolate-size: allow-keywords` (Chrome 129 only) animate the height between `0` and
-//! `auto`; without `interpolate-size` the panel snaps.
+//! **Platform features:** links and the `hidden` attribute (baseline). The markup follows
+//! Radix Accordion: a `.lui-accordion-item` per section holding a `.lui-accordion-trigger`
+//! link and a `.lui-accordion-body`, each with `data-state="open|closed"`.
 //!
-//! **Accessibility:** `<details>`/`<summary>`: Enter or Space opens a section, each title is a
-//! link to its state; icons are `aria-hidden`. Checked by axe-core in headless Firefox on every
-//! demo route, both capability variants, light and dark (no serious or critical violation).
+//! **Accessibility:** each title is a link to its own state, with `aria-expanded` and
+//! `aria-controls` naming its body; icons are `aria-hidden`. Checked by axe-core in headless
+//! Firefox on every demo route, both capability variants, light and dark (no serious or
+//! critical violation).
 //!
-//! **What it does not do without script:** arrow keys between summaries (the WAI-ARIA accordion
-//! pattern).
+//! **What it does not do without script:** arrow keys between titles (the WAI-ARIA accordion
+//! pattern). The body does not animate its height: it is shown by the server's answer.
 //!
-//! **Fallback:** `<details>` alone (baseline 2020) still toggles; only the exclusivity and the
-//! animation are lost. No `Caps` branch is needed; the markup is the same everywhere.
+//! **Fallback:** none needed; the markup is the same everywhere. Before M38 each title was a
+//! link inside a `<summary>`, a link inside the summary's implicit button, which is not
+//! conforming. Every click already went to the server, so the server alone decides what is open.
 //!
 //! **Server persistence:** the open sections come from the request's `?open.<group>=0,2` (a
 //! comma list, see [`crate::UiState::opens`]) and each title is a link that toggles its own index in
@@ -40,7 +41,7 @@
 //!     .multiple()
 //!     .controls();
 //! let html = m.render().into_string();
-//! assert!(html.contains("href=\"/help?open.faq=2\">Install"), "open item's link removes itself from the list");
+//! assert!(html.contains(r#"href="/help?open.faq=2" data-state="open" aria-expanded="true""#), "open item's link removes itself from the list");
 //! assert!(html.contains("href=\"/help?open.faq=0%2C1%2C2\">Expand all"));
 //! assert!(html.contains("class=\"lui-accordion-summary\">One line."));
 //! // The same in `lui!`:
@@ -90,8 +91,10 @@ impl Accordion<'_> {
         Prop::new("item", PropKind::Item, "title: &'a str, body: Markup")
             .doc("A section titled `title` with its body."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["item"])
             .doc("An icon, or a glyph or emoji, before the title of the section added last, hidden from assistive tech."),
         Prop::new("description", PropKind::Modifier, "summary: &'a str")
+            .applies_to(&["item"])
             .doc("A muted line under the title of the section added last, visible while it is closed."),
         Prop::new("multiple", PropKind::Switch, "")
             .doc("Several sections may be open at once (`?open.<group>=0,2`)."),
@@ -115,6 +118,11 @@ impl Ui {
 }
 
 impl<'a> Accordion<'a> {
+    /// `item` once a section is added: the only kind of item.
+    fn last(&self) -> Option<&'static str> {
+        self.items.last().map(|_| "item")
+    }
+
     /// A section titled `title` with its body.
     pub fn item(mut self, title: &'a str, body: Markup) -> Self {
         self.items.push(Item {
@@ -128,7 +136,9 @@ impl<'a> Accordion<'a> {
 
     /// An icon, or a glyph or emoji, before the title of the section added last, hidden from
     /// assistive tech.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(Accordion::PROPS, "icon", self.last());
         if let Some(it) = self.items.last_mut() {
             it.icon = Some(icon.into());
         }
@@ -136,29 +146,19 @@ impl<'a> Accordion<'a> {
     }
 
     /// A muted line under the title of the section added last, visible while it is closed.
+    #[track_caller]
     pub fn description(mut self, summary: &'a str) -> Self {
+        crate::props::check_last::<Self>(Accordion::PROPS, "description", self.last());
         if let Some(it) = self.items.last_mut() {
             it.summary = Some(summary);
         }
         self
     }
 
-    /// The old name of [`Self::description`], kept for one release.
-    #[deprecated(note = "use .description()")]
-    pub fn summary(self, summary: &'a str) -> Self {
-        self.description(summary)
-    }
-
     /// Several sections may be open at once (`?open.<group>=0,2`).
     pub fn multiple(mut self) -> Self {
         self.multi = true;
         self
-    }
-
-    /// The old name of [`Self::multiple`], kept for one release.
-    #[deprecated(note = "use .multiple()")]
-    pub fn multi(self) -> Self {
-        self.multiple()
     }
 
     /// "Expand all" and "Collapse all" links above the sections (with `multiple`).
@@ -206,15 +206,19 @@ impl Render for Accordion<'_> {
                     }
                 }
                 @for (i, item) in items.iter().enumerate() {
-                    details name=[(!multi).then_some(group)] open[open.contains(&i)] {
-                        summary {
+                    @let is_open = open.contains(&i);
+                    @let item_state = if is_open { "open" } else { "closed" };
+                    @let body_id = format!("lui-accordion-{group}-panel-{i}");
+                    div class="lui-accordion-item" data-state=(item_state) {
+                        a class="lui-accordion-trigger" href=(state.link(&key, &toggled(i)))
+                            data-state=(item_state) aria-expanded=(is_open) aria-controls=(body_id) {
                             @if let Some(icon) = item.icon { span class="lui-accordion-icon" aria-hidden="true" { (icon) } }
-                            a href=(state.link(&key, &toggled(i))) {
+                            span class="lui-accordion-title" {
                                 (item.title)
                                 @if let Some(line) = item.summary { span class="lui-accordion-summary" { (line) } }
                             }
                         }
-                        div class="lui-accordion-body" { (item.body) }
+                        div id=(body_id) class="lui-accordion-body" data-state=(item_state) hidden[!is_open] { (item.body) }
                     }
                 }
             }
@@ -224,36 +228,29 @@ impl Render for Accordion<'_> {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* shadcn Accordion: items divided by a bottom rule, text-sm font-medium triggers that
-   underline on hover, a chevron on the right that turns when open. interpolate-size
-   (Chrome 129) lets height animate to auto; elsewhere it snaps. */
-.lui-accordion { interpolate-size: allow-keywords; }
-.lui-accordion details { border-bottom: 1px solid var(--lui-line); }
-.lui-accordion summary {
-  display: flex; align-items: flex-start; gap: 0.5rem; list-style: none; cursor: pointer;
-  padding: 1rem 0; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500;
+   underline on hover, a chevron on the right that turns when open. */
+.lui-accordion-item { border-bottom: 1px solid var(--lui-line); }
+.lui-accordion-trigger {
+  display: flex; align-items: flex-start; gap: 0.5rem; padding: 1rem 0; color: inherit; text-decoration: none;
+  font-size: 0.875rem; line-height: 1.25rem; font-weight: 500;
 }
-.lui-accordion summary::-webkit-details-marker { display: none; }
+.lui-accordion-trigger:hover .lui-accordion-title { text-decoration: underline; }
 /* The chevron is two borders of a rotated square in the muted colour. */
-.lui-accordion summary::after {
-  content: ""; flex: none; order: 2; width: 0.45rem; height: 0.45rem; margin: 0.3rem 0.25rem 0 auto;
+.lui-accordion-trigger::after {
+  content: ""; flex: none; width: 0.45rem; height: 0.45rem; margin: 0.3rem 0.25rem 0 auto;
   border-right: 1.5px solid var(--lui-muted); border-bottom: 1.5px solid var(--lui-muted);
   rotate: 45deg; transition: rotate var(--lui-duration) var(--lui-ease-out);
 }
-.lui-accordion details[open] > summary::after { rotate: 225deg; margin-top: 0.5rem; }
-/* The link fills the rest of the summary so a click never toggles natively without the server. */
-.lui-accordion summary a, .lui-accordion-title { flex: 1; margin: -1rem 0; padding: 1rem 0; color: inherit; text-decoration: none; }
-.lui-accordion summary a:hover { text-decoration: underline; }
+.lui-accordion-trigger[data-state="open"]::after { rotate: 225deg; margin-top: 0.5rem; }
+.lui-accordion-title { flex: 1; min-width: 0; }
 .lui-accordion-icon { font-size: 1.1em; line-height: 1; }
 .lui-accordion-summary { display: block; font-weight: 400; font-size: 0.875rem; color: var(--lui-muted); margin-top: 0.15rem; }
-.lui-accordion details[open] > summary .lui-accordion-summary { display: none; }
+.lui-accordion-trigger[data-state="open"] .lui-accordion-summary { display: none; }
 .lui-accordion-body { padding: 0 0 1rem; font-size: 0.875rem; }
-.lui-accordion details::details-content { transition: height var(--lui-duration) var(--lui-ease-out), content-visibility var(--lui-duration) allow-discrete; height: 0; overflow: hidden; }
-.lui-accordion details[open]::details-content { height: auto; }
 .lui-accordion-controls { display: flex; gap: calc(var(--lui-space) * 2); margin: 0; max-width: none; padding: 0 0 0.5rem; font-size: 0.875rem; border-bottom: 1px solid var(--lui-line); }
 /* A nested accordion sits inside a body, indented. */
 .lui-accordion .lui-accordion { margin: 0.5rem 0 0 1rem; }
-.lui-accordion .lui-accordion details:last-child { border-bottom: 0; }
-.lui-accordion .lui-accordion summary { padding: 0.5rem 0; }
-.lui-accordion .lui-accordion summary a, .lui-accordion .lui-accordion .lui-accordion-title { margin: -0.5rem 0; padding: 0.5rem 0; }
+.lui-accordion .lui-accordion .lui-accordion-item:last-child { border-bottom: 0; }
+.lui-accordion .lui-accordion .lui-accordion-trigger { padding: 0.5rem 0; }
 .lui-accordion .lui-accordion .lui-accordion-body { padding: 0 0 0.75rem; }
 "#;

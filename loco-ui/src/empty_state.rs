@@ -1,8 +1,7 @@
 //! # Empty state
 //!
 //! What a list, table or search shows when there is nothing in it: what is missing, why, and
-//! what to do next, as real links and form buttons: as many of each as the page needs (the
-//! first form button is the primary one, the others and the links secondary).
+//! the one thing to do next, as a real link or form button.
 //!
 //! **Platform features:** plain HTML; the action is an `<a>` or, for something that changes
 //! data, a `<form method="post">` button, so it works with nothing else.
@@ -35,15 +34,6 @@
 //!     }
 //! };
 //! assert_eq!(same.into_string(), m);
-//! // Several actions: two forms, then two links.
-//! let m = ui.empty_state("No projects").action("New project", "/p/new").action("Import", "/p/import")
-//!     .link("Templates", "/templates").link("Docs", "/docs").render().into_string();
-//! assert_eq!(m.matches("<form").count(), 2);
-//! assert_eq!(m.matches("lui-button-primary").count(), 1);
-//! let same = lui! { EmptyState("No projects") {
-//!     action "New project" "/p/new"; action "Import" "/p/import"; link "Templates" "/templates"; link "Docs" "/docs";
-//! } };
-//! assert_eq!(same.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -55,15 +45,14 @@ use crate::{Caps, Ui};
 
 /// What a list shows when there is nothing in it, made by [`Ui::empty_state`].
 ///
-/// **Setters.** Values and items: `.icon(..)`, `.body(..)`, `.link(..)`, `.action(..)` (the
-/// last two as often as needed).
+/// **Setters.** Values and items: `.icon(..)`, `.body(..)`, `.link(..)`, `.action(..)`.
 #[derive(Clone, Debug, Default)]
 pub struct EmptyState<'a> {
     title: &'a str,
     icon: Option<Glyph<'a>>,
     text: Option<Markup>,
-    links: Vec<(&'a str, &'a str)>,
-    posts: Vec<(&'a str, &'a str)>,
+    link: Option<(&'a str, &'a str)>,
+    post: Option<(&'a str, &'a str)>,
 }
 
 impl EmptyState<'_> {
@@ -73,10 +62,10 @@ impl EmptyState<'_> {
         Prop::new("icon", PropKind::Value, "icon: impl Into<Glyph<'a>>")
             .doc("An icon, or a glyph or emoji, above the title, hidden from screen readers."),
         Prop::new("body", PropKind::Value, "text: Markup").doc("One or two sentences."),
-        Prop::new("link", PropKind::Item, "label: &'a str, href: &'a str")
-            .doc("A link to follow; add as many as needed."),
-        Prop::new("action", PropKind::Item, "label: &'a str, action: &'a str")
-            .doc("A button posting to `action`; the first is the primary one."),
+        Prop::new("link", PropKind::Value, "label: &'a str, href: &'a str")
+            .doc("A link to follow."),
+        Prop::new("action", PropKind::Value, "label: &'a str, action: &'a str")
+            .doc("A button posting to `action`."),
     ];
 }
 
@@ -103,29 +92,16 @@ impl<'a> EmptyState<'a> {
         self
     }
 
-    /// The old name of [`Self::body`], kept for one release.
-    #[deprecated(note = "use .body()")]
-    pub fn text(self, text: Markup) -> Self {
-        self.body(text)
-    }
-
-    /// A link to follow, after the form buttons; add as many as needed.
+    /// A link to follow: the secondary action.
     pub fn link(mut self, label: &'a str, href: &'a str) -> Self {
-        self.links.push((label, href));
+        self.link = Some((label, href));
         self
     }
 
-    /// A button posting to `action`; the first one added is the primary action, the others
-    /// secondary.
+    /// A button posting to `action`: the primary action.
     pub fn action(mut self, label: &'a str, action: &'a str) -> Self {
-        self.posts.push((label, action));
+        self.post = Some((label, action));
         self
-    }
-
-    /// The old name of [`Self::action`], kept for one release.
-    #[deprecated(note = "use .action()")]
-    pub fn post(self, label: &'a str, action: &'a str) -> Self {
-        self.action(label, action)
     }
 }
 
@@ -136,13 +112,12 @@ impl Render for EmptyState<'_> {
                 @if let Some(i) = self.icon { span class="lui-empty-icon" aria-hidden="true" { (i) } }
                 p class="lui-empty-title" { (self.title) }
                 @if let Some(t) = &self.text { p class="lui-empty-text" { (t) } }
-                @if !self.links.is_empty() || !self.posts.is_empty() {
+                @if self.link.is_some() || self.post.is_some() {
                     div class="lui-empty-actions" {
-                        @for (i, (label, action)) in self.posts.iter().enumerate() {
-                            @let button = Button::new(Caps::NONE, label);
-                            form method="post" action=(action) { @if i == 0 { (button.primary()) } @else { (button) } }
+                        @if let Some((label, action)) = self.post {
+                            form method="post" action=(action) { (Button::new(Caps::NONE, label).primary()) }
                         }
-                        @for (label, href) in &self.links { (Button::link(Caps::NONE, label, href)) }
+                        @if let Some((label, href)) = self.link { (Button::link(Caps::NONE, label, href)) }
                     }
                 }
             }

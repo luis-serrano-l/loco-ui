@@ -76,6 +76,10 @@
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "outline", "attr": "", "doc": "How the tone is painted: solid, soft, surface, outline or ghost." },
             { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "small", "attr": "", "doc": "The corners, from square to a pill." },
             { "name": "small", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Size 1: 2rem tall instead of 2.25rem." },
+            { "name": "large", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Size 3: 2.5rem tall, larger text." },
+            { "name": "block", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "As wide as its container." },
+            { "name": "leading", "kind": "value", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the text, hidden from assistive tech." },
+            { "name": "trailing", "kind": "value", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, after the text, hidden from assistive tech." },
             { "name": "icon_only", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Square, for a glyph or an icon." },
             { "name": "submit", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "`type=\"submit\"`, the default unless a command or popover target is set." },
             { "name": "reset", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "`type=\"reset\"`." },
@@ -200,7 +204,7 @@
           "builder": "Badge",
           "lui": "Badge",
           "status": "stable",
-          "calls": ["ui.badge(text: &str)"],
+          "calls": ["ui.badge(text: impl Display)"],
           "props": [
             { "name": "secondary", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A gray tone instead of the brand." },
             { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The `--lui-danger` tone." },
@@ -319,7 +323,7 @@
           "calls": ["ui.avatars(label: &str)"],
           "props": [
             { "name": "avatar", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A person in the row." },
-            { "name": "src", "kind": "modifier", "args": "src: &'a str", "default": "", "attr": "", "doc": "The picture of the person added last." },
+            { "name": "src", "kind": "modifier", "applies_to": ["avatar"], "args": "src: &'a str", "default": "", "attr": "", "doc": "The picture of the person added last." },
             { "name": "max", "kind": "number", "args": "max: usize", "default": "", "attr": "", "doc": "Show this many, then a `+n` count of the rest." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–5 for every avatar in the row." }
           ]
@@ -518,21 +522,23 @@
           "calls": ["ui.dialog(trigger: &str)"],
           "props": [
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "What the dialog says." },
-            { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The dialog's id instead of the trigger's slug." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The dialog's id instead of `lui-dialog-` and the trigger's slug." },
             { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render the dialog already open (non-modal, no backdrop)." },
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A title in a header with a close control." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–4: 20, 32, 42 or 56 rem wide, roomier padding as it grows." },
             { "name": "small", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`.size(1)`: 20 rem wide." },
             { "name": "large", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`.size(3)`: 42 rem wide." },
             { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A red solid confirm button." },
+            { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, tied to the dialog by `aria-describedby`." },
+            { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Markup at the start of the button row (a link, a note, a checkbox)." },
+            { "name": "fullscreen", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fill the viewport, without the rounded frame." },
             { "name": "confirm", "kind": "value", "args": "label: &'a str, action: &'a str", "default": "", "attr": "", "doc": "A confirm button labelled `label`." },
             { "name": "returns_to", "kind": "value", "args": "path: &'a str", "default": "", "attr": "", "doc": "Where the server should send the browser after the confirm form, posted as a hidden `returns_to` field." },
             { "name": "close", "kind": "value", "args": "label: &'a str", "default": "Close", "attr": "", "doc": "Label of the closing button when there is no confirm form." },
             { "name": "cancel", "kind": "value", "args": "label: &'a str", "default": "Cancel", "attr": "", "doc": "Label of the cancel button beside the confirm button." },
             { "name": "closedby", "kind": "value", "args": "closedby: &'a str", "default": "any", "attr": "closedby", "doc": "The `closedby` attribute." },
-            { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, tied to the dialog by `aria-describedby`." },
-            { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Markup at the start of the button row (a link, a note, a checkbox)." },
-            { "name": "fullscreen", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fill the viewport, without the rounded frame." }
+            { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "The opener as a styled button of the caller's (`ui.button(..).danger()`); its command or link is the dialog's." },
+            { "name": "no_trigger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No opener: a link to `?dialog=<id>` or a button elsewhere opens it." }
           ]
         }
       ]
@@ -561,17 +567,18 @@
             { "name": "action", "kind": "item", "args": "text: &'a str, action: &'a str", "default": "", "attr": "action", "doc": "A `<form method=\"post\">` button posting to `action`." },
             { "name": "checkbox", "kind": "item", "args": "text: &'a str, action: &'a str, name: &'a str", "default": "", "attr": "", "doc": "A checkbox in its own form posting `name=on` (or nothing) to `action`." },
             { "name": "radio", "kind": "item", "args": "text: &'a str, action: &'a str, name: &'a str, value: &'a str", "default": "", "attr": "", "doc": "A radio button in its own form posting `name=value` to `action`." },
-            { "name": "checked", "kind": "modifier", "args": "checked: bool", "default": "", "attr": "checked", "doc": "The checkbox or radio item is ticked." },
+            { "name": "checked", "kind": "modifier", "applies_to": ["checkbox", "radio"], "args": "checked: bool", "default": "", "attr": "checked", "doc": "The checkbox or radio item is ticked." },
             { "name": "group", "kind": "item", "args": "text: &'a str", "default": "", "attr": "", "doc": "A section heading." },
             { "name": "separator", "kind": "item", "args": "", "default": "", "attr": "", "doc": "A rule between groups." },
             { "name": "submenu", "kind": "item", "args": "text: &'a str, items: impl IntoIterator<Item = I>", "default": "", "attr": "", "doc": "A nested menu of `items` (`MenuItem`s or `(text, href)` links)." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech)." },
-            { "name": "shortcut", "kind": "modifier", "args": "keys: &'a str", "default": "", "attr": "", "doc": "A shortcut shown after the item's text, as `<kbd>`." },
-            { "name": "disabled", "kind": "modifier", "args": "", "default": "", "attr": "disabled", "doc": "The item is shown but not usable." },
-            { "name": "danger", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The item is destructive." },
-            { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The menu's id instead of the label's slug." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["link", "action", "submenu", "checkbox", "radio"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech)." },
+            { "name": "shortcut", "kind": "modifier", "applies_to": ["link", "action", "submenu", "checkbox", "radio"], "args": "keys: &'a str", "default": "", "attr": "", "doc": "A shortcut shown after the item's text, as `<kbd>`." },
+            { "name": "disabled", "kind": "modifier", "applies_to": ["link", "action", "submenu", "checkbox", "radio"], "args": "", "default": "", "attr": "disabled", "doc": "The item is shown but not usable." },
+            { "name": "danger", "kind": "modifier", "applies_to": ["link", "action", "submenu", "checkbox", "radio"], "args": "", "default": "", "attr": "", "doc": "The item is destructive." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The menu's id instead of `lui-menu-` and the label's slug." },
             { "name": "align_end", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open below the button with right edges aligned, for a button at the end of a row." },
-            { "name": "open_right", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open to the right of the button." }
+            { "name": "open_right", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open to the right of the button." },
+            { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "The opener as a styled button of the caller's; the menu sets its `popovertarget`." }
           ]
         }
       ]
@@ -582,12 +589,10 @@
       "look": "Radix Themes Tabs and TabNav",
       "responsive": "container",
       "features": [
-        { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
-        { "name": "display: contents", "baseline": { "chrome": "65", "firefox": "37", "safari": "11.1" } },
-        { "name": "::details-content", "baseline": { "chrome": "131", "firefox": "143", "safari": "18.4" } },
+        { "name": "hidden", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "view-transition-name", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } }
       ],
-      "fallback": "accordion markup, chosen server-side; the narrow-screen select has a Go button",
+      "fallback": "no view transitions: the chip appears on the new tab; the narrow-screen select has a Go button",
       "needs_js": "no",
       "builders": [
         {
@@ -598,7 +603,7 @@
           "props": [
             { "name": "tab", "kind": "item", "args": "title: &'a str, body: Markup", "default": "", "attr": "", "doc": "A tab titled `title` with its panel." },
             { "name": "lazy", "kind": "item", "args": "title: &'a str, body: impl Fn() -> Markup + 'a", "default": "", "attr": "", "doc": "A tab whose panel is rendered only when it is the open one." },
-            { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the title of the tab added last." },
+            { "name": "badge", "kind": "modifier", "applies_to": ["tab", "lazy"], "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the title of the tab added last." },
             { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles in a column on the left, the open panel beside them." },
             { "name": "select_below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Under 30rem of its own width the titles give way to a `<select>`." },
             { "name": "underline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)." },
@@ -613,11 +618,9 @@
       "look": "shadcn Accordion",
       "responsive": "content",
       "features": [
-        { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
-        { "name": "::details-content", "baseline": { "chrome": "131", "firefox": "143", "safari": "18.4" } },
-        { "name": "interpolate-size", "baseline": { "chrome": "129", "firefox": "no", "safari": "no" } }
+        { "name": "hidden", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
       ],
-      "fallback": "plain <details>: no exclusivity, no animation; expand/collapse and every toggle are links either way",
+      "fallback": "none needed: every toggle, expand and collapse is a link",
       "needs_js": "no",
       "builders": [
         {
@@ -627,8 +630,8 @@
           "calls": ["ui.accordion(group: &str)"],
           "props": [
             { "name": "item", "kind": "item", "args": "title: &'a str, body: Markup", "default": "", "attr": "", "doc": "A section titled `title` with its body." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the title of the section added last, hidden from assistive tech." },
-            { "name": "description", "kind": "modifier", "args": "summary: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the section added last, visible while it is closed." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["item"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the title of the section added last, hidden from assistive tech." },
+            { "name": "description", "kind": "modifier", "applies_to": ["item"], "args": "summary: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the section added last, visible while it is closed." },
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Several sections may be open at once (`?open.<group>=0,2`)." },
             { "name": "controls", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "\"Expand all\" and \"Collapse all\" links above the sections (with `multiple`)." }
           ]
@@ -737,13 +740,13 @@
           "calls": ["ui.table(id: &str, href: &str)"],
           "props": [
             { "name": "column", "kind": "item", "args": "key: &'a str, label: &'a str", "default": "", "attr": "", "doc": "A column." },
-            { "name": "sortable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last sorts the table." },
-            { "name": "filterable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last gets a text box in the \"Filters\" panel, `?q.<id>.<key>=`." },
-            { "name": "numeric", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last holds numbers." },
-            { "name": "editable", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The column added last becomes a text box when its row is edited in place (`Table::edit`)." },
+            { "name": "sortable", "kind": "modifier", "applies_to": [], "args": "", "default": "", "attr": "", "doc": "The column added last sorts the table." },
+            { "name": "filterable", "kind": "modifier", "applies_to": [], "args": "", "default": "", "attr": "", "doc": "The column added last gets a text box in the \"Filters\" panel, `?q.<id>.<key>=`." },
+            { "name": "numeric", "kind": "modifier", "applies_to": [], "args": "", "default": "", "attr": "", "doc": "The column added last holds numbers." },
+            { "name": "editable", "kind": "modifier", "applies_to": [], "args": "", "default": "", "attr": "", "doc": "The column added last becomes a text box when its row is edited in place (`Table::edit`)." },
             { "name": "edit", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "Rows (with a `Row::key`) can be edited in place." },
-            { "name": "width", "kind": "modifier", "args": "width: &'a str", "default": "", "attr": "", "doc": "A CSS width for the column added last, such as `6rem` or `30%`." },
-            { "name": "priority", "kind": "modifier", "args": "priority: u8", "default": "1", "attr": "", "doc": "1 always shown, 2 hidden in a narrow table, 3 below a medium one; values then show under the first cell." },
+            { "name": "width", "kind": "modifier", "applies_to": [], "args": "width: &'a str", "default": "", "attr": "", "doc": "A CSS width for the column added last, such as `6rem` or `30%`." },
+            { "name": "priority", "kind": "modifier", "applies_to": [], "args": "priority: u8", "default": "1", "attr": "", "doc": "1 always shown, 2 hidden in a narrow table, 3 below a medium one; values then show under the first cell." },
             { "name": "rows", "kind": "value", "args": "rows: impl IntoIterator<Item = R>", "default": "", "attr": "", "doc": "The rows, already sorted and filtered as `Table::sort` and `Table::filter` say: `Row`s, or tuples of cells." },
             { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page (`status`) carried, with the request's value, by every sort link, the search form, the pager and the CSV link." },
             { "name": "filter_select", "kind": "item", "args": "name: &'a str, label: &'a str, options: impl IntoIterator<Item = (&'a str, &'a str)>", "default": "", "attr": "", "doc": "A `<select>` of `(value, text)` options in the search form, filtering by the query parameter `name`, which the table then keeps." },
@@ -804,7 +807,7 @@
           "props": [
             { "name": "step", "kind": "item", "args": "title: &'a str, body: impl Into<StepBody<'a>>", "default": "", "attr": "", "doc": "A step titled `title` showing `body`." },
             { "name": "review", "kind": "item", "args": "title: &'a str", "default": "", "attr": "", "doc": "The last step." },
-            { "name": "optional", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last can be skipped." },
+            { "name": "optional", "kind": "modifier", "applies_to": ["step"], "args": "", "default": "", "attr": "", "doc": "The step added last can be skipped." },
             { "name": "values", "kind": "value", "args": "values: &'a [(String, String)]", "default": "", "attr": "", "doc": "What the visitor entered so far, by field name, for every step's fields and the review." },
             { "name": "at", "kind": "number", "args": "n: usize", "default": "", "attr": "", "doc": "Show step `n` whatever the request says." },
             { "name": "errors", "kind": "value", "args": "errors: &'a [(&'a str, &'a str)]", "default": "", "attr": "", "doc": "Server messages `(field name, message)` for the posted step." },
@@ -855,14 +858,14 @@
             { "name": "switch", "kind": "item", "args": "name: &'a str, label: &'a str", "default": "", "attr": "", "doc": "A checkbox drawn as an on/off switch, posting like `.checkbox(..)`." },
             { "name": "hidden", "kind": "item", "args": "name: &'a str, value: &'a str", "default": "", "attr": "", "doc": "`type=\"hidden\"`." },
             { "name": "body", "kind": "item", "args": "markup: Markup", "default": "", "attr": "", "doc": "Any markup at this point among the fields: a control built with its own setters." },
-            { "name": "required", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The `required` attribute, and a `*` after the label; the form says what the star means." },
-            { "name": "help", "kind": "modifier", "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the field." },
-            { "name": "maxlength", "kind": "modifier", "args": "max: usize", "default": "", "attr": "", "doc": "`maxlength`, counted in an `<output>` under the field." },
-            { "name": "value", "kind": "modifier", "args": "value: &'a str", "default": "", "attr": "value", "doc": "The field's current value (ignored for files)." },
-            { "name": "checked", "kind": "modifier", "args": "checked: bool", "default": "", "attr": "", "doc": "Tick the checkbox." },
-            { "name": "error", "kind": "modifier", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message beside the field." },
-            { "name": "placeholder", "kind": "modifier", "args": "placeholder: &'a str", "default": "", "attr": "", "doc": "Placeholder text." },
-            { "name": "multiple", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The file picker takes several files." },
+            { "name": "required", "kind": "modifier", "applies_to": [], "args": "", "default": "", "attr": "", "doc": "The `required` attribute, and a `*` after the label; the form says what the star means." },
+            { "name": "help", "kind": "modifier", "applies_to": [], "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the field." },
+            { "name": "maxlength", "kind": "modifier", "applies_to": [], "args": "max: usize", "default": "", "attr": "", "doc": "`maxlength`, counted in an `<output>` under the field." },
+            { "name": "value", "kind": "modifier", "applies_to": [], "args": "value: &'a str", "default": "", "attr": "value", "doc": "The field's current value (ignored for files)." },
+            { "name": "checked", "kind": "modifier", "applies_to": [], "args": "checked: bool", "default": "", "attr": "", "doc": "Tick the checkbox." },
+            { "name": "error", "kind": "modifier", "applies_to": [], "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message beside the field." },
+            { "name": "placeholder", "kind": "modifier", "applies_to": [], "args": "placeholder: &'a str", "default": "", "attr": "", "doc": "Placeholder text." },
+            { "name": "multiple", "kind": "modifier", "applies_to": [], "args": "", "default": "", "attr": "", "doc": "The file picker takes several files." },
             { "name": "submit", "kind": "value", "args": "label: &'a str", "default": "Submit", "attr": "", "doc": "Label of the submit button." },
             { "name": "inline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Labels beside the fields on screens wider than 40rem, above them on narrower ones." },
             { "name": "get", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`method=\"get\"`: the fields go in the URL of the page it answers with (a filter, a search)." },
@@ -1127,8 +1130,8 @@
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "multiple", "doc": "Several files at once." },
             { "name": "help", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print in the drop zone." },
             { "name": "file", "kind": "item", "args": "name: &'a str, size: u64", "default": "", "attr": "", "doc": "A file the server already holds, `size` in bytes." },
-            { "name": "preview", "kind": "modifier", "args": "src: &'a str", "default": "", "attr": "", "doc": "A thumbnail for the file added last (an image URL)." },
-            { "name": "href", "kind": "modifier", "args": "href: &'a str", "default": "", "attr": "href", "doc": "A link to the file added last, on its name." },
+            { "name": "preview", "kind": "modifier", "applies_to": ["file"], "args": "src: &'a str", "default": "", "attr": "", "doc": "A thumbnail for the file added last (an image URL)." },
+            { "name": "href", "kind": "modifier", "applies_to": ["file"], "args": "href: &'a str", "default": "", "attr": "href", "doc": "A link to the file added last, on its name." },
             { "name": "remove", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "A Remove button per file, posting `<name>=<file name>` to `action`." }
           ]
         }
@@ -1156,10 +1159,10 @@
           "calls": ["ui.kanban(action: &str)"],
           "props": [
             { "name": "column", "kind": "item", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A column." },
-            { "name": "limit", "kind": "modifier", "args": "limit: usize", "default": "", "attr": "", "doc": "A work-in-progress limit for the column added last." },
-            { "name": "card", "kind": "modifier", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A card in the column added last." },
-            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the card added last." },
-            { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A badge in the meta row of the card added last: a label, an estimate, a tag." }
+            { "name": "limit", "kind": "modifier", "applies_to": ["column", "card"], "args": "limit: usize", "default": "", "attr": "", "doc": "A work-in-progress limit for the column added last." },
+            { "name": "card", "kind": "modifier", "applies_to": ["column", "card"], "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A card in the column added last." },
+            { "name": "description", "kind": "modifier", "applies_to": ["card"], "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the card added last." },
+            { "name": "badge", "kind": "modifier", "applies_to": ["card"], "args": "text: impl Display", "default": "", "attr": "", "doc": "A badge in the meta row of the card added last: a label, an estimate, a tag." }
           ]
         }
       ]
@@ -1185,7 +1188,7 @@
           "calls": ["ui.sortable(label: &str, action: &str)"],
           "props": [
             { "name": "item", "kind": "item", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "An item, after the ones added before it." },
-            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the item added last." }
+            { "name": "description", "kind": "modifier", "applies_to": ["item"], "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the item added last." }
           ]
         }
       ]
@@ -1306,7 +1309,8 @@
             { "name": "below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Show the text under the trigger instead of above it: `.side(Side::Bottom)`." },
             { "name": "side", "kind": "choice", "choices": ["top", "bottom", "start", "end"], "args": "side: Side", "default": "top", "attr": "", "doc": "The side of the trigger the text shows on." },
             { "name": "delay", "kind": "number", "args": "ms: u32", "default": "0", "attr": "", "doc": "How long the pointer rests on the trigger before the text shows, in milliseconds." },
-            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The tooltip's id, `lui-tooltip-<slug of the text>` by default." }
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The tooltip's id, `lui-tooltip-<slug of the text>` by default." },
+            { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "A button builder as the trigger, in place of the markup: it gets `aria-describedby` as an attribute." }
           ]
         }
       ]
@@ -1441,8 +1445,8 @@
           "props": [
             { "name": "icon", "kind": "value", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, above the title, hidden from screen readers." },
             { "name": "body", "kind": "value", "args": "text: Markup", "default": "", "attr": "", "doc": "One or two sentences." },
-            { "name": "link", "kind": "item", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link to follow; add as many as needed." },
-            { "name": "action", "kind": "item", "args": "label: &'a str, action: &'a str", "default": "", "attr": "", "doc": "A button posting to `action`; the first is the primary one." }
+            { "name": "link", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link to follow." },
+            { "name": "action", "kind": "value", "args": "label: &'a str, action: &'a str", "default": "", "attr": "", "doc": "A button posting to `action`." }
           ]
         }
       ]
@@ -1530,8 +1534,8 @@
           "props": [
             { "name": "group", "kind": "item", "args": "heading: &'a str", "default": "", "attr": "", "doc": "Start a group of links under a small heading." },
             { "name": "link", "kind": "item", "args": "text: &'a str, href: &'a str", "default": "", "attr": "href", "doc": "A link; the one to the current path is marked current." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the link added last." },
-            { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the link added last." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["link"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the link added last." },
+            { "name": "badge", "kind": "modifier", "applies_to": ["link"], "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the link added last." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the group headings' ids instead of `lui-sidebar-<label>`." },
             { "name": "collapsible", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A toggle that folds it to an icon rail, the labels shown as tooltips." },
             { "name": "current_prefix", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Mark a link current also when the path is under it (`/projects` on `/projects/42`)." }
@@ -1612,7 +1616,7 @@
           "calls": ["ui.toggle_group(name: &str, label: &str)"],
           "props": [
             { "name": "option", "kind": "item", "args": "value: &'a str, text: &'a str", "default": "", "attr": "value", "doc": "An option posting `value`, shown as `text`." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "The option added last shows this icon, its text becoming a hidden label." },
+            { "name": "icon", "kind": "modifier", "applies_to": [], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "The option added last shows this icon, its text becoming a hidden label." },
             { "name": "value", "kind": "value", "args": "value: &'a str", "default": "", "attr": "checked", "doc": "Press this option (again for more with `.multiple()`); the query's own values by default." },
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "Several options may be pressed (checkboxes, not radios)." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The items' height and text: Radix's sizes 1 to 3." },
@@ -1644,10 +1648,10 @@
             { "name": "action", "kind": "item", "args": "text: &'a str, action: &'a str", "default": "", "attr": "action", "doc": "A `<form method=\"post\">` button posting to `action`." },
             { "name": "group", "kind": "item", "args": "text: &'a str", "default": "", "attr": "", "doc": "A heading over the items after it." },
             { "name": "separator", "kind": "item", "args": "", "default": "", "attr": "", "doc": "A rule between groups." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech)." },
-            { "name": "shortcut", "kind": "modifier", "args": "keys: &'a str", "default": "", "attr": "", "doc": "A shortcut shown after the item's text, as `<kbd>`." },
-            { "name": "disabled", "kind": "modifier", "args": "", "default": "", "attr": "disabled", "doc": "The item is shown but not usable." },
-            { "name": "danger", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The item is destructive." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["link", "action"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech)." },
+            { "name": "shortcut", "kind": "modifier", "applies_to": ["link", "action"], "args": "keys: &'a str", "default": "", "attr": "", "doc": "A shortcut shown after the item's text, as `<kbd>`." },
+            { "name": "disabled", "kind": "modifier", "applies_to": ["link", "action"], "args": "", "default": "", "attr": "disabled", "doc": "The item is shown but not usable." },
+            { "name": "danger", "kind": "modifier", "applies_to": ["link", "action"], "args": "", "default": "", "attr": "", "doc": "The item is destructive." },
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The thing the actions are on." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The menu's id instead of `ctx-<label>`." }
           ]
@@ -1703,11 +1707,13 @@
           "props": [
             { "name": "nav", "kind": "value", "args": "nav: Markup", "default": "", "attr": "", "doc": "The navigation inside the drawer, usually a `ul` of links." },
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The page's content, beside the drawer." },
-            { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The drawer's id instead of the label's slug." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The drawer's id instead of `lui-drawer-` and the label's slug." },
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A heading at the top of the panel (also its accessible name)." },
             { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, the panel's description." },
             { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Actions pinned to the bottom of the panel, under the scrolling navigation." },
             { "name": "sidebar", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A permanent sidebar above 60rem." },
+            { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "The opener as a styled button of the caller's; its command or link is the drawer's." },
+            { "name": "no_trigger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No opener: a link to `?dialog=<id>` or a button elsewhere opens it." },
             { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open (non-modal) from the server." },
             { "name": "side", "kind": "choice", "choices": ["top", "bottom", "start", "end"], "args": "side: Side", "default": "start", "attr": "", "doc": "The edge it slides in from." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "18, 24 or 32rem wide (tall, from the top or bottom)." }
@@ -1738,13 +1744,13 @@
           "props": [
             { "name": "link", "kind": "item", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A destination." },
             { "name": "links", "kind": "value", "args": "links: impl IntoIterator<Item = (&'a str, &'a str)>", "default": "", "attr": "", "doc": "Several `(label, href)` destinations at once." },
-            { "name": "keywords", "kind": "modifier", "args": "keywords: &'a str", "default": "", "attr": "", "doc": "Extra words that find the command added last, space-separated." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the command added last." },
-            { "name": "shortcut", "kind": "modifier", "args": "keys: &'a str", "default": "", "attr": "", "doc": "A key hint at the end of the command added last (shown, not bound)." },
+            { "name": "keywords", "kind": "modifier", "applies_to": ["link"], "args": "keywords: &'a str", "default": "", "attr": "", "doc": "Extra words that find the command added last, space-separated." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["link"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the command added last." },
+            { "name": "shortcut", "kind": "modifier", "applies_to": ["link"], "args": "keys: &'a str", "default": "", "attr": "", "doc": "A key hint at the end of the command added last (shown, not bound)." },
             { "name": "group", "kind": "item", "args": "heading: &'a str", "default": "", "attr": "", "doc": "List the commands added after this under a heading." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Search", "attr": "", "doc": "The opener's label (default \"Search\")." },
             { "name": "accesskey", "kind": "value", "args": "key: &'a str", "default": "k", "attr": "accesskey", "doc": "The opener's access key (default `k`)." },
-            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "palette", "attr": "id", "doc": "The palette's id instead of `palette`." }
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "lui-palette", "attr": "id", "doc": "The palette's id instead of `lui-palette`." }
           ]
         }
       ]
@@ -2319,12 +2325,12 @@
           "calls": ["ui.steps()"],
           "props": [
             { "name": "step", "kind": "item", "args": "title: &'a str", "default": "", "attr": "", "doc": "A step titled `title`." },
-            { "name": "done", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last is done: a check in its dot, the connector after it filled." },
-            { "name": "current", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last is the one the visitor is on (`aria-current=\"step\"`)." },
-            { "name": "invalid", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last needs attention: a \"!\" in a danger dot." },
-            { "name": "optional", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last can be skipped: \"Optional\" beside its title." },
-            { "name": "href", "kind": "modifier", "args": "href: &'a str", "default": "", "attr": "href", "doc": "The title of the step added last links here." },
-            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the step added last." },
+            { "name": "done", "kind": "modifier", "applies_to": ["step"], "args": "", "default": "", "attr": "", "doc": "The step added last is done: a check in its dot, the connector after it filled." },
+            { "name": "current", "kind": "modifier", "applies_to": ["step"], "args": "", "default": "", "attr": "", "doc": "The step added last is the one the visitor is on (`aria-current=\"step\"`)." },
+            { "name": "invalid", "kind": "modifier", "applies_to": ["step"], "args": "", "default": "", "attr": "", "doc": "The step added last needs attention: a \"!\" in a danger dot." },
+            { "name": "optional", "kind": "modifier", "applies_to": ["step"], "args": "", "default": "", "attr": "", "doc": "The step added last can be skipped: \"Optional\" beside its title." },
+            { "name": "href", "kind": "modifier", "applies_to": ["step"], "args": "href: &'a str", "default": "", "attr": "href", "doc": "The title of the step added last links here." },
+            { "name": "description", "kind": "modifier", "applies_to": ["step"], "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the step added last." },
             { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A column at every width instead of a row from 30rem." }
           ]
         }
@@ -2350,10 +2356,10 @@
           "calls": ["ui.timeline()"],
           "props": [
             { "name": "event", "kind": "item", "args": "title: &'a str", "default": "", "attr": "", "doc": "An event titled `title`." },
-            { "name": "when", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "When the event added last happened, as the reader should see it." },
-            { "name": "datetime", "kind": "modifier", "args": "iso: &'a str", "default": "", "attr": "datetime", "doc": "The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`." },
-            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the event added last." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon in a ring on the line instead of the dot, for the event added last." },
+            { "name": "when", "kind": "modifier", "applies_to": ["event"], "args": "text: &'a str", "default": "", "attr": "", "doc": "When the event added last happened, as the reader should see it." },
+            { "name": "datetime", "kind": "modifier", "applies_to": ["event"], "args": "iso: &'a str", "default": "", "attr": "datetime", "doc": "The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`." },
+            { "name": "description", "kind": "modifier", "applies_to": ["event"], "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the event added last." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["event"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon in a ring on the line instead of the dot, for the event added last." },
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "", "attr": "", "doc": "The colour of the event added last's dot or icon (neutral by default)." }
           ]
         }
@@ -2380,10 +2386,10 @@
           "calls": ["ui.tree(label: &str)"],
           "props": [
             { "name": "node", "kind": "item", "args": "label: &'a str", "default": "", "attr": "", "doc": "A node reading `label`." },
-            { "name": "link", "kind": "modifier", "args": "href: &'a str", "default": "", "attr": "", "doc": "The node added last is a link; the one to the current path is marked current." },
-            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the label of the node added last." },
-            { "name": "children", "kind": "modifier", "args": "nodes: impl FnOnce(Tree<'a>) -> Tree<'a>", "default": "", "attr": "", "doc": "The nodes under the node added last, which makes it a folder." },
-            { "name": "open", "kind": "modifier", "args": "open: bool", "default": "", "attr": "open", "doc": "The folder added last starts open while `open` holds." },
+            { "name": "link", "kind": "modifier", "applies_to": ["node"], "args": "href: &'a str", "default": "", "attr": "", "doc": "The node added last is a link; the one to the current path is marked current." },
+            { "name": "icon", "kind": "modifier", "applies_to": ["node"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the label of the node added last." },
+            { "name": "children", "kind": "modifier", "applies_to": ["node"], "args": "nodes: impl FnOnce(Tree<'a>) -> Tree<'a>", "default": "", "attr": "", "doc": "The nodes under the node added last, which makes it a folder." },
+            { "name": "open", "kind": "modifier", "applies_to": ["node"], "args": "open: bool", "default": "", "attr": "open", "doc": "The folder added last starts open while `open` holds." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The key in `?open.<id>=` instead of the label's slug." }
           ]
         }

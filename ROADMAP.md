@@ -2425,11 +2425,22 @@ Decisions (to confirm with the owner, defaults chosen):
   badges, `/feedback` a neutral surface alert of size 1, and the playground offers the
   choices on Button, Badge, Alert, Avatar and Progress. `table.rs` changed in one test line
   only (a small button now carries `data-size="1"`).
-- [ ] `data-state` contract: open/closed, checked, selected, disabled, invalid, busy,
+- [x] `data-state` contract: open/closed, checked, selected, disabled, invalid, busy,
   current, sorted as `data-state` / `data-disabled` / `data-invalid` on the root and the
   part they describe (Radix/Base UI convention); documented in `docs/api.md` as the
   styling API an app may rely on; a test greps each component's CSS for the attribute it
   sets so class and attribute never drift.
+  Done: Tabs (`data-state=active|inactive` on trigger and panel, `data-orientation`),
+  Accordion (`data-state=open|closed` on item, trigger and body), Button (`data-state=on|off`
+  beside `aria-pressed`, `data-disabled` when disabled or busy) and menu items
+  (`data-disabled`); their CSS now selects the attributes (Button's pressed and disabled
+  rules, the menu's disabled item, vertical tabs). `docs/api.md` "State attributes" lists
+  them with the ARIA attributes that already carry state (`aria-busy`, `aria-current`,
+  `aria-invalid`, `aria-sort`). `state_attributes_are_styled_where_they_are_set` fails when a
+  file sets `data-state`/`data-disabled`/`data-invalid`/`data-orientation` without selecting
+  it in its own CSS. Kept different: no `data-state` on Dialog, Drawer, Popover or
+  `<details>`: the browser opens them without script, so a server-written state would lie;
+  the docs point to `[open]` and `:popover-open`. `data-invalid` waits for M40c's controls.
 - [ ] Controls: `.disabled()` and `.readonly()` on Input/Field, Select, Combobox, Range,
   Color, Counter, DatePicker, ToggleGroup option, RadioGroup option, SelectOption; a
   disabled form field renders `disabled` plus `aria-disabled`, and `Form` skips its value
@@ -2450,11 +2461,26 @@ Decisions (to confirm with the owner, defaults chosen):
   `?dialog=confirm`: `UiState` reads both for one release); a form control's id is
   `f-<slug(name)>` so `user[email]` is `f-user-email`. Test: `slug("Configuración") ==
   "configuración"`, two CJK labels differ.
+  Partly done (M38b): `slug` is Unicode-aware and idempotent (doctests for the Spanish and
+  CJK cases); Dialog, Drawer, Menu, Tooltip and Palette ids are `lui-dialog-<slug>` and so
+  on; `UiState::dialog_is` opens a dialog from the old unprefixed `?dialog=` for one release
+  (tested). Conformance bugs fixed: `<a>` inside `<summary>` (Tabs and Accordion rebuilt as
+  links and panels) and the settings block's two forms to one action (the demo gives each an
+  `.id(..)`; `docs/api.md` Ids says two forms to one action need one). Left for M40c, which
+  owns `input.rs`/`form.rs`: the `f-<slug(name)>` control id.
 - [ ] Modifier misfires loud: `Last` enum on Form, Menu, ContextMenu, Table, Kanban,
   Sortable, Palette, Sidebar, AppShell, Tabs, Accordion; `debug_assert!` with the message
   `Form::required() applies to a field, but the last item was a group`; a `#[should_panic]`
   test per builder in debug. `Form::group("x").required()` and
   `Table::column(..).keep(..).numeric()` are the pinned cases.
+  Partly done (M38b): `Prop::applies_to(&[..])` names the adders a modifier may follow and
+  `props::check_last` panics in debug with ``Menu::danger() applies to a link, an action or a
+  submenu, but the last item was a separator``; on Menu, ContextMenu, Kanban, Sortable,
+  Palette, Sidebar, AppShell, Tabs, Accordion, Avatars, Upload and Wizard, a
+  `#[should_panic]` test each in `props::misfires`, and props rule 8 fails on a modifier
+  without `applies_to`. The spec JSON and the demo's props tables show it. Kept different:
+  the item kind is the adder's name, not a `Last` enum, so `PROPS` is the one source. Left:
+  Form (M40c) and Table (M41), listed in `MODIFIERS_UNCHECKED` with ToggleGroup.
 - [ ] Shared vocabulary cleanups: `ui.badge(impl Display)`; `id: &'a str` everywhere
   (Dialog, Drawer, Menu lose their `to_string`); Calendar `today/min/max/value: &'a str`;
   `Button::style` stays `Into<String>` but every other text setter becomes
@@ -2462,16 +2488,40 @@ Decisions (to confirm with the owner, defaults chosen):
   strings survive it; otherwise record the decision in `docs/api.md` and keep `&'a str`.
   Add `Button::large()`, `.leading(Glyph)`/`.trailing(Glyph)`, `.block()`; `Glyph::Svg(Markup)`
   so an app's icon set works everywhere `.icon(..)` is accepted.
-- [ ] Dialog, Menu, Tooltip, Drawer accept a styled trigger: `.trigger(Button)` (takes the
+  Partly done (M38b): `ui.badge(impl Display)`; Dialog, Drawer and Menu hold `id: &'a str`,
+  and so does the component template; `Button::large()`, `.block()`, `.leading(..)`,
+  `.trailing(..)`; `Glyph::Svg(&Markup)` (borrowed so a `Glyph` stays `Copy`). The `Cow`
+  spike on `Dialog::title` compiled and `lui!` was unaffected, but `PROPS` then lists two
+  spellings of one argument and every builder would have to move at once: text stays
+  `&'a str`, recorded in `docs/api.md`. Left for M40c: Calendar's `&'a str` fields.
+- [x] Dialog, Menu, Tooltip, Drawer accept a styled trigger: `.trigger(Button)` (takes the
   builder, forces `command`/`popovertarget`) and `.no_trigger()` for a dialog opened by a
   link elsewhere. Dialog root gets the `lui-dialog` class (convention 4).
+  Done: `.trigger(Button)` on all four; the component sets `command="show-modal"` (or a link
+  to `#id` with `role="button"` and the part class without invoker commands), the menu its
+  `popovertarget` (and copies the button's classes onto the `<summary>` without popover), the
+  tooltip `aria-describedby` as an attribute. `.no_trigger()` on Dialog and Drawer; a tooltip
+  always has a trigger and a menu without one is a submenu. The dialog's root was already a
+  `div.lui-dialog`. Demo: `/dialog` opens with a red ghost button with a trash icon,
+  `/popover`'s second menu with an icon button.
 - [ ] Remove the ~25 `#[deprecated]` shims and the bare `q/sort/dir/page/cols` table keys
   (unpublished crate; **Breaking**, listed in CHANGELOG), and the legacy
   `TableOptions`/`table_with` path (`table.rs:658-728`) once M41 lands or in M41.
-- [ ] Docs: `docs/api.md` "Variants" section with the four enums and a table of which
+  Partly done (M38b): every shim outside the control files is gone (`wizard::Posted`,
+  `Text::OneMatch` and the old setters on twelve builders), callers and the Spanish strings
+  updated. Left: the shims in `date_picker.rs`, `calendar.rs`, `combobox.rs`, `select.rs`,
+  `toggle_group.rs` (M40c owns those files) and the table keys and `TableOptions` (M41).
+- [x] Docs: `docs/api.md` "Variants" section with the four enums and a table of which
   builder takes which; `docs/ergonomics.md` trimmed to the current API (move the M17 history
   under a `<details>` or delete it); demo `/button`, `/badge`, `/alert`, `/inputs` snippets
   show tone+variant composition; README matrix regenerated.
+  Done: `docs/api.md` has Variants (the four enums, their attributes, which builder takes
+  which, the switches as shorthand, a doctest), State attributes, the new Ids rules and the
+  `&'a str` decision; `docs/ergonomics.md` opens on the current API and M28, with the M17
+  audit and M18 under a `<details>` "History". `/button` shows composed tone and variant
+  plus large, block, leading and trailing; `/feedback` (where alerts live) a neutral surface
+  alert; `/inputs` a small soft select; there is no `/badge` or `/alert` page, badges sit on
+  `/button`. README matrix regenerated with `spec write`.
 
 Key files: new `variant.rs`, `props.rs`, `loco-ui-macros/src/lib.rs` (Choice literal),
 every builder listed, `input.rs`, `lib.rs` (`slug`, tests), `docs/api.md`.

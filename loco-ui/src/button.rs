@@ -66,10 +66,15 @@
 //! let remove = ui.button("Remove").danger().ghost().radius(Radius::Full).render().into_string();
 //! assert!(remove.contains(r#"data-tone="danger" data-variant="ghost" data-radius="full""#));
 //! assert_eq!(lui! { Button("Remove") danger ghost radius="full"; }.into_string(), remove);
+//! // Icons around the text, a larger size, the container's full width.
+//! let next = ui.button("Continue").primary().large().block().trailing(Icon::ArrowRight).render().into_string();
+//! assert!(next.contains("lui-button-large lui-button-block") && next.contains(r#"data-icon="arrow-right""#));
+//! assert_eq!(lui! { Button("Continue") primary large block trailing=(Icon::ArrowRight); }.into_string(), next);
 //! ```
 
 use maud::{Markup, Render, html};
 
+use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
 use crate::variant::{Radius, Size, Tone, Variant};
 use crate::{Cap, Caps, Ui};
@@ -80,8 +85,8 @@ use crate::{Cap, Caps, Ui};
 /// `.name(..)`, `.value(..)`, `.aria_label(..)`, `.class(..)`, `.body(..)`, `.id(..)`,
 /// `.role(..)`, `.title(..)`, `.style(..)`, `.aria_haspopup(..)`, `.accesskey(..)`,
 /// `.aria_keyshortcuts(..)`, `.formmethod(..)`, `.formaction(..)`, `.rel(..)`, `.interestfor(..)`,
-/// `.size(..)`, `.tone(..)`, `.variant(..)`, `.radius(..)`; switches: `.primary()`, `.danger()`, `.ghost()`, `.soft()`, `.surface()`,
-/// `.small()`, `.icon_only()`, `.submit()`, `.reset()`,
+/// `.size(..)`, `.tone(..)`, `.variant(..)`, `.radius(..)`, `.leading(..)`, `.trailing(..)`; switches: `.primary()`, `.danger()`, `.ghost()`, `.soft()`, `.surface()`,
+/// `.small()`, `.large()`, `.block()`, `.icon_only()`, `.submit()`, `.reset()`,
 /// `.disabled()`, `.formnovalidate()`, `.shimmer()`; from a condition: `.loading(bool)`, `.pressed(bool)`,
 /// `.current(bool)`.
 #[derive(Clone, Debug)]
@@ -106,6 +111,9 @@ pub struct Button<'a> {
     disabled: bool,
     loading: bool,
     shimmer: bool,
+    block: bool,
+    leading: Option<Glyph<'a>>,
+    trailing: Option<Glyph<'a>>,
     attrs: Attrs<'a>,
 }
 
@@ -133,6 +141,14 @@ impl Button<'_> {
             .doc("The corners, from square to a pill."),
         Prop::new("small", PropKind::Switch, "")
             .doc("Size 1: 2rem tall instead of 2.25rem."),
+        Prop::new("large", PropKind::Switch, "")
+            .doc("Size 3: 2.5rem tall, larger text."),
+        Prop::new("block", PropKind::Switch, "")
+            .doc("As wide as its container."),
+        Prop::new("leading", PropKind::Value, "icon: impl Into<Glyph<'a>>")
+            .doc("An icon, or a glyph or emoji, before the text, hidden from assistive tech."),
+        Prop::new("trailing", PropKind::Value, "icon: impl Into<Glyph<'a>>")
+            .doc("An icon, or a glyph or emoji, after the text, hidden from assistive tech."),
         Prop::new("icon_only", PropKind::Switch, "")
             .doc("Square, for a glyph or an icon."),
         Prop::new("submit", PropKind::Switch, "")
@@ -215,6 +231,10 @@ struct Attrs<'a> {
     rel: Option<&'a str>,
     current: bool,
     interestfor: Option<&'a str>,
+    /// Set by a component that names its own tooltip, never by a caller.
+    aria_describedby: Option<&'a str>,
+    /// A component's part class (`lui-dialog-open`), kept beside the caller's `.class(..)`.
+    part: Option<&'static str>,
 }
 
 impl Ui {
@@ -258,8 +278,36 @@ impl<'a> Button<'a> {
             disabled: false,
             loading: false,
             shimmer: false,
+            block: false,
+            leading: None,
+            trailing: None,
             attrs: Attrs::default(),
         }
+    }
+
+    /// The same button as a link to `href` with `role="button"`: a component's trigger
+    /// where the browser has no invoker commands.
+    pub(crate) fn linking(mut self, href: &'a str) -> Self {
+        self.href = Some(href);
+        self.attrs.role = self.attrs.role.or(Some("button"));
+        self
+    }
+
+    /// A component's part class beside the caller's own `.class(..)`.
+    pub(crate) fn part(mut self, class: &'static str) -> Self {
+        self.attrs.part = Some(class);
+        self
+    }
+
+    /// `aria-describedby`, for a tooltip that names its trigger.
+    pub(crate) fn describedby(mut self, id: &'a str) -> Self {
+        self.attrs.aria_describedby = Some(id);
+        self
+    }
+
+    /// What the button shows: its body, or its text.
+    pub(crate) fn face(&self) -> Markup {
+        html! { @if let Some(m) = &self.content { (m) } @else { (self.text) } }
     }
 
     /// A link for a component that holds only `caps`.
@@ -330,16 +378,35 @@ impl<'a> Button<'a> {
         self.size(Size::S1)
     }
 
+    /// Size 3: 2.5rem tall, larger text.
+    pub fn large(self) -> Self {
+        self.size(Size::S3)
+    }
+
+    /// As wide as its container (`lui-button-block`), for the one action of a narrow form.
+    pub fn block(mut self) -> Self {
+        self.block = true;
+        self
+    }
+
+    /// An icon, or a glyph or emoji, before the text, hidden from assistive tech: an
+    /// [`Icon`](crate::Icon), a `&str`, or an app's own SVG as `&Markup`.
+    pub fn leading(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        self.leading = Some(icon.into());
+        self
+    }
+
+    /// An icon, or a glyph or emoji, after the text (a chevron, an external-link arrow),
+    /// hidden from assistive tech.
+    pub fn trailing(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        self.trailing = Some(icon.into());
+        self
+    }
+
     /// Square, for a glyph or an icon; give it a `.aria_label()` for screen readers.
     pub fn icon_only(mut self) -> Self {
         self.icon = true;
         self
-    }
-
-    /// The old name of [`Self::icon_only`], kept for one release.
-    #[deprecated(note = "use .icon_only()")]
-    pub fn icon(self) -> Self {
-        self.icon_only()
     }
 
     /// `type="submit"`, the default unless a command or popover target is set.
@@ -391,12 +458,6 @@ impl<'a> Button<'a> {
         self
     }
 
-    /// The old name of [`Self::aria_label`], kept for one release.
-    #[deprecated(note = "use .aria_label()")]
-    pub fn label(self, label: &'a str) -> Self {
-        self.aria_label(label)
-    }
-
     /// One more class after the button's own, for a component's part name.
     pub fn class(mut self, class: &'a str) -> Self {
         self.class = Some(class);
@@ -419,12 +480,6 @@ impl<'a> Button<'a> {
     pub fn body(mut self, markup: Markup) -> Self {
         self.content = Some(markup);
         self
-    }
-
-    /// The old name of [`Self::body`], kept for one release.
-    #[deprecated(note = "use .body()")]
-    pub fn content(self, markup: Markup) -> Self {
-        self.body(markup)
     }
 
     /// The element's `id`.
@@ -540,7 +595,7 @@ impl<'a> Button<'a> {
         Some(self.look()).filter(|look| *look != (Tone::Neutral, Variant::Outline))
     }
 
-    fn classes(&self) -> String {
+    pub(crate) fn classes(&self) -> String {
         let mut c = String::from("lui-button");
         // The looks that had a class before tones and variants composed keep it.
         match self.look() {
@@ -561,6 +616,13 @@ impl<'a> Button<'a> {
         }
         if self.shimmer {
             c.push_str(" lui-button-shimmer");
+        }
+        if self.block {
+            c.push_str(" lui-button-block");
+        }
+        if let Some(part) = self.attrs.part {
+            c.push(' ');
+            c.push_str(part);
         }
         if let Some(extra) = self.class {
             c.push(' ');
@@ -589,7 +651,11 @@ impl Render for Button<'_> {
         let variant = look.map(|(_, v)| v.as_str());
         let size = (self.size != Size::S2).then(|| self.size.as_str());
         let radius = self.radius.map(Radius::as_str);
-        let text = html! { @if let Some(m) = &self.content { (m) } @else { (self.text) } };
+        let text = html! {
+            @if let Some(g) = self.leading { (g.hidden()) }
+            @if let Some(m) = &self.content { (m) } @else { (self.text) }
+            @if let Some(g) = self.trailing { (g.hidden()) }
+        };
         // Busy: the label stays (for the width and the accessible name) under the spinner.
         let text = if self.loading {
             html! { span class="lui-button-label" { (text) } }
@@ -601,8 +667,8 @@ impl Render for Button<'_> {
             let off = self.disabled || self.loading;
             return html! {
                 a class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius] href=[(!off).then_some(href)] role=[attrs.role.or(off.then_some("link"))]
-                    aria-disabled=[off.then_some("true")] aria-busy=[self.loading.then_some("true")]
-                    aria-label=[self.label] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
+                    aria-disabled=[off.then_some("true")] data-disabled[off] aria-busy=[self.loading.then_some("true")]
+                    aria-label=[self.label] aria-describedby=[attrs.aria_describedby] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
                     rel=[attrs.rel] aria-current=[attrs.current.then_some("page")] interestfor=[attrs.interestfor]
                     accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts] { (spinner) (text) }
             };
@@ -627,10 +693,11 @@ impl Render for Button<'_> {
             button type=(kind) class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius]
                 command=[command.map(|c| c.0)] commandfor=[command.map(|c| c.1)]
                 popovertarget=[target] popovertargetaction=[fallback.map(|(_, a)| a)]
-                form=[self.form] name=[self.name] value=[self.value] aria-label=[self.label]
-                aria-busy=[self.loading.then_some("true")] disabled[self.disabled || self.loading]
+                form=[self.form] name=[self.name] value=[self.value] aria-label=[self.label] aria-describedby=[attrs.aria_describedby]
+                aria-busy=[self.loading.then_some("true")] disabled[self.disabled || self.loading] data-disabled[self.disabled || self.loading]
                 id=[attrs.id] role=[attrs.role] title=[attrs.title] style=[attrs.style.as_deref()]
                 aria-haspopup=[attrs.aria_haspopup] aria-pressed=[attrs.aria_pressed.map(|p| if p { "true" } else { "false" })]
+                data-state=[attrs.aria_pressed.map(|p| if p { "on" } else { "off" })]
                 accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts]
                 formmethod=[attrs.formmethod] formaction=[attrs.formaction] formnovalidate[attrs.formnovalidate]
                 interestfor=[attrs.interestfor]
@@ -679,7 +746,7 @@ button:hover, .lui-button:hover { background: var(--lui-accent); color: var(--lu
 .lui-button:is([data-variant=surface], [data-variant=outline]):hover { background: var(--lui-button-tint); color: var(--lui-button-text); }
 .lui-button[data-variant=outline] { background: transparent; color: var(--lui-button-text); border-color: var(--lui-button-line); box-shadow: none; }
 .lui-button[data-variant=ghost] { background: transparent; color: var(--lui-button-text); border-color: transparent; box-shadow: none; }
-.lui-button:where([data-variant]):is(:active:not(:disabled), [aria-pressed=true]) { filter: brightness(0.94); }
+.lui-button:where([data-variant]):is(:active:not(:disabled), [data-state=on]) { filter: brightness(0.94); }
 /* Primary: the brand gradient over the flat fill (Chrome before 111 keeps the fill), lit from
    above; hover lays a veil of the text colour over both so it still visibly changes. */
 button.lui-primary, .lui-button.lui-button-primary {
@@ -701,13 +768,14 @@ button.lui-danger:hover, .lui-button.lui-button-danger:hover { background: color
 .lui-button.lui-button-surface { background: var(--lui-brand-2); color: var(--lui-brand-11); border-color: var(--lui-brand-7); }
 .lui-button.lui-button-surface:hover { background: var(--lui-brand-3); color: var(--lui-brand-11); border-color: var(--lui-brand-8); }
 /* Pressed (held down, or a toggle that is on): one step deeper, no lift. */
-.lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface, [data-variant])):is(:active:not(:disabled), [aria-pressed=true]) { background: var(--lui-gray-4); box-shadow: none; }
-.lui-button.lui-button-ghost:active:not(:disabled), .lui-button.lui-button-ghost[aria-pressed=true] { background: var(--lui-gray-4); }
-.lui-button.lui-button-soft:active:not(:disabled), .lui-button.lui-button-soft[aria-pressed=true] { background: var(--lui-brand-5); }
-.lui-button.lui-button-surface:active:not(:disabled), .lui-button.lui-button-surface[aria-pressed=true] { background: var(--lui-brand-4); }
+.lui-button:where(:not(.lui-button-primary, .lui-button-danger, .lui-button-ghost, .lui-button-soft, .lui-button-surface, [data-variant])):is(:active:not(:disabled), [data-state=on]) { background: var(--lui-gray-4); box-shadow: none; }
+.lui-button.lui-button-ghost:active:not(:disabled), .lui-button.lui-button-ghost[data-state=on] { background: var(--lui-gray-4); }
+.lui-button.lui-button-soft:active:not(:disabled), .lui-button.lui-button-soft[data-state=on] { background: var(--lui-brand-5); }
+.lui-button.lui-button-surface:active:not(:disabled), .lui-button.lui-button-surface[data-state=on] { background: var(--lui-brand-4); }
 .lui-button:is(.lui-button-primary, .lui-button-danger):active:not(:disabled) { background-image: none; filter: brightness(0.92); }
 /* Sizes: Radix 1 to 3, on the shared control heights (all 2.75rem on a touch screen). */
 .lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; font-size: 0.8125rem; }
+.lui-button.lui-button-block { inline-size: 100%; }
 .lui-button.lui-button-large { min-height: var(--lui-control-h-lg); padding: 0.5rem 1.25rem; gap: 0.625rem; font-size: 1rem; line-height: 1.5rem; }
 .lui-button.lui-button-icon { width: var(--lui-control-h); min-width: var(--lui-control-h); padding: 0; }
 .lui-button.lui-button-icon.lui-button-small { width: var(--lui-control-h-sm); min-width: var(--lui-control-h-sm); }
@@ -728,12 +796,12 @@ button:focus-visible, .lui-button:focus-visible { border-color: var(--lui-ring);
 /* Disabled (Radix): a --lui-gray-3 fill, --lui-gray-8 text, no border colour, gradient or shadow. A busy
    button is disabled too but keeps its own look under the spinner. */
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-.lui-button:is(:disabled, [aria-disabled=true]):not([aria-busy=true]) {
+.lui-button:is(:disabled, [data-disabled]):not([aria-busy=true]) {
   opacity: 1; cursor: not-allowed; background: var(--lui-gray-3); background-image: none; color: var(--lui-gray-8);
   border-color: transparent; box-shadow: none; filter: none;
 }
-.lui-button:is(.lui-button-ghost, [data-variant=ghost]):is(:disabled, [aria-disabled=true]):not([aria-busy=true]) { background: transparent; }
-.lui-button[aria-disabled=true] { pointer-events: none; }
+.lui-button:is(.lui-button-ghost, [data-variant=ghost]):is(:disabled, [data-disabled]):not([aria-busy=true]) { background: transparent; }
+.lui-button[data-disabled] { pointer-events: none; }
 /* Busy: the label keeps its place (and the button's width and name) under a centred spinner. */
 .lui-button[aria-busy=true] { position: relative; cursor: progress; opacity: 1; }
 .lui-button[aria-busy=true] > .lui-button-label { opacity: 0; }

@@ -75,6 +75,7 @@ impl Sortable<'_> {
         Prop::new("item", PropKind::Item, "key: &'a str, title: &'a str")
             .doc("An item, after the ones added before it."),
         Prop::new("description", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["item"])
             .doc("Small print under the item added last."),
     ];
 }
@@ -103,7 +104,13 @@ impl<'a> Sortable<'a> {
     }
 
     /// Small print under the item added last: an owner, a due date.
+    #[track_caller]
     pub fn description(mut self, text: &'a str) -> Self {
+        crate::props::check_last::<Self>(
+            Sortable::PROPS,
+            "description",
+            self.items.last().map(|_| "item"),
+        );
         if let Some(item) = self.items.last_mut() {
             item.note = Some(text);
         }

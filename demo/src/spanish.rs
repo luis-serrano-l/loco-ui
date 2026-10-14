@@ -223,8 +223,6 @@ mod tests {
             .into_iter()
             .filter(|t| SPANISH.get(*t) == Strings::ENGLISH.get(*t))
             .filter(|t| !matches!(t, Text::DayMonthYear | Text::MonthYear))
-            // No longer read: `Text::Matches` holds both forms.
-            .filter(|t| t.key() != "lui-one-match")
             .collect();
         assert!(same.is_empty(), "left in English: {same:?}");
     }

@@ -35,7 +35,7 @@
 //!     .link("New invoice", "/invoices/new").keywords("bill create");
 //! assert_eq!(palette.exact(), None, "an exact name would redirect");
 //! let m = palette.render().into_string();
-//! assert!(m.contains(r#"popovertarget="palette""#) && m.contains(r#"list="palette-list""#));
+//! assert!(m.contains(r#"popovertarget="lui-palette""#) && m.contains(r#"list="lui-palette-list""#));
 //! assert!(m.contains("lui-palette-results") && m.contains("New invoice"));
 //! // The same in `lui!`:
 //! let same = lui! { Palette("/search") {
@@ -108,6 +108,8 @@ pub struct Palette<'a> {
     group: &'a str,
     label: &'a str,
     accesskey: String,
+    /// The setter that added the last item, for the modifiers' check.
+    last: Option<&'static str>,
 }
 
 impl Palette<'_> {
@@ -122,10 +124,13 @@ impl Palette<'_> {
         )
         .doc("Several `(label, href)` destinations at once."),
         Prop::new("keywords", PropKind::Modifier, "keywords: &'a str")
+            .applies_to(&["link"])
             .doc("Extra words that find the command added last, space-separated."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["link"])
             .doc("An icon before the command added last."),
         Prop::new("shortcut", PropKind::Modifier, "keys: &'a str")
+            .applies_to(&["link"])
             .doc("A key hint at the end of the command added last (shown, not bound)."),
         Prop::new("group", PropKind::Item, "heading: &'a str")
             .doc("List the commands added after this under a heading."),
@@ -137,24 +142,25 @@ impl Palette<'_> {
             .attr("accesskey")
             .doc("The opener's access key (default `k`)."),
         Prop::new("id", PropKind::Value, "id: &'a str")
-            .default("palette")
+            .default("lui-palette")
             .attr("id")
-            .doc("The palette's id instead of `palette`."),
+            .doc("The palette's id instead of `lui-palette`."),
     ];
 }
 
 impl Ui {
-    /// A palette `#palette` whose searches go to `action`; add destinations with
+    /// A palette `#lui-palette` whose searches go to `action`; add destinations with
     /// [`Palette::command`].
     pub fn palette<'a>(&'a self, action: &'a str) -> Palette<'a> {
         Palette {
             ui: self,
-            id: "palette",
+            id: "lui-palette",
             action,
             commands: Vec::new(),
             group: "",
             label: self.text(Text::Search),
             accesskey: "k".to_string(),
+            last: None,
         }
     }
 }
@@ -170,13 +176,8 @@ impl<'a> Palette<'a> {
             icon: None,
             shortcut: None,
         });
+        self.last = Some("link");
         self
-    }
-
-    /// The old name of [`Self::link`], kept for one release.
-    #[deprecated(note = "use .link()")]
-    pub fn command(self, label: &'a str, href: &'a str) -> Self {
-        self.link(label, href)
     }
 
     /// Several `(label, href)` destinations at once.
@@ -186,14 +187,10 @@ impl<'a> Palette<'a> {
             .fold(self, |p, (label, href)| p.link(label, href))
     }
 
-    /// The old name of [`Self::links`], kept for one release.
-    #[deprecated(note = "use .links()")]
-    pub fn commands(self, commands: impl IntoIterator<Item = (&'a str, &'a str)>) -> Self {
-        self.links(commands)
-    }
-
     /// Extra words that find the command added last, space-separated; never shown.
+    #[track_caller]
     pub fn keywords(mut self, keywords: &'a str) -> Self {
+        crate::props::check_last::<Self>(Palette::PROPS, "keywords", self.last);
         if let Some(c) = self.commands.last_mut() {
             c.keywords = keywords;
         }
@@ -201,7 +198,9 @@ impl<'a> Palette<'a> {
     }
 
     /// An icon before the command added last.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(Palette::PROPS, "icon", self.last);
         if let Some(c) = self.commands.last_mut() {
             c.icon = Some(icon.into());
         }
@@ -210,7 +209,9 @@ impl<'a> Palette<'a> {
 
     /// A key hint at the end of the command added last, right-aligned: shown to the visitor,
     /// not bound (the page's own keys are the app's business).
+    #[track_caller]
     pub fn shortcut(mut self, keys: &'a str) -> Self {
+        crate::props::check_last::<Self>(Palette::PROPS, "shortcut", self.last);
         if let Some(c) = self.commands.last_mut() {
             c.shortcut = Some(keys);
         }
@@ -220,6 +221,7 @@ impl<'a> Palette<'a> {
     /// List the commands added after this under a heading.
     pub fn group(mut self, heading: &'a str) -> Self {
         self.group = heading;
+        self.last = Some("group");
         self
     }
 
@@ -235,14 +237,7 @@ impl<'a> Palette<'a> {
         self
     }
 
-    /// The old name of [`Self::accesskey`], kept for one release.
-    #[deprecated(note = "use .accesskey()")]
-    pub fn key(mut self, key: char) -> Self {
-        self.accesskey = key.to_string();
-        self
-    }
-
-    /// The palette's id instead of `palette`.
+    /// The palette's id instead of `lui-palette`.
     pub fn id(mut self, id: &'a str) -> Self {
         self.id = id;
         self

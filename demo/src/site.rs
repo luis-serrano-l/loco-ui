@@ -159,14 +159,14 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 64] = [
         "/tabs",
         "Tabs",
         "Disclosure",
-        "<details name>, ::details-content, view-transition-name, grid",
+        "links, hidden, view-transition-name, grid",
         "Several panels in one place, one open at a time.",
     ),
     (
         "/accordion",
         "Accordion",
         "Disclosure",
-        "<details name>, ::details-content, interpolate-size",
+        "links, hidden, aria-expanded",
         "Questions that open to their answers.",
     ),
     (
@@ -742,7 +742,7 @@ fn props(ui: &Ui, builders: &[&loco_ui::props::Component]) -> Markup {
                                 thead { tr { th { "Prop" } th { "Kind" } th { "Arguments" } th { "Default" } th { "HTML" } th { "What it does" } @if has_try { th { "Try" } } } }
                                 tbody { @for p in b.props { tr {
                                     td { code { (p.name) } }
-                                    td { (p.kind.as_str()) @if let loco_ui::props::PropKind::Choice { of } = p.kind { br; small { (of.join(", ")) } } }
+                                    td { (p.kind.as_str()) @if let loco_ui::props::PropKind::Choice { of } = p.kind { br; small { (of.join(", ")) } } @if !p.applies_to.is_empty() { br; small { "of " (p.applies_to.join(", ")) } } }
                                     td { @if !p.args.is_empty() { code { (p.args) } } }
                                     td { @if !p.default.is_empty() { code { (p.default) } } }
                                     td { @if !p.attr.is_empty() { code { (p.attr) } } }

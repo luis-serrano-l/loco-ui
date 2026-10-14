@@ -47,6 +47,8 @@
 //! assert_eq!(lui! { Badge("Beta") tone="info" variant="surface" size=2 radius="full"; }.into_string(), beta);
 //! ```
 
+use std::fmt::Display;
+
 use maud::{Markup, Render, html};
 
 use crate::Ui;
@@ -60,7 +62,7 @@ use crate::variant::{Radius, Size, Tone, Variant};
 /// `.outline()`, `.ok()`, `.warn()`, `.solid()`, `.surface()`, `.shimmer()`.
 #[derive(Clone, Debug)]
 pub struct Badge<'a> {
-    text: &'a str,
+    text: String,
     tone: Option<Tone>,
     variant: Option<Variant>,
     size: Size,
@@ -113,10 +115,11 @@ impl Badge<'_> {
 }
 
 impl Ui {
-    /// A badge reading `text`: a soft brand tint unless told otherwise.
-    pub fn badge<'a>(&self, text: &'a str) -> Badge<'a> {
+    /// A badge reading `text`, a `&str` or anything `Display` (a count): a soft brand tint
+    /// unless told otherwise.
+    pub fn badge<'a>(&self, text: impl Display) -> Badge<'a> {
         Badge {
-            text,
+            text: text.to_string(),
             tone: None,
             variant: None,
             size: Size::S1,

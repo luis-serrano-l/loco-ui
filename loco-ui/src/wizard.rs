@@ -133,6 +133,7 @@ impl Wizard<'_> {
         Prop::new("review", PropKind::Item, "title: &'a str")
             .doc("The last step."),
         Prop::new("optional", PropKind::Modifier, "")
+            .applies_to(&["step"])
             .doc("The step added last can be skipped."),
         Prop::new("values", PropKind::Value, "values: &'a [(String, String)]")
             .doc("What the visitor entered so far, by field name, for every step's fields and the review."),
@@ -164,29 +165,6 @@ impl Ui {
     }
 }
 
-/// What one wizard POST carries besides the step's fields: which step it is and whether it
-/// was skipped. Read it from the posted pairs with [`Posted::from_pairs`].
-#[deprecated(note = "take `loco_ui::Posted` and call `.step()` and `.skip()` on it")]
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Posted {
-    /// The step that was posted, 0-based.
-    pub step: usize,
-    /// The visitor pressed "Skip" on an optional step.
-    pub skip: bool,
-}
-
-#[allow(deprecated)]
-impl Posted {
-    /// `step=<n>` and `skip=1` from a form post parsed as pairs.
-    pub fn from_pairs(pairs: &[(String, String)]) -> Posted {
-        let get = |k: &str| pairs.iter().find(|(n, _)| n == k).map(|(_, v)| v.as_str());
-        Posted {
-            step: get("step").and_then(|v| v.parse().ok()).unwrap_or(0),
-            skip: get("skip") == Some("1"),
-        }
-    }
-}
-
 impl<'a> Wizard<'a> {
     /// A step titled `title` showing `body`: `ui.fields()…` (which the review lists) or any
     /// markup.
@@ -211,7 +189,16 @@ impl<'a> Wizard<'a> {
     }
 
     /// The step added last can be skipped: a "Skip" button beside Next posts `skip=1`.
+    #[track_caller]
     pub fn optional(mut self) -> Self {
+        let last = (self.steps.last()).map(|s| {
+            if matches!(s.body, Body::Review) {
+                "review"
+            } else {
+                "step"
+            }
+        });
+        crate::props::check_last::<Self>(Wizard::PROPS, "optional", last);
         if let Some(s) = self.steps.last_mut() {
             s.optional = true;
         }
@@ -249,13 +236,6 @@ impl<'a> Wizard<'a> {
     /// the steps show progress on screen.
     pub fn hide_progress(mut self) -> Self {
         self.progress = false;
-        self
-    }
-
-    /// The old form of [`Self::hide_progress`], kept for one release: `false` hides the bar.
-    #[deprecated(note = "use .hide_progress()")]
-    pub fn progress(mut self, progress: bool) -> Self {
-        self.progress = progress;
         self
     }
 
@@ -409,7 +389,6 @@ pub const CSS: &str = r#"
 
 #[cfg(test)]
 mod tests {
-    #![allow(deprecated)]
     use super::*;
 
     fn three<'a>(ui: &'a Ui) -> Wizard<'a> {
@@ -470,17 +449,6 @@ mod tests {
                 .render()
                 .into_string()
                 .contains("<progress")
-        );
-        let pairs = [
-            ("step".to_string(), "2".to_string()),
-            ("skip".to_string(), "1".to_string()),
-        ];
-        assert_eq!(
-            Posted::from_pairs(&pairs),
-            Posted {
-                step: 2,
-                skip: true
-            }
         );
     }
 }

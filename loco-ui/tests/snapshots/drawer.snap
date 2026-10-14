@@ -3,23 +3,23 @@ source: loco-ui/tests/snapshots.rs
 ---
 caps: all
 <div class="lui-drawer lui-drawer-sidebar">
-<button type="button" class="lui-button lui-drawer-open" command="show-modal" commandfor="menu" aria-haspopup="dialog">
+<button type="button" class="lui-button lui-drawer-open" command="show-modal" commandfor="lui-drawer-menu" aria-haspopup="dialog">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="menu">
 <path d="M4 6h16"/>
 <path d="M4 12h16"/>
 <path d="M4 18h16"/>
 </svg>Menu</button>
-<dialog id="menu" class="lui-drawer-panel" closedby="any" aria-labelledby="menu-title" open>
+<dialog id="lui-drawer-menu" class="lui-drawer-panel" closedby="any" aria-labelledby="lui-drawer-menu-title" open>
 <div class="lui-drawer-head">
-<p id="menu-title" class="lui-drawer-title">Browse</p>
-<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" data-size="1" data-tone="neutral" data-variant="ghost" command="close" commandfor="menu" aria-label="Close">
+<p id="lui-drawer-menu-title" class="lui-drawer-title">Browse</p>
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" data-size="1" data-tone="neutral" data-variant="ghost" command="close" commandfor="lui-drawer-menu" aria-label="Close">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
 <path d="M18 6 6 18"/>
 <path d="m6 6 12 12"/>
 </svg>
 </button>
 </div>
-<nav class="lui-drawer-nav" aria-labelledby="menu-title">
+<nav class="lui-drawer-nav" aria-labelledby="lui-drawer-menu-title">
 <ul>
 <li>
 <a href="/">Home</a>
@@ -33,15 +33,15 @@ caps: all
 
 caps: none
 <div class="lui-drawer lui-drawer-sidebar">
-<a class="lui-button lui-drawer-open" href="#menu" role="button">
+<a class="lui-button lui-drawer-open" href="#lui-drawer-menu" role="button">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="menu">
 <path d="M4 6h16"/>
 <path d="M4 12h16"/>
 <path d="M4 18h16"/>
 </svg>Menu</a>
-<dialog id="menu" class="lui-drawer-panel" closedby="any" aria-labelledby="menu-title" open>
+<dialog id="lui-drawer-menu" class="lui-drawer-panel" closedby="any" aria-labelledby="lui-drawer-menu-title" open>
 <div class="lui-drawer-head">
-<p id="menu-title" class="lui-drawer-title">Browse</p>
+<p id="lui-drawer-menu-title" class="lui-drawer-title">Browse</p>
 <a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" data-size="1" data-tone="neutral" data-variant="ghost" href="#" aria-label="Close">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
 <path d="M18 6 6 18"/>
@@ -49,7 +49,7 @@ caps: none
 </svg>
 </a>
 </div>
-<nav class="lui-drawer-nav" aria-labelledby="menu-title">
+<nav class="lui-drawer-nav" aria-labelledby="lui-drawer-menu-title">
 <ul>
 <li>
 <a href="/">Home</a>

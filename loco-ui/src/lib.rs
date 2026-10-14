@@ -197,17 +197,24 @@ pub mod prelude {
 }
 
 /// A key made safe for an `id`: anything but letters, digits, `-` and `_` becomes `-`, and
-/// ASCII letters are lowercased, so `"Account"` gives `account`. Components derive the ids
-/// a caller does not care about from a label this way; so can yours.
+/// letters are lowercased, so `"Account"` gives `account`. Letters and digits are Unicode
+/// ones (`char::is_alphanumeric`), so a label in any script keeps its words: two Japanese
+/// labels give two ids, not two runs of dashes. Combining marks are not stripped. Components
+/// derive the ids a caller does not care about from a label this way; so can yours.
 ///
 /// ```rust
 /// assert_eq!(loco_ui::slug("Billing & plans"), "billing---plans");
+/// assert_eq!(loco_ui::slug("Configuración"), "configuración");
+/// assert_ne!(loco_ui::slug("設定"), loco_ui::slug("請求"));
 /// ```
 pub fn slug(key: &str) -> String {
+    // Lowercasing can add a combining mark (`İ` is `i` and U+0307), which becomes `-` too,
+    // so a slug of a slug is the same slug.
     key.chars()
+        .flat_map(char::to_lowercase)
         .map(|c| {
-            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
-                c.to_ascii_lowercase()
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
             } else {
                 '-'
             }
@@ -806,8 +813,10 @@ mod tests {
     fn ids_come_from_labels() {
         let ui = Ui::from(Caps::all());
         let html = |r: &dyn Render| r.render().into_string();
-        assert!(html(&ui.menu("My account")).contains(r#"id="my-account""#));
-        assert!(html(&ui.drawer("Menu")).contains(r#"id="menu""#));
+        assert!(html(&ui.menu("My account")).contains(r#"id="lui-menu-my-account""#));
+        assert!(html(&ui.drawer("Menu")).contains(r#"id="lui-drawer-menu""#));
+        assert!(html(&ui.dialog("Delete account")).contains(r#"id="lui-dialog-delete-account""#));
+        assert!(html(&ui.palette("/go")).contains(r#"id="lui-palette""#));
         assert!(html(&ui.dialog("Delete account").id("confirm")).contains(r#"id="confirm""#));
     }
 
@@ -1732,6 +1741,19 @@ mod tests {
         ),
     ];
 
+    /// Modules whose modifiers do not yet check the item they follow, each with the reason.
+    const MODIFIERS_UNCHECKED: &[(&str, &str)] = &[
+        (
+            "form",
+            "M40's controls work owns form.rs; Form::required() is the pinned case",
+        ),
+        (
+            "table",
+            "M41 owns table.rs; Table::column(..).keep(..).numeric() is the pinned case",
+        ),
+        ("toggle_group", "M40's controls work owns toggle_group.rs"),
+    ];
+
     /// Modules that derive ids with `slug` yet need no `.id(..)`, each with the reason.
     const SLUG_WITHOUT_ID: &[(&str, &str)] = &[
         (
@@ -1892,6 +1914,31 @@ mod tests {
             let has = |k| c.props.iter().any(|p| p.kind == k);
             if has(Modifier) && !has(Item) {
                 wrong.push(format!("{}: modifiers without an item", c.builder));
+            }
+            // 8. A modifier says which items it may follow, each one a setter of this
+            // builder that adds an item, so its debug check and its props row agree.
+            for p in c.props.iter().filter(|p| p.kind == Modifier) {
+                if listed(MODIFIERS_UNCHECKED, c.module) {
+                    continue;
+                }
+                if p.applies_to.is_empty() {
+                    wrong.push(format!(
+                        "{}::{}: a modifier without `applies_to`",
+                        c.builder, p.name
+                    ));
+                }
+                for item in p.applies_to {
+                    let adds = c
+                        .props
+                        .iter()
+                        .any(|q| q.name == *item && matches!(q.kind, Item | Modifier));
+                    if !adds {
+                        wrong.push(format!(
+                            "{}::{}: applies to `{item}`, not an item setter",
+                            c.builder, p.name
+                        ));
+                    }
+                }
             }
             // Constructors: text first, or `name` then its label; an id is a setter.
             for call in c.calls {
@@ -2268,6 +2315,42 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// M38: the state attributes of `docs/api.md` ("State attributes") are a styling API, so
+    /// a component that writes `data-state`, `data-disabled`, `data-invalid` or
+    /// `data-orientation` in its markup selects the same attribute in its own CSS: the class
+    /// and the attribute cannot drift apart.
+    #[test]
+    fn state_attributes_are_styled_where_they_are_set() {
+        const STATE: [&str; 4] = [
+            "data-state",
+            "data-disabled",
+            "data-invalid",
+            "data-orientation",
+        ];
+        let mut drift = Vec::new();
+        for path in library_sources() {
+            let source = std::fs::read_to_string(&path).unwrap();
+            let (code, css) = source
+                .split_once("pub const CSS: &str")
+                .unwrap_or((source.as_str(), ""));
+            let code: String = code
+                .lines()
+                .filter(|l| !l.trim_start().starts_with("//"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            for attr in STATE {
+                let set = [format!("{attr}="), format!("{attr}["), format!("{attr} ")]
+                    .iter()
+                    .any(|s| code.contains(s.as_str()));
+                if set && !css.contains(&format!("[{attr}")) {
+                    let name = path.file_name().unwrap().to_string_lossy().to_string();
+                    drift.push(format!("{name} sets {attr} but its CSS never selects it"));
+                }
+            }
+        }
+        assert!(drift.is_empty(), "{drift:#?}");
     }
 
     /// M34: components respond to the box they sit in, not the viewport (`layout.rs` header).

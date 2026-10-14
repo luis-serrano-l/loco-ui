@@ -54,8 +54,8 @@ fn settings(ui: &Ui) -> Markup {
     lui! {
         // code: /blocks/settings
         SettingsPage("Settings") {
-            section "Profile" "How other people see you." { Form("/blocks/settings") submit="Save" { text "name" "Name" value="Ada"; } }
-            section "Email" "Where we send receipts." { Form("/blocks/settings") submit="Save" { email "email" "Email" value="ada@example.com"; } }
+            section "Profile" "How other people see you." { Form("/blocks/settings") id="settings-profile" submit="Save" { text "name" "Name" value="Ada"; } }
+            section "Email" "Where we send receipts." { Form("/blocks/settings") id="settings-email" submit="Save" { email "email" "Email" value="ada@example.com"; } }
         }
         // end code
     }

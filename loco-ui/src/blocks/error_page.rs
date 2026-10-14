@@ -99,12 +99,6 @@ impl<'a> ErrorPage<'a> {
         self
     }
 
-    /// The old name of [`Self::description`], kept for one release.
-    #[deprecated(note = "use .description()")]
-    pub fn message(self, text: &'a str) -> Self {
-        self.description(text)
-    }
-
     /// Where the button goes.
     pub fn home(mut self, href: &'a str) -> Self {
         self.home = href;

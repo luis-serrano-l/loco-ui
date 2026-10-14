@@ -44,9 +44,9 @@
 //! ```rust
 //! use loco_ui::prelude::*;
 //! let ui = Ui::from(Caps::all());
-//! // The id is the label's slug: this menu is `#account`.
+//! // The id is `lui-menu-` and the label's slug: this menu is `#lui-menu-account`.
 //! let m = ui.menu("Account").link("Profile", "/profile").link("Sign out", "/logout");
-//! assert!(m.render().into_string().contains(r#"id="account""#));
+//! assert!(m.render().into_string().contains(r#"id="lui-menu-account""#));
 //! // `icon`, `shortcut`, `disabled` and `danger` apply to the item just added.
 //! let m = ui.menu("Account")
 //!     .group("Signed in as Ada")
@@ -59,7 +59,7 @@
 //!     .align_end();
 //! let html = m.render().into_string();
 //! assert!(html.contains("<form method=\"post\" action=\"/logout\""));
-//! assert!(html.contains("position-area: block-end span-inline-start") && html.contains(r#"id="account-theme""#));
+//! assert!(html.contains("position-area: block-end span-inline-start") && html.contains(r#"id="lui-menu-account-theme""#));
 //! // The same in `lui!`:
 //! let same = lui! { Menu("Account") align_end {
 //!     group "Signed in as Ada";
@@ -71,6 +71,10 @@
 //!     action "Sign out" "/logout" danger;
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // A styled opener of your own: the menu sets its popover target.
+//! let more = ui.button("").ghost().icon_only().aria_label("More").leading(Icon::Ellipsis);
+//! let m = ui.menu("More").link("Rename", "/rename").trigger(more).render().into_string();
+//! assert!(m.contains(r#"class="lui-button lui-button-ghost lui-button-icon""#) && m.contains(r#"popovertarget="lui-menu-more""#));
 //! // Checkbox and radio items post their own form; `checked` applies to the item just added.
 //! let m = ui.menu("View")
 //!     .checkbox("Show grid", "/view", "grid").checked(true)
@@ -188,6 +192,19 @@ impl<'a> MenuItem<'a> {
         Self::new(Kind::Separator, "")
     }
 
+    /// The name of the setter that adds an item of this kind, for the modifiers' check.
+    pub(crate) const fn adder(&self) -> &'static str {
+        match self.kind {
+            Kind::Link(_) => "link",
+            Kind::Action(_) => "action",
+            Kind::Heading => "group",
+            Kind::Separator => "separator",
+            Kind::Submenu(_) => "submenu",
+            Kind::Check(..) => "checkbox",
+            Kind::Radio(..) => "radio",
+        }
+    }
+
     /// Destructive: coloured with `--lui-danger`.
     pub const fn danger(mut self) -> Self {
         self.danger = true;
@@ -220,18 +237,22 @@ impl<'a> From<(&'a str, &'a str)> for MenuItem<'a> {
 /// start-aligned, unless told otherwise.
 ///
 /// **Setters.** Values and items: `.submenu(..)`, `.link(..)`, `.action(..)`, `.checkbox(..)`,
-/// `.radio(..)`, `.group(..)`, `.icon(..)`, `.shortcut(..)`, `.id(..)`; switches:
+/// `.radio(..)`, `.group(..)`, `.icon(..)`, `.shortcut(..)`, `.id(..)`, `.trigger(..)`; switches:
 /// `.separator()`, `.disabled()`, `.danger()`, `.align_end()`, `.open_right()`; from a
 /// condition: `.checked(bool)`.
 #[derive(Clone, Debug)]
 pub struct Menu<'a> {
     caps: Caps,
     apply: &'static str,
-    id: String,
+    id: Option<&'a str>,
     label: &'a str,
     items: Vec<MenuItem<'a>>,
     placement: Placement,
+    button: Option<Button<'a>>,
 }
+
+/// The items a menu's modifiers change: everything but a group heading and a separator.
+pub(crate) const ITEMS: &[&str] = &["link", "action", "submenu", "checkbox", "radio"];
 
 impl Menu<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
@@ -254,6 +275,7 @@ impl Menu<'_> {
         )
         .doc("A radio button in its own form posting `name=value` to `action`."),
         Prop::new("checked", PropKind::Modifier, "checked: bool")
+            .applies_to(&["checkbox", "radio"])
             .attr("checked")
             .doc("The checkbox or radio item is ticked."),
         Prop::new("group", PropKind::Item, "text: &'a str").doc("A section heading."),
@@ -264,35 +286,38 @@ impl Menu<'_> {
             "text: &'a str, items: impl IntoIterator<Item = I>",
         )
         .doc("A nested menu of `items` (`MenuItem`s or `(text, href)` links)."),
-        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>").doc(
+        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>").applies_to(ITEMS).doc(
             "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech).",
         ),
-        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str")
+        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str").applies_to(ITEMS)
             .doc("A shortcut shown after the item's text, as `<kbd>`."),
-        Prop::new("disabled", PropKind::Modifier, "")
+        Prop::new("disabled", PropKind::Modifier, "").applies_to(ITEMS)
             .attr("disabled")
             .doc("The item is shown but not usable."),
-        Prop::new("danger", PropKind::Modifier, "").doc("The item is destructive."),
-        Prop::new("id", PropKind::Value, "id: &str")
+        Prop::new("danger", PropKind::Modifier, "").applies_to(ITEMS).doc("The item is destructive."),
+        Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
-            .doc("The menu's id instead of the label's slug."),
+            .doc("The menu's id instead of `lui-menu-` and the label's slug."),
         Prop::new("align_end", PropKind::Switch, "").doc(
             "Open below the button with right edges aligned, for a button at the end of a row.",
         ),
         Prop::new("open_right", PropKind::Switch, "").doc("Open to the right of the button."),
+        Prop::new("trigger", PropKind::Value, "button: Button<'a>")
+            .doc("The opener as a styled button of the caller's; the menu sets its `popovertarget`."),
     ];
 }
 
 impl Ui {
-    /// A menu behind a button labelled `label`; its id is the label's slug.
+    /// A menu behind a button labelled `label`; its id is `lui-menu-` and the label's slug.
     pub fn menu<'a>(&self, label: &'a str) -> Menu<'a> {
         Menu {
             caps: self.caps,
             apply: self.text(Text::Apply),
-            id: slug(label),
+            id: None,
             label,
             items: Vec::new(),
             placement: Placement::default(),
+            button: None,
         }
     }
 }
@@ -303,7 +328,10 @@ impl<'a> Menu<'a> {
         self
     }
 
-    fn last(mut self, change: impl FnOnce(&mut MenuItem<'a>)) -> Self {
+    #[track_caller]
+    fn last(mut self, method: &str, change: impl FnOnce(&mut MenuItem<'a>)) -> Self {
+        let last = self.items.last().map(MenuItem::adder);
+        crate::props::check_last::<Self>(Menu::PROPS, method, last);
         if let Some(item) = self.items.last_mut() {
             change(item);
         }
@@ -337,18 +365,12 @@ impl<'a> Menu<'a> {
 
     /// The checkbox or radio item added last is ticked.
     pub fn checked(self, checked: bool) -> Self {
-        self.last(|it| it.checked = checked)
+        self.last("checked", |it| it.checked = checked)
     }
 
     /// A section heading.
     pub fn group(self, text: &'a str) -> Self {
         self.push(MenuItem::new(Kind::Heading, text))
-    }
-
-    /// The old name of [`Self::group`], kept for one release.
-    #[deprecated(note = "use .group()")]
-    pub fn heading(self, text: &'a str) -> Self {
-        self.group(text)
     }
 
     /// A rule between groups.
@@ -371,29 +393,33 @@ impl<'a> Menu<'a> {
 
     /// An icon, or a glyph or emoji, before the item's text (decorative, hidden from
     /// assistive tech).
+    #[track_caller]
     pub fn icon(self, icon: impl Into<Glyph<'a>>) -> Self {
         let icon = icon.into();
-        self.last(|it| it.icon = Some(icon))
+        self.last("icon", |it| it.icon = Some(icon))
     }
 
     /// A shortcut shown after the item's text, as `<kbd>`; a label only.
+    #[track_caller]
     pub fn shortcut(self, keys: &'a str) -> Self {
-        self.last(|it| it.shortcut = Some(keys))
+        self.last("shortcut", |it| it.shortcut = Some(keys))
     }
 
     /// The item is shown but not usable: a link without `href`, a button with `disabled`.
+    #[track_caller]
     pub fn disabled(self) -> Self {
-        self.last(|it| it.disabled = true)
+        self.last("disabled", |it| it.disabled = true)
     }
 
     /// The item is destructive: coloured with `--lui-danger`.
+    #[track_caller]
     pub fn danger(self) -> Self {
-        self.last(|it| it.danger = true)
+        self.last("danger", |it| it.danger = true)
     }
 
-    /// The menu's id instead of the label's slug.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = id.to_string();
+    /// The menu's id instead of `lui-menu-` and the label's slug.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -408,17 +434,27 @@ impl<'a> Menu<'a> {
         self.placement = Placement::Right;
         self
     }
+
+    /// The opener as a styled button of the caller's (`ui.button("").icon_only().leading(..)`)
+    /// in place of the label and chevron: the menu sets its `popovertarget`, and without
+    /// popover support its look goes on the `<summary>`.
+    pub fn trigger(mut self, button: Button<'a>) -> Self {
+        self.button = Some(button);
+        self
+    }
 }
 
 impl Render for Menu<'_> {
     fn render(&self) -> Markup {
-        menu(
+        menu_from(
             &self.caps,
-            &self.id,
+            &self
+                .id
+                .map_or_else(|| format!("lui-menu-{}", slug(self.label)), str::to_string),
             self.label,
             &self.items,
             self.placement,
-            false,
+            Trigger::Own(self.button.as_ref()),
         )
     }
 }
@@ -433,29 +469,55 @@ pub(crate) fn menu(
     placement: Placement,
     compact: bool,
 ) -> Markup {
+    let trigger = if compact {
+        Trigger::Compact
+    } else {
+        Trigger::Own(None)
+    };
+    menu_from(caps, id, label, items, placement, trigger)
+}
+
+/// What opens a menu: a table row's small ghost icon button, or the label and chevron
+/// unless the caller gave a styled button of their own.
+#[derive(Clone, Copy)]
+enum Trigger<'b, 'a> {
+    Compact,
+    Own(Option<&'b Button<'a>>),
+}
+
+fn menu_from(
+    caps: &Caps,
+    id: &str,
+    label: &str,
+    items: &[MenuItem],
+    placement: Placement,
+    trigger: Trigger,
+) -> Markup {
+    let compact = matches!(trigger, Trigger::Compact);
+    let own = match trigger {
+        Trigger::Own(b) => b,
+        Trigger::Compact => None,
+    };
     let popover = caps.has(Cap::Popover);
     let anchor = caps.has(Cap::Anchor);
     let list = html! { ul role="menu" { @for it in items { (item(id, it, popover, anchor)) } } };
     // A row menu repeats once per row, so its face is a text glyph rather than an SVG.
-    let face = if compact {
-        html! { "\u{22ef}" }
-    } else {
-        html! { (label) (Icon::ChevronDown) }
+    let face = match own {
+        Some(b) => b.face(),
+        None if compact => html! { "\u{22ef}" },
+        None => html! { (label) (Icon::ChevronDown) },
     };
-    let trigger = Button::new(*caps, label)
-        .popovertarget(id)
-        .aria_haspopup("menu")
-        .body(face.clone());
+    let trigger = match own {
+        Some(b) => b.clone(),
+        None => Button::new(*caps, label).body(face.clone()),
+    };
+    let trigger = trigger.popovertarget(id).aria_haspopup("menu");
     let trigger = if compact {
         trigger.ghost().small().icon_only().aria_label(label)
     } else {
         trigger
     };
-    let summary_class = if compact {
-        "lui-button lui-button-ghost lui-button-small lui-button-icon"
-    } else {
-        "lui-button"
-    };
+    let summary_class = trigger.classes();
     html! {
         @if !popover {
             details class={ "lui-popover lui-popover-details " (placement.class()) } id=(id) {
@@ -500,14 +562,14 @@ fn item(menu_id: &str, it: &MenuItem, popover: bool, anchor: bool) -> Markup {
             Kind::Separator => li role="separator" class="lui-popover-sep" {},
             Kind::Link(href) => li role="none" {
                 @if it.disabled {
-                    a class=(class) role="menuitem" aria-disabled="true" { (inner) }
+                    a class=(class) role="menuitem" aria-disabled="true" data-disabled { (inner) }
                 } @else {
                     a class=(class) role="menuitem" href=(href) { (inner) }
                 }
             },
             Kind::Action(action) => li role="none" {
                 form method="post" action=(action) {
-                    button type="submit" class=(class) role="menuitem" disabled[it.disabled] { (inner) }
+                    button type="submit" class=(class) role="menuitem" disabled[it.disabled] data-disabled[it.disabled] { (inner) }
                 }
             },
             Kind::Check(action, name, apply) => li role="none" {
@@ -593,8 +655,8 @@ pub const CSS: &str = r#"
 .lui-popover-danger { color: var(--lui-danger); }
 .lui-popover-danger:hover, .lui-popover-danger:focus-visible { color: var(--lui-danger); background: color-mix(in srgb, var(--lui-danger) 10%, transparent); }
 .lui-popover-danger .lui-popover-icon { color: inherit; }
-.lui-popover-disabled { opacity: 0.5; cursor: default; }
-.lui-popover-disabled:hover { background: none; color: inherit; }
+.lui-popover-item[data-disabled] { opacity: 0.5; cursor: default; }
+.lui-popover-item[data-disabled]:hover { background: none; color: inherit; }
 .lui-popover-heading { display: flex; align-items: center; min-height: 1.5rem; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
 .lui-popover-sep { margin: var(--lui-space-1) 0.5rem; border-top: 1px solid var(--lui-line); }
 .lui-popover-sub { position: relative; }

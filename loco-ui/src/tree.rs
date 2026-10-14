@@ -96,16 +96,20 @@ impl Tree<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("node", PropKind::Item, "label: &'a str").doc("A node reading `label`."),
         Prop::new("link", PropKind::Modifier, "href: &'a str")
+            .applies_to(&["node"])
             .doc("The node added last is a link; the one to the current path is marked current."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["node"])
             .doc("An icon before the label of the node added last."),
         Prop::new(
             "children",
             PropKind::Modifier,
             "nodes: impl FnOnce(Tree<'a>) -> Tree<'a>",
         )
+        .applies_to(&["node"])
         .doc("The nodes under the node added last, which makes it a folder."),
         Prop::new("open", PropKind::Modifier, "open: bool")
+            .applies_to(&["node"])
             .attr("open")
             .doc("The folder added last starts open while `open` holds."),
         Prop::new("id", PropKind::Value, "id: &'a str")
@@ -126,7 +130,9 @@ impl Ui {
 }
 
 impl<'a> Tree<'a> {
-    fn last(mut self, change: impl FnOnce(&mut Node<'a>)) -> Self {
+    fn last(mut self, method: &str, change: impl FnOnce(&mut Node<'a>)) -> Self {
+        let last = self.nodes.last().map(|_| "node");
+        crate::props::check_last::<Self>(Self::PROPS, method, last);
         if let Some(node) = self.nodes.last_mut() {
             change(node);
         }
@@ -147,13 +153,13 @@ impl<'a> Tree<'a> {
 
     /// The node added last is a link; the one to the current path is marked current.
     pub fn link(self, href: &'a str) -> Self {
-        self.last(|n| n.href = Some(href))
+        self.last("link", |n| n.href = Some(href))
     }
 
     /// An icon before the label of the node added last.
     pub fn icon(self, icon: impl Into<Glyph<'a>>) -> Self {
         let icon = icon.into();
-        self.last(|n| n.icon = Some(icon))
+        self.last("icon", |n| n.icon = Some(icon))
     }
 
     /// The nodes under the node added last, which makes it a folder: `nodes` gets an empty
@@ -165,13 +171,13 @@ impl<'a> Tree<'a> {
             id: self.id,
             nodes: Vec::new(),
         });
-        self.last(|n| n.children = inner.nodes)
+        self.last("children", |n| n.children = inner.nodes)
     }
 
     /// The folder added last starts open while `open` holds (a route that knows which
     /// folder the visitor wants).
     pub fn open(self, open: bool) -> Self {
-        self.last(|n| n.open = open)
+        self.last("open", |n| n.open = open)
     }
 
     /// The key in `?open.<id>=` instead of the label's slug.

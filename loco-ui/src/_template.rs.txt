@@ -50,7 +50,7 @@ use crate::props::{Prop, PropKind};
 #[derive(Clone, Debug)]
 pub struct Widget<'a> {
     label: &'a str,
-    id: Option<String>,
+    id: Option<&'a str>,
     quiet: bool,
 }
 
@@ -63,7 +63,7 @@ impl Widget<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
-        Prop::new("id", PropKind::Value, "id: &str")
+        Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("Replace the id derived from the label."),
         Prop::new("quiet", PropKind::Switch, "").doc("A lighter look."),
@@ -86,8 +86,8 @@ impl Ui {
 
 impl<'a> Widget<'a> {
     /// Replace the id derived from the label.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = Some(id.to_owned());
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -100,8 +100,11 @@ impl<'a> Widget<'a> {
 
 impl Render for Widget<'_> {
     fn render(&self) -> Markup {
-        // TODO(5, ids): an id the caller does not care about comes from `crate::slug(label)`.
-        let _id = self.id.clone().unwrap_or_else(|| crate::slug(self.label));
+        // TODO(5, ids): an id the caller does not care about is `lui-<name>-` and
+        // `crate::slug(label)`.
+        let _id = self
+            .id
+            .map_or_else(|| format!("lui-widget-{}", crate::slug(self.label)), str::to_string);
         // TODO(4, classes): one `lui-widget` class on the root, `lui-widget-<part>` on parts.
         // TODO(8, primitives): buttons, inputs, badges, cards, icons and layouts come from
         // `ui.button`, `ui.input(..).hide_label()`, `ui.badge`, `ui.card`, `Icon`, `ui.stack`..

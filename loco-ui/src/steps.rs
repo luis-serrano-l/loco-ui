@@ -86,17 +86,23 @@ impl Steps<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("step", PropKind::Item, "title: &'a str").doc("A step titled `title`."),
         Prop::new("done", PropKind::Modifier, "")
+            .applies_to(&["step"])
             .doc("The step added last is done: a check in its dot, the connector after it filled."),
         Prop::new("current", PropKind::Modifier, "")
+            .applies_to(&["step"])
             .doc("The step added last is the one the visitor is on (`aria-current=\"step\"`)."),
         Prop::new("invalid", PropKind::Modifier, "")
+            .applies_to(&["step"])
             .doc("The step added last needs attention: a \"!\" in a danger dot."),
         Prop::new("optional", PropKind::Modifier, "")
+            .applies_to(&["step"])
             .doc("The step added last can be skipped: \"Optional\" beside its title."),
         Prop::new("href", PropKind::Modifier, "href: &'a str")
+            .applies_to(&["step"])
             .attr("href")
             .doc("The title of the step added last links here."),
         Prop::new("description", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["step"])
             .doc("A muted line under the title of the step added last."),
         Prop::new("vertical", PropKind::Switch, "")
             .doc("A column at every width instead of a row from 30rem."),
@@ -115,7 +121,9 @@ impl Ui {
 }
 
 impl<'a> Steps<'a> {
-    fn last(mut self, change: impl FnOnce(&mut Step<'a>)) -> Self {
+    fn last(mut self, method: &str, change: impl FnOnce(&mut Step<'a>)) -> Self {
+        let last = self.steps.last().map(|_| "step");
+        crate::props::check_last::<Self>(Steps::PROPS, method, last);
         if let Some(step) = self.steps.last_mut() {
             change(step);
         }
@@ -133,33 +141,33 @@ impl<'a> Steps<'a> {
 
     /// The step added last is done: a check in its dot, the connector after it filled.
     pub fn done(self) -> Self {
-        self.last(|s| s.state = State::Done)
+        self.last("done", |s| s.state = State::Done)
     }
 
     /// The step added last is the one the visitor is on (`aria-current="step"`).
     pub fn current(self) -> Self {
-        self.last(|s| s.state = State::Current)
+        self.last("current", |s| s.state = State::Current)
     }
 
     /// The step added last needs attention: a "!" in a danger dot, its title in the danger
     /// colour, and "has errors" for assistive tech.
     pub fn invalid(self) -> Self {
-        self.last(|s| s.error = true)
+        self.last("invalid", |s| s.error = true)
     }
 
     /// The step added last can be skipped: "Optional" beside its title.
     pub fn optional(self) -> Self {
-        self.last(|s| s.optional = true)
+        self.last("optional", |s| s.optional = true)
     }
 
     /// The title of the step added last links here (a done step, to go back to it).
     pub fn href(self, href: &'a str) -> Self {
-        self.last(|s| s.href = Some(href))
+        self.last("href", |s| s.href = Some(href))
     }
 
     /// A muted line under the title of the step added last.
     pub fn description(self, text: &'a str) -> Self {
-        self.last(|s| s.description = Some(text))
+        self.last("description", |s| s.description = Some(text))
     }
 
     /// A column at every width instead of a row from 30rem.

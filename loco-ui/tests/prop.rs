@@ -88,8 +88,8 @@ proptest! {
     #[test]
     fn slugs_are_id_safe_and_stable(key in "\\PC{0,24}") {
         let id = slug(&key);
-        prop_assert!(id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_'));
-        prop_assert_eq!(id.chars().count(), key.chars().count());
+        prop_assert!(id.chars().all(|c| (c.is_alphanumeric() && !c.is_ascii_uppercase()) || c == '-' || c == '_'));
+        prop_assert!(id.chars().count() >= key.chars().count());
         prop_assert_eq!(slug(&id), id);
     }
 

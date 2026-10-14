@@ -161,15 +161,11 @@ async fn dialog_variants_follow_caps() {
 }
 
 #[tokio::test]
-async fn tabs_strip_versus_accordion() {
+async fn tabs_strip_and_vertical() {
     let modern = Page::render(demo::router(), "/tabs?tab.demo=1", MODERN).await;
-    assert_eq!(
-        modern.display(".lui-tabs details").as_deref(),
-        Some("contents")
-    );
-    let first = modern.bbox(".lui-tabs summary").unwrap();
+    let first = modern.bbox("#lui-tabs-demo .lui-tabs-trigger").unwrap();
     let second = modern
-        .bbox(".lui-tabs details:nth-of-type(2) summary")
+        .bbox("#lui-tabs-demo .lui-tabs-trigger:nth-child(2)")
         .unwrap();
     assert!(
         (first.y - second.y).abs() < 1.0,
@@ -177,50 +173,58 @@ async fn tabs_strip_versus_accordion() {
     );
     assert!(second.x > first.x + first.width - 1.0);
     let panel = modern
-        .bbox(".lui-tabs details[open] .lui-tabs-panel")
+        .bbox("#lui-tabs-demo .lui-tabs-panel[data-state='active']")
         .unwrap();
     assert!(
         panel.y >= first.y + first.height - 2.0,
         "open panel sits below the strip: {panel:?} vs {first:?}"
     );
     assert!(
-        !modern.is_visible(".lui-tabs details:nth-of-type(1) .lui-tabs-panel"),
+        modern.exists("#lui-tabs-demo .lui-tabs-panel:nth-of-type(2)[hidden]")
+            && !modern.is_visible("#lui-tabs-demo .lui-tabs-panel:nth-of-type(2)"),
         "closed panel hidden"
     );
     assert_eq!(
         modern
-            .text("#lui-tabs-demo details[open] .lui-tabs-badge")
+            .text("#lui-tabs-demo .lui-tabs-trigger[aria-current] .lui-tabs-badge")
             .as_deref(),
         Some("3")
     );
     assert!(
-        modern.exists("#lui-tabs-demo details:nth-of-type(3) .lui-tabs-lazy"),
+        modern.exists("#lui-tabs-demo .lui-tabs-panel[hidden] .lui-tabs-lazy"),
         "lazy tab has no body until opened"
     );
-    assert!(modern.exists("#lui-tabs-demo details[open] summary .lui-tabs-mark[style*='view-transition-name: lui-tabs-demo']"), "only the chip carries the name");
+    assert!(modern.exists("#lui-tabs-demo .lui-tabs-trigger[data-state='active'] .lui-tabs-mark[style*='view-transition-name: lui-tabs-demo']"), "only the chip carries the name");
     let mark = modern
-        .bbox("#lui-tabs-demo details[open] .lui-tabs-mark")
+        .bbox("#lui-tabs-demo .lui-tabs-trigger[data-state='active'] .lui-tabs-mark")
         .unwrap();
-    let open_title = modern.bbox("#lui-tabs-demo details[open] summary").unwrap();
-    // The mark is shadcn's active-tab chip: the open title inset by the pill's 3px padding.
+    let open_title = modern
+        .bbox("#lui-tabs-demo .lui-tabs-trigger[data-state='active']")
+        .unwrap();
+    // The mark is shadcn's active-tab chip: it fills the open title inside the pill's padding.
     assert!(
-        (mark.width - (open_title.width - 6.0)).abs() < 1.0
-            && (mark.height - (open_title.height - 6.0)).abs() < 1.0
-            && (mark.x - open_title.x - 3.0).abs() < 1.0,
+        (mark.width - open_title.width).abs() < 1.0
+            && (mark.height - open_title.height).abs() < 1.0
+            && (mark.x - open_title.x).abs() < 1.0,
         "chip fills the open title inside the pill: {mark:?} {open_title:?}"
+    );
+    let list = modern.bbox("#lui-tabs-demo .lui-tabs-list").unwrap();
+    assert!(
+        (first.x - list.x - 3.0).abs() < 1.0,
+        "the pill pads its titles by 3px: {first:?} {list:?}"
     );
     assert!(modern.exists("#lui-tabs-demo form.lui-tabs-select select[name='tab.demo'] option[value='1'][selected]") && !modern.is_visible(".lui-tabs-select"), "select is there but hidden on a wide screen");
     let lazy = Page::render(demo::router(), "/tabs?tab.demo=2", MODERN).await;
     assert!(
-        lazy.is_visible("#lui-tabs-demo details:nth-of-type(3) .lui-tabs-panel p"),
+        lazy.is_visible("#lui-tabs-demo .lui-tabs-panel[data-state='active'] p"),
         "lazy tab rendered once open"
     );
-    let side_first = modern.bbox("#lui-tabs-side summary").unwrap();
+    let side_first = modern.bbox("#lui-tabs-side .lui-tabs-trigger").unwrap();
     let side_second = modern
-        .bbox("#lui-tabs-side details:nth-of-type(2) summary")
+        .bbox("#lui-tabs-side .lui-tabs-trigger:nth-child(2)")
         .unwrap();
     let side_panel = modern
-        .bbox("#lui-tabs-side details[open] .lui-tabs-panel")
+        .bbox("#lui-tabs-side .lui-tabs-panel[data-state='active']")
         .unwrap();
     assert!(
         side_second.y > side_first.y + side_first.height - 1.0,
@@ -232,18 +236,15 @@ async fn tabs_strip_versus_accordion() {
         "vertical panel sits beside the titles: {side_panel:?} {side_first:?}"
     );
 
+    // Without any capability the markup is the same strip.
     let old = Page::render(demo::router(), "/tabs?tab.demo=1", OLD).await;
-    assert_eq!(
-        old.display(".lui-tabs details").as_deref(),
-        Some("block/flow")
-    );
-    let first = old.bbox(".lui-tabs summary").unwrap();
+    let first = old.bbox("#lui-tabs-demo .lui-tabs-trigger").unwrap();
     let second = old
-        .bbox(".lui-tabs details:nth-of-type(2) summary")
+        .bbox("#lui-tabs-demo .lui-tabs-trigger:nth-child(2)")
         .unwrap();
     assert!(
-        second.y > first.y + first.height - 1.0,
-        "accordion titles stack"
+        (first.y - second.y).abs() < 1.0,
+        "the same strip: {first:?} {second:?}"
     );
 }
 
@@ -256,17 +257,18 @@ async fn accordion_multi_open_with_controls_and_nesting() {
     )
     .await;
     assert_eq!(
-        page.count("#lui-accordion-faq > details[open]"),
+        page.count("#lui-accordion-faq > .lui-accordion-item[data-state='open']"),
         2,
         "two sections open at once"
     );
-    assert!(
-        page.exists("#lui-accordion-faq > details:not([name])"),
-        "multi group has no name attribute"
+    assert_eq!(
+        page.count("#lui-accordion-faq > .lui-accordion-item > .lui-accordion-body[hidden]"),
+        1,
+        "the closed section's body is hidden"
     );
     assert!(
-        page.exists("#lui-accordion-faq-more > details[name='faq-more'][open]"),
-        "nested group is exclusive and open"
+        page.exists("#lui-accordion-faq-more > .lui-accordion-item[data-state='open']"),
+        "nested group is open"
     );
     assert!(
         page.is_visible("#lui-accordion-faq-more"),
@@ -287,24 +289,30 @@ async fn accordion_multi_open_with_controls_and_nesting() {
         page.exists(".lui-accordion-controls a[href='/accordion?open.faq=&open.faq-more=0']"),
         "collapse all sets the key to nothing, explicitly, so the cookie cannot reopen them"
     );
-    assert!(page.exists("#lui-accordion-faq > details:nth-of-type(2) summary a[href='/accordion?open.faq=0%2C1%2C2&open.faq-more=0']"), "a closed title adds itself to the list");
-    assert!(page.exists("#lui-accordion-faq > details:nth-of-type(1) summary a[href='/accordion?open.faq=2&open.faq-more=0']"), "an open title removes itself");
+    assert!(page.exists("#lui-accordion-faq > .lui-accordion-item:nth-of-type(2) > a[aria-expanded='false'][href='/accordion?open.faq=0%2C1%2C2&open.faq-more=0']"), "a closed title adds itself to the list");
+    assert!(page.exists("#lui-accordion-faq > .lui-accordion-item:nth-of-type(1) > a[aria-expanded='true'][href='/accordion?open.faq=2&open.faq-more=0']"), "an open title removes itself");
     assert!(
-        page.is_visible("#lui-accordion-faq > details:nth-of-type(2) .lui-accordion-summary"),
+        page.is_visible(
+            "#lui-accordion-faq > .lui-accordion-item:nth-of-type(2) .lui-accordion-summary"
+        ),
         "summary line shows on a closed section"
     );
     assert!(
         !page.is_visible(
-            "#lui-accordion-faq > details:nth-of-type(1) > summary .lui-accordion-summary"
+            "#lui-accordion-faq > .lui-accordion-item:nth-of-type(1) > a .lui-accordion-summary"
         ),
         "summary line hidden once open"
     );
-    assert!(page.is_visible("#lui-accordion-faq > details:nth-of-type(1) .lui-accordion-icon"));
+    assert!(
+        page.is_visible(
+            "#lui-accordion-faq > .lui-accordion-item:nth-of-type(1) .lui-accordion-icon"
+        )
+    );
     let outer = page
-        .bbox("#lui-accordion-faq > details:nth-of-type(3) > summary")
+        .bbox("#lui-accordion-faq > .lui-accordion-item:nth-of-type(3) > a")
         .unwrap();
     let inner = page
-        .bbox("#lui-accordion-faq-more > details:nth-of-type(1) > summary")
+        .bbox("#lui-accordion-faq-more > .lui-accordion-item:nth-of-type(1) > a")
         .unwrap();
     assert!(
         inner.x > outer.x + 8.0 && inner.y > outer.y + outer.height,
@@ -386,32 +394,32 @@ async fn popover_variants() {
         "closed popover is hidden"
     );
     assert_eq!(
-        modern.count("#account [role=menuitem]"),
+        modern.count("#lui-menu-account [role=menuitem]"),
         7,
         "links, submenu button, action and the disabled link"
     );
     assert!(
-        modern.exists("#account .lui-popover-heading")
-            && modern.count("#account .lui-popover-sep") == 2
+        modern.exists("#lui-menu-account .lui-popover-heading")
+            && modern.count("#lui-menu-account .lui-popover-sep") == 2
     );
     assert!(
-        modern.exists("#account a[aria-disabled=true]:not([href])"),
+        modern.exists("#lui-menu-account a[aria-disabled=true]:not([href])"),
         "disabled link has no href"
     );
     assert!(
         modern.exists(
-            "#account form[method=post][action='/popover/signout'] button.lui-popover-danger"
+            "#lui-menu-account form[method=post][action='/popover/signout'] button.lui-popover-danger"
         ),
         "action is a post form"
     );
     assert!(
-        modern.exists("#account nav#account-theme[popover]")
-            && modern.exists("#account button[popovertarget=account-theme]"),
+        modern.exists("#lui-menu-account nav#lui-menu-account-theme[popover]")
+            && modern.exists("#lui-menu-account button[popovertarget=lui-menu-account-theme]"),
         "submenu is a nested popover"
     );
-    assert!(modern.exists("#account kbd.lui-popover-kbd"));
+    assert!(modern.exists("#lui-menu-account kbd.lui-popover-kbd"));
     assert!(
-        modern.exists(".lui-popover-end nav#more[popover]"),
+        modern.exists(".lui-popover-end nav#lui-menu-more[popover]"),
         "placement class"
     );
     let old = Page::render(demo::router(), "/popover", OLD).await;
@@ -421,7 +429,7 @@ async fn popover_variants() {
         "closed details hides the menu"
     );
     assert!(
-        old.exists("details#account details#account-theme"),
+        old.exists("details#lui-menu-account details#lui-menu-account-theme"),
         "submenu is a nested details"
     );
 }
@@ -1080,8 +1088,8 @@ async fn buttons_badges_and_icons() {
     );
     assert_eq!(
         page.count(".lui-stage svg.lui-icon"),
-        33,
-        "every icon in Icon::ALL"
+        35,
+        "every icon in Icon::ALL, and two leading or trailing a button"
     );
 }
 

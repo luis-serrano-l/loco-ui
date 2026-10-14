@@ -151,7 +151,8 @@ function settle(anchor) {
   var a = document.activeElement;
   if (a && a !== document.body && a.isConnected) return;
   var to = anchor.querySelector("h1") || anchor;
-  if (to.tabIndex < 0) to.tabIndex = -1; // a heading or div becomes focusable by script only
+  // A heading or div becomes focusable by script only.
+  if (to.tabIndex < 0) to.tabIndex = -1;
   to.focus({ preventScroll: true });
 }
 
@@ -173,7 +174,7 @@ function apply(doc, id, url, hist, mode, quiet, fast) {
     if (doc.title) document.title = doc.title;
     var theme = doc.documentElement.getAttribute("data-theme");
     if (theme) document.documentElement.setAttribute("data-theme", theme);
-    var af = anchor.querySelector("[autofocus]"); // as on a load
+    var af = anchor.querySelector("[autofocus]");
     if (af) af.focus(); else { restoreFocus(f); settle(anchor); }
     if (document.title !== title || url !== from) announce(document.title);
     swapped(anchor, url, mode);
@@ -232,14 +233,16 @@ function request(t, src, url, req, fallback) {
   return queue[id];
 }
 
-// A tab title opens its panel and moves the underline before the request; the server's answer
-// then replaces the strip, once the underline has slid, without a second transition (a lazy
-// panel fills in at that point). Returns false, or a promise for the end of the slide.
+// A tab title opens its panel and moves the underline before the request; the answer
+// replaces the strip once it has slid. Returns false, or a promise for the slide's end.
 function openTab(a) {
-  var s = a.closest(".lui-tabs summary"), d = s && s.parentElement, strip = d && d.parentElement;
-  if (!d || d.open) return false;
-  var mark = strip.querySelector(":scope > details > summary > .lui-tabs-mark");
-  var show = function () { d.open = true; if (mark) s.append(mark); };
+  var l = a.closest(".lui-tabs-list");
+  if (!l || a.dataset.state !== "inactive") return false;
+  var ts = [...l.children], n = ts.indexOf(a), m = l.querySelector(".lui-tabs-mark");
+  var show = function () {
+    ts.forEach(function (t, i) { t.dataset.state = i === n ? "active" : "inactive"; l.parentNode.querySelectorAll(":scope>.lui-tabs-panel")[i].hidden = i !== n; });
+    if (m) a.prepend(m);
+  };
   if (document.startViewTransition && !reduced) return document.startViewTransition(show).finished;
   show();
   return true;
@@ -291,7 +294,7 @@ document.addEventListener("click", function (e) {
 ["mouseover", "focusin"].forEach(function (type) {
   document.addEventListener(type, function (e) {
     var a = e.target.closest && e.target.closest("a[href]");
-    if (!a || a.href === location.href || a.origin !== location.origin || !a.closest("[data-lui-prefetch]") || a.closest(".lui-tabs details[open] > summary") || !target(a, "push")) return;
+    if (!a || a.href === location.href || a.origin !== location.origin || !a.closest("[data-lui-prefetch]") || a.dataset.state === "active" || !target(a, "push")) return;
     var hit = cache[a.href];
     if (hit && Date.now() - hit.at < 5000) return;
     var got = load(a.href, init("low"));

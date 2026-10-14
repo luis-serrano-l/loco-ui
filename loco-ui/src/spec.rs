@@ -104,9 +104,9 @@ const fn f(name: &'static str, baseline: Baseline) -> Feature {
 }
 
 const ALWAYS: Baseline = b("1", "1", "1");
+const COOKIE: Feature = f("cookie", ALWAYS);
 const DETAILS_NAME: Feature = f("<details name", b("120", "130", "17.2"));
 const DETAILS_CONTENT: Feature = f("::details-content", b("131", "143", "18.4"));
-const COOKIE: Feature = f("cookie", ALWAYS);
 const PREFERS_COLOR_SCHEME: Feature = f("prefers-color-scheme", b("76", "67", "12.1"));
 /// The showpiece effects (M30): what `.shimmer()`, `.beam()`, `.glow()`, `.gradient_border()`,
 /// `.reveal()` and the marquee need; each is at rest without it.
@@ -363,12 +363,10 @@ pub const SPECS: &[ComponentSpec] = &[
         look: "Radix Themes Tabs and TabNav",
         responsive: Responsive::Container,
         features: &[
-            DETAILS_NAME,
-            f("display: contents", b("65", "37", "11.1")),
-            DETAILS_CONTENT,
+            f("hidden", ALWAYS),
             f("view-transition-name", b("111", "144", "18")),
         ],
-        fallback: "accordion markup, chosen server-side; the narrow-screen select has a Go button",
+        fallback: "no view transitions: the chip appears on the new tab; the narrow-screen select has a Go button",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {
@@ -376,12 +374,8 @@ pub const SPECS: &[ComponentSpec] = &[
         module: "accordion",
         look: "shadcn Accordion",
         responsive: Responsive::Content,
-        features: &[
-            DETAILS_NAME,
-            DETAILS_CONTENT,
-            f("interpolate-size", b("129", "no", "no")),
-        ],
-        fallback: "plain <details>: no exclusivity, no animation; expand/collapse and every toggle are links either way",
+        features: &[f("hidden", ALWAYS)],
+        fallback: "none needed: every toggle, expand and collapse is a link",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {
@@ -1258,6 +1252,15 @@ pub fn to_json() -> String {
                                 "{}, \"choices\": [{}]",
                                 json_str(p.kind.as_str()),
                                 of.join(", ")
+                            )
+                        }
+                        crate::props::PropKind::Modifier => {
+                            let to: Vec<String> =
+                                p.applies_to.iter().map(|c| json_str(c)).collect();
+                            format!(
+                                "{}, \"applies_to\": [{}]",
+                                json_str(p.kind.as_str()),
+                                to.join(", ")
                             )
                         }
                         _ => json_str(p.kind.as_str()),

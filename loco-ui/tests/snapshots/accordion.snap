@@ -7,41 +7,41 @@ caps: all
 <a href="/help?open.faq=0%2C1%2C2">Expand all</a>
 <a href="/help?open.faq=">Collapse all</a>
 </p>
-<details open>
-<summary>
+<div class="lui-accordion-item" data-state="open">
+<a class="lui-accordion-trigger" href="/help?open.faq=2" data-state="open" aria-expanded="true" aria-controls="lui-accordion-faq-panel-0">
 <span class="lui-accordion-icon" aria-hidden="true">📦</span>
-<a href="/help?open.faq=2">Install<span class="lui-accordion-summary">One line.</span>
+<span class="lui-accordion-title">Install<span class="lui-accordion-summary">One line.</span>
+</span>
 </a>
-</summary>
-<div class="lui-accordion-body">
+<div id="lui-accordion-faq-panel-0" class="lui-accordion-body" data-state="open">
 <p>cargo add</p>
 </div>
-</details>
-<details>
-<summary>
-<a href="/help?open.faq=0%2C1%2C2">Use</a>
-</summary>
-<div class="lui-accordion-body">
+</div>
+<div class="lui-accordion-item" data-state="closed">
+<a class="lui-accordion-trigger" href="/help?open.faq=0%2C1%2C2" data-state="closed" aria-expanded="false" aria-controls="lui-accordion-faq-panel-1">
+<span class="lui-accordion-title">Use</span>
+</a>
+<div id="lui-accordion-faq-panel-1" class="lui-accordion-body" data-state="closed" hidden>
 <p>html!</p>
 </div>
-</details>
-<details open>
-<summary>
-<a href="/help?open.faq=0">More</a>
-</summary>
-<div class="lui-accordion-body">
+</div>
+<div class="lui-accordion-item" data-state="open">
+<a class="lui-accordion-trigger" href="/help?open.faq=0" data-state="open" aria-expanded="true" aria-controls="lui-accordion-faq-panel-2">
+<span class="lui-accordion-title">More</span>
+</a>
+<div id="lui-accordion-faq-panel-2" class="lui-accordion-body" data-state="open">
 <div id="lui-accordion-faq-more" data-lui="swap" class="lui-accordion">
-<details name="faq-more">
-<summary>
-<a href="/help?open.faq=0%2C2&amp;open.faq-more=0">Nested</a>
-</summary>
-<div class="lui-accordion-body">
+<div class="lui-accordion-item" data-state="closed">
+<a class="lui-accordion-trigger" href="/help?open.faq=0%2C2&amp;open.faq-more=0" data-state="closed" aria-expanded="false" aria-controls="lui-accordion-faq-more-panel-0">
+<span class="lui-accordion-title">Nested</span>
+</a>
+<div id="lui-accordion-faq-more-panel-0" class="lui-accordion-body" data-state="closed" hidden>
 <p>Own group.</p>
 </div>
-</details>
 </div>
 </div>
-</details>
+</div>
+</div>
 </div>
 
 caps: none
@@ -50,39 +50,39 @@ caps: none
 <a href="/help?open.faq=0%2C1%2C2">Expand all</a>
 <a href="/help?open.faq=">Collapse all</a>
 </p>
-<details open>
-<summary>
+<div class="lui-accordion-item" data-state="open">
+<a class="lui-accordion-trigger" href="/help?open.faq=2" data-state="open" aria-expanded="true" aria-controls="lui-accordion-faq-panel-0">
 <span class="lui-accordion-icon" aria-hidden="true">📦</span>
-<a href="/help?open.faq=2">Install<span class="lui-accordion-summary">One line.</span>
+<span class="lui-accordion-title">Install<span class="lui-accordion-summary">One line.</span>
+</span>
 </a>
-</summary>
-<div class="lui-accordion-body">
+<div id="lui-accordion-faq-panel-0" class="lui-accordion-body" data-state="open">
 <p>cargo add</p>
 </div>
-</details>
-<details>
-<summary>
-<a href="/help?open.faq=0%2C1%2C2">Use</a>
-</summary>
-<div class="lui-accordion-body">
+</div>
+<div class="lui-accordion-item" data-state="closed">
+<a class="lui-accordion-trigger" href="/help?open.faq=0%2C1%2C2" data-state="closed" aria-expanded="false" aria-controls="lui-accordion-faq-panel-1">
+<span class="lui-accordion-title">Use</span>
+</a>
+<div id="lui-accordion-faq-panel-1" class="lui-accordion-body" data-state="closed" hidden>
 <p>html!</p>
 </div>
-</details>
-<details open>
-<summary>
-<a href="/help?open.faq=0">More</a>
-</summary>
-<div class="lui-accordion-body">
+</div>
+<div class="lui-accordion-item" data-state="open">
+<a class="lui-accordion-trigger" href="/help?open.faq=0" data-state="open" aria-expanded="true" aria-controls="lui-accordion-faq-panel-2">
+<span class="lui-accordion-title">More</span>
+</a>
+<div id="lui-accordion-faq-panel-2" class="lui-accordion-body" data-state="open">
 <div id="lui-accordion-faq-more" data-lui="swap" class="lui-accordion">
-<details name="faq-more">
-<summary>
-<a href="/help?open.faq=0%2C2&amp;open.faq-more=0">Nested</a>
-</summary>
-<div class="lui-accordion-body">
+<div class="lui-accordion-item" data-state="closed">
+<a class="lui-accordion-trigger" href="/help?open.faq=0%2C2&amp;open.faq-more=0" data-state="closed" aria-expanded="false" aria-controls="lui-accordion-faq-more-panel-0">
+<span class="lui-accordion-title">Nested</span>
+</a>
+<div id="lui-accordion-faq-more-panel-0" class="lui-accordion-body" data-state="closed" hidden>
 <p>Own group.</p>
 </div>
-</details>
 </div>
 </div>
-</details>
+</div>
+</div>
 </div>

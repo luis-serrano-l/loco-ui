@@ -71,17 +71,22 @@ impl Timeline<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("event", PropKind::Item, "title: &'a str").doc("An event titled `title`."),
         Prop::new("when", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["event"])
             .doc("When the event added last happened, as the reader should see it."),
         Prop::new("datetime", PropKind::Modifier, "iso: &'a str")
+            .applies_to(&["event"])
             .attr("datetime")
             .doc(
                 "The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`.",
             ),
         Prop::new("description", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["event"])
             .doc("A muted line under the title of the event added last."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["event"])
             .doc("An icon in a ring on the line instead of the dot, for the event added last."),
         Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
+            .applies_to(&["event"])
             .doc("The colour of the event added last's dot or icon (neutral by default)."),
     ];
 }
@@ -94,7 +99,9 @@ impl Ui {
 }
 
 impl<'a> Timeline<'a> {
-    fn last(mut self, change: impl FnOnce(&mut Event<'a>)) -> Self {
+    fn last(mut self, method: &str, change: impl FnOnce(&mut Event<'a>)) -> Self {
+        let last = self.events.last().map(|_| "event");
+        crate::props::check_last::<Self>(Self::PROPS, method, last);
         if let Some(event) = self.events.last_mut() {
             change(event);
         }
@@ -112,28 +119,28 @@ impl<'a> Timeline<'a> {
 
     /// When the event added last happened, as the reader should see it ("12 October", "2019").
     pub fn when(self, text: &'a str) -> Self {
-        self.last(|e| e.when = Some(text))
+        self.last("when", |e| e.when = Some(text))
     }
 
     /// The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`.
     pub fn datetime(self, iso: &'a str) -> Self {
-        self.last(|e| e.datetime = Some(iso))
+        self.last("datetime", |e| e.datetime = Some(iso))
     }
 
     /// A muted line under the title of the event added last.
     pub fn description(self, text: &'a str) -> Self {
-        self.last(|e| e.description = Some(text))
+        self.last("description", |e| e.description = Some(text))
     }
 
     /// An icon in a ring on the line instead of the dot, for the event added last.
     pub fn icon(self, icon: impl Into<Glyph<'a>>) -> Self {
         let icon = icon.into();
-        self.last(|e| e.icon = Some(icon))
+        self.last("icon", |e| e.icon = Some(icon))
     }
 
     /// The colour of the event added last's dot or icon (neutral by default).
     pub fn tone(self, tone: Tone) -> Self {
-        self.last(|e| e.tone = Some(tone))
+        self.last("tone", |e| e.tone = Some(tone))
     }
 }
 

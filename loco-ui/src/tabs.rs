@@ -7,35 +7,32 @@
 //! morphs to the next one on switch.
 //!
 //! **Platform features:**
-//! - `<details name="group">` exclusive accordion (baseline 2024): opening one closes the rest.
-//! - `display: contents` on each `<details>` so its summary and panel become flex or grid
-//!   items of the strip; `order` on `::details-content` (Chrome 131, Firefox 143,
-//!   Safari 18.4) pushes every panel to a full-width row below all the summaries, or to the
-//!   column beside them when `vertical`.
+//! - Links and the `hidden` attribute (baseline): each title is a link to its own tab, every
+//!   panel but the open one is `hidden`. The markup follows Radix Tabs: a `.lui-tabs-list` of
+//!   `.lui-tabs-trigger` links and one `.lui-tabs-panel` per tab, each with
+//!   `data-state="active|inactive"`.
 //! - `view-transition-name` (Chrome 111, Firefox 144, Safari 18) on the open tab's chip
 //!   (an empty `.lui-tabs-mark`, never the title, so no text moves): the raised chip slides to
 //!   the new tab, across documents through the layout's `@view-transition` rule and in place
 //!   with the enhancement script. `view-transition-class: lui-tabs-mark` (Chrome 125,
 //!   Firefox 144, Safari 18.2) gives the slide the `--lui-ease-spring` curve.
 //!
-//! **Accessibility:** each tab is a `<summary>` holding a link (one tab stop, Enter follows
-//! it); the narrow select is named "Tab"; not the ARIA tablist pattern, which needs
-//! script (FINDINGS, M29 · axe-core over every route). Checked by axe-core in headless
-//! Firefox on every demo route, both capability variants, light and dark (no serious or
-//! critical violation).
+//! **Accessibility:** each tab is a link, the open one `aria-current="true"` (one tab stop
+//! each, Enter follows it); the narrow select is named "Tab"; not the ARIA tablist pattern,
+//! which needs script (FINDINGS, M29 · axe-core over every route). Checked by axe-core in
+//! headless Firefox on every demo route, both capability variants, light and dark (no
+//! serious or critical violation).
 //!
-//! **What it does not do without script:** arrow keys between tabs (the WAI-ARIA tabs pattern);
-//! each tab is a `<summary>` reached by Tab.
+//! **What it does not do without script:** arrow keys between tabs (the WAI-ARIA tabs
+//! pattern); each tab is a link reached by Tab.
 //!
-//! **Fallback:** without `Caps::DetailsContent` the same `<details>` render as a stacked
-//! accordion, reusing the accordion styles. Without `name` support exclusivity is lost.
-//! Without `Caps::ViewTransitions` the chip carries no transition name and simply appears on
-//! the new tab.
+//! **Fallback:** none needed: links, a flex row and a grid work everywhere. Without
+//! `Caps::ViewTransitions` the chip carries no transition name and simply appears on the new
+//! tab.
 //!
 //! **Server persistence:** the open tab comes from the request's `?tab.<name>=` (see
 //! [`crate::UiState::tab`]) and each title is a link to `?tab.<name>=i`, so the choice survives
-//! navigation (query first, cookie after). The link fills the summary, so every click is a
-//! round trip: a native toggle would be undone by the next render. The strip is a
+//! navigation (query first, cookie after). The strip is a
 //! swap root, so the [`crate::enhance`] script replaces just the strip instead of the page;
 //! it also opens the clicked tab before the request, so the switch shows on the click.
 //! Because every switch is a request, a lazy tab ([`Tabs::lazy`]) costs nothing until
@@ -140,6 +137,7 @@ impl Tabs<'_> {
         )
         .doc("A tab whose panel is rendered only when it is the open one."),
         Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .applies_to(&["tab", "lazy"])
             .doc("A count after the title of the tab added last."),
         Prop::new("vertical", PropKind::Switch, "")
             .doc("Titles in a column on the left, the open panel beside them."),
@@ -195,7 +193,13 @@ impl<'a> Tabs<'a> {
     }
 
     /// A count after the title of the tab added last.
+    #[track_caller]
     pub fn badge(mut self, text: impl Display) -> Self {
+        let last = self.tabs.last().map(|t| match t.body {
+            Body::Ready(_) => "tab",
+            Body::Lazy(_) => "lazy",
+        });
+        crate::props::check_last::<Self>(Tabs::PROPS, "badge", last);
         if let Some(t) = self.tabs.last_mut() {
             t.badge = Some(text.to_string());
         }
@@ -240,19 +244,18 @@ impl Render for Tabs<'_> {
             size,
         } = *self;
         let state = &ui.state;
-        let strip = ui.has(Cap::DetailsContent);
         let vt = ui.has(Cap::ViewTransitions);
         let active = state.tab(name);
         let key = format!("tab.{name}");
-        let class = match (strip, vertical, underline) {
-            (false, ..) => "lui-tabs lui-accordion",
-            (true, false, false) => "lui-tabs",
-            (true, false, true) => "lui-tabs lui-tabs-underline",
-            (true, true, _) => "lui-tabs lui-tabs-vertical",
+        let class = match (vertical, underline) {
+            (false, false) => "lui-tabs",
+            (false, true) => "lui-tabs lui-tabs-underline",
+            (true, _) => "lui-tabs lui-tabs-vertical",
         };
+        let tab_state = |i: usize| if i == active { "active" } else { "inactive" };
         html! {
             div id={ "lui-tabs-" (name) } data-lui="swap"
-                class=(class) data-size=[(size != Size::S2).then(|| size.as_str())] style=[(strip && vertical).then(|| format!("--lui-tabs-n: {}", tabs.len()))] {
+                class=(class) data-size=[(size != Size::S2).then(|| size.as_str())] data-orientation=[vertical.then_some("vertical")] {
                 @if select_below {
                     form method="get" action=(state.path()) class="lui-tabs-select" {
                         @for (k, v) in state.entries() { @if k != key { input type="hidden" name=(k) value=(v); } }
@@ -264,20 +267,23 @@ impl Render for Tabs<'_> {
                         (ui.button(ui.text(Text::Go)))
                     }
                 }
-                @for (i, t) in tabs.iter().enumerate() {
-                    details name=(name) open[i == active] {
-                        summary {
-                            a href=(state.link(&key, &i.to_string())) { (t.title) (badge(t)) }
-                            @if i == active && strip {
+                div class="lui-tabs-list" {
+                    @for (i, t) in tabs.iter().enumerate() {
+                        a class="lui-tabs-trigger" href=(state.link(&key, &i.to_string()))
+                            data-state=(tab_state(i)) aria-current=[(i == active).then_some("true")] {
+                            @if i == active {
                                 span class="lui-tabs-mark" style=[vt.then(|| format!("view-transition-name: lui-tabs-{name}; view-transition-class: lui-tabs-mark"))] {}
                             }
+                            span class="lui-tabs-label" { (t.title) (badge(t)) }
                         }
-                        div class=(if strip { "lui-tabs-panel" } else { "lui-accordion-body" }) {
-                            @match (&t.body, i == active) {
-                                (Body::Ready(body), _) => (body),
-                                (Body::Lazy(render), true) => (render()),
-                                (Body::Lazy(_), false) => span class="lui-tabs-lazy" {},
-                            }
+                    }
+                }
+                @for (i, t) in tabs.iter().enumerate() {
+                    div class="lui-tabs-panel" data-state=(tab_state(i)) hidden[i != active] {
+                        @match (&t.body, i == active) {
+                            (Body::Ready(body), _) => (body),
+                            (Body::Lazy(render), true) => (render()),
+                            (Body::Lazy(_), false) => span class="lui-tabs-lazy" {},
                         }
                     }
                 }
@@ -292,35 +298,28 @@ fn badge(tab: &Tab) -> Markup {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* The tabs are their own container: .select_below() swaps the titles for a select when the
-   tabs are narrow, not the viewport. Titles that do not fit wrap onto another row. */
+   tabs are narrow, not the viewport. */
 .lui-tabs { container: lui-tabs / inline-size; }
-.lui-tabs:not(.lui-accordion) { display: flex; flex-wrap: wrap; }
-/* Fills the rest of the titles' row so the panels start on the next one. */
-.lui-tabs:not(.lui-accordion):not(.lui-tabs-vertical)::after { content: ""; order: 0; flex: 1; }
-/* shadcn Tabs: the titles sit in a muted pill (secondary, 3px padding, rounded-lg); the open
-   one is a raised chip on the page background. Each summary paints its slice of the pill. */
-.lui-tabs:not(.lui-accordion) summary {
-  order: 0; position: relative; list-style: none; cursor: pointer; padding: 3px;
-  background: var(--lui-secondary); color: color-mix(in srgb, var(--lui-muted) 70%, var(--lui-fg));
+/* shadcn Tabs: the titles sit in a muted pill (secondary, 3px padding, rounded-lg) that wraps
+   onto another row when they do not fit; the open one is a raised chip on the page
+   background. */
+.lui-tabs-list {
+  display: inline-flex; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; padding: 3px;
+  border-radius: var(--lui-radius); background: var(--lui-secondary);
 }
-.lui-tabs:not(.lui-accordion):not(.lui-tabs-vertical) > details:first-of-type > summary { border-radius: var(--lui-radius) 0 0 var(--lui-radius); }
-.lui-tabs:not(.lui-accordion):not(.lui-tabs-vertical) > details:last-of-type > summary { border-radius: 0 var(--lui-radius) var(--lui-radius) 0; }
-.lui-tabs:not(.lui-accordion):not(.lui-tabs-vertical) > details:only-of-type > summary { border-radius: var(--lui-radius); }
-.lui-tabs summary::-webkit-details-marker { display: none; }
-/* The link fills the summary, so every click goes through the server (a click on bare summary
-   padding would toggle natively and be undone by the next render). */
-.lui-tabs summary a { display: block; color: inherit; text-decoration: none; }
-.lui-tabs:not(.lui-accordion) summary a {
-  position: relative; z-index: 1; display: flex; align-items: center; gap: 0.375rem;
-  padding: 0.25rem 0.75rem; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; white-space: nowrap;
+.lui-tabs-trigger {
+  position: relative; display: flex; align-items: center; padding: 0.25rem 0.75rem;
+  border-radius: var(--lui-radius-sm); font-size: 0.875rem; line-height: 1.25rem; font-weight: 500;
+  white-space: nowrap; text-decoration: none; color: color-mix(in srgb, var(--lui-muted) 70%, var(--lui-fg));
 }
-.lui-tabs:not(.lui-accordion) summary a:hover { color: var(--lui-fg); }
-.lui-tabs[data-size="1"]:not(.lui-accordion) summary a { font-size: 0.8125rem; padding-inline: 0.5rem; }
-.lui-tabs[data-size="3"]:not(.lui-accordion) summary a { font-size: 1rem; line-height: 1.5rem; padding-inline: 1rem; }
-.lui-tabs:not(.lui-accordion) details[open] summary { color: var(--lui-fg); }
+.lui-tabs-trigger:hover, .lui-tabs-trigger[data-state="active"] { color: var(--lui-fg); }
+/* Positioned after the chip, so the title paints over it. */
+.lui-tabs-label { position: relative; display: flex; align-items: center; gap: 0.375rem; }
+.lui-tabs[data-size="1"] .lui-tabs-trigger { font-size: 0.8125rem; padding-inline: 0.5rem; }
+.lui-tabs[data-size="3"] .lui-tabs-trigger { font-size: 1rem; line-height: 1.5rem; padding-inline: 1rem; }
 /* The chip is its own empty element so the view transition slides it, not the text. */
 .lui-tabs-mark {
-  position: absolute; inset: 3px; border-radius: var(--lui-radius-sm);
+  position: absolute; inset: 0; border-radius: var(--lui-radius-sm);
   background: var(--lui-bg); box-shadow: var(--lui-shadow-xs);
 }
 /* Motion: the chip slides on the spring curve (a view transition group, named only when the
@@ -330,43 +329,34 @@ pub const CSS: &str = r#"
   display: inline-block; min-width: 1.25rem; padding: 0 0.3rem; border-radius: 1em; text-align: center;
   font-size: 0.75rem; font-weight: 500; line-height: 1.25rem; background: var(--lui-line); color: var(--lui-fg);
 }
-.lui-tabs details[open] .lui-tabs-badge { background: var(--lui-primary); color: var(--lui-on-primary); }
-/* Push every panel to a full-width row under the strip. */
-.lui-tabs details::details-content { order: 1; flex-basis: 100%; }
-.lui-tabs .lui-tabs-panel { order: 1; flex-basis: 100%; padding: 1rem 0; }
-.lui-tabs:not(.lui-accordion) details { display: contents; }
-/* Vertical: a plain list with a rule, the open title marked by a bar on the rule. The titles
-   are in the first column, the open panel spans every row of the second. The rule goes on
-   ::details-content, the grid item, so it runs the full height; the padding stays on the
-   panel (Blitz builds no ::details-content box: FINDINGS, M4). */
-.lui-tabs.lui-tabs-vertical { display: grid; grid-template-columns: max-content 1fr; }
-.lui-tabs.lui-tabs-vertical summary {
-  grid-column: 1; padding: 0; background: none; border-right: 1px solid var(--lui-line); margin: 0 -1px 0 0;
+.lui-tabs-trigger[data-state="active"] .lui-tabs-badge { background: var(--lui-primary); color: var(--lui-on-primary); }
+.lui-tabs-panel { padding: 1rem 0; }
+/* Vertical: a plain list with a rule, the open title marked by a bar on the rule; the open
+   panel beside the titles. */
+.lui-tabs[data-orientation=vertical] { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-select { grid-column: 1 / -1; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-list {
+  grid-column: 1; flex-direction: column; flex-wrap: nowrap; align-self: stretch; padding: 0;
+  background: none; border-radius: 0; border-right: 1px solid var(--lui-line);
 }
-.lui-tabs.lui-tabs-vertical summary a { padding: 0.5rem 1rem; }
-.lui-tabs.lui-tabs-vertical .lui-tabs-mark { inset: 0 -1px 0 auto; width: 2px; border-radius: 0; background: var(--lui-fg); box-shadow: none; }
-.lui-tabs.lui-tabs-vertical details::details-content {
-  grid-column: 2; grid-row: 1 / span var(--lui-tabs-n, 1); border-left: 1px solid var(--lui-line);
-}
-.lui-tabs.lui-tabs-vertical .lui-tabs-panel {
-  grid-column: 2; grid-row: 1 / span var(--lui-tabs-n, 1); padding: 0 0 0 calc(var(--lui-space) * 3);
-}
-.lui-tabs.lui-tabs-vertical .lui-tabs-select { grid-column: 1 / -1; }
-/* .underline() (Radix Tabs/TabNav): no pill; every title and the row's filler carry the
-   hairline, so it runs the full width; the open title is marked by a 2px primary bar on it,
-   the chip element restyled, so it slides the same way. Titles are muted, fg when open. */
-.lui-tabs.lui-tabs-underline summary { padding: 0; background: none; border-radius: 0 !important; border-bottom: 1px solid var(--lui-line); }
-.lui-tabs.lui-tabs-underline::after { border-bottom: 1px solid var(--lui-line); }
-.lui-tabs.lui-tabs-underline summary a { padding: 0.625rem 0.75rem; color: var(--lui-muted); }
-.lui-tabs.lui-tabs-underline summary a:hover { color: var(--lui-fg); }
-.lui-tabs.lui-tabs-underline details[open] summary a { color: var(--lui-fg); }
-.lui-tabs.lui-tabs-underline .lui-tabs-mark { inset: auto 0.5rem -1px; height: 2px; border-radius: 1px; background: var(--lui-primary); box-shadow: none; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-trigger { padding: 0.5rem 1rem; border-radius: 0; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-mark { inset: 0 -1px 0 auto; width: 2px; border-radius: 0; background: var(--lui-fg); box-shadow: none; }
+.lui-tabs[data-orientation=vertical] .lui-tabs-panel { grid-column: 2; padding: 0 0 0 calc(var(--lui-space) * 3); }
+/* .underline() (Radix Tabs/TabNav): no pill; the list carries the full-width hairline and the
+   open title is marked by a 2px primary bar on it, the chip element restyled, so it slides the
+   same way. Titles are muted, fg when open. */
+.lui-tabs-underline .lui-tabs-list { display: flex; padding: 0; background: none; border-radius: 0; border-bottom: 1px solid var(--lui-line); }
+.lui-tabs-underline .lui-tabs-trigger { padding: 0.625rem 0.75rem; border-radius: 0; color: var(--lui-muted); }
+.lui-tabs-underline .lui-tabs-trigger:hover, .lui-tabs-underline .lui-tabs-trigger[data-state="active"] { color: var(--lui-fg); }
+.lui-tabs-underline .lui-tabs-mark { inset: auto 0.5rem -1px; height: 2px; border-radius: 1px; background: var(--lui-primary); box-shadow: none; }
 /* Narrow tabs: the titles give way to the select (needs the enhancement script for
    submit-on-change; the Go button is always there). */
-.lui-tabs-select { display: none; gap: var(--lui-space-2); flex-basis: 100%; margin-bottom: var(--lui-space-2); }
+.lui-tabs-select { display: none; gap: var(--lui-space-2); margin-bottom: var(--lui-space-2); }
 @container lui-tabs (width < 30rem) {
-  .lui-tabs:not(.lui-accordion) .lui-tabs-select ~ details > summary { display: none; }
-  .lui-tabs:not(.lui-accordion) .lui-tabs-select { display: flex; }
+  .lui-tabs-select ~ .lui-tabs-list { display: none; }
+  .lui-tabs-select { display: flex; }
+  .lui-tabs[data-orientation=vertical] { display: block; }
+  .lui-tabs[data-orientation=vertical] .lui-tabs-panel { padding: 1rem 0; }
 }
 "#;
 

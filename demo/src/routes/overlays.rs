@@ -44,6 +44,7 @@ fn dialog(ui: &Ui) -> Markup {
     lui! {
             // code: /dialog
             Dialog("Delete account") id="confirm" title="Delete account?" size=1 danger
+                trigger=(ui.button("Delete account").danger().ghost().leading(Icon::Trash))
                 confirm=("Delete account", "/dialog/delete") cancel="Keep it" {
                 p { "This cannot be undone. Everything you wrote goes with it." }
                 Input("reason", "Tell us why (optional)") placeholder="Moving on";
@@ -97,7 +98,7 @@ fn menus(ui: &Ui) -> Markup {
                     separator();
                     action "Sign out" "/popover/signout" icon="\u{2192}" danger;
                 }
-                Menu("More") align_end {
+                Menu("More") align_end trigger=(ui.button("").ghost().icon_only().aria_label("More").leading(Icon::Ellipsis)) {
                     link "Documentation" "/" icon="?";
                     action "Clear cache" "/popover/signout";
                 }

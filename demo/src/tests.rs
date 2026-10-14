@@ -682,8 +682,8 @@ async fn state_round_trip_through_prg_and_cookies() {
             && html.contains("checked")
     );
     assert!(
-        html.contains("<details name=\"settings\" open>")
-            && html.contains("href=\"/settings?tab.settings=0\"")
+        html.contains(r#"href="/settings?tab.settings=0""#)
+            && html.contains(r#"class="lui-tabs-panel" data-state="active""#)
     );
     // Coming back with only the cookie: the tab is still open, nothing is rewritten.
     let req = Request::get("/settings")
@@ -699,7 +699,7 @@ async fn state_round_trip_through_prg_and_cookies() {
             .to_vec(),
     )
     .unwrap();
-    assert!(html.contains("<details name=\"settings\" open><summary><a href=\"/settings?tab.settings=1\">Notifications"));
+    assert!(html.contains(r#"<a class="lui-tabs-trigger" href="/settings?tab.settings=1" data-state="active" aria-current="true">"#));
 }
 
 #[tokio::test]
@@ -716,7 +716,7 @@ async fn markup_follows_caps() {
         String::from_utf8(body.to_vec()).unwrap()
     }
     let old = body("/dialog", "").await;
-    assert!(old.contains("href=\"#confirm\"") && !old.contains("commandfor"));
+    assert!(old.contains("href=\"#confirm\"") && !old.contains("commandfor=\""));
     assert!(old.contains("lui-caps"), "unknown browser gets beacons");
     let new = body("/dialog", "lui-cap-probed=1; lui-cap-invokers=1").await;
     assert!(new.contains("commandfor=\"confirm\"") && !new.contains("href=\"#confirm\""));
@@ -726,11 +726,15 @@ async fn markup_follows_caps() {
     );
     assert!(body("/popover", "").await.contains("lui-popover-details"));
     assert!(
-        body("/tabs", "lui-cap-details_content=1")
+        body("/tabs", "lui-cap-probed=1; lui-cap-view_transitions=1")
             .await
-            .contains("lui-tabs-panel")
+            .contains("view-transition-name: lui-tabs-demo")
     );
-    assert!(body("/tabs", "").await.contains("lui-accordion-body"));
+    assert!(
+        !body("/tabs", "")
+            .await
+            .contains("view-transition-name: lui-tabs-demo")
+    );
 }
 
 /// A component page lists what its builders accept under the snippet, from
@@ -1156,20 +1160,6 @@ async fn every_route_is_conforming_html() {
 /// Known conformance bugs: the route (a `PATHS` entry) and a piece of the problem's text.
 /// Each names the milestone that fixes it; the test fails once one is fixed and still listed.
 const CONFORMANCE_BUGS: &[(&str, &str)] = &[
-    // The no-script tabs and the accordion put a link in each `<summary>` (a link inside
-    // the summary's implicit button). No box owns it yet; M38 fixes this.
-    ("/", "<a> inside <summary>"),
-    ("/settings", "<a> inside <summary>"),
-    ("/tabs?tab.demo=1", "<a> inside <summary>"),
-    (
-        "/accordion?open.faq=0,2&open.faq-more=0",
-        "<a> inside <summary>",
-    ),
-    // A form's id is derived from its action, so two forms posting to the same action share
-    // one (`lui-form--blocks-settings` on the settings block's two sections, and again on
-    // the index where its preview sits). M38 fixes this (the "Ids" box).
-    ("/blocks/settings", r#"id "lui-form--blocks-settings""#),
-    ("/", r#"id "lui-form--blocks-settings""#),
     // The index shows several previews that render the same field (`f-email`, `f-name`,
     // `f-password`) or the same sign-in form. M42 fixes this (the docs site's stages).
     ("/", r#"id "lui-form--app-signin""#),

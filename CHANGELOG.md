@@ -129,6 +129,40 @@ Everything below also ships in 0.2.0, the first publish.
   the five looks that had a class keep it (`lui-button-primary` and so on), now beside
   `data-tone` and `data-variant`. **Breaking** in the HTML: a primary, danger, ghost, soft or
   surface button, a small or large one, and a toned badge carry the new attributes.
+- **Breaking:** the `#[deprecated]` M32 names are gone: `wizard::Posted`, `Text::OneMatch`,
+  and the old setters on Accordion (`summary`, `multi`), Button (`icon`, `label`,
+  `content`), ContextMenu (`items`), EmptyState (`text`, `post`), ErrorPage (`message`),
+  Kanban (`note`), Palette (`command`, `commands`, `key`), Menu (`heading`), Stat (`note`),
+  Upload (`hint`) and Wizard (`progress`). The few on Calendar, DatePicker, Combobox, Select
+  and ToggleGroup go with M40's controls.
+- **Breaking (HTML):** Tabs and Accordion are links and panels, no longer `<details>`: tabs
+  are `div.lui-tabs-list > a.lui-tabs-trigger[data-state=active|inactive]` and
+  `div.lui-tabs-panel[data-state][hidden]`; an accordion item is
+  `a.lui-accordion-trigger[aria-expanded][aria-controls]` and `div.lui-accordion-body[hidden]`,
+  each with `data-state="open|closed"`. No `<a>` inside a `<summary>` any more (two
+  conformance exceptions removed). The accordion's height animation is gone.
+- **Breaking (ids):** `slug` keeps letters and digits in any script (`"Configuración"` is
+  `configuración`); derived ids get a `lui-` prefix (`#lui-dialog-delete`,
+  `#lui-menu-account`, `#lui-drawer-menu`, `#lui-palette`). `?dialog=<old id>` still opens
+  the dialog for one release (`UiState::dialog_is`).
+- A modifier after the wrong kind of item panics in debug builds with a message naming both:
+  ``Menu::danger() applies to a link, an action or a submenu, but the last item was a
+  separator``. `Prop::applies_to` lists the items, and the spec JSON writes it as
+  `"applies_to"`. On Menu, ContextMenu, Kanban, Sortable, Palette, Sidebar, AppShell, Tabs,
+  Accordion, Avatars, Upload and Wizard (Form and Table with M40 and M41).
+- `ui.badge(impl Display)`: `ui.badge(3)` works. `Button::large()`, `.block()`,
+  `.leading(icon)` and `.trailing(icon)`. `Glyph::Svg(&Markup)` puts an app's own SVG
+  wherever an icon goes.
+- `.trigger(Button)` on Dialog, Drawer, Menu and Tooltip: a styled opener of the caller's,
+  with the command, popover target or link set by the component. `.no_trigger()` on Dialog
+  and Drawer renders the overlay alone.
+- State attributes as a styling API (`docs/api.md`): a toggle button carries
+  `data-state="on|off"`, a disabled or busy button and a disabled menu item `data-disabled`,
+  vertical tabs `data-orientation`; each component's CSS selects them, and
+  `state_attributes_are_styled_where_they_are_set` keeps it so.
+- Docs: `docs/api.md` gains Variants, State attributes, the new Ids rules and why text
+  setters stay `&'a str` (a `Cow` spike on `Dialog::title` split `PROPS`);
+  `docs/ergonomics.md` leads with the current API and keeps M17/M18 under History.
 
 #### M43
 

@@ -16,9 +16,9 @@ caps: all
 <output for="f-accent-alpha">80</output>%</span>
 </label>
 <span class="lui-color-presets" role="group" aria-label="Presets">
-<button type="submit" class="lui-button" name="accent-preset" value="#1f6f5f" aria-label="Use #1f6f5f" style="--lui-color-value: #1f6f5f" aria-pressed="false">
+<button type="submit" class="lui-button" name="accent-preset" value="#1f6f5f" aria-label="Use #1f6f5f" style="--lui-color-value: #1f6f5f" aria-pressed="false" data-state="off">
 </button>
-<button type="submit" class="lui-button" name="accent-preset" value="#b3261e" aria-label="Use #b3261e" style="--lui-color-value: #b3261e" aria-pressed="false">
+<button type="submit" class="lui-button" name="accent-preset" value="#b3261e" aria-label="Use #b3261e" style="--lui-color-value: #b3261e" aria-pressed="false" data-state="off">
 </button>
 </span>
 </div>
@@ -39,9 +39,9 @@ caps: none
 <output for="f-accent-alpha">80</output>%</span>
 </label>
 <span class="lui-color-presets" role="group" aria-label="Presets">
-<button type="submit" class="lui-button" name="accent-preset" value="#1f6f5f" aria-label="Use #1f6f5f" style="--lui-color-value: #1f6f5f" aria-pressed="false">
+<button type="submit" class="lui-button" name="accent-preset" value="#1f6f5f" aria-label="Use #1f6f5f" style="--lui-color-value: #1f6f5f" aria-pressed="false" data-state="off">
 </button>
-<button type="submit" class="lui-button" name="accent-preset" value="#b3261e" aria-label="Use #b3261e" style="--lui-color-value: #b3261e" aria-pressed="false">
+<button type="submit" class="lui-button" name="accent-preset" value="#b3261e" aria-label="Use #b3261e" style="--lui-color-value: #b3261e" aria-pressed="false" data-state="off">
 </button>
 </span>
 </div>
