@@ -216,9 +216,9 @@ pub const CSS: &str = r#"
 .lui-banner[data-tone=warn] { --lui-banner-bg: color-mix(in srgb, var(--lui-warn) 16%, var(--lui-bg)); --lui-banner-fg: color-mix(in srgb, var(--lui-warn) 80%, var(--lui-fg)); }
 .lui-banner[data-tone=danger] { --lui-banner-bg: color-mix(in srgb, var(--lui-danger) 12%, var(--lui-bg)); --lui-banner-fg: color-mix(in srgb, var(--lui-danger) 85%, var(--lui-fg)); }
 .lui-banner-text { margin: 0; padding-block: 0.125rem; overflow-wrap: anywhere; }
-.lui-banner-link { display: inline-flex; align-items: center; gap: var(--lui-space-1); color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.lui-banner-link { white-space: nowrap; color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .lui-banner-link:hover { text-decoration-thickness: 2px; }
-.lui-banner-link > .lui-icon { width: 1rem; height: 1rem; }
+.lui-banner-link > .lui-icon { width: 1rem; height: 1rem; margin-inline-start: var(--lui-space-1); vertical-align: -0.1875rem; }
 .lui-banner-dismiss { margin: -0.25rem -0.5rem -0.25rem 0; }
 .lui-banner-dismiss .lui-button { color: inherit; }
 .lui-banner-dismiss .lui-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }

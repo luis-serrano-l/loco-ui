@@ -201,11 +201,11 @@ fn description_list(ui: &Ui) -> Markup {
 /// A banner that stays closed once closed (the `lui-dismiss-<id>` cookie), and a form that
 /// brings it back.
 async fn banner_page(ui: Ui) -> Page {
-    let body = lui! {
+    let body = lui! { Stack gap=4 {
         (banners(&ui))
-        Flash title="Banner restored" action=("Close it again", "/banner");
+        Flash title="Banner restored" action=("Read the changes", "/");
         form method="post" action="/banner" { Button("Bring the first banner back") submit; }
-    };
+    } };
     page(&ui, "Banner", body)
 }
 

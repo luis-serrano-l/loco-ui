@@ -121,6 +121,14 @@ try {
   await until(async () => (await js("return document.querySelectorAll('.lui-combobox-chip').length")) === 0, "chip removed");
   assert(await navigations() === 1, "combobox: searched, picked and removed without a reload");
 
+  // Menu: a checkbox item posts its own form on change (data-lui="autosubmit"); the Apply
+  // button the script-less page needs is hidden.
+  await go("/popover");
+  assert(await js("return getComputedStyle(document.querySelector('.lui-popover-apply')).display") === "none", "menu: the script hides the Apply buttons");
+  await js("document.querySelector('.lui-popover input[name=grid]').click()");
+  await until(async () => (await js("return location.search")) === "?grid=on", "checkbox item posted");
+  assert(await js("return document.querySelector('.lui-popover input[name=grid]').checked"), "menu: a checkbox item posts on change and comes back ticked");
+
   // Table: a sort link re-renders the rows in place, URL follows.
   await go("/table?per.files=5");
   await click(".lui-table th a[href*='sort.files=size']");
