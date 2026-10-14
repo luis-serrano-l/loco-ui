@@ -362,6 +362,34 @@ pub enum Text {
     DeleteConfirm,
     /// "This cannot be undone.": record page: the delete dialog's text.
     CannotUndo,
+    /// "Sign in to continue": 401 page.
+    Unauthorized,
+    /// "This page is for signed-in visitors. Sign in, then come back.": 401 page.
+    UnauthorizedMessage,
+    /// "You cannot open this page": 403 page.
+    Forbidden,
+    /// "Your account does not have access to it. Ask an owner if you need it.": 403 page.
+    ForbiddenMessage,
+    /// "That could not be saved": 422 page.
+    Unprocessable,
+    /// "The form had something the server could not accept. Go back and check it.": 422 page.
+    UnprocessableMessage,
+    /// "Back in a moment": 503 page.
+    Unavailable,
+    /// "The site is down for maintenance or under heavy load. Try again in a few minutes.": 503 page.
+    UnavailableMessage,
+    /// "Apply": menu: a checkbox or radio item's button without script.
+    Apply,
+    /// "carousel": carousel: its role description.
+    Carousel,
+    /// "Previous slide": carousel.
+    PreviousSlide,
+    /// "Next slide": carousel.
+    NextSlide,
+    /// "Slide {} of {}": carousel: a dot's name.
+    SlideOf,
+    /// "slide": carousel: a slide's role description.
+    Slide,
 }
 
 /// How many texts there are.
@@ -370,7 +398,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 148] = [
+    pub const ALL: [Text; 162] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -519,6 +547,20 @@ impl Text {
         Text::Deleted,
         Text::DeleteConfirm,
         Text::CannotUndo,
+        Text::Unauthorized,
+        Text::UnauthorizedMessage,
+        Text::Forbidden,
+        Text::ForbiddenMessage,
+        Text::Unprocessable,
+        Text::UnprocessableMessage,
+        Text::Unavailable,
+        Text::UnavailableMessage,
+        Text::Apply,
+        Text::Carousel,
+        Text::PreviousSlide,
+        Text::NextSlide,
+        Text::SlideOf,
+        Text::Slide,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -700,6 +742,20 @@ const ENGLISH: [&str; N] = [
     "Deleted.",
     "Delete {}?",
     "This cannot be undone.",
+    "Sign in to continue",
+    "This page is for signed-in visitors. Sign in, then come back.",
+    "You cannot open this page",
+    "Your account does not have access to it. Ask an owner if you need it.",
+    "That could not be saved",
+    "The form had something the server could not accept. Go back and check it.",
+    "Back in a moment",
+    "The site is down for maintenance or under heavy load. Try again in a few minutes.",
+    "Apply",
+    "carousel",
+    "Previous slide",
+    "Next slide",
+    "Slide {} of {}",
+    "slide",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

@@ -56,11 +56,13 @@ pub mod accordion;
 pub mod alert;
 pub mod avatar;
 pub mod badge;
+pub mod banner;
 pub mod blocks;
 pub mod breadcrumbs;
 pub mod button;
 pub mod calendar;
 pub mod card;
+pub mod carousel;
 pub mod chart;
 pub mod cluster;
 pub mod color;
@@ -94,6 +96,7 @@ pub mod paged_table;
 pub mod pager;
 pub mod palette;
 pub mod popover;
+pub mod popover_card;
 pub mod posted;
 pub mod progress;
 pub mod props;
@@ -162,6 +165,8 @@ pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::Saved;
     pub use crate::lui;
+    pub use crate::popover_card::{Align, Side};
+    pub use crate::toast::Position;
     pub use crate::variant::{Radius, Size, Tone, Variant};
     pub use crate::{
         Cap, Caps, Icon, MenuItem, Page, Posted, Redirect, Row, TableQuery, Theme, Ui,
@@ -365,6 +370,9 @@ pub const COMPONENT_CSS: &[&str] = &[
     palette::CSS,
     marquee::CSS,
     variant::CSS,
+    banner::CSS,
+    popover_card::CSS,
+    carousel::CSS,
 ];
 
 #[cfg(test)]
@@ -1526,8 +1534,10 @@ mod tests {
         // scales, depth tokens and motion, 88 KB until M34 restyled every component after its
         // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
         // (README: "What a page weighs").
+        // 144 KB from M40d: a banner, a popover, a carousel and the setters of six feedback
+        // components.
         assert!(
-            stylesheet().len() < 128 * 1024,
+            stylesheet().len() < 144 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -1642,6 +1652,9 @@ mod tests {
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
             ("variant", variant::CSS),
+            ("banner", banner::CSS),
+            ("popover_card", popover_card::CSS),
+            ("carousel", carousel::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -2287,6 +2300,12 @@ mod tests {
             [
                 ui.stat("A", "1").render(),
                 ui.stat("A", "1").href("/a").render(),
+            ]
+        }),
+        ("Popover", "id", |ui| {
+            [
+                ui.popover("Share", html! { "x" }).render(),
+                ui.popover("Share", html! { "x" }).id("share-2").render(),
             ]
         }),
         ("Tooltip", "id", |ui| {

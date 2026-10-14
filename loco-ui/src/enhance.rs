@@ -527,19 +527,25 @@ mod axum_glue {
     }
 
     /// Serves [`served`] at [`SCRIPT_PATH`], immutable for a year (the URL carries a hash).
+    /// Also answers [`crate::banner::DISMISS_PATH`], the close form of a banner or an alert.
     pub fn router() -> Router {
-        Router::new().route(
-            SCRIPT_PATH,
-            get(|| async {
-                (
-                    [
-                        (header::CONTENT_TYPE, "text/javascript; charset=utf-8"),
-                        (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
-                    ],
-                    served(),
-                )
-            }),
-        )
+        Router::new()
+            .route(
+                crate::banner::DISMISS_PATH,
+                axum::routing::post(crate::banner::dismiss),
+            )
+            .route(
+                SCRIPT_PATH,
+                get(|| async {
+                    (
+                        [
+                            (header::CONTENT_TYPE, "text/javascript; charset=utf-8"),
+                            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+                        ],
+                        served(),
+                    )
+                }),
+            )
     }
 }
 #[cfg(feature = "axum")]

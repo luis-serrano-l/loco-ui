@@ -612,4 +612,25 @@ pub(crate) const COMPONENTS: &[Component] = &[
         props: crate::toggle_group::ToggleGroup::PROPS,
         status: Status::Beta,
     },
+    Component {
+        module: "banner",
+        builder: "Banner",
+        calls: &["ui.banner(text: &str)"],
+        props: crate::banner::Banner::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "popover_card",
+        builder: "Popover",
+        calls: &["ui.popover(trigger: &str, body: Markup)"],
+        props: crate::popover_card::Popover::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "carousel",
+        builder: "Carousel",
+        calls: &["ui.carousel(label: &str)"],
+        props: crate::carousel::Carousel::PROPS,
+        status: Status::Beta,
+    },
 ];

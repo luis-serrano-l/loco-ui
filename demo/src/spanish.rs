@@ -161,7 +161,21 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Saved, "Guardado.")
     .with(Text::Deleted, "Borrado.")
     .with(Text::DeleteConfirm, "¿Borrar {}?")
-    .with(Text::CannotUndo, "No se puede deshacer.");
+    .with(Text::CannotUndo, "No se puede deshacer.")
+    .with(Text::Unauthorized, "Inicia sesión para seguir")
+    .with(Text::UnauthorizedMessage, "Esta página es para quien ha iniciado sesión. Inicia sesión y vuelve.")
+    .with(Text::Forbidden, "No puedes abrir esta página")
+    .with(Text::ForbiddenMessage, "Tu cuenta no tiene acceso. Pídeselo a un responsable si lo necesitas.")
+    .with(Text::Unprocessable, "No se pudo guardar")
+    .with(Text::UnprocessableMessage, "El formulario traía algo que el servidor no acepta. Vuelve y revísalo.")
+    .with(Text::Unavailable, "Volvemos enseguida")
+    .with(Text::UnavailableMessage, "El sitio está en mantenimiento o con mucha carga. Prueba en unos minutos.")
+    .with(Text::Apply, "Aplicar")
+    .with(Text::Carousel, "carrusel")
+    .with(Text::PreviousSlide, "Diapositiva anterior")
+    .with(Text::NextSlide, "Diapositiva siguiente")
+    .with(Text::SlideOf, "Diapositiva {} de {}")
+    .with(Text::Slide, "diapositiva");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

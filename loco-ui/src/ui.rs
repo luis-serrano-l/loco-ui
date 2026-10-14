@@ -68,6 +68,8 @@ pub struct Ui {
     params: Vec<(String, String)>,
     /// The app's own look, applied by [`Ui::page`].
     look: Option<&'static Look>,
+    /// The ids of the `lui-dismiss-<id>` cookies: banners and alerts closed for good.
+    dismissed: Vec<String>,
 }
 
 /// A request with no state: only what the browser supports.
@@ -116,7 +118,19 @@ impl Ui {
             state: UiState::from_request(path, query, cookie_header),
             params,
             look: None,
+            dismissed: cookie_header
+                .split(';')
+                .filter_map(|pair| pair.trim().split_once('='))
+                .filter_map(|(k, _)| k.strip_prefix(crate::banner::DISMISS_COOKIE))
+                .map(str::to_string)
+                .collect(),
         }
+    }
+
+    /// Whether the banner or alert `id` was dismissed: its `lui-dismiss-<id>` cookie is set
+    /// (by the form [`crate::banner::DISMISS_PATH`] answers).
+    pub fn dismissed(&self, id: &str) -> bool {
+        self.dismissed.iter().any(|d| d == id)
     }
 
     /// Pick the language from an `Accept-Language` header, unless the `lui-lang` cookie
