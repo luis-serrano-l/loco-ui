@@ -131,6 +131,26 @@ Everything below also ships in 0.2.0, the first publish.
 - `RecordPage::delete` opens a dialog that asks first ("Delete Invoice 42?",
   `Text::DeleteConfirm`, `Text::CannotUndo`) instead of posting at once.
 
+#### M42
+
+- The demo is a docs site. Getting started at `/start`, `/start/axum`, `/start/loco` and
+  `/start/any-server` (new `docs/start/*.md`, the Axum and any-server pages run as
+  doctests), the guides at `/docs/<name>` and the changelog at `/changelog`, rendered from
+  the Markdown with a table of contents beside each page. A test checks every relative link
+  and heading fragment in `docs/`.
+- Each component page ends with "When to use", "Platform" (browser versions from
+  `spec::SPECS`), "Accessibility", "Without script", "Fallback" (from the component's doc
+  header) and "Anatomy" (the classes its CSS styles and the tokens each reads).
+- Search: `/search?q=` over components, props and docs headings; the header's command
+  palette searches from every page, and an exact name goes straight to its page.
+- The stage above a component's code shows it in both themes (`?themes=both`), at a medium
+  or narrow width (`?stage=`) and without the script (`?script=off`), from a row of links.
+- The enhancement script adds a Copy button to any element marked `data-lui="copy"`
+  (the demo's snippets and code blocks); without the script there is none. The script is
+  now under 14 KB served.
+- The index's previews, the props playground and the both-themes stage no longer repeat
+  ids (the conformance test's M42 entries are gone).
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached

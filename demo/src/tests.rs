@@ -86,7 +86,7 @@ async fn the_index_shows_every_component_and_every_page_the_sidebar() {
         String::from_utf8(bytes.to_vec()).unwrap()
     };
     let index = body("/").await;
-    for (href, title, ..) in COMPONENTS {
+    for crate::site::Entry { href, title, .. } in COMPONENTS {
         assert!(
             preview(href).is_some(),
             "{href}: no preview beside its route"
@@ -134,9 +134,9 @@ async fn the_index_shows_every_component_and_every_page_the_sidebar() {
 
 #[test]
 fn every_index_entry_sits_in_a_layer() {
-    for (href, _, group, ..) in COMPONENTS {
+    for crate::site::Entry { href, group, .. } in COMPONENTS {
         assert!(
-            LAYERS.iter().any(|l| l.2.contains(&group)),
+            LAYERS.iter().any(|l| l.2.contains(group)),
             "{href}: group {group} is in no layer"
         );
     }
@@ -178,11 +178,15 @@ async fn pages_ship_only_the_enhancement_script() {
                 - copies * loco_ui::stylesheet().len()
                 - site * crate::site::CSS_MINIFIED.len();
             // M38 added data-* variant attributes and M45 a third language button and form hints.
+            // M42 made the demo a docs site: the search box (a palette of every page) in the
+            // header and the docs in the sidebar, about 12 KB on every page, and on a component
+            // page its reference sections (platform tables, anatomy). 48 KB until then, 64 for
+            // the theme builder; the longest guide (`/docs/api`) is 75 KB.
             let budget = match path {
-                "/" => 200,
-                // M39's theme builder: density, radius, fonts and the colour-role table.
-                p if p.starts_with("/theme") => 64,
-                _ => 48,
+                "/" => 224,
+                // The stage drawn twice, in each theme.
+                p if p.contains("themes=both") => 96,
+                _ => 80,
             } * 1024;
             assert!(
                 markup < budget,
@@ -198,7 +202,8 @@ async fn pages_ship_only_the_enhancement_script() {
                 html.contains(&tag),
                 "{path}: the tag is the enhancement script"
             );
-            assert!(!html.contains("javascript:"), "{path}");
+            // In an attribute: the guides mention `javascript:` URLs in their text.
+            assert!(!html.contains("=\"javascript:"), "{path}");
             let inline_handler = html.split('<').any(|tag| {
                 tag.split_whitespace()
                     .any(|a| a.starts_with("on") && a.contains('='))
@@ -225,12 +230,12 @@ async fn every_component_page_shows_its_code() {
             .filter_map(|l| l.trim().strip_prefix("// code: "))
         {
             assert!(
-                COMPONENTS.iter().any(|c| c.0 == l),
+                COMPONENTS.iter().any(|c| c.href == l),
                 "{path}: {l} is not a component page"
             );
         }
     }
-    for (href, ..) in COMPONENTS {
+    for crate::site::Entry { href, .. } in COMPONENTS {
         let open = format!("// code: {href}");
         let files = SOURCES
             .iter()
@@ -248,7 +253,7 @@ async fn every_component_page_shows_its_code() {
             "{href}: snippet not cut from {path}"
         );
         let res = router()
-            .oneshot(Request::get(href).body(Body::empty()).unwrap())
+            .oneshot(Request::get(*href).body(Body::empty()).unwrap())
             .await
             .unwrap();
         let html = String::from_utf8(
@@ -980,8 +985,9 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
         String::from_utf8(bytes.to_vec()).unwrap()
     };
     let page = html("/table?q.try=zzz&sort.files=-size").await;
+    // The playground's copy carries its prefix on its ids (`ids::scope`), not on its keys.
     assert!(
-        page.contains(r#"id="lui-table-try""#),
+        page.contains(r#"id="pg-table-lui-table-try""#),
         "the playground table is on the page"
     );
     assert!(
@@ -1165,26 +1171,6 @@ const CONFORMANCE_BUGS: &[(&str, &str)] = &[
     // the index where its preview sits). M38 fixes this (the "Ids" box).
     ("/blocks/settings", r#"id "lui-form--blocks-settings""#),
     ("/", r#"id "lui-form--blocks-settings""#),
-    // The index shows several previews that render the same field (`f-email`, `f-name`,
-    // `f-password`) or the same sign-in form. M42 fixes this (the docs site's stages).
-    ("/", r#"id "lui-form--app-signin""#),
-    ("/", r#"id "f-email""#),
-    ("/", r#"id "f-name""#),
-    ("/", r#"id "f-password""#),
-    // The props playground renders the stage's component a second time under the same
-    // ids. M42 fixes this (the docs site's playground).
-    ("/field?email=ada", r#"id "f-name""#),
-    ("/chart", r#"id "chart-signups""#),
-    ("/chart", r#"id "chart-signups-title""#),
-    ("/otp", r#"id "f-code""#),
-    ("/otp", r#"id "f-code-help""#),
-    ("/otp", r#"id "f-code-count""#),
-    ("/inputs", r#"id "f-volume""#),
-    ("/inputs", r#"id "volume-ticks""#),
-    // The index and the modes page both show the upload preview beside the progress
-    // preview, and each renders `lui-progress-upload`. M42 fixes this (the docs site's stages).
-    ("/", r#"id "lui-progress-upload""#),
-    ("/modes?forced=1", r#"id "lui-progress-upload""#),
 ];
 
 /// The conformance checks find each kind of problem they claim to.

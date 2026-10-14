@@ -57,7 +57,10 @@
 //! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
 //! own move form with its new index. A table's "select all matching" box ticks the row
-//! boxes on the page as well.
+//! boxes on the page as well. An element marked `data-lui="copy"` gets a Copy button that
+//! puts the text of its `<pre>` on the clipboard (`navigator.clipboard`, Chrome 66,
+//! Firefox 63, Safari 13.1); without the script there is no button, and the text can still
+//! be selected.
 //!
 //! [`script_tag`] goes at the end of `<body>`; `router` (feature `axum`) serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
@@ -380,6 +383,23 @@ document.addEventListener("dragend", function () {
   f = li.querySelector("form"); b = document.createElement("button");
   b.name = "to"; b.value = [].indexOf.call(l.children, li); b.hidden = true;
   f.append(b); f.requestSubmit(b); b.remove();
+});
+
+// data-lui=copy: a Copy button for the <pre> inside, added here (none without the script).
+var copies = function (root) {
+  root.querySelectorAll("[data-lui=copy]").forEach(function (box) {
+    if (box.querySelector(".lui-copy")) return;
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "lui-button lui-copy"; b.textContent = "Copy";
+    b.setAttribute("data-variant", "ghost");
+    box.append(b);
+  });
+};
+copies(document);
+document.addEventListener("lui:swap", function (e) { copies(e.target); });
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest(".lui-copy");
+  if (b) navigator.clipboard.writeText(b.parentNode.querySelector("pre").textContent).then(function () { b.textContent = "Copied"; });
 });
 
 // Back and Forward: the entry's stored copy of each root when there is one, else a fetch.
@@ -722,14 +742,15 @@ mod tests {
 
     #[test]
     fn script_is_small_and_plain() {
-        // 13 KB served and 16 KB of source until M41's select-all box.
+        // 13 KB served and 16 KB of source until M41's select-all box; 14 KB and 17 KB since
+        // M42's copy button.
         assert!(
-            served().len() < 13568,
+            served().len() < 14336,
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 16640,
+            JS.len() < 17408,
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

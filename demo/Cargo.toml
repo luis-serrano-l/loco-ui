@@ -12,6 +12,8 @@ tower = { version = "0.5", features = ["util"] }
 serde.workspace = true
 tower-http = { version = "0.7.1", features = ["compression-gzip", "compression-br"] }
 syntect = { version = "5.3.0", default-features = false, features = ["default-syntaxes", "regex-fancy", "html"] }
+# Renders `docs/*.md` and CHANGELOG.md on the site (`src/docs.rs`).
+pulldown-cmark = { version = "0.13.4", default-features = false, features = ["html"] }
 
 [dev-dependencies]
 # The conformance test parses every route as a browser would (`every_route_is_conforming_html`).

@@ -89,9 +89,9 @@ pub(crate) static CODE: LazyLock<Vec<Code>> = LazyLock::new(|| {
     COMPONENTS
         .iter()
         .map(|c| {
-            let (path, code) = snippet(c.0);
+            let (path, code) = snippet(c.href);
             let builders = called(&code);
-            (c.0, path, highlight(&code).into_string(), builders)
+            (c.href, path, highlight(&code).into_string(), builders)
         })
         .collect()
 });
@@ -143,6 +143,13 @@ fn called(code: &str) -> Vec<&'static Component> {
 /// server (no script). Only seven classes, `lui-hl-{k,s,n,c,m,f,t}`, coloured with tokens
 /// in `layout.rs`, instead of syntect's own HTML with a class per scope and a bundled theme.
 pub(crate) fn highlight(code: &str) -> Markup {
+    highlight_as(code, "rs")
+}
+
+/// `code` highlighted as the language syntect knows by `token` (`rs`, `sh`, `css`, `html`,
+/// `yaml`: a fence's info string), or as plain text when it knows none: the docs pages' code
+/// blocks.
+pub(crate) fn highlight_as(code: &str, token: &str) -> Markup {
     use syntect::{
         easy::ScopeRangeIterator,
         parsing::{ParseState, ScopeStack, SyntaxSet},
@@ -177,10 +184,10 @@ pub(crate) fn highlight(code: &str) -> Markup {
             })
             .unwrap_or("")
     };
-    let rust = SYNTAXES
-        .find_syntax_by_extension("rs")
-        .expect("syntect ships Rust");
-    let (mut state, mut stack) = (ParseState::new(rust), ScopeStack::new());
+    let Some(syntax) = SYNTAXES.find_syntax_by_token(token) else {
+        return html! { (code) };
+    };
+    let (mut state, mut stack) = (ParseState::new(syntax), ScopeStack::new());
     let mut parts: Vec<(&str, String)> = Vec::new();
     for line in LinesWithEndings::from(code) {
         let ops = state.parse_line(line, &SYNTAXES).unwrap_or_default();

@@ -299,17 +299,18 @@ async fn download(ui: Ui) -> Response {
 /// The controls drawn with `appearance: none`, plus badges: what the forced-colours rules
 /// keep visible.
 fn stage(ui: &Ui, key: &str) -> Markup {
-    let (check, switch, range) = (
+    let (check, switch, range, upload) = (
         format!("{key}-check"),
         format!("{key}-switch"),
         format!("{key}-range"),
+        format!("{key}-upload"),
     );
     lui! {
         Stack gap=3 {
             Checkbox(&check, "Checked") checked=(true);
             Switch(&switch, "Switch on") checked=(true);
             Range(&range, "Volume") value=60;
-            Progress(40, 100) label="Upload";
+            Progress(40, 100) label="Upload" id=(&upload);
             Cluster { Badge("Draft"); Badge("Live") ok; }
         }
     }
