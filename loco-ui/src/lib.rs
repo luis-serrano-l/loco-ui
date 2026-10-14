@@ -1876,6 +1876,7 @@ mod tests {
     /// their entry in M39's sweep, run after the other milestones merge.
     #[test]
     fn no_literal_font_size_or_z_outside_tokens() {
+        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
         const PENDING_SWEEP: &[&str] = &[
             "accordion.rs",
             "alert.rs",
@@ -1957,6 +1958,7 @@ mod tests {
     /// entry in M39's sweep.
     #[test]
     fn no_physical_property_in_component_css() {
+        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
         const PENDING_SWEEP: &[&str] = &[
             "accordion.rs",
             "avatar.rs",
@@ -2021,9 +2023,10 @@ mod tests {
         // 64 KB until M29 added blocks, a chart and six components, 72 KB until M30's colour
         // scales, depth tokens and motion, 88 KB until M34 restyled every component after its
         // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
-        // (README: "What a page weighs").
+        // (README: "What a page weighs"). 128 KB until M39 folded the dark palette into
+        // light-dark() and moved the demo's CSS out: 117 240 bytes then, 111 358 after.
         assert!(
-            stylesheet().len() < 128 * 1024,
+            stylesheet().len() < 112 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );

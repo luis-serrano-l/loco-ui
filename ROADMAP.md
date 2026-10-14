@@ -2397,16 +2397,18 @@ Conflicts with M41 (table.rs) and M42 (input.rs is not in M42; fine).
 Goal: the stylesheet behaves like a library's (overridable, cacheable, partial) and the
 theme covers type, motion, depth, density, RTL and forced colours.
 
-- [ ] `@layer lui.reset, lui.tokens, lui.components, lui.blocks;` wrapping the four parts
+- [x] `@layer lui.reset, lui.tokens, lui.components, lui.blocks;` wrapping the four parts
   of `stylesheet()` (`lib.rs:234-245`); app CSS (`Look.css`) is emitted unlayered after
   it, so it always wins. `minify_css` keeps `@layer` intact (test). Document in
   `docs/theming.md`: "your CSS wins without `!important`".
-- [ ] `light-dark()`: `Tokens::css()` emits `color-scheme: light dark` and one
+  Done: `LAYERS` declares five layers, a fifth `lui.modes` last so forced colours and print beat a component; `stylesheet()` wraps reset, tokens, components, blocks and modes; `Look::css`/`Page::css` stay unlayered after it. Tests: `the_stylesheet_is_layered`, the minify test keeps `@layer`. `docs/theming.md` opens with it.
+- [x] `light-dark()`: `Tokens::css()` emits `color-scheme: light dark` and one
   `--lui-x: light-dark(<light>, <dark>)` per role instead of a duplicated dark block;
   `data-theme="light|dark"` sets `color-scheme` only. Baseline 2024, so unconditional;
   the `Cap::LightDark` beacon is not needed (FINDINGS note). Size test: stylesheet shrinks
   (assert the budget, record before/after in FINDINGS).
-- [ ] Move demo-only CSS out: `.lui-site*`, `.lui-props*`, `.lui-index*`, `.lui-snippet`,
+  Done: `Tokens::css()` puts one declaration per token on `:root` (`light-dark()` only where the schemes differ), `data-theme` sets `color-scheme`. Shadows keep the light geometry in both schemes, colours in `light-dark()`. 117 240 to 111 358 bytes; budget now 112 KB. FINDINGS M39 has the table, the Chrome < 123 fallback and Blitz always resolving the light side.
+- [x] Move demo-only CSS out: `.lui-site*`, `.lui-props*`, `.lui-index*`, `.lui-snippet`,
   `.lui-hl-*`, `.lui-theme-builder`, `.lui-layout-tile` (`layout.rs:709-837`) into
   `demo/src/site.rs` as `pub const CSS`, applied through `Look.css`. The default header
   text (`layout.rs:601-608`) becomes `Page::header` with no default header at all (the
@@ -2415,6 +2417,7 @@ theme covers type, motion, depth, density, RTL and forced colours.
   `.lui-prose` (M40's Prose component) or into the `lui.reset` layer as a minimal
   normalisation. **Breaking** (apps that relied on styled bare `<table>`); test:
   `stylesheet()` contains no `.lui-site`.
+  Done: the demo's rules and header are `demo/src/site.rs` `CSS` and `LOOK`, layered on in `router()`; `layout::header()` is gone and a page has no header unless `Look`/`Page::header` gives one. Bare-element rules are `layout::RESET` in `lui.reset` (M40a's `.lui-prose` can take `h1-h3`, `p`, `li`, `a`, `code`, `table` from there). Kept: the bare `button` rules in `button.rs`, left for the sweep. Test: the stylesheet contains no `.lui-site`.
 - [ ] Tokens that exist: `Tokens` gains `font: Fonts { sans, mono, serif }`,
   `type_scale` (`--lui-text-1..9` Radix ramp), `size` (`--lui-size-1..3` control heights),
   `radius` becomes a `Radius` ramp (`--lui-radius-{none,1,2,3,full}` with a factor),
@@ -2424,11 +2427,13 @@ theme covers type, motion, depth, density, RTL and forced colours.
   by 0.85/1). The 142 literal `font-size`s become `var(--lui-text-n)`; the z-index
   literals become tokens; a `no_literal_font_size_or_z_outside_tokens` test joins
   `no_colour_literal_outside_tokens`. `--lui-info-*` role joins the palette (M38 needs it).
-- [ ] `Tokens` owns `Cow<'static, str>` for every value so a per-tenant palette from a
+  Done except the sweep: `Fonts`, `TypeScale`, `Sizes`, `Radius` (with `Radius::new`), `Depth`, `Motion`, `ZIndex`, `Density` and the `info`/`on_info` roles are `Tokens` fields and the `no_literal_font_size_or_z_outside_tokens` test exists. Not done: replacing the literal `font-size`s and z-indexes in component CSS; the 45 files still writing them are listed in the test's `PENDING_SWEEP`, to empty in the sweep commit after M38/M40 merge.
+- [x] `Tokens` owns `Cow<'static, str>` for every value so a per-tenant palette from a
   database is a `Tokens` value, not a leak; `Tokens::DEFAULT` stays `const` via `Cow::Borrowed`.
   `Look` keeps `&'static` (it is an app-level static) but gains `Look::with_tokens(Tokens)`
   for the per-request case via `Ui::tokens(..)`.
-- [ ] Per-page subset and cacheable sheet: `stylesheet_for(&[Component::Button, ..])`
+  Done: every value is `Cow<'static, str>`, `Tokens::DEFAULT` is a `const` of `Cow::Borrowed`. `Look::with_tokens` became `Ui::tokens(Tokens)` (per request, over the look's).
+- [x] Per-page subset and cacheable sheet: `stylesheet_for(&[Component::Button, ..])`
   (a `Component` enum generated from `COMPONENT_CSS` order) and `Page::subset()` that
   records which builders rendered (each `Render` impl marks a thread-local or a `Cell` in
   `Ui`; pick the `Cell<u64>` bitset on `Ui` since builders hold `&Ui`), emitting only
@@ -2438,27 +2443,32 @@ theme covers type, motion, depth, density, RTL and forced colours.
   `'unsafe-inline'` for `style-src` and offers `csp_hash()` (sha256 of the inline sheet)
   for the inline mode. Bench: `cargo bench -p loco-ui` stylesheet/layout before and after,
   recorded in FINDINGS (the `bench` skill).
-- [ ] Modes: `@media (forced-colors: active)` rules for checkbox, radio, switch, range
+  Done: `Component` (55 variants plus `Blocks`, `ALL`, `BASE`), `stylesheet_for` (cached per set), `Page::subset(&[..])`, `/lui.css` in `enhance::router()` with ETag, 304 and `immutable`, `Page::linked_stylesheet()`, `enhance::csp_hash` and `Page::style_hashes`; a linked page's CSP is `style-src 'self' <hashes>; style-src-attr 'unsafe-inline'`. Kept different: `Page::subset` takes an explicit list instead of recording renders (a mark in every `Render` impl would touch all 55 files under other milestones; FINDINGS). Bench in FINDINGS: stylesheet 1.52 to 0.83 ns, layout 30.0 to 20.0 µs.
+- [x] Modes: `@media (forced-colors: active)` rules for checkbox, radio, switch, range
   thumb, progress, badge borders (everything drawn with `appearance: none`);
   `@media (prefers-contrast: more)` thickens borders and focus rings;
   `@media print` hides drawer, toasts, sidebar nav, palette, and unsticks the table
   header; a demo page `/modes` shows the component stage under each via `?forced=1`
   (emulated by a class, since media cannot be forced server-side) and `look.sh --tag modes`
   screenshots it.
+  Done: `layout::MODES` (the `lui.modes` layer) with forced-colours rules for checkbox, radio, switch, range, progress, meter, stat progress and badges, `prefers-contrast: more`, and print; `.lui-forced`/`.lui-contrast` emulate them; `/modes` (in `PATHS` as `/modes?forced=1`). Not run here: `look.sh --tag modes` (slow checks are the merger's/CI's).
 - [ ] RTL: every physical `left/right/margin-left/padding-right/text-align: left/border-left`
   (≈53) becomes its logical twin; `Strings` gets `dir()`; `<html dir>` set from it;
   a `dir="rtl"` demo (`?dir=rtl` query handled by `Ui`, or an Arabic strings table in the
   demo with three strings translated) and a Blitz shot; a test greps component CSS for
   physical properties (allow-list: `translate`, transforms, `inset` shorthand).
-- [ ] Skip link: `layout::page` emits `<a class="lui-skip" href="#main">Skip to content</a>`
+  Partly done: `layout.rs` uses logical properties (`text-align: start`, `margin-inline-*`), and `no_physical_property_in_component_css` exists with the 26 files still to convert in its `PENDING_SWEEP`. Not done: the sweep, `Strings::dir()`, `<html dir>` and the RTL demo, which M45 owns.
+- [x] Skip link: `layout::page` emits `<a class="lui-skip" href="#main">Skip to content</a>`
   (`Text::SkipToContent`) as the first child of `<body>`, visible on focus; `<main id="main"
   tabindex="-1">`; AppShell gets the same. The enhancement script, after a swap, moves
   focus to the swapped root (or `h1`) and announces `document.title` through a
   `role=status` live region it owns (`enhance.rs:135-156`); `browser-check.mjs` asserts
   the announcement.
-- [ ] `docs/theming.md` rewritten around the new `Tokens` (every field, every `--lui-*`),
+  Done: `a.lui-skip href=#main` (`Text::SkipToContent`, Spanish in the demo) first in `<body>`, `<main id="main" tabindex="-1">`; the app shell renders inside that `main`, so it shares the link. The script moves a lost focus to the new root's `h1` or the root and announces `document.title` in its own `role=status` region; `browser-check.mjs` asserts both (run: OK).
+- [x] `docs/theming.md` rewritten around the new `Tokens` (every field, every `--lui-*`),
   `/theme` builder edits density, radius ramp and fonts and shows the live tokens table
   with swatches; CHANGELOG, FINDINGS (size table), README "What a page weighs" updated.
+  Done: theming.md covers the layers, `light-dark()`, every `Tokens` field and `--lui-*` token, the linked sheet and CSP, subsets, modes and the skip link. `/theme` edits brand, gray, radius, ramp factor, density and font, and lists every colour role with light and dark swatches. CHANGELOG, FINDINGS and README "What a page weighs" updated.
 
 Key files: `layout.rs` (owned), `lib.rs` `stylesheet*`, `enhance.rs` (csp + focus),
 `ui.rs` (`Page` setters), every component's `CSS` const (mechanical token replacement).

@@ -259,12 +259,15 @@ component gives the HTML to another template engine.
 
 ## What a page weighs
 
-Measured on the demo (M34), gzip at level 9; every page inlines the whole stylesheet, so
-there is no second request for CSS, and no script is required.
+Measured on the demo (M34; the stylesheet rows at M39), gzip at level 9. By default every page
+inlines the whole stylesheet, so there is no second request for CSS, and no script is required;
+`Page::linked_stylesheet()` links `/lui.css` instead (cached, ETag) and `Page::subset(..)`
+inlines only the components a page lists.
 
 | | raw | gzip |
 |---|---|---|
-| The whole stylesheet, every component and block (`stylesheet()`) | 116.9 KB | 20.0 KB |
+| The whole stylesheet, every component and block (`stylesheet()`) | 111.4 KB | 19.5 KB |
+| The base subset: layout, primitives and modes (`stylesheet_for(Component::BASE)`) | 32.3 KB | 7.0 KB |
 | A demo page, stylesheet, sidebar and props tables included (`/nav` … `/calendar`) | 136–160 KB | 22.9–26.0 KB |
 | `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 249 KB | 41.8 KB |
 | The index, every component live on it | 292 KB | 47.1 KB |
@@ -273,8 +276,8 @@ there is no second request for CSS, and no script is required.
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
-stylesheet stays under 128 KB (88 KB until M34), and every demo page's markup, the inlined stylesheet not
-counted, under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
+stylesheet stays under 112 KB (128 KB until M39, 88 KB until M34), and every demo page's markup, the inlined stylesheet not
+counted (nor the demo's own CSS, its `Look` since M39), under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
