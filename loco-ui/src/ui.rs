@@ -348,10 +348,9 @@ impl Ui {
             dir: self.dir(),
             title: title.into(),
             tokens: None,
-            header: None,
+            head: None,
             linked: false,
             subset: None,
-            links: None,
             body,
             cookies: self.state.set_cookies().into(),
             css: Box::default(),
@@ -417,8 +416,8 @@ pub struct Page {
     title: Box<str>,
     tokens: Option<Box<Tokens>>,
     // Boxed where rarely set so `Result<Redirect, Page>` stays under clippy's
-    // `result_large_err` limit (128 bytes).
-    header: Option<Box<Markup>>,
+    // `result_large_err` limit (128 bytes). The header rides in the same box.
+    head: Option<Box<Head>>,
     body: Markup,
     cookies: Box<[String]>,
     // A boxed slice, not a `Vec`: 8 bytes fewer, for the limit above.
@@ -428,14 +427,7 @@ pub struct Page {
     // The sheet as two small fields, not a `Sheet`, to stay under the 128 bytes above.
     linked: bool,
     subset: Option<&'static &'static str>,
-    /// `<link rel href>` pairs for the head ([`Page::link_rel`]), boxed for the same reason.
-    // One pointer when unset; a `Vec` or a boxed slice would cost 16 to 24 bytes on every page.
-    #[allow(clippy::box_collection)]
-    links: Option<Box<Vec<LinkRel>>>,
 }
-
-/// One `<link rel href>` in the head: the `rel`, then the `href`.
-pub(crate) type LinkRel = (Box<str>, Box<str>);
 
 impl Page {
     /// Answer `422 Unprocessable Content`: the form comes back with its messages, so a POST
@@ -487,7 +479,101 @@ impl Page {
     /// Show `header` above `<main>`, after the skip link. A page has none until this or the
     /// [`Look`] sets one.
     pub fn header(mut self, header: Markup) -> Self {
-        self.header = Some(Box::new(header));
+        self.head_mut().header = Some(header);
+        self
+    }
+
+    fn head_mut(&mut self) -> &mut Head {
+        self.head.get_or_insert_with(Box::default)
+    }
+
+    /// `<meta name="description">`: the sentence a search result or a link preview shows.
+    ///
+    /// ```rust
+    /// use loco_ui::prelude::*;
+    /// let html = Ui::default()
+    ///     .page("Dialog", html! {})
+    ///     .description("A modal with no script.")
+    ///     .canonical("https://example.com/dialog")
+    ///     .icon("/favicon.svg")
+    ///     .meta("theme-color", "#5b5bd6")
+    ///     .og("title", "Dialog")
+    ///     .link_rel("alternate", "/dialog.md")
+    ///     .stylesheet("/app.css")
+    ///     .head(html! { meta name="robots" content="noindex"; })
+    ///     .into_string();
+    /// assert!(html.contains(r#"<meta name="description" content="A modal with no script.">"#));
+    /// assert!(html.contains(r#"<link rel="canonical" href="https://example.com/dialog">"#));
+    /// assert!(html.contains(r#"<link rel="icon" href="/favicon.svg" type="image/svg+xml">"#));
+    /// assert!(html.contains(r##"<meta name="theme-color" content="#5b5bd6">"##));
+    /// assert!(html.contains(r#"<meta property="og:title" content="Dialog">"#));
+    /// assert!(html.contains(r#"<link rel="alternate" href="/dialog.md">"#));
+    /// assert!(html.contains(r#"<link rel="stylesheet" href="/app.css">"#));
+    /// assert!(html.contains(r#"<meta name="robots" content="noindex"></head>"#));
+    /// ```
+    pub fn description(mut self, text: &str) -> Self {
+        self.head_mut().description = Some(text.into());
+        self
+    }
+
+    /// `<link rel="canonical">`: the one URL this page should be known by.
+    pub fn canonical(mut self, href: &str) -> Self {
+        self.head_mut().canonical = Some(href.into());
+        self
+    }
+
+    /// `<link rel="icon">`, the tab's icon. An `.svg` file or an SVG `data:` URI gets
+    /// `type="image/svg+xml"`; [`crate::enhance::CSP`] allows `img-src data:`, so an inline
+    /// SVG works under it.
+    pub fn icon(mut self, href: &str) -> Self {
+        self.head_mut().icon = Some(href.into());
+        self
+    }
+
+    /// One `<meta name content>`; call it once per name.
+    pub fn meta(mut self, name: &str, content: &str) -> Self {
+        self.head_mut().meta.push((name.into(), content.into()));
+        self
+    }
+
+    /// One Open Graph `<meta property="og:…">`, `property` without the `og:` prefix
+    /// (`.og("title", ..)`, `.og("image", ..)`).
+    pub fn og(mut self, property: &str, content: &str) -> Self {
+        self.head_mut().og.push((property.into(), content.into()));
+        self
+    }
+
+    /// One `<link rel href>` of any other kind: `prev` and `next` for a paged list (see
+    /// [`crate::pagination::Pagination::link_rels`]), `alternate`, `manifest`, `preload`.
+    ///
+    /// ```rust
+    /// use loco_ui::prelude::*;
+    /// let ui = Ui::default();
+    /// let html = ui.page("Page 2", html! {}).link_rel("prev", "/list?page=1").into_string();
+    /// assert!(html.contains(r#"<link rel="prev" href="/list?page=1">"#));
+    /// ```
+    pub fn link_rel(mut self, rel: &str, href: &str) -> Self {
+        self.head_mut().links.push((rel.into(), href.into()));
+        self
+    }
+
+    /// Link an app's own stylesheet after the library's. A cross-origin one needs its origin
+    /// in your `style-src`.
+    pub fn stylesheet(mut self, href: &str) -> Self {
+        self.head_mut()
+            .links
+            .push(("stylesheet".into(), href.into()));
+        self
+    }
+
+    /// Anything else for `<head>`, written last in it. The escape hatch: what a setter above
+    /// covers belongs there.
+    pub fn head(mut self, markup: Markup) -> Self {
+        let head = self.head_mut();
+        head.extra = Some(match head.extra.take() {
+            Some(before) => maud::html! { (before) (markup) },
+            None => markup,
+        });
         self
     }
 
@@ -551,8 +637,8 @@ impl Page {
             theme: self.theme,
             tokens: self.tokens.as_deref(),
             css: &self.css,
-            links: self.links.as_deref().map_or(&[], Vec::as_slice),
-            header: self.header.as_deref(),
+            header: self.head.as_ref().and_then(|h| h.header.as_ref()),
+            head: self.head.as_deref(),
             script: self.script,
             sheet: match (self.linked, self.subset) {
                 (true, _) => Sheet::Linked,
@@ -560,22 +646,6 @@ impl Page {
                 (false, None) => Sheet::Inline,
             },
         }
-    }
-
-    /// A `<link rel=.. href=..>` in this page's `<head>`: `rel="prev"` and `rel="next"` for a
-    /// paged list (see [`crate::pagination::Pagination::link_rels`]), `canonical`, `alternate`.
-    ///
-    /// ```rust
-    /// use loco_ui::prelude::*;
-    /// let ui = Ui::default();
-    /// let html = ui.page("Page 2", html! {}).link_rel("prev", "/list?page=1").into_string();
-    /// assert!(html.contains(r#"<link rel="prev" href="/list?page=1">"#));
-    /// ```
-    pub fn link_rel(mut self, rel: &str, href: &str) -> Self {
-        self.links
-            .get_or_insert_with(Box::default)
-            .push((rel.into(), href.into()));
-        self
     }
 
     /// The `Set-Cookie` values this page sends: changed UI state, and the shown flash cleared.
@@ -592,6 +662,43 @@ impl Page {
 impl Render for Page {
     fn render(&self) -> Markup {
         self.doc().render(self.body.clone())
+    }
+}
+
+/// What a [`Page`] rarely carries, boxed together: its header and what its setters add to
+/// `<head>` (description, canonical, icon, meta, Open Graph, links, raw markup).
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Head {
+    header: Option<Markup>,
+    description: Option<Box<str>>,
+    canonical: Option<Box<str>>,
+    icon: Option<Box<str>>,
+    meta: Vec<(Box<str>, Box<str>)>,
+    og: Vec<(Box<str>, Box<str>)>,
+    links: Vec<(Box<str>, Box<str>)>,
+    extra: Option<Markup>,
+}
+
+impl Head {
+    /// What goes right after the title: description, canonical, icon, meta and Open Graph.
+    pub(crate) fn meta(&self) -> Markup {
+        let svg = |href: &str| href.ends_with(".svg") || href.starts_with("data:image/svg+xml");
+        maud::html! {
+            @if let Some(text) = &self.description { meta name="description" content=(text); }
+            @if let Some(href) = &self.canonical { link rel="canonical" href=(href); }
+            @if let Some(href) = &self.icon { link rel="icon" href=(href) type=[svg(href).then_some("image/svg+xml")]; }
+            @for (name, content) in &self.meta { meta name=(name) content=(content); }
+            @for (property, content) in &self.og { meta property={ "og:" (property) } content=(content); }
+        }
+    }
+
+    /// What goes after the library's styles: the links (an app's stylesheets win over the
+    /// library's) and the raw markup.
+    pub(crate) fn links(&self) -> Markup {
+        maud::html! {
+            @for (rel, href) in &self.links { link rel=(rel) href=(href); }
+            @if let Some(extra) = &self.extra { (extra) }
+        }
     }
 }
 

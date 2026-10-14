@@ -101,7 +101,7 @@ pub(crate) type Code = (&'static str, &'static str, String, Vec<&'static Compone
 
 /// The builders `code` calls, in the order they first appear: `ui.<method>(`, a type's own
 /// constructor (`Row::new(`), or the `lui!` name (`Tabs(`, `Card title=..`).
-fn called(code: &str) -> Vec<&'static Component> {
+pub(crate) fn called(code: &str) -> Vec<&'static Component> {
     // Lines joined, so a chain split as `ui` / `.upload(` reads `ui.upload(`.
     let code = &code
         .lines()

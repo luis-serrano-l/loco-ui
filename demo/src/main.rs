@@ -1,7 +1,8 @@
 //! `cargo run -p demo` serves the component demo on http://127.0.0.1:3000 (`PORT` overrides
 //! the port; the checks use 3001 so they never kill a server you are looking at).
 //! `cargo run -p demo -- spec` prints `spec/components.json`; `-- spec write` regenerates
-//! that file and the README feature matrix from `loco_ui::spec::SPECS`.
+//! that file and the README feature matrix from `loco_ui::spec::SPECS`, and the AI-readable
+//! docs (`docs/llms.txt`, `docs/llms-full.txt`, `docs/components/*.md`, see `demo::llms`).
 //! `cargo run -p demo -- snapshot <dir>` writes the static snapshot (`demo::snapshot`).
 
 use std::path::Path;
@@ -56,7 +57,23 @@ fn write_spec() {
         &readme[end..]
     );
     std::fs::write(&readme_path, updated).unwrap();
-    println!("wrote spec/components.json and README.md feature matrix");
+    // The per-component files are all generated: clear the folder so a removed one goes.
+    let components = root.join("docs/components");
+    match std::fs::remove_dir_all(&components) {
+        Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
+            panic!("{}: {e}", components.display())
+        }
+        _ => {}
+    }
+    std::fs::create_dir_all(&components).unwrap();
+    let files = demo::llms::files();
+    for (path, text) in &files {
+        std::fs::write(root.join("docs").join(path), text).unwrap();
+    }
+    println!(
+        "wrote spec/components.json, README.md feature matrix and {} files under docs/ (llms.txt, llms-full.txt, components/*.md)",
+        files.len()
+    );
 }
 
 /// Write every page of the static snapshot into `dir`, replacing what was there.

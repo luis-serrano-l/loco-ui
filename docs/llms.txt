@@ -1,0 +1,105 @@
+# loco-ui
+
+> A component library for Rust servers (Axum + Maud) that needs no JavaScript. Every component is a builder reached from `ui` (`ui.dialog("Delete")`) or written like an element inside `lui!`, rendering plain HTML; interactivity comes from the HTML and CSS platform and ordinary form posts. One optional script, `/lui/enhance.js`, updates marked regions in place.
+
+Start a handler from `ui: Ui` (an Axum extractor, or `Ui::from_request(path, query, cookie)` on any server), build the page with `ui.page(title, html! { .. })` and return it. Required arguments go in the call; everything else is a chained setter. Each component below lists its constructors, its setters (props), the platform features it needs with the first Chrome, Firefox and Safari versions, its fallback, and its documentation.
+
+## Components
+
+- [Enhancement script](enhance.md): One small optional script that makes the same markup feel instant.
+- [Layout](layout.md): The HTML shell every page uses: doctype, head, the stylesheet (inline, or linked to `/lui.css`), a skip link, `<main id="main">`, the capability beacons that teach the server what this browser supports, and the optional `crate::enhance` script tag (the page works the same without it).
+- [Capability beacons](caps.md): Server-side feature detection with no script.
+- [Button](button.md): The one button every other component builds on, drawn after Radix Themes' Button and IconButton: a neutral outline by default, then any `Tone` in any `Variant` (`.tone(..)`, `.variant(..)`), with switches for the common ones: solid (`.primary()` with the brand gradient, `.danger()`), `.soft()`, `.surface()` and `.ghost()`, which compose (`.danger().ghost()` is a red ghost button); three sizes (`.size(1..=3)`, `.small()` for 1); `.radius(..)`; a square icon button.
+- [Input, checkbox, switch, radio group](input.md): One labelled field on its own: the label, the control, help text, a character counter and the server's error, tied together with `aria-describedby`.
+- [Badge](badge.md): A short label beside something: a status, a count, a tag.
+- [Card](card.md): A bordered box with a header (title, description, and anything else such as an action), a body and a footer: shadcn's Card, in Radix Themes Card's variants (surface, `.classic()`, `.ghost()`) and three of its sizes (`.size(..)`, the padding).
+- [Icon](icon.md): A small set of inline SVG icons, drawn in `currentColor` so they take the colour of the text around them: the ones buttons, menus, tables and alerts need.
+- [Avatar](avatar.md): A round picture of a person, with their initials underneath for when there is no picture or it fails to load.
+- [Stack](stack.md): Children one under the other with an even gap between them and no margins to fight: the vertical rhythm of a form, a card body, a settings page.
+- [Cluster](cluster.md): Children side by side, wrapping onto the next line when they run out of room: a row of buttons, badges, filters or links.
+- [Grid](grid.md): As many equal columns as fit, each at least a given width: cards, stats, a gallery.
+- [Split](split.md): A narrow side beside a wide main part, the side stacking on top when the main part would get narrower than half the width: a settings nav beside its form, filters beside results.
+- [Calendar](calendar.md): A month grid drawn on the server: previous and next month are links, each day is a link (pick a day and the page comes back with it) or a radio button (the day is a form field, for a date picker).
+- [Date picker](date_picker.md): A form field for a date: a button showing the date, which opens a calendar in a popover; picking a day checks a radio named after the field, so the form posts `name=YYYY-MM-DD`.
+- [Dialog](dialog.md): A modal opened by a button and closed by a button, with no script.
+- [Popover menu](popover.md): A dropdown menu that opens on click, closes on outside click or Escape, no script.
+- [Tabs](tabs.md): Tab strip where exactly one panel is open at a time, no script.
+- [Accordion](accordion.md): Stacked disclosure sections, no script.
+- [Combobox](combobox.md): A text input with native suggestions, a server-filtered result list, and a selection shown as removable chips, no script.
+- [Load-more list](pager.md): A long list delivered a page at a time with a "Load more" link, no script.
+- [Table](table.md): A data table an admin panel can sort, filter, select from and act on, no script: every column header is a link that re-requests the page sorted by that column (by several, in order), a search box and per-column filters narrow the rows on the server, checkboxes pick rows (or every matching row) for a bulk form, a "Columns" chooser hides columns through `?cols.<id>=`, a row can expand a detail block, carry its own action menu, link as a whole and take a tone, numbers line up, a `<tfoot>` holds totals, CSV and JSON links download the current filter, and a row can be edited in place (`?edit.<id>=<key>` draws it as text boxes posting to one form, Post/Redirect/Get).
+- [Paged table](paged_table.md): A `crate::Ui::table` with `.paged(total)`, for data too long for one page: first, previous, numbered, next and last links with an ellipsis over long ranges, a jump-to-page form, a page-size `<select>`, and a line saying which rows of how many are shown (`1–10 of 1,234`).
+- [Wizard](wizard.md): A form split into steps, no script: each step is one `<form method="post">`, the server checks it and either re-renders it with messages beside the fields or stores it and redirects to the next step.
+- [Validated form](form.md): A validated form: the browser blocks bad input before submit, the server checks again and re-renders with messages.
+- [Error summary](error_summary.md): The list of what went wrong, at the top of a form the server sent back (GOV.UK's error summary): a heading, then one link per field in error that jumps to the field.
+- [Counter](counter.md): The canonical "click me" demo done with a form round trip.
+- [Theme toggle](theme.md): Light/dark theme chosen by the user and remembered by the server.
+- [Flash](flash.md): One-shot status messages that survive a Post/Redirect/Get, no script.
+- [UI state](state.md): Where UI state lives when there is no script: in the URL and in a cookie.
+- [Select](select.md): A `<select>` whose closed state shows the chosen option's full content, no script.
+- [Range](range.md): A slider whose value the server remembers, no script.
+- [Color](color.md): A colour picker whose value the server remembers, no script.
+- [Streaming](stream.md): Out-of-order streaming: the page is sent at once with placeholders, and each slow section is appended to the response whenever it finishes, in any order.
+- [Upload](upload.md): A file upload: a drop zone around a file input, an Upload button, and under it the files the server already holds, with a thumbnail for images and a Remove button each.
+- [Kanban](kanban.md): A board of columns and cards.
+- [Sortable list](sortable.md): A vertical list whose order the server keeps.
+- [Alert](alert.md): A callout in the page, after Radix Themes Callout: a title, a line or two of explanation and an icon, in an info, danger, warning or success tone (or any `Tone` with `.tone(..)`), soft by default or `.surface()`, `.outline()` (`.variant(..)`), at Radix's sizes 1 to 3.
+- [Progress](progress.md): How far along a task is: a bar filled to a value out of a maximum, or an indeterminate bar (`.indeterminate()`) when the server does not know yet; `.show_value()` writes the percentage beside it.
+- [Meter](meter.md): A measurement within a known range, like disk space or a password's strength: unlike a progress bar it is not a task moving forward, and it turns warn or danger past thresholds.
+- [Tooltip](tooltip.md): A short label that appears beside a control while the pointer is over it or it has focus: what an icon button does, what a shortcut is.
+- [Separator](separator.md): A hairline between groups of content, across or down, optionally with a word in the middle ("or" between two sign-in methods).
+- [Toast](toast.md): Short notices in a stack at the corner of the viewport, outside the page flow, that fade on their own: "Copied", "Invite sent".
+- [Breadcrumbs](breadcrumbs.md): Where this page sits: a trail of links ending in the current page.
+- [Skeleton](skeleton.md): Grey bars in the shape of content that is still coming: the placeholder for a streamed `Ui::slot` (feature `http`), a lazy panel, anything the server fills in later.
+- [Empty state](empty_state.md): What a list, table or search shows when there is nothing in it: what is missing, why, and the one thing to do next, as a real link or form button.
+- [Stat](stat.md): One number that matters, with its label and how it moved: the tiles at the top of a dashboard.
+- [Chart](chart.md): A bar chart, a line chart or a sparkline drawn on the server as inline SVG: one series of labelled values, a y axis rounded to readable steps, and the numbers themselves in a visually hidden table for anyone who cannot see the picture.
+- [Sidebar](sidebar.md): An app's navigation as a column: groups under small headings, each link with an optional icon and a count, the link to the current path highlighted.
+- [Navigation menu](nav_menu.md): A site's top navigation: a row of links, some of which open a panel of more links.
+- [Description list](description_list.md): Terms and what they are: a record's fields, a summary before confirming, key facts.
+- [Toggle group](toggle_group.md): A row of pressable options, one picked (alignment) or several (bold, italic), part of the form around it.
+- [Context menu](context_menu.md): Actions on one thing (a file, a card, a row) from a small "more" button in its corner: the popover menu the way a right-click menu would offer it.
+- [One-time code](input_otp.md): The box for a code sent by text or email: one field, drawn as a row of cells, that the phone's keyboard offers to fill from the message.
+- [Drawer](drawer.md): Site navigation that is a sidebar on a wide screen and a drawer sliding in from the edge on a narrow one, from the same markup: a menu button opens it, Escape, a click outside or the close button shuts it.
+- [Command palette](palette.md): A search box that jumps anywhere: open it from a button or with an access key, type, pick a suggestion, press Enter.
+- [Marquee](marquee.md): A row that scrolls sideways on its own and loops: customer logos, a line of testimonials, the tags of a changelog.
+- [Heading](heading.md): A section title at one of nine sizes, its level chosen apart from its size so the outline stays right when the look calls for a small `<h1>` or a large `<h3>`.
+- [Text](text.md): A run of text at a size, weight and colour from the type scale: a caption, a lede, a muted hint, a status in the danger colour, a file name cut short with an ellipsis.
+- [Link](link.md): A styled `<a>`: in running text, in a footer, in a table cell, or out to another site with an arrow and a hint that it opens a new tab.
+- [Kbd](kbd.md): A key or a shortcut drawn as a keycap: `⌘K` in a menu, `Esc` in a dialog's hint, `Ctrl` `Shift` `P` in the docs.
+- [Code](code.md): Code in two shapes: `Ui::code` for a name or a command inside a sentence, and `Ui::code_block` for lines of it, kept as written and scrolled sideways inside their own box.
+- [Blockquote](blockquote.md): A quotation set apart from the text around it, with the person or work it comes from underneath: a testimonial, a passage from the docs, a line from a review.
+- [Prose](prose.md): Styles for plain HTML you did not build from components: a blog post rendered from Markdown, a help page, release notes.
+- [Container](container.md): A centred column of a fixed greatest width: the readable middle of a page, a narrow form, a wide dashboard.
+- [Section](section.md): A band of a page with room above and below it: the hero, the features, the pricing, each one `<section>` apart from the next.
+- [Inset](inset.md): Content that reaches the edges of the card it sits in: a cover picture across the top, a map, a table with no margin around it.
+- [Aspect ratio](aspect_ratio.md): A box that keeps its width-to-height ratio at every width: a video, a map, a picture whose file may not have loaded yet, so nothing below it jumps when it does.
+- [Scroll area](scroll_area.md): A box of a set height whose content scrolls inside it: a long list in a sidebar, a log, a changelog in a card.
+- [Center](center.md): Its content in the middle of the space it is given, across and down: an empty state in a panel, a spinner in a card, a sign-in form on a page.
+- [Spacer](spacer.md): An empty part of a row or column that takes the room left over, pushing what follows it to the far end: the account menu to the right of a toolbar, a footer to the bottom of a sidebar.
+- [Spinner](spinner.md): A small turning ring that says something is on its way: a panel streaming in, a search waiting on the server, a busy button (which draws this same ring).
+- [Indicator](indicator.md): A count or a dot pinned to the corner of what it wraps: unread messages on an inbox button, a status dot on an avatar, new items on a tab.
+- [Banner](banner.md): A full-width bar across the top of the page for news that concerns the whole site: a release, planned downtime, a trial running out.
+- [Popover](popover_card.md): A panel of anything (a short form, a profile card, help text) that opens over the page from a button and closes on a click outside or Escape.
+- [Carousel](carousel.md): Slides side by side in a row that scrolls sideways and snaps to each one, with previous and next buttons and a dot per slide.
+- [Pagination](pagination.md): Numbered page links for a list too long for one page: previous and next, the first and last pages, the current page's neighbours and an ellipsis over each gap.
+- [Steps](steps.md): Where a visitor is in a process of several steps: numbered dots joined by connectors, each step done, current or still to come, a done step a link back to it.
+- [Timeline](timeline.md): What happened, in order: a vertical line with a dot (or an icon) per event, each with when it happened, a title and a line of description.
+- [Tree](tree.md): Nested navigation: folders that open and close, each node a link or a heading, the node of the current page marked and its folders open.
+- [Collapsible](collapsible.md): One section that shows and hides under a button: "Show 3 more", advanced options, the rest of a long message.
+- [Hover card](hover_card.md): A preview card that shows while the pointer rests on a link or it has focus: who a user is behind their @name, what a linked page holds.
+- [Checkbox group](checkbox_group.md): Several choices under one legend, any number of them ticked: the topics of a newsletter, the days a shop opens.
+- [Number](number.md): A number field with its unit beside it and buttons that step it: a quantity, a price, a weight.
+- [Search](search.md): A search box for a page's results: a GET form in a `<search>` landmark, the query in the URL (`?q=`), so the answer is a page that can be bookmarked, shared and reloaded.
+- [Rating](rating.md): A row of stars to pick a score from 1 to 5 (or `.max(n)`), part of the form around it: each star is a radio button, so the form posts the number and the arrow keys move it.
+- [Tag input](tag_input.md): A field that collects several short values (labels, keywords, emails) as removable chips.
+- [AppShell](app_shell.md): The frame of a signed-in app: its name and navigation in a sidebar (a drawer on narrow screens), in groups with icons and counts as a `crate::sidebar`, who is signed in with a sign-out button at the foot, and the page's content beside it.
+- [AuthPage](auth_page.md): A sign-in, sign-up or reset page: a narrow card in the middle of the page with a title, a line under it, the form, and the links to the other account pages below.
+- [DashboardPage](dashboard_page.md): A page of numbers: a title and a line, a row of stats that wraps to the width available, and whatever goes under them (a table, a chart, recent activity).
+- [ErrorPage](error_page.md): The page for an HTTP error: the status, what happened in a sentence, and a way home, in the site's look instead of the framework's plain text.
+- [RecordPage](record_page.md): One record: its title, its fields as a description list in a card, and the actions on it (edit, delete) beside the title.
+- [SettingsPage](settings_page.md): A page of settings in sections: each has a title and a line on the left and its form on the right (stacked on narrow screens), with a list of the sections at the top that jumps to each.
+
+## Optional
+
+- [Every component in one file](llms-full.txt)

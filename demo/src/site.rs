@@ -802,7 +802,7 @@ pub(crate) fn page(ui: &Ui, title: &str, body: Markup) -> Page {
     } else {
         html! { (ui.flash()) (body) }
     };
-    let page = ui.page(title, shell(ui, title, body));
+    let page = head(ui.page(title, shell(ui, title, body)), title);
     // `?script=off`: the same page without the enhancement script, served under
     // `script-src 'none'`, so the no-script path can be tried in any browser.
     let page = if ui.param("script") == Some("off") {
@@ -817,6 +817,25 @@ pub(crate) fn page(ui: &Ui, title: &str, body: Markup) -> Page {
     } else {
         page
     }
+}
+
+/// The mark, three layers on the brand colour, as the tab's icon: an SVG `data:` URI, which
+/// the CSP's `img-src 'self' data:` allows, so the site needs no favicon file.
+const FAVICON: &str = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233e63dd'/%3E%3Cpath d='M8 10.5h16M8 16h16M8 21.5h10' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E";
+
+/// What a link preview or a search result shows of a page: its description (what a component
+/// is for, from `COMPONENTS`), the Open Graph title and description, and the favicon.
+fn head(page: Page, title: &str) -> Page {
+    let what = COMPONENTS.iter().find(|c| c.1 == title).map_or(
+        "HTML-first components for Axum and Maud that work with JavaScript turned off.",
+        |c| c.4,
+    );
+    let title = format!("{title} · loco-ui");
+    (page.description(what).icon(FAVICON))
+        .og("type", "website")
+        .og("site_name", "loco-ui")
+        .og("title", &title)
+        .og("description", what)
 }
 
 async fn index(ui: Ui) -> Page {

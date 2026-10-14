@@ -1,6 +1,7 @@
 //! Demo server: one route per component. Handlers only parse input and call `loco-ui`.
 //! The binary in `main.rs` serves [`router`]; tests and `loco-ui-test` call it directly.
 
+pub mod llms;
 mod playground;
 pub mod pricing;
 pub mod snapshot;
@@ -115,12 +116,16 @@ pub fn router() -> Router {
         .merge(routes::widgets::routes())
         .merge(routes::flows::routes())
         .merge(routes::own::routes())
+        .merge(llms::routes())
         .merge(loco_ui::caps::router())
         .merge(loco_ui::enhance::router())
         .fallback(loco_ui::blocks::not_found)
         .layer(site::LOOK.layer())
         .layer(axum::middleware::from_fn(loco_ui::enhance::slim))
         .layer(axum::middleware::from_fn(loco_ui::enhance::csp))
+        // Outside `slim` and `csp`, so a page's `Vary` keeps their value first and the
+        // Markdown it may answer instead still goes through compression.
+        .layer(axum::middleware::from_fn(llms::negotiate))
         .layer(CompressionLayer::new().compress_when(DefaultPredicate::new().and(WholeBody)))
 }
 

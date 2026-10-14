@@ -585,6 +585,9 @@ loco-ui/src/color.rs      <input type=color> with a swatch of the saved value
 loco-ui/src/spec.rs       SPECS: features, per-browser baselines, fallback, needs_js
 loco-ui/examples/         render_page (no server), axum_server (--features axum), hyper_server (--features http)
 spec/components.json        generated from SPECS (cargo run -p demo -- spec write)
+docs/llms.txt               for AI tools: an index of every component, generated with the spec
+docs/llms-full.txt          every component in one file: constructors, props, platform, doc header
+docs/components/<name>.md   one component's page of llms-full.txt; the demo serves /<name>.md
 docs/state.md               how state works with no script
 docs/caps.md                how the beacons work, cookie format, the first view, adding a flag
 docs/theming.md             every --lui-* token, contrast pairs, a second palette as a Tokens value
@@ -604,6 +607,7 @@ demo/src/site.rs            the component index, the page shell, the index page 
 demo/src/code.rs            the code under each component page: SOURCES, snippet(), syntect highlighting
 demo/src/tests.rs           the no-script test, strict CSP, snippets, state round trips
 demo/src/snapshot.rs        the static snapshot for GitHub Pages (scripts/snapshot.sh)
+demo/src/llms.rs            llms.txt, llms-full.txt and the .md per component; Accept: text/markdown
 .github/workflows/rust.yml  CI jobs; `pages` deploys the snapshot to GitHub Pages
 loco-ui/loco-templates/   Loco scaffold overrides: HTML controller + Maud views, Post/Redirect/Get
 examples/loco-app/          Loco app (sign-in, scaffolded notes); tests/pages.rs: one script, Blitz shots loco-*.png

@@ -274,6 +274,16 @@ A wizard's post is a `Posted` too: `posted.step()` and `posted.skip()`.
 yourself only to put it elsewhere or give it setters (`Flash dismiss auto_hide;`), or show it
 as `Toasts`; the page then leaves it where it is.
 
+## The page's `<head>`
+
+A `Page` takes what a link preview, a search engine or a browser tab reads from `<head>` as
+setters, each named after the element it writes (M42): `.description(text)`,
+`.canonical(href)`, `.icon(href)` (an `.svg` or SVG `data:` URI gets its `type`; the strict
+CSP allows `img-src data:`), `.meta(name, content)`, `.og(property, content)` (without the
+`og:` prefix), `.link_rel(rel, href)` and `.stylesheet(href)`, linked after the library's
+styles. `.head(markup)` takes anything else and writes it last. The meta come right after
+`<title>`, the links after the styles.
+
 ## What repeated in the demo, and what became of it
 
 | Pattern | Decision |
