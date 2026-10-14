@@ -275,12 +275,6 @@ impl<'a> Menu<'a> {
         self.push(MenuItem::new(Kind::Heading, text))
     }
 
-    /// The old name of [`Self::group`], kept for one release.
-    #[deprecated(note = "use .group()")]
-    pub fn heading(self, text: &'a str) -> Self {
-        self.group(text)
-    }
-
     /// A rule between groups.
     pub fn separator(self) -> Self {
         self.push(MenuItem::new(Kind::Separator, ""))

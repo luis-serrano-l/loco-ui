@@ -143,22 +143,10 @@ impl<'a> Accordion<'a> {
         self
     }
 
-    /// The old name of [`Self::description`], kept for one release.
-    #[deprecated(note = "use .description()")]
-    pub fn summary(self, summary: &'a str) -> Self {
-        self.description(summary)
-    }
-
     /// Several sections may be open at once (`?open.<group>=0,2`).
     pub fn multiple(mut self) -> Self {
         self.multi = true;
         self
-    }
-
-    /// The old name of [`Self::multiple`], kept for one release.
-    #[deprecated(note = "use .multiple()")]
-    pub fn multi(self) -> Self {
-        self.multiple()
     }
 
     /// "Expand all" and "Collapse all" links above the sections (with `multiple`).

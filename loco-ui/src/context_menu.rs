@@ -155,13 +155,6 @@ impl<'a> ContextMenu<'a> {
         self.last(|it| it.danger = true)
     }
 
-    /// The actions as a list, replacing any added so far; kept for one release.
-    #[deprecated(note = "use the adders: .link(), .action(), .group(), .separator()")]
-    pub fn items(mut self, items: impl IntoIterator<Item = MenuItem<'a>>) -> Self {
-        self.items = items.into_iter().collect();
-        self
-    }
-
     /// The thing the actions are on.
     pub fn body(mut self, body: Markup) -> Self {
         self.body = body;

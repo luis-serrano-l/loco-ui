@@ -162,12 +162,6 @@ impl<'a> Kanban<'a> {
         }
         self
     }
-
-    /// The old name of [`Self::description`], kept for one release.
-    #[deprecated(note = "use .description()")]
-    pub fn note(self, text: &'a str) -> Self {
-        self.description(text)
-    }
 }
 
 impl Render for Kanban<'_> {

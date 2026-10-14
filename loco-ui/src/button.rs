@@ -332,12 +332,6 @@ impl<'a> Button<'a> {
         self
     }
 
-    /// The old name of [`Self::icon_only`], kept for one release.
-    #[deprecated(note = "use .icon_only()")]
-    pub fn icon(self) -> Self {
-        self.icon_only()
-    }
-
     /// `type="submit"`, the default unless a command or popover target is set.
     pub fn submit(mut self) -> Self {
         self.kind = Some("submit");
@@ -387,12 +381,6 @@ impl<'a> Button<'a> {
         self
     }
 
-    /// The old name of [`Self::aria_label`], kept for one release.
-    #[deprecated(note = "use .aria_label()")]
-    pub fn label(self, label: &'a str) -> Self {
-        self.aria_label(label)
-    }
-
     /// One more class after the button's own, for a component's part name.
     pub fn class(mut self, class: &'a str) -> Self {
         self.class = Some(class);
@@ -415,12 +403,6 @@ impl<'a> Button<'a> {
     pub fn body(mut self, markup: Markup) -> Self {
         self.content = Some(markup);
         self
-    }
-
-    /// The old name of [`Self::body`], kept for one release.
-    #[deprecated(note = "use .body()")]
-    pub fn content(self, markup: Markup) -> Self {
-        self.body(markup)
     }
 
     /// The element's `id`.

@@ -141,12 +141,6 @@ impl<'a> Upload<'a> {
         self
     }
 
-    /// The old name of [`Self::help`], kept for one release.
-    #[deprecated(note = "use .help()")]
-    pub fn hint(self, text: &'a str) -> Self {
-        self.help(text)
-    }
-
     /// A file the server already holds, `size` in bytes.
     pub fn file(mut self, name: &'a str, size: u64) -> Self {
         self.files.push(Held {

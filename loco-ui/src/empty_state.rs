@@ -92,12 +92,6 @@ impl<'a> EmptyState<'a> {
         self
     }
 
-    /// The old name of [`Self::body`], kept for one release.
-    #[deprecated(note = "use .body()")]
-    pub fn text(self, text: Markup) -> Self {
-        self.body(text)
-    }
-
     /// A link to follow: the secondary action.
     pub fn link(mut self, label: &'a str, href: &'a str) -> Self {
         self.link = Some((label, href));
@@ -108,12 +102,6 @@ impl<'a> EmptyState<'a> {
     pub fn action(mut self, label: &'a str, action: &'a str) -> Self {
         self.post = Some((label, action));
         self
-    }
-
-    /// The old name of [`Self::action`], kept for one release.
-    #[deprecated(note = "use .action()")]
-    pub fn post(self, label: &'a str, action: &'a str) -> Self {
-        self.action(label, action)
     }
 }
 

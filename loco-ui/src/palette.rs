@@ -173,23 +173,11 @@ impl<'a> Palette<'a> {
         self
     }
 
-    /// The old name of [`Self::link`], kept for one release.
-    #[deprecated(note = "use .link()")]
-    pub fn command(self, label: &'a str, href: &'a str) -> Self {
-        self.link(label, href)
-    }
-
     /// Several `(label, href)` destinations at once.
     pub fn links(self, links: impl IntoIterator<Item = (&'a str, &'a str)>) -> Self {
         links
             .into_iter()
             .fold(self, |p, (label, href)| p.link(label, href))
-    }
-
-    /// The old name of [`Self::links`], kept for one release.
-    #[deprecated(note = "use .links()")]
-    pub fn commands(self, commands: impl IntoIterator<Item = (&'a str, &'a str)>) -> Self {
-        self.links(commands)
     }
 
     /// Extra words that find the command added last, space-separated; never shown.
@@ -231,13 +219,6 @@ impl<'a> Palette<'a> {
 
     /// The opener's access key (default `k`), shown as its shortcut.
     pub fn accesskey(mut self, key: &'a str) -> Self {
-        self.accesskey = key.to_string();
-        self
-    }
-
-    /// The old name of [`Self::accesskey`], kept for one release.
-    #[deprecated(note = "use .accesskey()")]
-    pub fn key(mut self, key: char) -> Self {
         self.accesskey = key.to_string();
         self
     }

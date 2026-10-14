@@ -294,8 +294,9 @@ reasons, plus the meter's minimum, which no rule flags.
 
 ## Before and after (M32)
 
-The old names still compile for one release, marked `#[deprecated]` with the new name in the
-warning. The constructors changed outright (the crate is unpublished, and Rust cannot keep
+The old names compiled for one release, marked `#[deprecated]`, and M38 removed them (the
+few left on Calendar, DatePicker, Combobox, Select and ToggleGroup go with M40's controls
+work). The constructors changed outright (the crate is unpublished, and Rust cannot keep
 `ui.stack(content)` beside `ui.stack()`).
 
 | Before | After | On |

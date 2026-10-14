@@ -141,12 +141,6 @@ impl<'a> Stat<'a> {
         self
     }
 
-    /// The old name of [`Self::description`], kept for one release.
-    #[deprecated(note = "use .description()")]
-    pub fn note(self, note: &'a str) -> Self {
-        self.description(note)
-    }
-
     /// Make the whole card a link to the details.
     pub fn href(mut self, href: &'a str) -> Self {
         self.href = Some(href);

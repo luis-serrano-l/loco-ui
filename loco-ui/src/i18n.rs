@@ -264,10 +264,6 @@ pub enum Text {
     RowActions,
     /// "With the selected rows:": table bulk bar.
     WithSelected,
-    /// "1 match": no longer read; [`Text::Matches`] holds both forms. Kept so the table
-    /// keeps its order.
-    #[deprecated(note = "Text::Matches has its plural forms: read it with Strings::count")]
-    OneMatch,
     /// "one:{} match|other:{} matches": combobox, palette, read with [`Strings::count`].
     Matches,
     /// "{} for “{}”": palette: the count and the query.
@@ -367,10 +363,9 @@ pub enum Text {
 /// How many texts there are.
 const N: usize = Text::ALL.len();
 
-#[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 148] = [
+    pub const ALL: [Text; 147] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -471,7 +466,6 @@ impl Text {
         Text::Actions,
         Text::RowActions,
         Text::WithSelected,
-        Text::OneMatch,
         Text::Matches,
         Text::ForQuery,
         Text::IsSelected,
@@ -652,7 +646,6 @@ const ENGLISH: [&str; N] = [
     "Actions",
     "Row actions",
     "With the selected rows:",
-    "1 match",
     "one:{} match|other:{} matches",
     "{} for \u{201c}{}\u{201d}",
     " selected",
