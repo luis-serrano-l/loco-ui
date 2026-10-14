@@ -13,7 +13,7 @@ async fn home(ui: Ui) -> Page {
 }
 
 /// Signed-out visitors go to the sign-in form first (`loco_ui::loco::SignIn`).
-#[debug_handler]
+#[debug_handler(state = AppContext)]
 async fn settings(_auth: auth::JWT, ui: Ui) -> Page {
     ui.page("Settings", views::home::settings(&ui))
 }

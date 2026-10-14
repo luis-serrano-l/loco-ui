@@ -2674,11 +2674,10 @@ Parallel: yes. The `KEYS` const per component touches every file (small, append 
 
 ## M43 · `cargo lui add`, `cargo lui new`, and a scaffold that searches and sorts
 
-Owner question (BLOCKED.md "Copy-paste mode"): assumed **yes, option 1** (vendor the
-component file verbatim; the app's copy keeps `PROPS` and the doc header, drops nothing).
-Confirm before merging; the work is isolated in `cargo-lui.rs` either way.
+Owner question (BLOCKED.md "Copy-paste mode"): answered **yes, option 1** on 2026-10-14
+(vendor the component file whole; the app's copy keeps `PROPS` and the doc header).
 
-- [ ] `cargo lui add <name>…`: copies `loco-ui/src/<name>.rs` (from the dependency's
+- [x] `cargo lui add <name>…`: copies `loco-ui/src/<name>.rs` (from the dependency's
   source via `cargo metadata` → the crate's path, or from the spec JSON registry URL) into
   `src/ui/<name>.rs`, rewrites `crate::` paths to `loco_ui::`, adds `pub mod` to
   `src/ui/mod.rs`, appends its `CSS` to the app's `Look.css` list, and registers an
@@ -2686,23 +2685,74 @@ Confirm before merging; the work is isolated in `cargo-lui.rs` either way.
   pattern). `--dry-run`, `--diff` (against the vendored copy), `--view`, `--force`,
   `list`, `info <name>` (prints the props table), `eject` (vendor everything + replace
   the dep by a path).
-- [ ] `cargo lui new <app> [--axum|--loco]`: a starter with the app shell, auth (Loco),
+  Done: `loco-ui/src/bin/cargo-lui/add.rs`. The source is the `path` the app's dependency
+  names, else `cargo metadata`; no registry URL. Kept different from the box, and why: the
+  copy cannot keep the name `ui.badge(..)`, since Rust calls loco-ui's inherent method
+  before any trait's, so it is `src/ui/app_badge.rs` with `ui.app_badge(..)`, `AppBadge(..)`
+  in `lui!` and `app-badge` classes (`--prefix acme` for another word). One `UiExt` cannot
+  be split over files, so each copy's `impl Ui` becomes its own `AppBadgeExt` (the
+  `SubscribeExt` pattern of `docs/components.md`) and `src/ui/mod.rs` re-exports builder and
+  trait: `use crate::ui::*;` brings all. Doctests get `# use <app>::ui::*;`, unit tests
+  (loco-ui internals) and `cfg(feature = ..)` lines go, the CSS joins `css: &[..]` in
+  `src/views/look.rs`. Only 26 modules are copyable (`COPYABLE`): the others call
+  `pub(crate)` helpers (search box, `labelled`, menu placement, `gap_class`) and do not
+  compile outside the crate; `flash` is out because its cookie is named like its class.
+  The ignored install test copies all 26 into a fresh Loco app, builds it and runs their
+  doctests. `eject` copies loco-ui, -caps and -macros into `vendor/`, spells out
+  `workspace = true` dependencies, points the dependency at the copy and excludes `vendor`
+  from the app's workspace; an ignored test checks it.
+- [x] `cargo lui new <app> [--axum|--loco]`: a starter with the app shell, auth (Loco),
   settings page, a seeded demo account, the strict CSP layer, a theme toggle, the 404
   fallback, `scripts/verify.sh`-style check; from a template dir
   `loco-ui/loco-templates/new/`. The `install.rs` test builds it.
-- [ ] Scaffold: `controller.t` `list` reads `table.filter()`/`table.sort()` into a
+  Done: `new.rs` and `loco-templates/new/{axum,loco,scripts}`. Axum (default): app shell
+  with home and settings (theme toggle), 404 fallback, CSP and `Look` layers, a page test
+  (200s, 404, CSP, no script but loco-ui's, theme cookie) and `scripts/check.sh` (fmt,
+  clippy -D warnings, tests, `<script>` grep). `--loco` runs `loco new` (or copies
+  `--from DIR`; the tests use the fixture, since no `loco` CLI is installed here), then
+  `install` and `auth`, the same pages (settings behind `auth::JWT`) and a `before_run`
+  that creates `demo@example.com` / `demo-password` in development through the starter's
+  `create_with_password` (no guessed hash). Ignored tests build both; the Axum one also runs
+  its fmt check, clippy and tests.
+- [x] Scaffold: `controller.t` `list` reads `table.filter()`/`table.sort()` into a
   SeaORM `Condition`/`order_by` (text columns `LIKE`), columns `sortable`, so the search
   box the view already shows works; `.csv()` export route; a delete confirmation `Dialog`
   on the record page (if `RecordPage.delete()` lacks one, add it there); nested
   `--parent notebook` option generating `/notebooks/:id/notes`; generated controller test.
-- [ ] `install`: adds the csp layer and the 404 fallback; `--help`, `--version`,
+  Done: `query()` reads `ui.table_query(TABLE, SORTABLE)`: `Condition::any()` of
+  `Column::X.contains(..)` over `string`/`text` fields, then `for (key, desc) in
+  table.sort()` parsed into `Column` and `order_by`, then id. The loop is written for M41's
+  list of `(key, desc)` pairs and compiles unchanged on today's `Option` (a slice of
+  `&(key, desc)` would need `*desc`). Every view column is `sortable`; `/<plural>/export.csv`
+  answers the same search and sort as CSV (formula characters escaped) and the table's CSV
+  link points at it. `RecordPage::delete` now opens a danger dialog (`Text::DeleteConfirm`,
+  `Text::CannotUndo`). `--parent` goes through `cargo lui scaffold .. --parent notebook`,
+  which sets `LUI_PARENT` for the templates (`get_env`; Loco's generator takes no extra
+  flags) and adds `nested_routes()`: list, new with the parent chosen, CSV. The controller
+  ends with `the_list_searches_and_sorts` (the SQL built for SQLite) and a CSV cell test.
+  `views::<plural>::list` takes a `base` path; the example app's template copy follows.
+- [x] `install`: adds the csp layer and the 404 fallback; `--help`, `--version`,
   `--dry-run`; pins the git dep to the current commit (`rev=`) until the publish; edits
   tolerate CRLF and a dotted `[dependencies]` table (parse with `toml_edit`: one new dep
   for the binary only, behind a `cli` feature so the library stays dependency-free).
   Generated strings go through `Text` keys (`Text::New`, `Created`, `Saved`).
-- [ ] README "Install", `docs/loco.md`, CHANGELOG, `tests/install.rs` covers `add`,
+  Done: `before_routes` (fallback) and `after_routes` (look layer, then `csp`) go before
+  `fn routes`, or a note when the app has its own hook; `src/views/look.rs` is new. The rev
+  is `git rev-parse HEAD` of the installer's source, or the commit `cargo install --git`
+  names its checkout after, `--rev` to override. The bin and `tests/install.rs` need
+  `--features cli` (`toml_edit`, and `serde_json` for `cargo metadata`); `cargo tree -p
+  loco-ui` without it lists neither. Every edit runs through `Files`, which handles CRLF
+  and `--dry-run`. New keys `Text::New`, `Created`, `Saved`, `Deleted`, `DeleteConfirm`,
+  `CannotUndo`, translated in the demo's Spanish table.
+- [x] README "Install", `docs/loco.md`, CHANGELOG, `tests/install.rs` covers `add`,
   `new`, `--dry-run`; `examples/loco-app` regenerates nothing (hand-edited), but a
   throwaway scaffold proves the search/sort.
+  Done: README "Use with Loco", `docs/loco.md` (install, a new app, copying a component,
+  nested scaffolds, the generator's search and sort), CHANGELOG `#### M43`, CI runs the
+  installer tests with `--features cli` (and rustfmt and clippy in the install job).
+  `tests/install.rs` has 15 quick tests (dry run, CRLF, rev pin, help, add, diff, list,
+  info, eject, new) and 4 ignored builds; the gadget/widget/doodad scaffolds in the
+  ignored one prove search and sort through `cargo test --lib`.
 
 Key files: `loco-ui/src/bin/cargo-lui.rs`, `loco-ui/loco-templates/**`,
 `loco-ui/tests/install.rs`, `docs/loco.md`. Verify: `cargo test -p loco-ui --test install
