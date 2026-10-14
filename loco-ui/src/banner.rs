@@ -5,7 +5,7 @@
 //! optional close button that keeps it closed on every page from then on. After Origin UI
 //! Banner: a dark bar by default (the neutral tone), or tinted in a [`Tone`].
 //!
-//! **Platform features:** an `<aside>` named by its text, and a `<form method="post">` for
+//! **Platform features:** an `<aside>` named by its text, and a `<form method="post">` (every browser) for
 //! the close button. The form posts to [`DISMISS_PATH`], which sets a `cookie`
 //! `lui-dismiss-<id>` for a year and redirects back (Post/Redirect/Get); the next page reads
 //! the cookie through [`Ui::dismissed`] and renders nothing. The `axum` feature serves that
@@ -216,12 +216,14 @@ pub const CSS: &str = r#"
 .lui-banner[data-tone=warn] { --lui-banner-bg: color-mix(in srgb, var(--lui-warn) 16%, var(--lui-bg)); --lui-banner-fg: color-mix(in srgb, var(--lui-warn) 80%, var(--lui-fg)); }
 .lui-banner[data-tone=danger] { --lui-banner-bg: color-mix(in srgb, var(--lui-danger) 12%, var(--lui-bg)); --lui-banner-fg: color-mix(in srgb, var(--lui-danger) 85%, var(--lui-fg)); }
 .lui-banner-text { margin: 0; padding-block: 0.125rem; overflow-wrap: anywhere; }
-.lui-banner-link { white-space: nowrap; color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.lui-banner-link { color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .lui-banner-link:hover { text-decoration-thickness: 2px; }
 .lui-banner-link > .lui-icon { width: 1rem; height: 1rem; margin-inline-start: var(--lui-space-1); vertical-align: -0.1875rem; }
 .lui-banner-dismiss { margin: -0.25rem -0.5rem -0.25rem 0; }
 .lui-banner-dismiss .lui-button { color: inherit; }
 .lui-banner-dismiss .lui-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+/* A 44px hit area on touch: inline padding grows the target, not the line. */
+@media (pointer: coarse) { .lui-banner-link { padding-block: 0.75rem; } }
 /* From 30rem the text is centred, as Origin UI's top banner. */
 @container lui-banner (width >= 30rem) { .lui-banner-text { text-align: center; } }
 "#;

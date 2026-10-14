@@ -3,7 +3,7 @@
 //! A panel of anything (a short form, a profile card, help text) that opens over the page from
 //! a button and closes on a click outside or Escape. Unlike a [`crate::popover::Menu`] it has
 //! no items: the body is the caller's markup. After Radix Themes Popover: a popover surface
-//! with a medium radius and shadow, 0.75rem from its button, on the side and alignment asked
+//! with a medium radius and shadow, 0.5rem from its button (0.75rem with the arrow), on the side and alignment asked
 //! for, with an optional arrow.
 //!
 //! **Platform features:**
@@ -234,7 +234,7 @@ pub const CSS: &str = r#"
 /* After Radix Themes Popover: the popover surface, --lui-radius, shadow-md, 1rem padding,
    at most 20rem wide (and never wider than the viewport less 1rem), 0.5rem from its button. */
 .lui-popover-card { display: inline-block; position: relative; }
-.lui-popover-card-panel {
+.lui-popover-card-panel { overflow-wrap: anywhere;
   --lui-popover-card-gap: 0.5rem;
   box-sizing: border-box; width: max-content; max-width: min(20rem, calc(100vw - 1rem)); padding: var(--lui-space-4);
   font-size: var(--lui-text-2); line-height: var(--lui-leading-2); color: var(--lui-fg); background: var(--lui-popover);

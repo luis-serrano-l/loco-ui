@@ -984,3 +984,25 @@ is not drawn only because it sits behind the motion query.
   merge picks one. `Look::with_tokens` was folded into `Ui::tokens`. Shadows have one
   geometry for both schemes (the light one) with colours in `light-dark()`.
 
+### M40d · Feedback and overlays
+
+- **Anchor positioning with `position-try-fallbacks`** (Chrome 128, Firefox 147, Safari 26,
+  https://caniuse.com/css-anchor-positioning) places Menu, Popover and Tooltip panels and
+  flips them when they would leave the window. It is used unconditionally: a browser
+  without it shows the popover in the top layer at its default place (centred for a
+  `popover`), still usable. The no-popover fallbacks (`<details>`) do not use it.
+- **A popover's arrow does not follow a flip.** The arrow is drawn for the chosen side;
+  turning it when `position-try` picks a fallback needs anchored container queries
+  (`@container anchored(fallback: …)`, Chromium only so far,
+  https://drafts.csswg.org/css-anchor-position-2/#anchored-container-queries). Until the
+  others ship it, a flipped panel's arrow points away from its button.
+- **`::scroll-button()` and `::scroll-marker` are Chromium-only** (Chrome 135,
+  https://drafts.csswg.org/css-overflow-5/#scroll-buttons). The carousel draws its buttons and dots
+  with them under `@supports selector(::scroll-button(*))` and `selector(::scroll-marker)`;
+  elsewhere each slide carries previous/next links and a dots `<nav>` links to `#<id>-<n>`,
+  which scrolls the row without script.
+- **Blitz has no `popover`, `::scroll-button()` or `::scroll-marker`.** The `/popover-card`
+  shot shows the buttons only and `/carousel` shows the link fallback; the tests assert
+  that the closed panels are not drawn and the slides sit side by side. No upstream issue
+  yet (https://github.com/DioxusLabs/blitz/issues); the owner files it.
+
