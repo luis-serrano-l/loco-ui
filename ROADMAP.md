@@ -1330,8 +1330,23 @@ consistent.
 - [x] Try it cold: write three small pages (a settings form, a table with filters, a dashboard)
   in `lui!` and as builder chains using only the docs, and note every place that needed the
   source, a second try or a workaround; fix those, or add a doc line where the fix is a doc.
+  Done (note written in M44 from `docs/api.md`, the README and the M32 commits): the three
+  pages showed the same gaps, each fixed in the library rather than documented: `Form` holds
+  any control (`.body(..)`, `.switch(..)`, `.get()` for filters), `Page::invalid()` and
+  `Result<Redirect, Page>` handlers for a 422, `Posted` reads a urlencoded or multipart body
+  by name, `ui.page` shows a pending flash by itself, layouts take their content as a block
+  in `lui!` (`Stack gap=6 { .. }`), attributes and items take markup blocks (`footer={ .. }`,
+  `body { .. }`), and tables got `ui.table_query` with `sort_by`/`page_of`/`matches` and rows
+  from tuples. `/table` and `/app/notes` were rewritten in `lui!` on top of these.
 - [x] `docs/api.md`: the rules a caller can rely on, one page, with a before/after for each
   fix from this milestone.
+  Done (note written in M44): `docs/api.md` is included as a doctest (`ApiGuide` in
+  `lib.rs`), so its examples compile. Sections: getting a component, constructor arguments,
+  ids, kinds of setter, one word per concept, markup in `lui!`, forms hold any control,
+  answering a post, the flash, what repeated in the demo, "Kept, because" (the reason for
+  each allow-list entry of `props_follow_the_conventions`) and "Before and after (M32)", a
+  table with every rename and constructor change and the components it touched. M33 added
+  the table query keys.
 - [x] Less code in the demo: the owner still sees too much code in the demo routes (asked
   2026-09-25, "not totally sure, but worth checking"). Measure each route's code between its
   `// code:` markers, list the patterns that repeat across routes (a field with its label and
@@ -1341,6 +1356,16 @@ consistent.
   new prop, or leave it as is because it is the caller's own content. Write the decision per
   pattern in `docs/api.md`, implement the ones that pay off, and report the line count of the
   demo snippets before and after in README.
+  Done (note written in M44): the decision per pattern is the table "What repeated in the
+  demo, and what became of it" in `docs/api.md`: a field with its label and error kept (the
+  caller's own words); a form around other controls became `Form` with `body { .. }`; a card's
+  footer packs its buttons by default; layouts take a block; the flash shows itself; posts got
+  `Posted` and `Page::invalid()`; a page that is its component became the demo's `PAGES`; tables
+  are covered under "Tables". README reports the counts: at the M32 merge the snippets went
+  from 460 to 436 lines and the route files from 2,614 to 2,384. Measured again on 2026-10-14
+  (anchored `// code:` to `// end code` across `demo/src/routes/*.rs`): 502 snippet lines in
+  57 blocks, route files 2,580 lines; the growth since is new pages and snippets that show
+  more (`/table/minimal`, `/table` with its handlers, the description list).
 
 ## M33 · Follow-ups from M32
 - [x] A table's own query keys: `q`, `sort`, `dir`, `page` and `cols` are shared by every table
@@ -2713,34 +2738,80 @@ Parallel: yes, fully isolated. Needs `sea-orm-cli` 2 in the scratchpad (M35 note
 
 ## M44 · Repo tooling: skills, an agent, hooks
 
-- [ ] `.claude/skills/new-component/SKILL.md`: the nine conventions as a checklist with
+- [x] `.claude/skills/new-component/SKILL.md`: the nine conventions as a checklist with
   the exact lists to append to (`lib.rs` ×3, `props.rs`, `spec.rs`, `PATHS`, `SOURCES`,
   `site.rs COMPONENTS`, i18n keys + `spanish.rs`, Blitz test, `look.sh`, FINDINGS,
   README matrix via `spec write`), the reference-library rule, the tests that will fail
   otherwise, and the done-criteria (`verify.sh`, look, delete shots). Points at the
   template file `loco-ui/src/_template.rs.txt` (new: a skeleton component with every
   section and a TODO per convention; excluded from the package).
-- [ ] `.claude/agents/component-reviewer.md`: read-only reviewer (tools: Read, Grep,
+  Done: `.claude/skills/new-component/SKILL.md` has the order (look first, the file, the
+  lists, done-when) and a table of every place a component is registered, each with the test
+  that fails without it, or "none: do it by hand" (Spanish strings, `look.sh`, playground,
+  FINDINGS). Beyond the box's list it names the `named` list in
+  `layouts_respond_to_their_container`, the spec tests' `SOURCES`, `site::preview` for a new
+  route file, and that the drawing fn must take `ui: &Ui` for `lui!`. The template
+  (`loco-ui/src/_template.rs.txt`, in the crate's `exclude`) is a working component: copied
+  as `widget.rs` and wired in through the checklist, `cargo test -p loco-ui --lib`, the widget
+  doctest, `cargo test -p demo` and the Blitz `every_` tests passed; then it was removed. The
+  dry run found two traps now in the template: a `//` line between the `///` doc and
+  `pub struct` hides the builder from the PROPS tests, and every spec `features` name must
+  appear in the header (`doc_headers_match_the_spec`). Walking `badge` through the checklist,
+  every item resolved (badge has no `Text`, so the i18n rows are N/A).
+- [x] `.claude/agents/component-reviewer.md`: read-only reviewer (tools: Read, Grep,
   Glob, Bash) that takes a component name and checks the nine conventions, the
   container-query rule, 44px coarse targets, one variant per caps branch, `PROPS`/`KEYS`
   completeness, no English outside `i18n`, the doc header's four sections, reports a
   pass/fail list. The `new-component` skill ends by invoking it.
-- [ ] `.claude/skills/look-check/SKILL.md`: `scripts/look.sh --only <name>` (plus `--tag`),
+  Done: `.claude/agents/component-reviewer.md` (`tools: Read, Grep, Glob, Bash`,
+  `model: inherit`) runs fifteen checks, each PASS/FAIL/N/A with `file:line`: header sections
+  (the box's four plus Accessibility, and the spec features), registration in every list,
+  builder shape, PROPS (runs the props tests), classes, primitives, one variant per caps
+  branch, no script (runs `scripts/check-script.sh`), i18n (`Text::ALL`, `ENGLISH`, Spanish by
+  grep), colour tokens, container queries, `var(--lui-hit)` coarse targets, 320px, demo and
+  docs. "KEYS" in the box is read as the `Text` keys: there is no `KEYS` const in the crate.
+- [x] `.claude/skills/look-check/SKILL.md`: `scripts/look.sh --only <name>` (plus `--tag`),
   read each PNG at the three widths and both themes, compare with the reference, list
   deltas, then `rm -rf target/look`.
-- [ ] `.claude/skills/release/SKILL.md`: cut CHANGELOG, bump the three versions
+  Done: `.claude/skills/look-check/SKILL.md`. Run on `/button` (`scripts/look.sh --only
+  button`, seven PNGs): ours against Radix Themes Button matched in size steps and the soft,
+  surface and outline looks; the deltas were that Radix's default variant is solid where ours
+  is the outline "Cancel" look, and the snippet scrolls sideways inside its own box at 420
+  (no page overflow). Then `rm -rf target/look`.
+- [x] `.claude/skills/release/SKILL.md`: cut CHANGELOG, bump the three versions
   together, `cargo package` dry-run, `cargo +nightly doc --cfg docsrs`, regenerate spec +
   README matrix, check BLOCKED.md gates; **stops before publish and says so**.
-- [ ] `.claude/skills/roadmap-tick/SKILL.md`: how to write the "Done:" note, the
+  Done: `.claude/skills/release/SKILL.md`: gates (BLOCKED.md, ROADMAP), CHANGELOG cut, the
+  versions and path-dependency versions bumped together, `spec write`, `verify.sh`,
+  `cargo package` (checks the template and `tests/fresh-loco-app` stay out), the nightly
+  docs.rs build, optional semver-checks, a commit, then a report that says "Stopped before
+  publish." with the owner's publish commands. Not run end to end: the publish is on hold.
+- [x] `.claude/skills/roadmap-tick/SKILL.md`: how to write the "Done:" note, the
   CHANGELOG Unreleased bullet, the FINDINGS entry (issue link), and the README matrix
   step; backfill the three M32 boxes without a Done note (`ROADMAP.md:1324-1343`) and the
   missing snippet line count (box "Less code in the demo") by measuring now.
-- [ ] Hooks in `.claude/settings.json` (project, committed): PostToolUse on Edit/Write of
+  Done: `.claude/skills/roadmap-tick/SKILL.md` (Done note, CHANGELOG `#### M<NN>`, FINDINGS
+  with an issue link, README, and the anchored `awk` that counts snippet lines). M32's three
+  boxes have notes written from `docs/api.md`, README and the M32 commits. Measured on
+  2026-10-14: 502 snippet lines in 57 blocks across `demo/src/routes/*.rs`, route files 2,580
+  lines; README carries it beside M32's 460 to 436.
+- [x] Hooks in `.claude/settings.json` (project, committed): PostToolUse on Edit/Write of
   `*.rs` → `cargo fmt --all` (quiet); PreToolUse on `git commit` → the `<script>` grep
   from `verify.sh` (extract it to `scripts/check-script.sh` so `verify.sh`, `rust.yml`
   and the hook share one copy). Use the `update-config` skill's format.
-- [ ] `CLAUDE.md`: a line per new skill/agent and the hook, and "Repo tooling" in README
+  Done: `.claude/settings.json`. PostToolUse `Edit|Write`: reads `tool_input.file_path` with
+  `jq` and runs `cargo fmt --all` (output dropped, always exit 0) only for `*.rs`; other files
+  cost one `jq` call. PreToolUse `Bash` with `"if": "Bash(git commit *)"` runs
+  `scripts/check-script.sh` and exits 2 on a hit, which blocks the commit and shows the lines.
+  `scripts/check-script.sh` is the grep from `verify.sh`, now called by `verify.sh` and the
+  `lint` job in `rust.yml`. Both hooks were pipe-tested (a misformatted `fn` came back
+  formatted; a planted `"<script>"` gave exit 2). They load in sessions started after the
+  file exists: the session that wrote it did not pick them up.
+- [x] `CLAUDE.md`: a line per new skill/agent and the hook, and "Repo tooling" in README
   Layout.
+  Done: CLAUDE.md has a "Repo tooling" section (four new skills, the three older ones, the
+  agent, both hooks) and `scripts/check-script.sh` under Commands; README Layout lists
+  `check-script.sh`, the template and a "Repo tooling" block.
 
 Key files: `.claude/**`, `scripts/check-script.sh`, `verify.sh`, `rust.yml`, CLAUDE.md.
 Verify: run the `new-component` skill on a throwaway component in a worktree and

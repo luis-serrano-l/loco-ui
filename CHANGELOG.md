@@ -6,6 +6,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
+#### M44
+
+- Repo tooling: skills `new-component`, `look-check`, `roadmap-tick` and `release`, the
+  `component-reviewer` agent, a component template (`loco-ui/src/_template.rs.txt`, not
+  packaged), hooks for `cargo fmt` and the `<script>` check, and `scripts/check-script.sh`
+  shared by `verify.sh`, CI and the hook.
+
 ### `loco-ui`
 
 - Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
