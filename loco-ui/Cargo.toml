@@ -63,6 +63,10 @@ hyper = { version = "1", features = ["server", "http1", "http2"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1", "http2"] }
 http-body-util = "0.1"
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+# Property tests over the request parsers (tests/prop.rs).
+proptest = "1.12.0"
+# HTML snapshots of every component's header example (tests/snapshots.rs): `cargo insta review`.
+insta = "1.49.0"
 
 [[bench]]
 name = "render"

@@ -1,0 +1,68 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<form id="lui-form--profile" data-lui="swap" class="lui-form lui-form-inline" method="post" action="/profile" enctype="multipart/form-data">
+<fieldset class="lui-form-group" aria-describedby="lui-form-about-you-description">
+<legend class="lui-form-group-legend">About you</legend>
+<p id="lui-form-about-you-description" class="lui-form-group-description">Shown on your public page.</p>
+<div class="lui-field">
+<label for="f-bio">Bio</label>
+<textarea id="f-bio" name="bio" rows="3" maxlength="280" aria-describedby="f-bio-help f-bio-count">Hi</textarea>
+<small id="f-bio-help" class="lui-field-help">Shown on your profile.</small>
+<output id="f-bio-count" for="f-bio" class="lui-field-count">2 / 280</output>
+</div>
+<div class="lui-field">
+<label for="f-avatar">Avatar</label>
+<input id="f-avatar" name="avatar" type="file" accept="image/png,image/jpeg">
+</div>
+<div class="lui-field">
+<label for="f-born">Born</label>
+<input id="f-born" name="born" type="date" value="" min="1900-01-01" max="2026-12-31">
+</div>
+<div class="lui-field">
+<label for="f-digest">Digest</label>
+<select id="f-digest" name="digest">
+<option value="daily">daily</option>
+<option value="weekly" selected>weekly</option>
+<option value="never">never</option>
+</select>
+</div>
+</fieldset>
+<div class="lui-form-actions">
+<button type="submit" class="lui-button lui-button-primary">Save profile</button>
+</div>
+</form>
+
+caps: none
+<form id="lui-form--profile" data-lui="swap" class="lui-form lui-form-inline" method="post" action="/profile" enctype="multipart/form-data">
+<fieldset class="lui-form-group" aria-describedby="lui-form-about-you-description">
+<legend class="lui-form-group-legend">About you</legend>
+<p id="lui-form-about-you-description" class="lui-form-group-description">Shown on your public page.</p>
+<div class="lui-field">
+<label for="f-bio">Bio</label>
+<textarea id="f-bio" name="bio" rows="3" maxlength="280" aria-describedby="f-bio-help f-bio-count">Hi</textarea>
+<small id="f-bio-help" class="lui-field-help">Shown on your profile.</small>
+<output id="f-bio-count" for="f-bio" class="lui-field-count">2 / 280</output>
+</div>
+<div class="lui-field">
+<label for="f-avatar">Avatar</label>
+<input id="f-avatar" name="avatar" type="file" accept="image/png,image/jpeg">
+</div>
+<div class="lui-field">
+<label for="f-born">Born</label>
+<input id="f-born" name="born" type="date" value="" min="1900-01-01" max="2026-12-31">
+</div>
+<div class="lui-field">
+<label for="f-digest">Digest</label>
+<select id="f-digest" name="digest">
+<option value="daily">daily</option>
+<option value="weekly" selected>weekly</option>
+<option value="never">never</option>
+</select>
+</div>
+</fieldset>
+<div class="lui-form-actions">
+<button type="submit" class="lui-button lui-button-primary">Save profile</button>
+</div>
+</form>

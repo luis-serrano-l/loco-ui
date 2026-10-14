@@ -24,6 +24,7 @@ cargo test --workspace             # all tests, including the only-one-script te
 cargo test -p demo pages_ship_only_the_enhancement_script   # the single enforcement test
 node scripts/browser-check.mjs     # headless Firefox via geckodriver: the script works (needs a built demo)
 cargo test -p loco-ui --doc      # component doc examples
+cargo insta review                 # accept or reject changed HTML snapshots (loco-ui/tests/snapshots/, one per builder; needs cargo-insta)
 cargo clippy --workspace --all-targets  # must be clean before a roadmap milestone counts as done
 cargo test -p loco-ui-test       # Blitz layout assertions + screenshots into tests/shots/
 cargo bench -p loco-ui           # criterion: stylesheet, layout, table with 1 000 rows, paged table, UiState
@@ -33,7 +34,7 @@ scripts/look.sh [--only <name>] [--tag <tag>] [--no-ref]  # Firefox shots of eve
 cargo run -p demo -- spec write    # regenerate spec/components.json and the README feature matrix from loco_ui::spec::SPECS
 scripts/snapshot.sh [dir]          # static GitHub Pages snapshot of every GET page into target/site/
 cargo run -p loco-ui -- install <app> --dep-path "$PWD/loco-ui"   # the cargo-lui installer on a Loco app (also `auth`); tests/install.rs runs it on tests/fresh-loco-app
-scripts/verify.sh                  # fmt check, clippy, tests, <script> grep; run before committing. Clippy at every feature level, the installer test, rustdoc and the browser check run only in CI (.github/workflows/rust.yml, parallel jobs); never run them all locally
+scripts/verify.sh [--full]         # fmt check, clippy, tests but the Blitz crate (--full runs it too), <script> grep; run before committing. Clippy at every feature level, the installer test, rustdoc and the browser check run only in CI (.github/workflows/rust.yml, parallel jobs); never run them all locally
 scripts/check-script.sh            # the <script> grep alone; verify.sh, CI and the commit hook all call this one copy
 ```
 

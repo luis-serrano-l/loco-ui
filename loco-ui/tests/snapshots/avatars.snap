@@ -1,0 +1,34 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<span class="lui-avatars" role="group" aria-label="Team">
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Ada Lovelace">
+<span class="lui-avatar-initials" aria-hidden="true">AL</span>
+</span>
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Grace Hopper">
+<span class="lui-avatar-initials" aria-hidden="true">GH</span>
+</span>
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Alan Turing">
+<span class="lui-avatar-initials" aria-hidden="true">AT</span>
+</span>
+<span class="lui-avatar lui-avatar-2 lui-avatar-more" role="img" aria-label="+1">
+<span aria-hidden="true">+1</span>
+</span>
+</span>
+
+caps: none
+<span class="lui-avatars" role="group" aria-label="Team">
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Ada Lovelace">
+<span class="lui-avatar-initials" aria-hidden="true">AL</span>
+</span>
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Grace Hopper">
+<span class="lui-avatar-initials" aria-hidden="true">GH</span>
+</span>
+<span class="lui-avatar lui-avatar-2" role="img" aria-label="Alan Turing">
+<span class="lui-avatar-initials" aria-hidden="true">AT</span>
+</span>
+<span class="lui-avatar lui-avatar-2 lui-avatar-more" role="img" aria-label="+1">
+<span aria-hidden="true">+1</span>
+</span>
+</span>

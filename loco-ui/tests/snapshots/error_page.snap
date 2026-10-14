@@ -1,0 +1,18 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-error-page">
+<p class="lui-error-page-status" aria-hidden="true">500</p>
+<h1>Something went wrong</h1>
+<p>The server could not answer this time. Try again in a moment.</p>
+<a class="lui-button lui-button-primary" href="/dashboard">Go home</a>
+</div>
+
+caps: none
+<div class="lui-error-page">
+<p class="lui-error-page-status" aria-hidden="true">500</p>
+<h1>Something went wrong</h1>
+<p>The server could not answer this time. Try again in a moment.</p>
+<a class="lui-button lui-button-primary" href="/dashboard">Go home</a>
+</div>

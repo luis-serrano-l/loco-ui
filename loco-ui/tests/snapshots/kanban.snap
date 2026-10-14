@@ -1,0 +1,184 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-kanban--board-move" data-lui="swap" data-lui-morph class="lui-kanban">
+<div class="lui-kanban-board">
+<section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-todo">
+<header class="lui-kanban-head">
+<h3 id="lui-kanban--board-move-todo">To do</h3>
+<span class="lui-kanban-count">
+<span class="lui-badge lui-badge-secondary">1</span>
+</span>
+</header>
+<ol class="lui-kanban-cards">
+<li class="lui-kanban-card" style="view-transition-name: lui-kanban-c1">
+<p class="lui-kanban-title">Write the docs</p>
+<div class="lui-kanban-meta">
+<form method="post" action="/board/move" class="lui-kanban-move">
+<input type="hidden" name="card" value="c1">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="doing" aria-label="Move Write the docs to Doing">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
+<path d="M5 12h14"/>
+<path d="m12 5 7 7-7 7"/>
+</svg>
+</button>
+</form>
+</div>
+</li>
+</ol>
+</section>
+<section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-doing">
+<header class="lui-kanban-head">
+<h3 id="lui-kanban--board-move-doing">Doing</h3>
+<span class="lui-kanban-count">
+<span class="lui-badge lui-badge-secondary">2/2</span>
+</span>
+</header>
+<ol class="lui-kanban-cards">
+<li class="lui-kanban-card" style="view-transition-name: lui-kanban-c2">
+<p class="lui-kanban-title">Calendar</p>
+<p class="lui-kanban-note">M23</p>
+<div class="lui-kanban-meta">
+<span class="lui-badge lui-badge-secondary">Beta</span>
+<form method="post" action="/board/move" class="lui-kanban-move">
+<input type="hidden" name="card" value="c2">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Calendar to To do">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
+<path d="m12 19-7-7 7-7"/>
+<path d="M19 12H5"/>
+</svg>
+</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Calendar to Done">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
+<path d="M5 12h14"/>
+<path d="m12 5 7 7-7 7"/>
+</svg>
+</button>
+</form>
+</div>
+</li>
+<li class="lui-kanban-card" style="view-transition-name: lui-kanban-c3">
+<p class="lui-kanban-title">Upload</p>
+<div class="lui-kanban-meta">
+<form method="post" action="/board/move" class="lui-kanban-move">
+<input type="hidden" name="card" value="c3">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Upload to To do">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
+<path d="m12 19-7-7 7-7"/>
+<path d="M19 12H5"/>
+</svg>
+</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Upload to Done">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
+<path d="M5 12h14"/>
+<path d="m12 5 7 7-7 7"/>
+</svg>
+</button>
+</form>
+</div>
+</li>
+</ol>
+</section>
+<section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-done">
+<header class="lui-kanban-head">
+<h3 id="lui-kanban--board-move-done">Done</h3>
+<span class="lui-kanban-count">
+<span class="lui-badge lui-badge-secondary">0</span>
+</span>
+</header>
+<p class="lui-kanban-empty">No cards</p>
+</section>
+</div>
+</div>
+
+caps: none
+<div id="lui-kanban--board-move" data-lui="swap" data-lui-morph class="lui-kanban">
+<div class="lui-kanban-board">
+<section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-todo">
+<header class="lui-kanban-head">
+<h3 id="lui-kanban--board-move-todo">To do</h3>
+<span class="lui-kanban-count">
+<span class="lui-badge lui-badge-secondary">1</span>
+</span>
+</header>
+<ol class="lui-kanban-cards">
+<li class="lui-kanban-card">
+<p class="lui-kanban-title">Write the docs</p>
+<div class="lui-kanban-meta">
+<form method="post" action="/board/move" class="lui-kanban-move">
+<input type="hidden" name="card" value="c1">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="doing" aria-label="Move Write the docs to Doing">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
+<path d="M5 12h14"/>
+<path d="m12 5 7 7-7 7"/>
+</svg>
+</button>
+</form>
+</div>
+</li>
+</ol>
+</section>
+<section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-doing">
+<header class="lui-kanban-head">
+<h3 id="lui-kanban--board-move-doing">Doing</h3>
+<span class="lui-kanban-count">
+<span class="lui-badge lui-badge-secondary">2/2</span>
+</span>
+</header>
+<ol class="lui-kanban-cards">
+<li class="lui-kanban-card">
+<p class="lui-kanban-title">Calendar</p>
+<p class="lui-kanban-note">M23</p>
+<div class="lui-kanban-meta">
+<span class="lui-badge lui-badge-secondary">Beta</span>
+<form method="post" action="/board/move" class="lui-kanban-move">
+<input type="hidden" name="card" value="c2">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Calendar to To do">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
+<path d="m12 19-7-7 7-7"/>
+<path d="M19 12H5"/>
+</svg>
+</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Calendar to Done">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
+<path d="M5 12h14"/>
+<path d="m12 5 7 7-7 7"/>
+</svg>
+</button>
+</form>
+</div>
+</li>
+<li class="lui-kanban-card">
+<p class="lui-kanban-title">Upload</p>
+<div class="lui-kanban-meta">
+<form method="post" action="/board/move" class="lui-kanban-move">
+<input type="hidden" name="card" value="c3">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Upload to To do">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
+<path d="m12 19-7-7 7-7"/>
+<path d="M19 12H5"/>
+</svg>
+</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Upload to Done">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
+<path d="M5 12h14"/>
+<path d="m12 5 7 7-7 7"/>
+</svg>
+</button>
+</form>
+</div>
+</li>
+</ol>
+</section>
+<section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-done">
+<header class="lui-kanban-head">
+<h3 id="lui-kanban--board-move-done">Done</h3>
+<span class="lui-kanban-count">
+<span class="lui-badge lui-badge-secondary">0</span>
+</span>
+</header>
+<p class="lui-kanban-empty">No cards</p>
+</section>
+</div>
+</div>

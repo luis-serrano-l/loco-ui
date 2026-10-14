@@ -1,0 +1,48 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-field">
+<label for="f-accent">Accent</label>
+<div class="lui-color">
+<input type="color" class="lui-color-input" id="f-accent" name="accent" value="#2f5bea">
+<span class="lui-color-value">
+<span class="lui-color-swatch" style="--lui-color-value: #2f5bea; --lui-color-alpha: 80%" aria-hidden="true">
+</span>
+<code>#2f5beacc</code>
+</span>
+<label class="lui-color-alpha">Opacity <input type="range" class="lui-range-input lui-color-alpha-range" id="f-accent-alpha" name="accent-alpha" min="0" max="100" value="80" style="--lui-range-fill: 80%">
+<span>
+<output for="f-accent-alpha">80</output>%</span>
+</label>
+<span class="lui-color-presets" role="group" aria-label="Presets">
+<button type="submit" class="lui-button" name="accent-preset" value="#1f6f5f" aria-label="Use #1f6f5f" style="--lui-color-value: #1f6f5f" aria-pressed="false">
+</button>
+<button type="submit" class="lui-button" name="accent-preset" value="#b3261e" aria-label="Use #b3261e" style="--lui-color-value: #b3261e" aria-pressed="false">
+</button>
+</span>
+</div>
+</div>
+
+caps: none
+<div class="lui-field">
+<label for="f-accent">Accent</label>
+<div class="lui-color">
+<input type="color" class="lui-color-input" id="f-accent" name="accent" value="#2f5bea">
+<span class="lui-color-value">
+<span class="lui-color-swatch" style="--lui-color-value: #2f5bea; --lui-color-alpha: 80%" aria-hidden="true">
+</span>
+<code>#2f5beacc</code>
+</span>
+<label class="lui-color-alpha">Opacity <input type="range" class="lui-range-input lui-color-alpha-range" id="f-accent-alpha" name="accent-alpha" min="0" max="100" value="80" style="--lui-range-fill: 80%">
+<span>
+<output for="f-accent-alpha">80</output>%</span>
+</label>
+<span class="lui-color-presets" role="group" aria-label="Presets">
+<button type="submit" class="lui-button" name="accent-preset" value="#1f6f5f" aria-label="Use #1f6f5f" style="--lui-color-value: #1f6f5f" aria-pressed="false">
+</button>
+<button type="submit" class="lui-button" name="accent-preset" value="#b3261e" aria-label="Use #b3261e" style="--lui-color-value: #b3261e" aria-pressed="false">
+</button>
+</span>
+</div>
+</div>

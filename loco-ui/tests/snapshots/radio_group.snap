@@ -1,0 +1,44 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<fieldset class="lui-field lui-radio-group lui-radio-cards">
+<legend>Tier</legend>
+<div class="lui-radio-group-options">
+<label for="f-tier-0" class="lui-radio-group-option">
+<input id="f-tier-0" type="radio" name="tier" value="hobby" aria-describedby="f-tier-0-description">
+<span class="lui-radio-group-text">
+<span class="lui-radio-group-title">Hobby</span>
+<span id="f-tier-0-description" class="lui-radio-group-description">One project</span>
+</span>
+</label>
+<label for="f-tier-1" class="lui-radio-group-option">
+<input id="f-tier-1" type="radio" name="tier" value="team" checked aria-describedby="f-tier-1-description">
+<span class="lui-radio-group-text">
+<span class="lui-radio-group-title">Team</span>
+<span id="f-tier-1-description" class="lui-radio-group-description">Unlimited projects</span>
+</span>
+</label>
+</div>
+</fieldset>
+
+caps: none
+<fieldset class="lui-field lui-radio-group lui-radio-cards">
+<legend>Tier</legend>
+<div class="lui-radio-group-options">
+<label for="f-tier-0" class="lui-radio-group-option">
+<input id="f-tier-0" type="radio" name="tier" value="hobby" aria-describedby="f-tier-0-description">
+<span class="lui-radio-group-text">
+<span class="lui-radio-group-title">Hobby</span>
+<span id="f-tier-0-description" class="lui-radio-group-description">One project</span>
+</span>
+</label>
+<label for="f-tier-1" class="lui-radio-group-option">
+<input id="f-tier-1" type="radio" name="tier" value="team" checked aria-describedby="f-tier-1-description">
+<span class="lui-radio-group-text">
+<span class="lui-radio-group-title">Team</span>
+<span id="f-tier-1-description" class="lui-radio-group-description">Unlimited projects</span>
+</span>
+</label>
+</div>
+</fieldset>

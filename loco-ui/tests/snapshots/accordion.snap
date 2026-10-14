@@ -1,0 +1,88 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-accordion-faq" data-lui="swap" class="lui-accordion">
+<p class="lui-accordion-controls">
+<a href="/help?open.faq=0%2C1%2C2">Expand all</a>
+<a href="/help?open.faq=">Collapse all</a>
+</p>
+<details open>
+<summary>
+<span class="lui-accordion-icon" aria-hidden="true">📦</span>
+<a href="/help?open.faq=2">Install<span class="lui-accordion-summary">One line.</span>
+</a>
+</summary>
+<div class="lui-accordion-body">
+<p>cargo add</p>
+</div>
+</details>
+<details>
+<summary>
+<a href="/help?open.faq=0%2C1%2C2">Use</a>
+</summary>
+<div class="lui-accordion-body">
+<p>html!</p>
+</div>
+</details>
+<details open>
+<summary>
+<a href="/help?open.faq=0">More</a>
+</summary>
+<div class="lui-accordion-body">
+<div id="lui-accordion-faq-more" data-lui="swap" class="lui-accordion">
+<details name="faq-more">
+<summary>
+<a href="/help?open.faq=0%2C2&amp;open.faq-more=0">Nested</a>
+</summary>
+<div class="lui-accordion-body">
+<p>Own group.</p>
+</div>
+</details>
+</div>
+</div>
+</details>
+</div>
+
+caps: none
+<div id="lui-accordion-faq" data-lui="swap" class="lui-accordion">
+<p class="lui-accordion-controls">
+<a href="/help?open.faq=0%2C1%2C2">Expand all</a>
+<a href="/help?open.faq=">Collapse all</a>
+</p>
+<details open>
+<summary>
+<span class="lui-accordion-icon" aria-hidden="true">📦</span>
+<a href="/help?open.faq=2">Install<span class="lui-accordion-summary">One line.</span>
+</a>
+</summary>
+<div class="lui-accordion-body">
+<p>cargo add</p>
+</div>
+</details>
+<details>
+<summary>
+<a href="/help?open.faq=0%2C1%2C2">Use</a>
+</summary>
+<div class="lui-accordion-body">
+<p>html!</p>
+</div>
+</details>
+<details open>
+<summary>
+<a href="/help?open.faq=0">More</a>
+</summary>
+<div class="lui-accordion-body">
+<div id="lui-accordion-faq-more" data-lui="swap" class="lui-accordion">
+<details name="faq-more">
+<summary>
+<a href="/help?open.faq=0%2C2&amp;open.faq-more=0">Nested</a>
+</summary>
+<div class="lui-accordion-body">
+<p>Own group.</p>
+</div>
+</details>
+</div>
+</div>
+</details>
+</div>

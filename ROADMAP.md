@@ -2887,33 +2887,79 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
 
 ## M46 · Tests that would have caught the audit's bugs
 
-- [ ] `proptest` (dev-dep) on `state::from_request` / `decode`, `Caps::from_query` /
+- [x] `proptest` (dev-dep) on `state::from_request` / `decode`, `Caps::from_query` /
   `from_cookie_header`, `Date::parse`, `href()`, `TableQuery::parse`, `slug`, the
   `lui!` token walker (random token streams must not panic: `proc_macro2` in a unit test),
   `minify_css` (idempotent, never drops a `{`). A `cargo fuzz` dir is optional; proptest
   runs in `cargo test`.
-- [ ] HTML conformance over `PATHS`: `html5ever` (dev-dep in `demo`) parses every route
+  Done: `loco-ui/tests/prop.rs`. Any path, query and cookie build a `Ui`, a `UiState` and a
+  `TableQuery` (page at least 1, 1 to 50 rows); `href` reads back through `Ui::param` (so
+  `encode` and the private `decode` round trip); the `lui-ui` cookie gives back the state
+  it was written from; `Caps::from_query` and `from_cookie_header` read back any subset;
+  `Date::parse` reads what `Display` prints and refuses days that do not exist; `slug` keeps
+  the length, gives only `[a-z0-9_-]` and is idempotent; `minify_css` keeps every `{` and
+  `}` and minifying twice changes nothing (comments are left out of that input, since their
+  braces are dropped on purpose), and `stylesheet()` is already minified. `TableQuery` is
+  reached through `ui.table_query` (it has no `parse`). The `lui!` walker gets 2048 random
+  balanced token streams in a `#[cfg(test)] mod tests` in `loco-ui-macros/src/lib.rs`
+  (`Cx::markup` is private). No `cargo fuzz` dir. Nothing failed.
+- [x] HTML conformance over `PATHS`: `html5ever` (dev-dep in `demo`) parses every route
   with `&caps=all` and `&caps=none`, light and dark, and fails on parse errors, duplicate
   `id`s, `aria-describedby`/`aria-controls`/`for`/`commandfor`/`popovertarget` ids that
   do not exist, `<button>` inside `<a>`, nested `<form>`, interactive content in
   `<summary>`, missing `alt`. This catches the `hide_label` class of bug for every
   component at once.
+  Done: `every_route_is_conforming_html` in `demo/src/tests.rs` (html5ever 0.39 with
+  `markup5ever_rcdom`, `exact_errors` on), one router for all 51 routes × all/no caps ×
+  light/dark, parsed on one thread per core (about 13 s, most of it the routes and
+  syntect). Caps and theme travel in the cookie (`lui-cap-*`, `theme=`), not `?caps=`, so
+  the links on the page stay as they are. Also checks `aria-labelledby`, `list` and `form=`
+  references, and `<input>`/`<select>`/`<textarea>`/`<details>` inside `<a>`, `<button>` or
+  `<summary>`. `conformance_finds_what_it_checks` proves each check fires. No parse errors
+  and no dangling references on any route; the `hide_label` bug is not reached because no
+  demo route combines `.hide_label()` with help, a count or an error (M38's unit test
+  covers it). What it found sits in `CONFORMANCE_BUGS` with the owning milestone: links in
+  `<summary>` (tabs fallback, accordion; M38, no box yet), the derived form id shared by two
+  forms with one action (`/blocks/settings`; M38 "Ids"), and ids repeated by the index
+  previews and the props playground (M42). The test also fails when a listed bug is fixed
+  and still listed.
 - [ ] Unit tests for the 42 untested files: one `#[cfg(test)] mod tests` per file with at
   least: default render shape, each switch changes the class or attribute it claims
   (`PROPS` attr ↔ output, generated from `PROPS` where `attr` is set: a generic test in
   `lib.rs` renders each builder with each attr-setting prop through a small per-builder
   "example call" table), the caps branch (`Caps::all()` vs `Caps::none()` render different
   markup where the header says so), and `lui!` ↔ builder equality (already in doctests).
-- [ ] `insta` HTML snapshots (dev-dep): `loco-ui/tests/snapshots/<component>.snap` for
+  Generic half done: `every_attr_prop_sets_its_attribute` at the end of `lib.rs`'s tests.
+  `ATTR_EXAMPLES` holds, for each of the 101 setters whose `PROPS` entry has an `attr`, the
+  builder without and with it; under all and no caps the output must change and some tag
+  must carry the attribute. A new attr setter without an entry fails, and so does an entry
+  `PROPS` no longer backs. All pass; on the way it showed that `Menu`/`ContextMenu`
+  `.disabled()` on a link drops the `href` (no `disabled` attribute, as documented) and
+  `Input::multiple()` only acts on a file input, so their examples use an action and a
+  file. Left open: the per-file `mod tests` modules, after M38 and M40 merge.
+- [x] `insta` HTML snapshots (dev-dep): `loco-ui/tests/snapshots/<component>.snap` for
   the header example of every component under both caps, reviewed with `cargo insta`;
   M38/M39 changes then show as diffs rather than surprises. CI runs `cargo insta test
   --check`.
+  Done: `loco-ui/tests/snapshots.rs` with 59 `.snap` files in `loco-ui/tests/snapshots/`,
+  one per builder (snake case, `date_picker.snap`), holding the header's main call (the one
+  with the `lui!` twin) under `caps: all` and `caps: none`, one tag per line so a diff
+  points at the element. The examples are a table in the test, copied from the headers, so
+  a header change does not move the snapshot by itself; `every_builder_has_an_example`
+  fails for a builder in `props()` without one (`Row` and `SelectOption` show inside
+  `Table` and `Select`). The calendar's today is pinned. `cargo insta review` is in
+  CLAUDE.md. The CI line is left to the merger (`.github` is outside this branch); plain
+  `cargo test` already fails on a changed snapshot under `CI=true`.
 - [ ] Keyboard tests in `browser-check.mjs` per component that claims keys in `KEYS`
   (M42): tab order, Escape on dialog/popover/palette, arrows on tabs/menu/calendar with
   the script; without the script, Tab reaches every control (count focusable = expected).
-- [ ] Test timing: `cargo test --workspace -- -Z unstable-options --report-time` once,
+- [x] Test timing: `cargo test --workspace -- -Z unstable-options --report-time` once,
   recorded in FINDINGS; `verify.sh` skips the Blitz crate by default (`--full` runs it),
   matching the CLAUDE.md "quick verify" intent.
+  Done: run with `RUSTC_BOOTSTRAP=1` on stable; FINDINGS "M46" has the numbers (Blitz
+  252 s of about 385 s, the example app 69 s, doctests 25 s). `verify.sh` runs
+  `cargo test --workspace --exclude loco-ui-test` and counts the screenshots only with
+  `--full`; CLAUDE.md and README say so.
 
 Key files: `loco-ui/tests/{prop,snapshots}.rs`, `demo/src/tests.rs` (conformance),
 every component (test module append), `scripts/browser-check.mjs`, `verify.sh`.

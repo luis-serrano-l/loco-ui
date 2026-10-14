@@ -1,0 +1,60 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-context-menu">
+<div class="lui-context-menu-body">
+<p>report.pdf</p>
+</div>
+<div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --ctx-report-pdf">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" popovertarget="ctx-report-pdf" aria-label="More actions: report.pdf" aria-haspopup="menu">⋯</button>
+<nav id="ctx-report-pdf" popover style="position-anchor: --ctx-report-pdf; position-area: bottom span-left">
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/files/1">
+<span class="lui-popover-text">Open</span>
+<kbd class="lui-popover-kbd">o</kbd>
+</a>
+</li>
+<li role="separator" class="lui-popover-sep">
+</li>
+<li role="none">
+<form method="post" action="/files/1/delete">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+
+caps: none
+<div class="lui-context-menu">
+<div class="lui-context-menu-body">
+<p>report.pdf</p>
+</div>
+<details class="lui-popover lui-popover-details lui-popover-end" id="ctx-report-pdf">
+<summary class="lui-button lui-button-ghost lui-button-small lui-button-icon" aria-haspopup="menu" aria-label="More actions: report.pdf">⋯</summary>
+<nav>
+<ul role="menu">
+<li role="none">
+<a class="lui-popover-item" role="menuitem" href="/files/1">
+<span class="lui-popover-text">Open</span>
+<kbd class="lui-popover-kbd">o</kbd>
+</a>
+</li>
+<li role="separator" class="lui-popover-sep">
+</li>
+<li role="none">
+<form method="post" action="/files/1/delete">
+<button type="submit" class="lui-popover-item lui-popover-danger" role="menuitem">
+<span class="lui-popover-text">Delete</span>
+</button>
+</form>
+</li>
+</ul>
+</nav>
+</details>
+</div>

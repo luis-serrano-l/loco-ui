@@ -708,3 +708,81 @@ fn regroup(group: &Group, inner: TokenStream) -> TokenTree {
     out.set_span(group.span());
     TokenTree::Group(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+    use std::str::FromStr;
+
+    /// Pieces of `lui!` input, valid and not: components, items, Maud control flow, setters
+    /// in each form, and stray punctuation.
+    const PIECES: &[&str] = &[
+        "div",
+        "p",
+        "Button",
+        "Tabs",
+        "Form",
+        "DatePicker",
+        "tab",
+        "column",
+        "card",
+        "body",
+        "@if",
+        "@else",
+        "@for",
+        "@match",
+        "@let",
+        "in",
+        "x",
+        "ui",
+        "=>",
+        "=",
+        ";",
+        ",",
+        ".",
+        "#",
+        "|",
+        "||",
+        "|i|",
+        "::",
+        "\"a\"",
+        "1",
+        "(a, b)",
+        "{ p }",
+        "[cond]",
+        "=(x)",
+        "=[o]",
+        "=|i| { }",
+    ];
+
+    /// A sequence of pieces, nested in balanced `()`, `{}` and `[]` groups (unbalanced input
+    /// never reaches a macro: rustc rejects it first).
+    fn input() -> impl Strategy<Value = String> {
+        let leaf = prop::sample::select(PIECES).prop_map(String::from);
+        leaf.prop_recursive(4, 64, 8, |inner| {
+            (prop::collection::vec(inner, 0..8), 0..4usize).prop_map(|(parts, delimiter)| {
+                let body = parts.join(" ");
+                match delimiter {
+                    0 => format!("({body})"),
+                    1 => format!("{{{body}}}"),
+                    2 => format!("[{body}]"),
+                    _ => body,
+                }
+            })
+        })
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(2048))]
+
+        /// Any token stream gives markup or a compile error, never a panic in the macro.
+        #[test]
+        fn random_input_never_panics(input in prop::collection::vec(input(), 0..8)) {
+            let stream = TokenStream::from_str(&input.join(" ")).unwrap();
+            let tokens: Vec<TokenTree> = stream.into_iter().collect();
+            let cx = Cx { ui: Ident::new("ui", Span::call_site()) };
+            let _ = cx.markup(&tokens);
+        }
+    }
+}

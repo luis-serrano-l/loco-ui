@@ -148,8 +148,9 @@ server.
 cargo run -p demo      # http://127.0.0.1:3000: every component live on the index, a sidebar of them on every page
 cargo dev              # same, restarted when Rust source changes (cargo install cargo-watch)
 cargo test             # includes: only the enhancement <script> on any route, and Blitz layout tests
-scripts/verify.sh      # fmt + clippy -D warnings + tests + screenshots + <script> grep; CI adds
-                       # every feature level, the installer test, rustdoc and the Firefox check
+scripts/verify.sh      # fmt + clippy -D warnings + tests + <script> grep; --full adds the Blitz
+                       # screenshots; CI adds every feature level, the installer test, rustdoc
+                       # and the Firefox check
 scripts/snapshot.sh    # static snapshot of every page into target/site/ (no script, relative links, a banner)
 ```
 

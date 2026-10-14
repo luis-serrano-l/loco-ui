@@ -1,0 +1,106 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div id="lui-wizard-signup" data-lui="swap" class="lui-wizard">
+<ol class="lui-wizard-steps">
+<li class="lui-wizard-done">
+<span class="lui-wizard-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-wizard-label">
+<a href="/wizard?step.signup=0">Account</a>
+</span>
+</li>
+<li class="lui-wizard-done">
+<span class="lui-wizard-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-wizard-label">
+<a href="/wizard?step.signup=1">Newsletter</a> <small>(optional)</small>
+</span>
+</li>
+<li class="lui-wizard-current" aria-current="step">
+<span class="lui-wizard-dot" aria-hidden="true">3</span>
+<span class="lui-wizard-label">
+<span>Review</span>
+</span>
+</li>
+</ol>
+<progress class="lui-wizard-progress" value="2" max="2" aria-label="Progress">2 of 2 steps done</progress>
+<form method="post" action="/wizard" class="lui-wizard-form">
+<input type="hidden" name="step" value="2">
+<fieldset>
+<legend>Step 3 of 3: Review</legend>
+<dl class="lui-wizard-review">
+<dt>Email</dt>
+<dd>a@b.c <a class="lui-wizard-edit" href="/wizard?step.signup=0" aria-label="Edit Email">Edit</a>
+</dd>
+<dt>Topics</dt>
+<dd>
+<span class="lui-note">(skipped)</span> <a class="lui-wizard-edit" href="/wizard?step.signup=1" aria-label="Edit Topics">Edit</a>
+</dd>
+</dl>
+</fieldset>
+<p class="lui-wizard-actions">
+<a class="lui-button lui-button-ghost lui-wizard-back" href="/wizard?step.signup=1">Back</a>
+<button type="submit" class="lui-button lui-button-primary">Create account</button>
+</p>
+</form>
+</div>
+
+caps: none
+<div id="lui-wizard-signup" data-lui="swap" class="lui-wizard">
+<ol class="lui-wizard-steps">
+<li class="lui-wizard-done">
+<span class="lui-wizard-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-wizard-label">
+<a href="/wizard?step.signup=0">Account</a>
+</span>
+</li>
+<li class="lui-wizard-done">
+<span class="lui-wizard-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-wizard-label">
+<a href="/wizard?step.signup=1">Newsletter</a> <small>(optional)</small>
+</span>
+</li>
+<li class="lui-wizard-current" aria-current="step">
+<span class="lui-wizard-dot" aria-hidden="true">3</span>
+<span class="lui-wizard-label">
+<span>Review</span>
+</span>
+</li>
+</ol>
+<progress class="lui-wizard-progress" value="2" max="2" aria-label="Progress">2 of 2 steps done</progress>
+<form method="post" action="/wizard" class="lui-wizard-form">
+<input type="hidden" name="step" value="2">
+<fieldset>
+<legend>Step 3 of 3: Review</legend>
+<dl class="lui-wizard-review">
+<dt>Email</dt>
+<dd>a@b.c <a class="lui-wizard-edit" href="/wizard?step.signup=0" aria-label="Edit Email">Edit</a>
+</dd>
+<dt>Topics</dt>
+<dd>
+<span class="lui-note">(skipped)</span> <a class="lui-wizard-edit" href="/wizard?step.signup=1" aria-label="Edit Topics">Edit</a>
+</dd>
+</dl>
+</fieldset>
+<p class="lui-wizard-actions">
+<a class="lui-button lui-button-ghost lui-wizard-back" href="/wizard?step.signup=1">Back</a>
+<button type="submit" class="lui-button lui-button-primary">Create account</button>
+</p>
+</form>
+</div>

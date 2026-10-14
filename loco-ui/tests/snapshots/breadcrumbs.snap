@@ -1,0 +1,32 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<nav class="lui-breadcrumbs" aria-label="Breadcrumb">
+<ol>
+<li>
+<a href="/">Home</a>
+</li>
+<li>
+<a href="/projects">Projects</a>
+</li>
+<li>
+<span aria-current="page">loco-ui</span>
+</li>
+</ol>
+</nav>
+
+caps: none
+<nav class="lui-breadcrumbs" aria-label="Breadcrumb">
+<ol>
+<li>
+<a href="/">Home</a>
+</li>
+<li>
+<a href="/projects">Projects</a>
+</li>
+<li>
+<span aria-current="page">loco-ui</span>
+</li>
+</ol>
+</nav>

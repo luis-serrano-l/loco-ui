@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-stack lui-gap-2">
+<p>Tight</p>
+</div>
+
+caps: none
+<div class="lui-stack lui-gap-2">
+<p>Tight</p>
+</div>

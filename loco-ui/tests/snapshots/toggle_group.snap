@@ -1,0 +1,52 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<fieldset class="lui-toggle-group" style="--lui-toggle-n: 2">
+<legend class="lui-sr">Text style</legend>
+<label class="lui-toggle-group-item">
+<input class="lui-toggle-group-input" type="checkbox" name="style" value="bold" checked>
+<span class="lui-toggle-group-face">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="bold">
+<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>
+</svg>
+<span class="lui-sr">Bold</span>
+</span>
+</label>
+<label class="lui-toggle-group-item">
+<input class="lui-toggle-group-input" type="checkbox" name="style" value="italic">
+<span class="lui-toggle-group-face">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="italic">
+<path d="M19 4h-9"/>
+<path d="M14 20H5"/>
+<path d="M15 4 9 20"/>
+</svg>
+<span class="lui-sr">Italic</span>
+</span>
+</label>
+</fieldset>
+
+caps: none
+<fieldset class="lui-toggle-group" style="--lui-toggle-n: 2">
+<legend class="lui-sr">Text style</legend>
+<label class="lui-toggle-group-item">
+<input class="lui-toggle-group-input" type="checkbox" name="style" value="bold" checked>
+<span class="lui-toggle-group-face">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="bold">
+<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>
+</svg>
+<span class="lui-sr">Bold</span>
+</span>
+</label>
+<label class="lui-toggle-group-item">
+<input class="lui-toggle-group-input" type="checkbox" name="style" value="italic">
+<span class="lui-toggle-group-face">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="italic">
+<path d="M19 4h-9"/>
+<path d="M14 20H5"/>
+<path d="M15 4 9 20"/>
+</svg>
+<span class="lui-sr">Italic</span>
+</span>
+</label>
+</fieldset>

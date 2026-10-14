@@ -26,6 +26,24 @@ Everything below also ships in 0.2.0, the first publish.
   packaged), hooks for `cargo fmt` and the `<script>` check, and `scripts/check-script.sh`
   shared by `verify.sh`, CI and the hook.
 
+#### M46
+
+- Property tests (`proptest`, `loco-ui/tests/prop.rs`): any path, query and cookie build a
+  `Ui`, a `UiState` and a `TableQuery` without a panic; `href`, the `lui-ui` cookie, `Caps`
+  (query and cookies) and `Date` read back what they write; `slug` stays id-safe and stable;
+  `minify_css` keeps every brace and is idempotent. Random token streams through the `lui!`
+  walker give markup or an error, never a panic.
+- The demo parses every route with `html5ever` under all and no capabilities, light and
+  dark, and fails on parse errors, duplicate ids, references to ids that do not exist,
+  interactive content inside a link, button or `<summary>`, nested forms and `<img>`
+  without `alt`. The bugs it found are listed in `CONFORMANCE_BUGS` with the milestone
+  that fixes each.
+- `insta` snapshots of every builder's header example under all and no capabilities in
+  `loco-ui/tests/snapshots/`; review changes with `cargo insta review`.
+- A test renders each setter whose `PROPS` entry names an HTML attribute and checks the
+  attribute appears.
+- `scripts/verify.sh` skips the Blitz crate unless given `--full`.
+
 ## [0.2.0] - unreleased
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached

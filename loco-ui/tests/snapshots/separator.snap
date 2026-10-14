@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-separator lui-separator-label" role="separator">
+<span>or</span>
+</div>
+
+caps: none
+<div class="lui-separator lui-separator-label" role="separator">
+<span>or</span>
+</div>

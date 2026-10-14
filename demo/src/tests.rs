@@ -934,3 +934,295 @@ async fn the_two_tables_on_the_table_page_filter_and_sort_on_their_own() {
     let page = html("/table?q=zzz").await;
     assert!(page.contains("No files match this filter."));
 }
+
+/// Every route parses as HTML without errors, in both capability variants and both themes,
+/// and its markup holds together: ids are unique, every id an attribute points at exists, no
+/// interactive element sits inside a link, a button or a `<summary>`, no form inside a form,
+/// every `<img>` has an `alt`. Known bugs are listed in [`CONFORMANCE_BUGS`] with the
+/// milestone that fixes them; anything else fails.
+#[tokio::test]
+async fn every_route_is_conforming_html() {
+    let modern = Cap::ALL
+        .map(|c| format!("lui-cap-{}=1", c.name()))
+        .join("; ");
+    let variants = [
+        ("all", "light", format!("{modern}; theme=light")),
+        ("all", "dark", format!("{modern}; theme=dark")),
+        ("none", "light", "lui-cap-probed=1; theme=light".to_string()),
+        ("none", "dark", "lui-cap-probed=1; theme=dark".to_string()),
+    ];
+    let app = router();
+    let mut pages = Vec::new();
+    for path in PATHS {
+        for (caps, theme, cookie) in &variants {
+            let req = Request::get(path)
+                .header("cookie", cookie.as_str())
+                .body(Body::empty())
+                .unwrap();
+            let res = app.clone().oneshot(req).await.unwrap();
+            let body = axum::body::to_bytes(res.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            pages.push((
+                path,
+                *caps,
+                *theme,
+                String::from_utf8(body.to_vec()).unwrap(),
+            ));
+        }
+    }
+    // Parsing a debug-built html5ever over 200 pages is most of the time: one thread per core.
+    let threads = std::thread::available_parallelism().map_or(4, |n| n.get());
+    let found: Vec<_> = std::thread::scope(|scope| {
+        let workers: Vec<_> = pages
+            .chunks(pages.len().div_ceil(threads))
+            .map(|chunk| {
+                scope.spawn(move || {
+                    let mut found = Vec::new();
+                    for (path, caps, theme, html) in chunk {
+                        for problem in conformance::check(html) {
+                            found.push((*path, *caps, *theme, problem));
+                        }
+                    }
+                    found
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .flat_map(|w| w.join().unwrap())
+            .collect()
+    });
+    let mut unexpected = Vec::new();
+    let mut seen = vec![false; CONFORMANCE_BUGS.len()];
+    for (path, caps, theme, problem) in &found {
+        let known = CONFORMANCE_BUGS
+            .iter()
+            .position(|(route, text)| path == route && problem.contains(text));
+        match known {
+            Some(i) => seen[i] = true,
+            None => unexpected.push(format!("{path} (caps={caps}, {theme}): {problem}")),
+        }
+    }
+    unexpected.dedup();
+    assert!(unexpected.is_empty(), "{}", unexpected.join("\n"));
+    let fixed: Vec<_> = CONFORMANCE_BUGS
+        .iter()
+        .zip(seen)
+        .filter(|(_, seen)| !seen)
+        .map(|((route, text), _)| format!("{route}: {text}"))
+        .collect();
+    assert!(
+        fixed.is_empty(),
+        "fixed, so take these off CONFORMANCE_BUGS:\n{}",
+        fixed.join("\n")
+    );
+}
+
+/// Known conformance bugs: the route (a `PATHS` entry) and a piece of the problem's text.
+/// Each names the milestone that fixes it; the test fails once one is fixed and still listed.
+const CONFORMANCE_BUGS: &[(&str, &str)] = &[
+    // The no-script tabs and the accordion put a link in each `<summary>` (a link inside
+    // the summary's implicit button). No box owns it yet; M38 fixes this.
+    ("/", "<a> inside <summary>"),
+    ("/settings", "<a> inside <summary>"),
+    ("/tabs?tab.demo=1", "<a> inside <summary>"),
+    (
+        "/accordion?open.faq=0,2&open.faq-more=0",
+        "<a> inside <summary>",
+    ),
+    // A form's id is derived from its action, so two forms posting to the same action share
+    // one (`lui-form--blocks-settings` on the settings block's two sections, and again on
+    // the index where its preview sits). M38 fixes this (the "Ids" box).
+    ("/blocks/settings", r#"id "lui-form--blocks-settings""#),
+    ("/", r#"id "lui-form--blocks-settings""#),
+    // The index shows several previews that render the same field (`f-email`, `f-name`,
+    // `f-password`) or the same sign-in form. M42 fixes this (the docs site's stages).
+    ("/", r#"id "lui-form--app-signin""#),
+    ("/", r#"id "f-email""#),
+    ("/", r#"id "f-name""#),
+    ("/", r#"id "f-password""#),
+    // The props playground renders the stage's component a second time under the same
+    // ids. M42 fixes this (the docs site's playground).
+    ("/field?email=ada", r#"id "f-name""#),
+    ("/chart", r#"id "chart-signups""#),
+    ("/chart", r#"id "chart-signups-title""#),
+    ("/otp", r#"id "f-code""#),
+    ("/otp", r#"id "f-code-help""#),
+    ("/otp", r#"id "f-code-count""#),
+    ("/inputs", r#"id "f-volume""#),
+    ("/inputs", r#"id "volume-ticks""#),
+];
+
+/// The conformance checks find each kind of problem they claim to.
+#[test]
+fn conformance_finds_what_it_checks() {
+    let page = |body: &str| format!("<!DOCTYPE html><html lang=en><title>t</title>{body}</html>");
+    let problems = |body: &str| conformance::check(&page(body));
+    assert_eq!(
+        problems("<p id=a>x</p><label for=a>y</label>"),
+        Vec::<String>::new()
+    );
+    let found = [
+        ("<p id=a></p><p id=a></p>", r#"id "a" appears 2 times"#),
+        (
+            "<input aria-describedby=\"a b\"><p id=a></p>",
+            r#"aria-describedby="b""#,
+        ),
+        ("<button popovertarget=m>x</button>", r#"popovertarget="m""#),
+        ("<a href=/><button>x</button></a>", "<button> inside <a>"),
+        (
+            "<details><summary><a href=/>x</a></summary></details>",
+            "<a> inside <summary>",
+        ),
+        ("<form><div><form></form></div></form>", "parse error"),
+        ("<img src=x.png>", "<img> without alt"),
+        ("<p></div>", "parse error"),
+    ];
+    for (body, problem) in found {
+        let all = problems(body);
+        assert!(all.iter().any(|p| p.contains(problem)), "{body}: {all:?}");
+    }
+}
+
+/// The checks behind [`every_route_is_conforming_html`], over an `html5ever` tree.
+mod conformance {
+    use html5ever::tendril::TendrilSink;
+    use html5ever::{ParseOpts, parse_document, tree_builder::TreeBuilderOpts};
+    use markup5ever_rcdom::{Handle, NodeData, RcDom};
+    use std::collections::{BTreeMap, BTreeSet};
+
+    /// Attributes that hold one id, or (the `aria-*` ones) a space-separated list of ids.
+    const REFERENCES: [&str; 8] = [
+        "for",
+        "list",
+        "form",
+        "commandfor",
+        "popovertarget",
+        "aria-controls",
+        "aria-describedby",
+        "aria-labelledby",
+    ];
+
+    /// Every problem in `html`, one line each.
+    pub(super) fn check(html: &str) -> Vec<String> {
+        let opts = ParseOpts {
+            tree_builder: TreeBuilderOpts {
+                exact_errors: true,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let dom = parse_document(RcDom::default(), opts).one(html);
+        let mut problems: Vec<String> = dom
+            .errors
+            .borrow()
+            .iter()
+            .map(|e| format!("parse error: {e}"))
+            .collect();
+        let mut walk = Walk::default();
+        walk.visit(&dom.document, &mut Vec::new());
+        for (id, count) in &walk.ids {
+            if *count > 1 {
+                problems.push(format!("id {id:?} appears {count} times"));
+            }
+        }
+        for (element, attr, id) in &walk.references {
+            if !walk.ids.contains_key(id.as_str()) {
+                problems.push(format!("<{element} {attr}={id:?}> points at no element"));
+            }
+        }
+        problems.extend(walk.problems);
+        problems
+    }
+
+    #[derive(Default)]
+    struct Walk {
+        ids: BTreeMap<String, usize>,
+        references: BTreeSet<(String, &'static str, String)>,
+        problems: Vec<String>,
+    }
+
+    impl Walk {
+        /// `open` holds the names of the elements around `node`.
+        fn visit(&mut self, node: &Handle, open: &mut Vec<String>) {
+            let NodeData::Element {
+                name,
+                attrs,
+                template_contents,
+                ..
+            } = &node.data
+            else {
+                for child in node.children.borrow().iter() {
+                    self.visit(child, open);
+                }
+                return;
+            };
+            let tag = name.local.to_string();
+            let attrs: Vec<(String, String)> = attrs
+                .borrow()
+                .iter()
+                .map(|a| (a.name.local.to_string(), a.value.to_string()))
+                .collect();
+            let attr = |name: &str| attrs.iter().find(|(k, _)| k == name).map(|(_, v)| v);
+            if let Some(id) = attr("id") {
+                *self.ids.entry(id.clone()).or_default() += 1;
+            }
+            for reference in REFERENCES {
+                // `<label for>` and `<output for>` take ids; so does `form=` on a control, but
+                // `<form>` itself has no such attribute.
+                let Some(value) = attr(reference) else {
+                    continue;
+                };
+                for id in value.split_ascii_whitespace() {
+                    self.references
+                        .insert((tag.clone(), reference, id.to_string()));
+                }
+            }
+            let interactive = match tag.as_str() {
+                "a" => attr("href").is_some(),
+                "input" => attr("type").is_none_or(|t| t != "hidden"),
+                "button" | "select" | "textarea" | "details" | "iframe" | "embed" => true,
+                _ => false,
+            };
+            if interactive {
+                for outer in ["a", "button", "summary"] {
+                    if open.iter().any(|o| o == outer) {
+                        self.problems
+                            .push(format!("<{tag}> inside <{outer}>{}", describe(&attrs)));
+                    }
+                }
+            }
+            if tag == "form" && open.iter().any(|o| o == "form") {
+                self.problems
+                    .push(format!("<form> inside <form>{}", describe(&attrs)));
+            }
+            if tag == "img" && attr("alt").is_none() {
+                self.problems
+                    .push(format!("<img> without alt{}", describe(&attrs)));
+            }
+            open.push(tag);
+            for child in node.children.borrow().iter() {
+                self.visit(child, open);
+            }
+            if let Some(contents) = template_contents.borrow().as_ref() {
+                self.visit(contents, open);
+            }
+            open.pop();
+        }
+    }
+
+    /// ` (id=.., class=..)` to find the element by, or nothing.
+    fn describe(attrs: &[(String, String)]) -> String {
+        let keep: Vec<String> = attrs
+            .iter()
+            .filter(|(k, _)| k == "id" || k == "class" || k == "href" || k == "name")
+            .map(|(k, v)| format!("{k}={v:?}"))
+            .collect();
+        if keep.is_empty() {
+            String::new()
+        } else {
+            format!(" ({})", keep.join(", "))
+        }
+    }
+}
