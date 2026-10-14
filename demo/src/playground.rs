@@ -391,8 +391,73 @@ pub(crate) const ENTRIES: &[Entry] = &[
         },
     },
     Entry {
+        builder: "CheckboxGroup",
+        call: "CheckboxGroup(\"topics\", \"Topics\")",
+        props: &["cards", "help"],
+        rest: " { option \"rust\" \"Rust\"; option \"css\" \"CSS\"; }",
+        build: |query| {
+            let builder = query.ui.checkbox_group("topics", "Topics").id("pg-topics");
+            let builder = builder.option("rust", "Rust").option("css", "CSS");
+            let builder = switch(builder, query.on("cards"), |b| b.cards());
+            with(builder, query.text("help"), |b, v| b.help(v)).render()
+        },
+    },
+    Entry {
+        builder: "Number",
+        call: "Number(\"qty\", \"Quantity\")",
+        props: &[
+            "min", "max", "step", "prefix", "suffix", "steppers", "required",
+        ],
+        rest: ";",
+        build: |query| {
+            let builder = query.ui.number("qty", "Quantity").id("pg-qty");
+            let builder = with(builder, query.num::<f64>("min"), |b, v| b.min(v));
+            let builder = with(builder, query.num::<f64>("max"), |b, v| b.max(v));
+            let builder = with(builder, query.num::<f64>("step"), |b, v| b.step(v));
+            let builder = with(builder, query.text("prefix"), |b, v| b.prefix(v));
+            let builder = with(builder, query.text("suffix"), |b, v| b.suffix(v));
+            let builder = switch(builder, query.on("steppers"), |b| b.steppers());
+            switch(builder, query.on("required"), |b| b.required()).render()
+        },
+    },
+    Entry {
+        builder: "Search",
+        call: "Search(\"q\", \"Search notes\")",
+        props: &["placeholder"],
+        rest: ";",
+        build: |query| {
+            let builder = query.ui.search("q", "Search notes").id("pg-q");
+            with(builder, query.text("placeholder"), |b, v| b.placeholder(v)).render()
+        },
+    },
+    Entry {
+        builder: "Rating",
+        call: "Rating(\"stars\", \"Rating\")",
+        props: &["max", "value", "readonly", "disabled"],
+        rest: ";",
+        build: |query| {
+            let builder = query.ui.rating("stars", "Rating").id("pg-stars");
+            let builder = with(builder, query.num::<u8>("max"), |b, v| b.max(v));
+            let builder = with(builder, query.num::<u8>("value"), |b, v| b.value(v));
+            let builder = switch(builder, query.on("readonly"), |b| b.readonly());
+            switch(builder, query.on("disabled"), |b| b.disabled()).render()
+        },
+    },
+    Entry {
+        builder: "TagInput",
+        call: "TagInput(\"tags\", \"Tags\")",
+        props: &["placeholder", "help"],
+        rest: ";",
+        build: |query| {
+            let builder = query.ui.tag_input("tags", "Tags").id("pg-tags");
+            let builder = with(builder, query.text("placeholder"), |b, v| b.placeholder(v));
+            with(builder, query.text("help"), |b, v| b.help(v)).render()
+        },
+    },
+    Entry {
         builder: "ErrorPage",
         call: "ErrorPage(404)",
+
         props: &["title", "description", "home"],
         rest: ";",
         build: |query| {
