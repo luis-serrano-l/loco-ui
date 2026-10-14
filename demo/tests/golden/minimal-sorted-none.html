@@ -1,0 +1,83 @@
+<div id="lui-paged-table-minimal" data-lui="swap" class="lui-paged-table">
+<div id="lui-table-minimal" class="lui-table">
+<div class="lui-table-toolbar">
+<search class="lui-table-filter">
+<form method="get" action="/table/minimal">
+<input type="hidden" name="sort.minimal" value="-size">
+<input type="hidden" name="per.minimal" value="5">
+<input id="lui-table-minimal-q" class="lui-table-filter-input" name="q.minimal" type="search" value="s" placeholder="Filter rows…" autocomplete="off" aria-label="Filter rows">
+<button type="submit" class="lui-button">Filter</button>
+<a class="lui-table-clear" href="/table/minimal?sort.minimal=-size&amp;per.minimal=5">Clear</a>
+</form>
+</search>
+</div>
+<div class="lui-table-scroll">
+<table>
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="">
+<a href="/table/minimal?sort.minimal=name&amp;q.minimal=s&amp;per.minimal=5">Name</a>
+<a class="lui-table-then" href="/table/minimal?sort.minimal=-size,name&amp;q.minimal=s&amp;per.minimal=5" aria-label="Then by Name" title="Then by Name">+</a>
+</th>
+<th scope="col" aria-sort="descending" class="lui-table-sorted lui-table-num">
+<a href="/table/minimal?sort.minimal=size&amp;q.minimal=s&amp;per.minimal=5">Bytes<span class="lui-table-arrow">▼</span>
+</a>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>notes.md</td>
+<td class="lui-table-num">900</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<nav class="lui-paged-table-nav" aria-label="Pages">
+<output class="lui-paged-table-range">6–6 of 6</output>
+<ul class="lui-paged-table-pages">
+<li>
+<a class="lui-button lui-button-ghost lui-paged-table-end" data-tone="neutral" data-variant="ghost" href="/table/minimal?sort.minimal=-size&amp;q.minimal=s&amp;per.minimal=5&amp;page.minimal=1">First</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" href="/table/minimal?sort.minimal=-size&amp;q.minimal=s&amp;per.minimal=5&amp;page.minimal=1" rel="prev">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>Previous</a>
+</li>
+<li class="lui-paged-table-of" aria-hidden="true">Page 2 of 2</li>
+<li class="lui-paged-table-num">
+<a class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" href="/table/minimal?sort.minimal=-size&amp;q.minimal=s&amp;per.minimal=5&amp;page.minimal=1">1</a>
+</li>
+<li class="lui-paged-table-num">
+<a class="lui-button" href="/table/minimal?sort.minimal=-size&amp;q.minimal=s&amp;per.minimal=5&amp;page.minimal=2" aria-current="page">2</a>
+</li>
+</ul>
+<form method="get" action="/table/minimal" class="lui-paged-table-jump">
+<input type="hidden" name="sort.minimal" value="-size">
+<input type="hidden" name="q.minimal" value="s">
+<input type="hidden" name="per.minimal" value="5">
+<span>Page</span>
+<input id="lui-paged-table-minimal-page" class="lui-paged-table-page" name="page.minimal" type="number" value="2" min="1" max="2" inputmode="numeric" aria-label="Page">
+<span>of 2</span>
+<button type="submit" class="lui-button">Go</button>
+</form>
+<form method="get" action="/table/minimal" class="lui-paged-table-per">
+<input type="hidden" name="sort.minimal" value="-size">
+<input type="hidden" name="q.minimal" value="s">
+<label>Rows per page <select name="per.minimal">
+<option value="5" selected>5</option>
+<option value="10">10</option>
+<option value="25">25</option>
+<option value="50">50</option>
+</select>
+</label>
+<button type="submit" class="lui-button">Show</button>
+</form>
+</nav>
+</div>

@@ -161,7 +161,8 @@
 //!
 //! Paging with Loco's `query::fetch_page` (or `query::paginate`, which adds a condition): the
 //! table reads its page (`?page.<id>=`), page size (`per.<id>`), sort and filter from the
-//! request; Loco asks the database for that page and the count, never every row; and
+//! request; [`order_by`] orders the query by every sort key (`?sort.<id>=-size,name`); Loco
+//! asks the database for that page and the count, never every row; and
 //! `.paged_from(&meta)` draws the pager from the answer:
 //!
 //! ```rust
@@ -181,10 +182,12 @@
 //! async fn notes_table(ui: &Ui, db: &DatabaseConnection) -> Result<Markup> {
 //!     let table = ui.table("notes", "/notes").column("title", "Title").sortable();
 //!     let select = notes::Entity::find().filter(notes::Column::Title.contains(table.filter()));
-//!     let select = match table.sort() {
-//!         Some(("title", true)) => select.order_by_desc(notes::Column::Title),
-//!         _ => select.order_by_asc(notes::Column::Title),
-//!     };
+//!     // Every sort key in turn (`?sort.notes=-title`), then the id to break ties.
+//!     let select = loco_ui::loco::order_by(select, table.sort(), |key| match key {
+//!         "title" => Some(notes::Column::Title),
+//!         _ => None,
+//!     });
+//!     let select = select.order_by_asc(notes::Column::Id);
 //!     let wanted = PaginationQuery { page: table.page() as u64, page_size: table.per_page() as u64 };
 //!     let found = query::fetch_page(db, select, &wanted).await?;
 //!     let rows = found.page.iter().map(|n| Row::new([html! { (n.title) }]));
@@ -732,6 +735,47 @@ pub fn label<T: serde::Serialize>(row: &T) -> String {
         .find_map(|k| value[k].as_str().filter(|s| !s.is_empty()))
         .map(str::to_string)
         .unwrap_or_else(|| format!("#{}", value["id"]))
+}
+
+/// `query` ordered by every key of a table's sort ([`crate::table::Table::sort`] or
+/// [`crate::table::TableQuery::sort`]), most significant first: `column` names the entity
+/// column of each sort key, and a key it does not know is skipped. With no sort the query
+/// is returned as it is, so order it by a default column first (`order_by_asc(Column::Id)`
+/// after this call breaks ties the same way). The module docs have a paged handler.
+///
+/// ```rust
+/// use loco_rs::prelude::*;
+/// # mod notes {
+/// #     use sea_orm::entity::prelude::*;
+/// #     #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+/// #     #[sea_orm(table_name = "notes")]
+/// #     pub struct Model { #[sea_orm(primary_key)] pub id: i32, pub title: String, pub size: i32 }
+/// #     #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+/// #     pub enum Relation {}
+/// #     impl ActiveModelBehavior for ActiveModel {}
+/// # }
+/// use sea_orm::{DbBackend, QueryTrait};
+/// let ui = loco_ui::Ui::from_request("/notes", "sort.notes=-size,title", "");
+/// let q = ui.table_query("notes", &["title", "size"]);
+/// let select = loco_ui::loco::order_by(notes::Entity::find(), q.sort(), |key| match key {
+///     "title" => Some(notes::Column::Title),
+///     "size" => Some(notes::Column::Size),
+///     _ => None,
+/// });
+/// let sql = select.build(DbBackend::Sqlite).to_string();
+/// assert!(sql.ends_with(r#"ORDER BY "notes"."size" DESC, "notes"."title" ASC"#), "{sql}");
+/// ```
+pub fn order_by<Q: loco_rs::prelude::QueryOrder, C: loco_rs::prelude::ColumnTrait>(
+    query: Q,
+    sort: &[(&str, bool)],
+    column: impl Fn(&str) -> Option<C>,
+) -> Q {
+    use loco_rs::prelude::Order;
+    sort.iter()
+        .fold(query, |query, (key, desc)| match column(key) {
+            Some(c) => query.order_by(c, if *desc { Order::Desc } else { Order::Asc }),
+            None => query,
+        })
 }
 
 /// Signed-out visits go to the sign-in form at this path: `Box::new(loco_ui::loco::SignIn("/signin"))`

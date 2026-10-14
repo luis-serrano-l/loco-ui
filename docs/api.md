@@ -344,7 +344,7 @@ itself can be written in `lui!` without holding the builder in a variable:
 
 ```rust
 use loco_ui::prelude::*;
-let ui = Ui::from_request("/orders", "sort.orders=total&dir.orders=desc&status=paid", "");
+let ui = Ui::from_request("/orders", "sort.orders=-total&status=paid", "");
 let orders = [(1, "Ada", "paid", 12.5_f64), (2, "Grace", "pending", 30.0), (3, "Ken", "paid", 20.0)];
 let q = ui.table_query("orders", &["id", "total"]);
 let status = ui.param("status").unwrap_or("");
@@ -362,8 +362,8 @@ let html = lui! { Table("orders", "/orders") paged=(total) {
 assert!(html.into_string().contains("<td>Ken</td>"));
 ```
 
-- **`TableQuery`** (`ui.table_query(id, sortable)`): `.sort()` as `(key, descending)`, only for
-  a key in `sortable`; `.filter()` the search text, trimmed; `.page()` 1-based; `.per_page()`
+- **`TableQuery`** (`ui.table_query(id, sortable)`): `.sort()` as `&[(key, descending)]`, only keys
+  in `sortable`; `.filters()` the column filters; `.filter()` the search text, trimmed; `.page()` 1-based; `.per_page()`
   the size the visitor picked (`ui.state.per_page(id)`, at most 50) or **10**. Defaults:
   unsorted, no filter, page 1, 10 rows.
 - **Data helpers** on it: `.matches(text)` (case-insensitive, true with no search),
@@ -400,35 +400,76 @@ Kept, because: `.rows(..)`, `.filter_select(..)` and `Chart::points` take a list
 its order (the id keys the query parameters). `Table::sort`, `filter`, `page` and `per_page`
 stay for routes that do hold the builder.
 
-### A table's query keys (M33)
+### A table's query keys (M33, M41)
 
 Every query key a table reads and writes carries its id, `<key>.<id>`, the way its page size
 (`per.<id>`), its in-place edit (`edit.<id>`), a tab group (`tab.<id>`) and a wizard
-(`step.<id>`) already did: `q.<id>` (search), `sort.<id>` and `dir.<id>` (sort), `page.<id>`
-(page) and `cols.<id>` (shown columns). The key comes first so the whole family reads alike
-and a key names what it holds before whose it is. Two tables on one page (the /table page and
-its playground) now sort, filter and page on their own. `loco_ui::table::Keys::new(id)` spells
-them for a hand-written link.
+(`step.<id>`) already did: `q.<id>` (search), `q.<id>.<column>` (one column's filter),
+`sort.<id>` (sort), `page.<id>` (page) and `cols.<id>` (shown columns). Two tables on one page
+(the /table page and its playground) sort, filter and page on their own.
+`loco_ui::table::Keys::new(id)` spells them for a hand-written link.
 
 ```rust
 use loco_ui::prelude::*;
-let ui = Ui::from_request("/p", "sort.files=size&dir.files=desc&q.notes=milk", "");
-let (files, notes) = (ui.table_query("files", &["size"]), ui.table_query("notes", &["text"]));
-assert_eq!((files.sort(), files.filter()), (Some(("size", true)), ""));
-assert_eq!((notes.sort(), notes.filter()), (None, "milk"));
-// Deprecated, read for one release: the bare keys, when the table's own are absent.
-let old = Ui::from_request("/p", "sort=size&q=a&page=2", "");
+let ui = Ui::from_request("/p", "sort.files=-size,name&q.notes=milk&q.files.kind=img", "");
+let (files, notes) = (ui.table_query("files", &["size", "name"]), ui.table_query("notes", &["text"]));
+assert_eq!((files.sort(), files.filter()), (&[("size", true), ("name", false)][..], ""));
+assert_eq!((notes.sort(), notes.filter()), (&[][..], "milk"));
+assert_eq!(files.filters(), [("kind", "img")]);
+// Gone in M41: the bare keys of before M33, and `dir.<id>`.
+let old = Ui::from_request("/p", "sort=size&q=a&page=2&sort.files=size&dir.files=desc", "");
 let q = old.table_query("files", &["size"]);
-assert_eq!((q.sort(), q.filter(), q.page()), (Some(("size", false)), "a", 2));
+assert_eq!((q.sort(), q.filter(), q.page()), (&[("size", false)][..], "", 1));
 ```
 
-- **Deprecated:** the bare `q`, `sort`, `dir`, `page` and `cols`. A table still reads each one
-  when its own `<key>.<id>` is absent, so old bookmarks and hand-written links keep working for
-  one release; its own key wins, and every link and form it writes uses its own. Rewrite links
-  such as `/table?sort=size&dir=desc` as `/table?sort.files=size&dir.files=desc`.
+- **Sort:** `?sort.<id>=` is a comma list of column keys, each `-` first when descending,
+  most significant first (`name,-size`). `Table::sort()` and `TableQuery::sort()` return
+  `&[(key, descending)]`, empty when unsorted; `TableQuery::sort_by` compares by each key in
+  turn, and `loco_ui::loco::order_by(select, sort, |key| column)` orders a SeaORM query the
+  same way. A header link sorts by that column alone (or flips it when it is the first key);
+  the `+` beside another header adds it as the next key.
+- **Removed (M41, Breaking):** the bare `q`, `sort`, `dir`, `page` and `cols` (deprecated
+  since M33) and `dir.<id>`. Rewrite `/table?sort.files=size&dir.files=desc` as
+  `/table?sort.files=-size`.
 - **State or query:** only the page size is state (remembered in the `lui-ui` cookie); the
   others describe one view and stay in the URL, as before.
 - **Kept bare:** the load-more `Pager`'s `page`. It has no id, and a page holds one; a paged
   table beside it pages by its own `page.<id>`.
 - `.keep(..)`, `.filter_select(..)` and a query in `href` are the page's own parameters, carried
   as named (`status`), not prefixed.
+
+### Data table features (M41)
+
+| Setter | What it does | Without script |
+|---|---|---|
+| `.column(..).filterable()` | a text box in the "Filters" panel, `?q.<id>.<key>=`; `t.filters()`, `q.matches_in(key, text)` | yes |
+| `.bulk(..).select_all()` | a header box posting `all=1`; the bulk form's URL carries the query | yes; the script also ticks the page's boxes |
+| `.caption(text)` | a visually hidden `<caption>` | yes |
+| `.total(key, text)`, `.footer(row)` | a totals row, then more rows, in `<tfoot>` | yes |
+| `.striped()`, `.density(Density::Compact)` | gray bands; half the cell padding | yes |
+| `.group_by(key)` | a group header row wherever that column's cell changes | yes (no collapsing) |
+| `.empty(markup)` | any `Render` when there are no rows, not only text | yes |
+| `.json(href)` | "Download JSON" beside `.csv(href)`, same query | yes |
+| `Row::href(url)` | the whole row is a link (a stretched link in a last cell) | yes |
+| `Row::disabled()` | no checkbox, no row link, `aria-disabled`, muted | yes |
+| `Row::ok()`, `.warn()`, `.danger()` | the row tinted with that tone | yes |
+
+Out of scope without script: resizing or dragging columns (`.width(..)` and `?cols.<id>=`
+choose and order them instead) and collapsing a group. The first column stays sticky, as it
+was since M34, now with `inset-inline-start` so it holds in a right-to-left page.
+
+```rust
+use loco_ui::{prelude::*, table::Density};
+let ui = Ui::from_request("/files", "q.files.kind=text&sort.files=kind,-size", "");
+let t = ui.table("files", "/files")
+    .column("name", "Name").filterable()
+    .column("kind", "Kind").sortable().filterable()
+    .column("size", "Size").sortable().numeric();
+assert_eq!((t.sort(), t.filters()), (&[("kind", false), ("size", true)][..], &[("kind", "text")][..]));
+let html = t.bulk("/files/bulk", [("delete", "Delete")]).select_all().group_by("kind")
+    .total("size", "5 KB").striped().density(Density::Compact)
+    .rows([Row::from(("a.txt", "text", 5)).key("a.txt").href("/files/a.txt").warn()])
+    .render().into_string();
+assert!(html.contains(r#"action="/files/bulk?sort.files=kind,-size&amp;q.files.kind=text""#));
+assert!(html.contains(r#"<tr class="lui-table-linked lui-table-warn">"#));
+```

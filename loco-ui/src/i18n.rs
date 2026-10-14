@@ -364,6 +364,18 @@ pub enum Text {
     CannotUndo,
     /// "Skip to content": the skip link every page starts with.
     SkipToContent,
+    /// "Then by {}": table: the link that adds a column as the next sort key.
+    SortThenBy,
+    /// "Filters": table: the panel of column filters.
+    Filters,
+    /// "Select all {} matching rows": table: the select-all box.
+    SelectAllMatching,
+    /// "Download JSON": table.
+    DownloadJson,
+    /// "Open": table: the row links column.
+    Open,
+    /// "Open {}": table: a row's link.
+    OpenRow,
 }
 
 /// How many texts there are.
@@ -372,7 +384,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 149] = [
+    pub const ALL: [Text; 155] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -522,6 +534,12 @@ impl Text {
         Text::DeleteConfirm,
         Text::CannotUndo,
         Text::SkipToContent,
+        Text::SortThenBy,
+        Text::Filters,
+        Text::SelectAllMatching,
+        Text::DownloadJson,
+        Text::Open,
+        Text::OpenRow,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -704,6 +722,12 @@ const ENGLISH: [&str; N] = [
     "Delete {}?",
     "This cannot be undone.",
     "Skip to content",
+    "Then by {}",
+    "Filters",
+    "Select all {} matching rows",
+    "Download JSON",
+    "Open",
+    "Open {}",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

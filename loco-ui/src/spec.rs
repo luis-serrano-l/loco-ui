@@ -418,7 +418,7 @@ pub const SPECS: &[ComponentSpec] = &[
         look: "shadcn data table, Origin UI",
         responsive: Responsive::Container,
         features: &[
-            f("?sort.<id>=<col>&dir.<id>=asc|desc", b("1", "1", "1")),
+            f("?sort.<id>=<col>", b("1", "1", "1")),
             f("<search>", b("118", "118", "17")),
             f("aria-sort", b("1", "1", "1")),
             f("form attribute", b("10", "4", "5.1")),
@@ -429,7 +429,7 @@ pub const SPECS: &[ComponentSpec] = &[
             f("view-transition-name", b("111", "144", "18")),
             f("aria-busy", b("1", "1", "1")),
         ],
-        fallback: "none needed: sorting, filtering, column choice and the bulk form are plain navigations and posts; no select-all without script",
+        fallback: "none needed: sorting, filtering, column choice and the bulk form are plain navigations and posts; select-all posts `all=1` with the query instead of ticking boxes",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {

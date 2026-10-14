@@ -127,8 +127,8 @@ fn query(table: &TableQuery{% if owned %}, owner: i64{% endif %}{% if parent %},
         );
     }
 {%- endif %}
-    // A loop, so it reads the same whether `sort()` gives one sort or a list of them.
-    for (key, desc) in table.sort() {
+    // One `ORDER BY` per sort key, most significant first (`?sort.<id>=title,-id`).
+    for &(key, desc) in table.sort() {
         if let Ok(column) = key.parse::<Column>() {
             select = select.order_by(column, if desc { Order::Desc } else { Order::Asc });
         }

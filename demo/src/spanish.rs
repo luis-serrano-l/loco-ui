@@ -162,7 +162,13 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Deleted, "Borrado.")
     .with(Text::DeleteConfirm, "¿Borrar {}?")
     .with(Text::CannotUndo, "No se puede deshacer.")
-    .with(Text::SkipToContent, "Saltar al contenido");
+    .with(Text::SkipToContent, "Saltar al contenido")
+    .with(Text::SortThenBy, "Luego por {}")
+    .with(Text::Filters, "Filtros")
+    .with(Text::SelectAllMatching, "Elegir las {} filas que coinciden")
+    .with(Text::DownloadJson, "Descargar JSON")
+    .with(Text::Open, "Abrir")
+    .with(Text::OpenRow, "Abrir {}");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

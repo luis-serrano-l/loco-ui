@@ -239,6 +239,12 @@ impl Ui {
             .map(|(_, v)| v.as_str())
     }
 
+    /// Every query parameter as `(key, value)`, in order: for keys a component names by a
+    /// prefix (a table's column filters, `q.<id>.<column>`).
+    pub(crate) fn query_pairs(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.params.iter().map(|(k, v)| (k.as_str(), v.as_str()))
+    }
+
     /// Every value of the query parameter `key`, in order (`?sel=a&sel=b`).
     pub fn params<'a>(&'a self, key: &'a str) -> impl Iterator<Item = &'a str> + 'a {
         self.params

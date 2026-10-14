@@ -984,3 +984,28 @@ is not drawn only because it sits behind the motion query.
   merge picks one. `Look::with_tokens` was folded into `Ui::tokens`. Shadows have one
   geometry for both schemes (the light one) with colours in `light-dark()`.
 
+### M41 · Data table
+
+- **Resizing and dragging columns need script; they stay out.** A resize handle needs pointer
+  events, and dragging a header needs drag events. Without script a table chooses its
+  columns and their order with `?cols.<id>=name,size` and sets widths with `.width(..)`;
+  the /table Features matrix says so.
+- **"Select all" without script selects all matching, not all visible.** A checkbox cannot
+  tick others without script, so the header box posts `all=1` and the bulk form carries the
+  query; the route acts on every row that matches. The enhancement script also ticks the
+  visible boxes so the page shows what will happen.
+- **A whole-row link is a stretched link, not a linked `<tr>`.** A `<tr>` cannot be an `<a>`.
+  The last cell holds a real link whose `::after` covers the row, which needs the `<tr>` to be
+  a containing block (`position: relative` on table rows: Firefox 30, Chrome 91; Safari not
+  checked here; no upstream issue filed yet, the owner files it). Where it is not, the
+  link still works from its own cell.
+- **Bench, measured on a loaded machine (load ~17, seven worktrees building).** Criterion
+  `table 1 000 rows`: 370.6 µs before M41, 391.6 µs and 269.8 µs on two runs after.
+  `paged_table 25 of 1000`: 49.1 µs before, 85.1 µs and 45.2 µs after. The spread between
+  runs is wider than the ±5% the box asks for, so the numbers show no regression but do not
+  prove ±5%; rerun on an idle machine before release.
+
+- **Blitz paints the sticky first column, and now the group rows and tinted rows, at the
+  page origin** (the M36 `position` gap; `tests/shots/table-*.png`, `table-rows-*.png`). A
+  browser draws them in place; `browser-check.mjs` and `look.sh` check the real layout.
+  (no upstream issue yet; the owner files it)

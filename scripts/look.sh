@@ -68,6 +68,7 @@ blocks-shell|/blocks/shell|$shadcn/sidebar
 blocks-auth|/blocks/auth|
 blocks-record|/blocks/record|
 blocks-error|/no-such-page|
+table-rows|/table/rows|https://www.tremor.so/docs/ui/table
 "
 if [ -n "$only" ] && ! echo "$pages" | grep -q "^$only|"; then
   echo "no page named $only in scripts/look.sh" >&2; exit 2
