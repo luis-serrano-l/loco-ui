@@ -20,7 +20,7 @@ caps: all
 <option value="Ruby">
 </option>
 </datalist>
-<button type="submit" class="lui-button lui-button-primary">Search</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Search</button>
 </form>
 <div id="q-results" class="lui-combobox-results" aria-live="polite">
 <p class="lui-combobox-status">2 matches</p>
@@ -54,7 +54,7 @@ caps: none
 <option value="Ruby">
 </option>
 </datalist>
-<button type="submit" class="lui-button lui-button-primary">Search</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Search</button>
 </form>
 <div id="q-results" class="lui-combobox-results" aria-live="polite">
 <p class="lui-combobox-status">2 matches</p>

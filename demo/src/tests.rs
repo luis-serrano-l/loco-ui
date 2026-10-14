@@ -143,7 +143,8 @@ async fn pages_ship_only_the_enhancement_script() {
             let copies = html.matches(loco_ui::stylesheet()).count();
             assert!(copies >= 1, "{path}: the stylesheet is inlined");
             let markup = html.len() - copies * loco_ui::stylesheet().len();
-            let budget = if path == "/" { 184 } else { 48 } * 1024;
+            // M38 added data-* variant attributes and M45 a third language button and form hints.
+            let budget = if path == "/" { 200 } else { 48 } * 1024;
             assert!(
                 markup < budget,
                 "{path}: {markup} bytes of markup, over the {} KB budget",

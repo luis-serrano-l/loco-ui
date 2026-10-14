@@ -15,10 +15,10 @@ caps: all
 <input type="hidden" name="returns_to" value="/settings">
 <div class="lui-dialog-actions">
 <button type="button" class="lui-button" command="close" commandfor="confirm">Keep it</button>
-<button type="submit" class="lui-button lui-button-danger">Delete</button>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
 </div>
 </form>
-<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" command="close" commandfor="confirm" aria-label="Close">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" data-size="1" data-tone="neutral" data-variant="ghost" command="close" commandfor="confirm" aria-label="Close">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
 <path d="M18 6 6 18"/>
 <path d="m6 6 12 12"/>
@@ -41,10 +41,10 @@ caps: none
 <input type="hidden" name="returns_to" value="/settings">
 <div class="lui-dialog-actions">
 <a class="lui-button lui-dialog-cancel" href="#" role="button">Keep it</a>
-<button type="submit" class="lui-button lui-button-danger">Delete</button>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
 </div>
 </form>
-<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" href="#" aria-label="Close">
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-dialog-close" data-size="1" data-tone="neutral" data-variant="ghost" href="#" aria-label="Close">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
 <path d="M18 6 6 18"/>
 <path d="m6 6 12 12"/>

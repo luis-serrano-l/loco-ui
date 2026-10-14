@@ -6,7 +6,7 @@ caps: all
 <p class="lui-error-page-status" aria-hidden="true">500</p>
 <h1>Something went wrong</h1>
 <p>The server could not answer this time. Try again in a moment.</p>
-<a class="lui-button lui-button-primary" href="/dashboard">Go home</a>
+<a class="lui-button lui-button-primary" data-tone="brand" data-variant="solid" href="/dashboard">Go home</a>
 </div>
 
 caps: none
@@ -14,5 +14,5 @@ caps: none
 <p class="lui-error-page-status" aria-hidden="true">500</p>
 <h1>Something went wrong</h1>
 <p>The server could not answer this time. Try again in a moment.</p>
-<a class="lui-button lui-button-primary" href="/dashboard">Go home</a>
+<a class="lui-button lui-button-primary" data-tone="brand" data-variant="solid" href="/dashboard">Go home</a>
 </div>

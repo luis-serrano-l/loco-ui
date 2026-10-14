@@ -30,7 +30,7 @@ caps: all
 </div>
 </fieldset>
 <div class="lui-form-actions">
-<button type="submit" class="lui-button lui-button-primary">Save profile</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Save profile</button>
 </div>
 </form>
 
@@ -63,6 +63,6 @@ caps: none
 </div>
 </fieldset>
 <div class="lui-form-actions">
-<button type="submit" class="lui-button lui-button-primary">Save profile</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Save profile</button>
 </div>
 </form>

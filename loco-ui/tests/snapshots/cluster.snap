@@ -4,11 +4,11 @@ source: loco-ui/tests/snapshots.rs
 caps: all
 <div class="lui-cluster lui-cluster-between lui-gap-4">
 <h2>Orders</h2>
-<button type="submit" class="lui-button lui-button-primary">New order</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">New order</button>
 </div>
 
 caps: none
 <div class="lui-cluster lui-cluster-between lui-gap-4">
 <h2>Orders</h2>
-<button type="submit" class="lui-button lui-button-primary">New order</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">New order</button>
 </div>

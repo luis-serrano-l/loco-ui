@@ -3,14 +3,14 @@ source: loco-ui/tests/snapshots.rs
 ---
 caps: all
 <form id="lui-theme" data-lui="swap" class="lui-theme" method="post" action="/theme">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small" name="theme" value="auto" aria-pressed="false">auto</button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small" name="theme" value="light" aria-pressed="false">light</button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small" name="theme" value="dark" aria-pressed="true">dark</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost" name="theme" value="auto" aria-pressed="false">auto</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost" name="theme" value="light" aria-pressed="false">light</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost" name="theme" value="dark" aria-pressed="true">dark</button>
 </form>
 
 caps: none
 <form id="lui-theme" data-lui="swap" class="lui-theme" method="post" action="/theme">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small" name="theme" value="auto" aria-pressed="false">auto</button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small" name="theme" value="light" aria-pressed="false">light</button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small" name="theme" value="dark" aria-pressed="true">dark</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost" name="theme" value="auto" aria-pressed="false">auto</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost" name="theme" value="light" aria-pressed="false">light</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost" name="theme" value="dark" aria-pressed="true">dark</button>
 </form>

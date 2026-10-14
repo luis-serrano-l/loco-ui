@@ -14,7 +14,7 @@ caps: all
 </div>
 <p class="lui-form-hint" aria-hidden="true">* required</p>
 <div class="lui-form-actions">
-<button type="submit" class="lui-button lui-button-primary">Sign in</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Sign in</button>
 </div>
 </form>
 </div>
@@ -36,7 +36,7 @@ caps: none
 </div>
 <p class="lui-form-hint" aria-hidden="true">* required</p>
 <div class="lui-form-actions">
-<button type="submit" class="lui-button lui-button-primary">Sign in</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Sign in</button>
 </div>
 </form>
 </div>

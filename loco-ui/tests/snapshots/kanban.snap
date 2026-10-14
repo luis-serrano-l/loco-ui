@@ -8,7 +8,7 @@ caps: all
 <header class="lui-kanban-head">
 <h3 id="lui-kanban--board-move-todo">To do</h3>
 <span class="lui-kanban-count">
-<span class="lui-badge lui-badge-secondary">1</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">1</span>
 </span>
 </header>
 <ol class="lui-kanban-cards">
@@ -17,7 +17,7 @@ caps: all
 <div class="lui-kanban-meta">
 <form method="post" action="/board/move" class="lui-kanban-move">
 <input type="hidden" name="card" value="c1">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="doing" aria-label="Move Write the docs to Doing">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="doing" aria-label="Move Write the docs to Doing">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
 <path d="M5 12h14"/>
 <path d="m12 5 7 7-7 7"/>
@@ -32,7 +32,7 @@ caps: all
 <header class="lui-kanban-head">
 <h3 id="lui-kanban--board-move-doing">Doing</h3>
 <span class="lui-kanban-count">
-<span class="lui-badge lui-badge-secondary">2/2</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">2/2</span>
 </span>
 </header>
 <ol class="lui-kanban-cards">
@@ -40,16 +40,16 @@ caps: all
 <p class="lui-kanban-title">Calendar</p>
 <p class="lui-kanban-note">M23</p>
 <div class="lui-kanban-meta">
-<span class="lui-badge lui-badge-secondary">Beta</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">Beta</span>
 <form method="post" action="/board/move" class="lui-kanban-move">
 <input type="hidden" name="card" value="c2">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Calendar to To do">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="todo" aria-label="Move Calendar to To do">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
 <path d="m12 19-7-7 7-7"/>
 <path d="M19 12H5"/>
 </svg>
 </button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Calendar to Done">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="done" aria-label="Move Calendar to Done">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
 <path d="M5 12h14"/>
 <path d="m12 5 7 7-7 7"/>
@@ -63,13 +63,13 @@ caps: all
 <div class="lui-kanban-meta">
 <form method="post" action="/board/move" class="lui-kanban-move">
 <input type="hidden" name="card" value="c3">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Upload to To do">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="todo" aria-label="Move Upload to To do">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
 <path d="m12 19-7-7 7-7"/>
 <path d="M19 12H5"/>
 </svg>
 </button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Upload to Done">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="done" aria-label="Move Upload to Done">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
 <path d="M5 12h14"/>
 <path d="m12 5 7 7-7 7"/>
@@ -84,7 +84,7 @@ caps: all
 <header class="lui-kanban-head">
 <h3 id="lui-kanban--board-move-done">Done</h3>
 <span class="lui-kanban-count">
-<span class="lui-badge lui-badge-secondary">0</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">0</span>
 </span>
 </header>
 <p class="lui-kanban-empty">No cards</p>
@@ -99,7 +99,7 @@ caps: none
 <header class="lui-kanban-head">
 <h3 id="lui-kanban--board-move-todo">To do</h3>
 <span class="lui-kanban-count">
-<span class="lui-badge lui-badge-secondary">1</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">1</span>
 </span>
 </header>
 <ol class="lui-kanban-cards">
@@ -108,7 +108,7 @@ caps: none
 <div class="lui-kanban-meta">
 <form method="post" action="/board/move" class="lui-kanban-move">
 <input type="hidden" name="card" value="c1">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="doing" aria-label="Move Write the docs to Doing">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="doing" aria-label="Move Write the docs to Doing">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
 <path d="M5 12h14"/>
 <path d="m12 5 7 7-7 7"/>
@@ -123,7 +123,7 @@ caps: none
 <header class="lui-kanban-head">
 <h3 id="lui-kanban--board-move-doing">Doing</h3>
 <span class="lui-kanban-count">
-<span class="lui-badge lui-badge-secondary">2/2</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">2/2</span>
 </span>
 </header>
 <ol class="lui-kanban-cards">
@@ -131,16 +131,16 @@ caps: none
 <p class="lui-kanban-title">Calendar</p>
 <p class="lui-kanban-note">M23</p>
 <div class="lui-kanban-meta">
-<span class="lui-badge lui-badge-secondary">Beta</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">Beta</span>
 <form method="post" action="/board/move" class="lui-kanban-move">
 <input type="hidden" name="card" value="c2">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Calendar to To do">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="todo" aria-label="Move Calendar to To do">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
 <path d="m12 19-7-7 7-7"/>
 <path d="M19 12H5"/>
 </svg>
 </button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Calendar to Done">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="done" aria-label="Move Calendar to Done">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
 <path d="M5 12h14"/>
 <path d="m12 5 7 7-7 7"/>
@@ -154,13 +154,13 @@ caps: none
 <div class="lui-kanban-meta">
 <form method="post" action="/board/move" class="lui-kanban-move">
 <input type="hidden" name="card" value="c3">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="todo" aria-label="Move Upload to To do">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="todo" aria-label="Move Upload to To do">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-left">
 <path d="m12 19-7-7 7-7"/>
 <path d="M19 12H5"/>
 </svg>
 </button>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="to" value="done" aria-label="Move Upload to Done">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="done" aria-label="Move Upload to Done">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="arrow-right">
 <path d="M5 12h14"/>
 <path d="m12 5 7 7-7 7"/>
@@ -175,7 +175,7 @@ caps: none
 <header class="lui-kanban-head">
 <h3 id="lui-kanban--board-move-done">Done</h3>
 <span class="lui-kanban-count">
-<span class="lui-badge lui-badge-secondary">0</span>
+<span class="lui-badge lui-badge-secondary" data-tone="neutral">0</span>
 </span>
 </header>
 <p class="lui-kanban-empty">No cards</p>

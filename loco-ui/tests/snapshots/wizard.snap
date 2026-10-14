@@ -47,8 +47,8 @@ caps: all
 </dl>
 </fieldset>
 <p class="lui-wizard-actions">
-<a class="lui-button lui-button-ghost lui-wizard-back" href="/wizard?step.signup=1">Back</a>
-<button type="submit" class="lui-button lui-button-primary">Create account</button>
+<a class="lui-button lui-button-ghost lui-wizard-back" data-tone="neutral" data-variant="ghost" href="/wizard?step.signup=1">Back</a>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Create account</button>
 </p>
 </form>
 </div>
@@ -99,8 +99,8 @@ caps: none
 </dl>
 </fieldset>
 <p class="lui-wizard-actions">
-<a class="lui-button lui-button-ghost lui-wizard-back" href="/wizard?step.signup=1">Back</a>
-<button type="submit" class="lui-button lui-button-primary">Create account</button>
+<a class="lui-button lui-button-ghost lui-wizard-back" data-tone="neutral" data-variant="ghost" href="/wizard?step.signup=1">Back</a>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Create account</button>
 </p>
 </form>
 </div>

@@ -6,7 +6,7 @@ caps: all
 <div class="lui-description-list-item">
 <dt>Status</dt>
 <dd>
-<span class="lui-badge lui-badge-ok">Active</span>
+<span class="lui-badge lui-badge-ok" data-tone="ok">Active</span>
 </dd>
 </div>
 </dl>
@@ -16,7 +16,7 @@ caps: none
 <div class="lui-description-list-item">
 <dt>Status</dt>
 <dd>
-<span class="lui-badge lui-badge-ok">Active</span>
+<span class="lui-badge lui-badge-ok" data-tone="ok">Active</span>
 </dd>
 </div>
 </dl>

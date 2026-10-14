@@ -8,7 +8,7 @@ caps: all
 <div class="lui-record-actions">
 <a class="lui-button" href="/invoices/42/edit">Edit</a>
 <form method="post" action="/invoices/42/delete">
-<button type="submit" class="lui-button lui-button-danger">Delete</button>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
 </form>
 </div>
 </div>
@@ -33,7 +33,7 @@ caps: none
 <div class="lui-record-actions">
 <a class="lui-button" href="/invoices/42/edit">Edit</a>
 <form method="post" action="/invoices/42/delete">
-<button type="submit" class="lui-button lui-button-danger">Delete</button>
+<button type="submit" class="lui-button lui-button-danger" data-tone="danger" data-variant="solid">Delete</button>
 </form>
 </div>
 </div>

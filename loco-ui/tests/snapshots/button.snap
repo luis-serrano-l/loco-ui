@@ -2,7 +2,7 @@
 source: loco-ui/tests/snapshots.rs
 ---
 caps: all
-<button type="submit" class="lui-button lui-button-primary">Save</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Save</button>
 
 caps: none
-<button type="submit" class="lui-button lui-button-primary">Save</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Save</button>

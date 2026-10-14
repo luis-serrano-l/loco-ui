@@ -19,7 +19,7 @@ caps: all
 <path d="m21 21-4.3-4.3"/>
 </svg>
 <input id="palette-q" class="lui-palette-input" name="q" type="search" value="new" placeholder="Type a command or a page" list="palette-list" autocomplete="off" autofocus aria-label="Search">
-<button type="submit" class="lui-button lui-button-primary lui-button-small">Go</button>
+<button type="submit" class="lui-button lui-button-primary lui-button-small" data-size="1" data-tone="brand" data-variant="solid">Go</button>
 </form>
 </search>
 <datalist id="palette-list">
@@ -78,7 +78,7 @@ caps: none
 <path d="m21 21-4.3-4.3"/>
 </svg>
 <input id="palette-q" class="lui-palette-input" name="q" type="search" value="new" placeholder="Type a command or a page" list="palette-list" autocomplete="off" autofocus aria-label="Search">
-<button type="submit" class="lui-button lui-button-primary lui-button-small">Go</button>
+<button type="submit" class="lui-button lui-button-primary lui-button-small" data-size="1" data-tone="brand" data-variant="solid">Go</button>
 </form>
 </search>
 <datalist id="palette-list">

@@ -2,7 +2,7 @@
 source: loco-ui/tests/snapshots.rs
 ---
 caps: all
-<span class="lui-badge lui-badge-danger lui-badge-solid">Failed</span>
+<span class="lui-badge lui-badge-danger lui-badge-solid" data-tone="danger" data-variant="solid">Failed</span>
 
 caps: none
-<span class="lui-badge lui-badge-danger lui-badge-solid">Failed</span>
+<span class="lui-badge lui-badge-danger lui-badge-solid" data-tone="danger" data-variant="solid">Failed</span>

@@ -15,7 +15,7 @@ caps: all
 <path d="M12 5v14"/>
 </svg>
 </button>
-<button type="submit" class="lui-button lui-button-ghost" name="op" value="reset">Reset</button>
+<button type="submit" class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" name="op" value="reset">Reset</button>
 <input id="lui-counter--counter-value" class="lui-counter-input" name="value" type="number" value="10" min="0" max="10" step="2" inputmode="numeric" aria-label="Value">
 <button type="submit" class="lui-button" name="op" value="set">Set</button>
 <small class="lui-counter-bounds">0 to 10, in steps of 2</small>
@@ -35,7 +35,7 @@ caps: none
 <path d="M12 5v14"/>
 </svg>
 </button>
-<button type="submit" class="lui-button lui-button-ghost" name="op" value="reset">Reset</button>
+<button type="submit" class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" name="op" value="reset">Reset</button>
 <input id="lui-counter--counter-value" class="lui-counter-input" name="value" type="number" value="10" min="0" max="10" step="2" inputmode="numeric" aria-label="Value">
 <button type="submit" class="lui-button" name="op" value="set">Set</button>
 <small class="lui-counter-bounds">0 to 10, in steps of 2</small>

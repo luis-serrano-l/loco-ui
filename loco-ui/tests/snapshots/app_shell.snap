@@ -13,7 +13,7 @@ caps: all
 <dialog id="app" class="lui-drawer-panel" closedby="any" aria-labelledby="app-title">
 <div class="lui-drawer-head">
 <p id="app-title" class="lui-drawer-title">Acme</p>
-<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" command="close" commandfor="app" aria-label="Close">
+<button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" data-size="1" data-tone="neutral" data-variant="ghost" command="close" commandfor="app" aria-label="Close">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
 <path d="M18 6 6 18"/>
 <path d="m6 6 12 12"/>
@@ -56,7 +56,7 @@ caps: all
 <span class="lui-avatar-initials" aria-hidden="true">AL</span>
 </span>
 <span>Ada Lovelace</span>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small">Sign out</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost">Sign out</button>
 </form>
 </nav>
 </dialog>
@@ -78,7 +78,7 @@ caps: none
 <dialog id="app" class="lui-drawer-panel" closedby="any" aria-labelledby="app-title">
 <div class="lui-drawer-head">
 <p id="app-title" class="lui-drawer-title">Acme</p>
-<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" href="#" aria-label="Close">
+<a class="lui-button lui-button-ghost lui-button-small lui-button-icon lui-drawer-close" data-size="1" data-tone="neutral" data-variant="ghost" href="#" aria-label="Close">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="x">
 <path d="M18 6 6 18"/>
 <path d="m6 6 12 12"/>
@@ -121,7 +121,7 @@ caps: none
 <span class="lui-avatar-initials" aria-hidden="true">AL</span>
 </span>
 <span>Ada Lovelace</span>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small">Sign out</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-small" data-size="1" data-tone="neutral" data-variant="ghost">Sign out</button>
 </form>
 </nav>
 </dialog>

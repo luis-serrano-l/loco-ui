@@ -18,7 +18,7 @@ caps: all
 </label>
 <progress class="lui-upload-progress" data-lui-progress hidden>
 </progress>
-<button type="submit" class="lui-button lui-button-primary">Upload</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Upload</button>
 </form>
 <ul class="lui-upload-files" aria-label="Uploaded files">
 <li class="lui-upload-file">
@@ -28,7 +28,7 @@ caps: all
 <span class="lui-upload-size">47.1 KB</span>
 </span>
 <form method="post" action="/files/remove">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="cat.png" aria-label="Remove cat.png">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="file" value="cat.png" aria-label="Remove cat.png">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
 <path d="M3 6h18"/>
 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
@@ -51,7 +51,7 @@ caps: all
 <span class="lui-upload-size">1.0 KB</span>
 </span>
 <form method="post" action="/files/remove">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="notes.txt" aria-label="Remove notes.txt">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="file" value="notes.txt" aria-label="Remove notes.txt">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
 <path d="M3 6h18"/>
 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
@@ -80,7 +80,7 @@ caps: none
 </label>
 <progress class="lui-upload-progress" data-lui-progress hidden>
 </progress>
-<button type="submit" class="lui-button lui-button-primary">Upload</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Upload</button>
 </form>
 <ul class="lui-upload-files" aria-label="Uploaded files">
 <li class="lui-upload-file">
@@ -90,7 +90,7 @@ caps: none
 <span class="lui-upload-size">47.1 KB</span>
 </span>
 <form method="post" action="/files/remove">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="cat.png" aria-label="Remove cat.png">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="file" value="cat.png" aria-label="Remove cat.png">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
 <path d="M3 6h18"/>
 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
@@ -113,7 +113,7 @@ caps: none
 <span class="lui-upload-size">1.0 KB</span>
 </span>
 <form method="post" action="/files/remove">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" name="file" value="notes.txt" aria-label="Remove notes.txt">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="file" value="notes.txt" aria-label="Remove notes.txt">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="trash">
 <path d="M3 6h18"/>
 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>

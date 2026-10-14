@@ -8,7 +8,7 @@ caps: all
 <p class="lui-empty-text">Check the spelling or clear the filter.</p>
 <div class="lui-empty-actions">
 <form method="post" action="/files/new">
-<button type="submit" class="lui-button lui-button-primary">Create a file</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Create a file</button>
 </form>
 <a class="lui-button" href="/table">Clear the filter</a>
 </div>
@@ -21,7 +21,7 @@ caps: none
 <p class="lui-empty-text">Check the spelling or clear the filter.</p>
 <div class="lui-empty-actions">
 <form method="post" action="/files/new">
-<button type="submit" class="lui-button lui-button-primary">Create a file</button>
+<button type="submit" class="lui-button lui-button-primary" data-tone="brand" data-variant="solid">Create a file</button>
 </form>
 <a class="lui-button" href="/table">Clear the filter</a>
 </div>
