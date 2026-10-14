@@ -1,4 +1,4 @@
-error[E0599]: no method named `vertcal` found for struct `Tabs<'a>` in the current scope
+error[E0599]: no method named `vertcal` found for struct `loco_ui::tabs::Tabs<'a>` in the current scope
  --> tests/ui/typo.rs:5:33
   |
 5 |     let _ = lui! { Tabs("demo") vertcal { tab "One" { "1" } } };

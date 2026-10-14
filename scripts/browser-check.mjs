@@ -70,6 +70,11 @@ try {
   assert(true, "tabs: URL follows the swap");
   assert(await navigations() === 1, "tabs: switched without a reload");
   assert(await js("return getComputedStyle(document.querySelector('#lui-tabs-demo .lui-tabs-trigger[data-state=active] .lui-tabs-mark')).viewTransitionName") === "lui-tabs-demo", "tabs: the underline, not the title, carries the view-transition-name");
+  // M39: a swap that moved the URL says the new title through the script's role=status
+  // region, and the focus, lost with the replaced strip, lands in the new root, not <body>.
+  await until(async () => await js("var s = document.querySelector('body > div.lui-sr[role=status]'); return !!s && s.textContent === document.title"), "the swap announced");
+  assert(true, "tabs: the swap is announced in a role=status region");
+  assert(await js("return document.activeElement !== document.body && !!document.activeElement.closest('#lui-tabs-demo')"), "tabs: the focus lands in the new root, not on <body>");
   const fetched = (q) => js("return performance.getEntriesByType('resource').filter((r) => r.name.endsWith(arguments[0])).length", q);
   await js("document.querySelector(\"#lui-tabs-demo .lui-tabs-trigger[href*='tab.demo=2']\").dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))");
   await until(async () => (await fetched("?tab.demo=2")) === 1, "hover prefetches the tab");
@@ -237,15 +242,15 @@ try {
 
   // Popover: arrow keys walk the items, submenu opens inside, an action posts and comes back.
   await go("/popover");
-  await click("button[popovertarget=account]");
-  await until(async () => await js("return document.querySelector('#account').matches(':popover-open')"), "menu open");
-  await type("button[popovertarget=account]", ""); // ArrowDown from the button
+  await click("button[popovertarget=lui-menu-account]");
+  await until(async () => await js("return document.querySelector('#lui-menu-account').matches(':popover-open')"), "menu open");
+  await type("button[popovertarget=lui-menu-account]", ""); // ArrowDown from the button
   assert(await js("return document.activeElement.querySelector('.lui-popover-text').textContent") === "Profile", "popover: ArrowDown focuses the first item");
   await js("document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))");
   assert(await js("return document.activeElement.querySelector('.lui-popover-text').textContent") === "Settings", "popover: ArrowDown moves to the next item");
-  await click("button[popovertarget=account-theme]");
-  await until(async () => await js("return document.querySelector('#account-theme').matches(':popover-open') && document.querySelector('#account').matches(':popover-open')"), "submenu open with parent");
-  await click("#account form button");
+  await click("button[popovertarget=lui-menu-account-theme]");
+  await until(async () => await js("return document.querySelector('#lui-menu-account-theme').matches(':popover-open') && document.querySelector('#lui-menu-account').matches(':popover-open')"), "submenu open with parent");
+  await click("#lui-menu-account form button");
   await until(async () => /Signed out/.test(await js("return document.querySelector('.lui-flash')?.textContent || ''")), "flash after the action");
 
   // Flash: saving with notifications off stacks ok + warn; ok fades by CSS; dismiss clears both.

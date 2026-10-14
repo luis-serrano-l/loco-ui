@@ -38,6 +38,36 @@ async fn every_route_is_served_under_a_strict_csp() {
         html.matches("<script").count() == 0,
         "a script-less page has no script tag"
     );
+    // A linked stylesheet (M39): no 'unsafe-inline' for <style>, the demo's CSS by hash.
+    let (csp, html) = policy("/dialog?css=linked").await;
+    assert!(
+        csp.contains("style-src 'self' 'sha256-") && csp.contains("style-src-attr 'unsafe-inline'"),
+        "{csp}"
+    );
+    assert!(!csp.contains("style-src 'self' 'unsafe-inline'"), "{csp}");
+    let user = html.split("<style class=\"lui-user\">").nth(1).unwrap();
+    let user = &user[..user.find("</style>").unwrap()];
+    assert!(
+        csp.contains(&loco_ui::enhance::csp_hash(user)),
+        "the hash is the inline CSS's"
+    );
+    let href = loco_ui::layout::stylesheet_url();
+    assert!(html.contains(&format!("<link rel=\"stylesheet\" href=\"{href}\">")));
+    let res = router()
+        .oneshot(Request::get(href).body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(res.headers()["content-type"], "text/css; charset=utf-8");
+    let etag = res.headers()["etag"].clone();
+    let css = axum::body::to_bytes(res.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    assert_eq!(css, loco_ui::stylesheet().as_bytes());
+    let again = Request::get(href)
+        .header("if-none-match", etag)
+        .body(Body::empty())
+        .unwrap();
+    assert_eq!(router().oneshot(again).await.unwrap().status(), 304);
 }
 
 /// The index shows every component live: each has a preview beside its route, and the index
@@ -142,9 +172,18 @@ async fn pages_ship_only_the_enhancement_script() {
             // builder among them), so it gets its own budget.
             let copies = html.matches(loco_ui::stylesheet()).count();
             assert!(copies >= 1, "{path}: the stylesheet is inlined");
-            let markup = html.len() - copies * loco_ui::stylesheet().len();
+            // The demo's own CSS (its `Look`, M39) is a stylesheet too, not markup.
+            let site = html.matches(crate::site::CSS_MINIFIED.as_str()).count();
+            let markup = html.len()
+                - copies * loco_ui::stylesheet().len()
+                - site * crate::site::CSS_MINIFIED.len();
             // M38 added data-* variant attributes and M45 a third language button and form hints.
-            let budget = if path == "/" { 200 } else { 48 } * 1024;
+            let budget = match path {
+                "/" => 200,
+                // M39's theme builder: density, radius, fonts and the colour-role table.
+                p if p.starts_with("/theme") => 64,
+                _ => 48,
+            } * 1024;
             assert!(
                 markup < budget,
                 "{path}: {markup} bytes of markup, over the {} KB budget",
@@ -899,7 +938,8 @@ async fn theme_builder_downloads_its_css() {
         .unwrap();
     let css = String::from_utf8(bytes.to_vec()).unwrap();
     assert!(
-        css.contains("--lui-brand-9: #ff5500;") && css.contains("--lui-radius: 4px;"),
+        css.contains("--lui-brand-9: #ff5500;")
+            && css.contains("--lui-radius-2: calc(4px * var(--lui-radius-factor));"),
         "{css}"
     );
 }
@@ -1075,6 +1115,10 @@ const CONFORMANCE_BUGS: &[(&str, &str)] = &[
     ("/otp", r#"id "f-code-count""#),
     ("/inputs", r#"id "f-volume""#),
     ("/inputs", r#"id "volume-ticks""#),
+    // The index and the modes page both show the upload preview beside the progress
+    // preview, and each renders `lui-progress-upload`. M42 fixes this (the docs site's stages).
+    ("/", r#"id "lui-progress-upload""#),
+    ("/modes?forced=1", r#"id "lui-progress-upload""#),
 ];
 
 /// The conformance checks find each kind of problem they claim to.

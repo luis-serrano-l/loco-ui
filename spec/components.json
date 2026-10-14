@@ -19,13 +19,16 @@
       "name": "Layout",
       "module": "layout",
       "look": "Radix Themes scales and depth, a Linear / Magic UI finish",
-      "responsive": "viewport",
+      "responsive": "content",
       "features": [
         { "name": "@view-transition", "baseline": { "chrome": "126", "firefox": "no", "safari": "18.2" } },
         { "name": "prefers-color-scheme", "baseline": { "chrome": "76", "firefox": "67", "safari": "12.1" } },
-        { "name": "custom properties", "baseline": { "chrome": "49", "firefox": "31", "safari": "9.1" } }
+        { "name": "custom properties", "baseline": { "chrome": "49", "firefox": "31", "safari": "9.1" } },
+        { "name": "@layer", "baseline": { "chrome": "99", "firefox": "97", "safari": "15.4" } },
+        { "name": "light-dark()", "baseline": { "chrome": "123", "firefox": "120", "safari": "17.5" } },
+        { "name": "forced-colors", "baseline": { "chrome": "89", "firefox": "89", "safari": "16" } }
       ],
-      "fallback": "plain navigations (root never cross-fades); colours still switch by media query and data-theme",
+      "fallback": "plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white",
       "needs_js": "no"
     },
     {
@@ -507,7 +510,7 @@
           "calls": ["ui.dialog(trigger: &str)"],
           "props": [
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "What the dialog says." },
-            { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The dialog's id instead of the trigger's slug." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The dialog's id instead of `lui-dialog-` and the trigger's slug." },
             { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render the dialog already open (non-modal, no backdrop)." },
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A title in a header with a close control." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–4: 20, 32, 42 or 56 rem wide, roomier padding as it grows." },
@@ -552,7 +555,7 @@
             { "name": "shortcut", "kind": "modifier", "args": "keys: &'a str", "default": "", "attr": "", "doc": "A shortcut shown after the item's text, as `<kbd>`." },
             { "name": "disabled", "kind": "modifier", "args": "", "default": "", "attr": "disabled", "doc": "The item is shown but not usable." },
             { "name": "danger", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The item is destructive." },
-            { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The menu's id instead of the label's slug." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The menu's id instead of `lui-menu-` and the label's slug." },
             { "name": "align_end", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open below the button with right edges aligned, for a button at the end of a row." },
             { "name": "open_right", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open to the right of the button." }
           ]
@@ -1647,7 +1650,7 @@
           "props": [
             { "name": "nav", "kind": "value", "args": "nav: Markup", "default": "", "attr": "", "doc": "The navigation inside the drawer, usually a `ul` of links." },
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The page's content, beside the drawer." },
-            { "name": "id", "kind": "value", "args": "id: &str", "default": "", "attr": "id", "doc": "The drawer's id instead of the label's slug." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The drawer's id instead of `lui-drawer-` and the label's slug." },
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A heading at the top of the panel (also its accessible name)." },
             { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A line under the title, the panel's description." },
             { "name": "footer", "kind": "value", "args": "footer: Markup", "default": "", "attr": "", "doc": "Actions pinned to the bottom of the panel, under the scrolling navigation." },
@@ -1686,7 +1689,7 @@
             { "name": "group", "kind": "item", "args": "heading: &'a str", "default": "", "attr": "", "doc": "List the commands added after this under a heading." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Search", "attr": "", "doc": "The opener's label (default \"Search\")." },
             { "name": "accesskey", "kind": "value", "args": "key: &'a str", "default": "k", "attr": "accesskey", "doc": "The opener's access key (default `k`)." },
-            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "palette", "attr": "id", "doc": "The palette's id instead of `palette`." }
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "lui-palette", "attr": "id", "doc": "The palette's id instead of `lui-palette`." }
           ]
         }
       ]

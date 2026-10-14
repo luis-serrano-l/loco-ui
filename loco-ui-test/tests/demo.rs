@@ -110,7 +110,7 @@ async fn every_route_renders_and_is_captured() {
             if !inside_shadow_root {
                 assert!(page.is_visible("h1"), "{path} ({suffix}) has no visible h1");
                 assert!(
-                    page.is_visible(".lui-header"),
+                    page.is_visible(".lui-site-header"),
                     "{path} ({suffix}) has no header"
                 );
             }

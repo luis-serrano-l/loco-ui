@@ -309,12 +309,15 @@ component gives the HTML to another template engine.
 
 ## What a page weighs
 
-Measured on the demo (M34), gzip at level 9; every page inlines the whole stylesheet, so
-there is no second request for CSS, and no script is required.
+Measured on the demo (M34; the stylesheet rows at M39), gzip at level 9. By default every page
+inlines the whole stylesheet, so there is no second request for CSS, and no script is required;
+`Page::linked_stylesheet()` links `/lui.css` instead (cached, ETag) and `Page::subset(..)`
+inlines only the components a page lists.
 
 | | raw | gzip |
 |---|---|---|
-| The whole stylesheet, every component and block (`stylesheet()`) | 116.9 KB | 20.0 KB |
+| The whole stylesheet, every component and block (`stylesheet()`) | 111.4 KB | 19.5 KB |
+| The base subset: layout, primitives and modes (`stylesheet_for(Component::BASE)`) | 32.3 KB | 7.0 KB |
 | A demo page, stylesheet, sidebar and props tables included (`/nav` … `/calendar`) | 136–160 KB | 22.9–26.0 KB |
 | `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 249 KB | 41.8 KB |
 | The index, every component live on it | 292 KB | 47.1 KB |
@@ -323,8 +326,8 @@ there is no second request for CSS, and no script is required.
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
-stylesheet stays under 128 KB (88 KB until M34), and every demo page's markup, the inlined stylesheet not
-counted, under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
+stylesheet stays under 112 KB (128 KB until M39, 88 KB until M34), and every demo page's markup, the inlined stylesheet not
+counted (nor the demo's own CSS, its `Look` since M39), under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
@@ -454,7 +457,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Component | Look after | Responsive by | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |
 |---|---|---|---|---|---|---|
 | Enhancement script | - | - | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent`, `HTML drag and drop` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6; 4 / 3.5 / 3.1 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
-| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | viewport | `@view-transition`, `prefers-color-scheme`, `custom properties` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1 | plain navigations (root never cross-fades); colours still switch by media query and data-theme | No |
+| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | content | `@view-transition`, `prefers-color-scheme`, `custom properties`, `@layer`, `light-dark()`, `forced-colors` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1; 99 / 97 / 15.4; 123 / 120 / 17.5; 89 / 89 / 16 | plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white | No |
 | Capability beacons | - | - | `@supports`, `selector()`, `background images`, `cookies` | 28 / 22 / 9; 83 / 69 / 14.1; 1 / 1 / 1; 1 / 1 / 1 | unknown browser gets every fallback; the first view always does | No |
 | Button | Radix Themes Button | content | `invoker commands`, `popovertarget`, `aria-busy`, `prefers-reduced-motion`, `translate` | 135 / 144 / 26.2; 114 / 125 / 17; 1 / 1 / 1; 74 / 63 / 10.1; 104 / 72 / 14.1 | a popover command becomes popovertarget; other commands need the component's own fallback; a shimmer button is at rest without translate | No |
 | Input, checkbox, switch, radio group | Radix Themes TextField, Checkbox, Switch, RadioGroup and RadioCards | container | `constraint validation`, `type=date`, `:user-invalid`, `role="switch"`, `appearance: none`, `<fieldset>`, `linear-gradient(in oklch` | 10 / 4 / 10.1; 20 / 57 / 14.1; 119 / 88 / 16.5; 1 / 1 / 1; 84 / 80 / 15.4; 1 / 1 / 1; 111 / 127 / 16.2 | none needed: native controls; the switch stays a checkbox without appearance: none; a gradient border is a plain one without in oklch gradients | Partly: a live character count while typing needs the enhancement script |

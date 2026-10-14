@@ -181,11 +181,16 @@ pub mod prelude {
 /// assert_ne!(loco_ui::slug("設定"), loco_ui::slug("請求"));
 /// ```
 pub fn slug(key: &str) -> String {
+    // Lowercasing can add a combining mark (`İ` is `i` and U+0307), which becomes `-` too,
+    // so a slug of a slug is the same slug.
     key.chars()
-        .flat_map(|c| {
-            let keep = c.is_alphanumeric() || c == '-' || c == '_';
-            let lower = keep.then(|| c.to_lowercase());
-            lower.into_iter().flatten().chain((!keep).then_some('-'))
+        .flat_map(char::to_lowercase)
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '-'
+            }
         })
         .collect()
 }
@@ -236,18 +241,294 @@ pub(crate) fn gap_class(n: u8) -> &'static str {
     }
 }
 
-/// All component stylesheets, concatenated once per process. `layout` inlines this once per page.
+/// The cascade layers of [`stylesheet`], in order. An app's own CSS is unlayered, so it wins
+/// over every one of them without `!important`.
+pub const LAYERS: &str = "@layer lui.reset, lui.tokens, lui.components, lui.blocks, lui.modes;";
+
+/// The stylesheet from its parts: the layer order, `@view-transition`, then each layer.
+fn layered(components: &[&str], blocks: &[&str]) -> String {
+    let mut css = String::with_capacity(160 * 1024);
+    for part in [
+        LAYERS,
+        layout::VIEW_TRANSITION,
+        "\n@layer lui.reset{",
+        layout::RESET,
+    ] {
+        css.push_str(part);
+    }
+    css.push_str("}\n@layer lui.tokens{");
+    css.push_str(&layout::Tokens::DEFAULT.css());
+    css.push_str("}\n@layer lui.components{");
+    for part in components {
+        css.push_str(part);
+    }
+    css.push_str(&caps::beacon_css());
+    css.push_str("}\n@layer lui.blocks{");
+    for part in blocks {
+        css.push_str(part);
+    }
+    css.push_str("}\n@layer lui.modes{");
+    css.push_str(layout::MODES);
+    css.push('}');
+    minify_css(&css)
+}
+
+/// All component stylesheets, in their cascade layers, built once per process. `ui.page`
+/// inlines this once per page, or links it as `/lui.css` with `Page::linked_stylesheet`.
 pub fn stylesheet() -> &'static str {
     static CSS: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    CSS.get_or_init(|| {
-        let beacons = caps::beacon_css();
-        let tokens = layout::Tokens::default().css();
-        let mut parts = vec![tokens.as_str()];
-        parts.extend(COMPONENT_CSS);
-        parts.extend(blocks::CSS);
-        parts.push(beacons.as_str());
-        minify_css(&parts.join("\n"))
+    CSS.get_or_init(|| layered(COMPONENT_CSS, &blocks::CSS))
+}
+
+/// The stylesheet with only `components`' CSS, plus the reset, the tokens, the layout and
+/// the primitives every component builds on ([`Component::BASE`]), in the same layers.
+/// Built once per distinct list and then kept; `Page::subset` inlines it instead of the
+/// whole sheet.
+///
+/// ```rust
+/// use loco_ui::{Component, stylesheet, stylesheet_for};
+/// let css = stylesheet_for(&[Component::Dialog]);
+/// assert!(css.contains(".lui-dialog") && !css.contains(".lui-kanban"));
+/// assert!(css.len() < stylesheet().len() / 2);
+/// ```
+pub fn stylesheet_for(components: &[Component]) -> &'static str {
+    subset_sheet(components)
+}
+
+/// [`stylesheet_for`] behind one more reference, so a `Page` holds it in 8 bytes.
+pub(crate) fn subset_sheet(components: &[Component]) -> &'static &'static str {
+    use std::collections::HashMap;
+    use std::sync::{Mutex, OnceLock};
+    static BUILT: OnceLock<Mutex<HashMap<u128, &'static &'static str>>> = OnceLock::new();
+    let bit = |c: &Component| 1u128 << (*c as u32);
+    let key = components
+        .iter()
+        .chain(Component::BASE)
+        .fold(0, |bits, c| bits | bit(c));
+    let mut built = BUILT
+        .get_or_init(Mutex::default)
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    built.entry(key).or_insert_with(|| {
+        let parts: Vec<&str> = (Component::ALL.iter())
+            .filter(|c| key & bit(c) != 0)
+            .map(|c| c.css())
+            .collect();
+        let blocks: &[&str] = if key & bit(&Component::Blocks) != 0 {
+            &blocks::CSS
+        } else {
+            &[]
+        };
+        let css: &'static str = Box::leak(layered(&parts, blocks).into_boxed_str());
+        Box::leak(Box::new(css))
     })
+}
+
+/// One component's stylesheet, for [`stylesheet_for`]: a variant per entry of
+/// [`COMPONENT_CSS`], in its order, and `Blocks` for every block. A test fails when the two
+/// lists drift apart, so a new component adds its variant at the end.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[allow(missing_docs)]
+pub enum Component {
+    Layout,
+    Button,
+    Input,
+    Badge,
+    Card,
+    Icon,
+    Avatar,
+    Stack,
+    Cluster,
+    Grid,
+    Split,
+    Calendar,
+    DatePicker,
+    Upload,
+    Kanban,
+    Sortable,
+    Tooltip,
+    Alert,
+    Progress,
+    Meter,
+    Separator,
+    Dialog,
+    Popover,
+    Tabs,
+    Accordion,
+    Combobox,
+    Pager,
+    Form,
+    ErrorSummary,
+    Counter,
+    Theme,
+    Flash,
+    Select,
+    Range,
+    Color,
+    Stream,
+    Table,
+    PagedTable,
+    Wizard,
+    Toast,
+    Breadcrumbs,
+    Skeleton,
+    EmptyState,
+    Stat,
+    Chart,
+    Sidebar,
+    NavMenu,
+    DescriptionList,
+    ToggleGroup,
+    ContextMenu,
+    InputOtp,
+    Drawer,
+    Palette,
+    Marquee,
+    /// The shared `data-radius` rules of [`variant`].
+    Variant,
+    Blocks,
+}
+
+impl Component {
+    /// Every variant, in [`COMPONENT_CSS`] order, `Blocks` included.
+    pub const ALL: &'static [Component] = &[
+        Component::Layout,
+        Component::Button,
+        Component::Input,
+        Component::Badge,
+        Component::Card,
+        Component::Icon,
+        Component::Avatar,
+        Component::Stack,
+        Component::Cluster,
+        Component::Grid,
+        Component::Split,
+        Component::Calendar,
+        Component::DatePicker,
+        Component::Upload,
+        Component::Kanban,
+        Component::Sortable,
+        Component::Tooltip,
+        Component::Alert,
+        Component::Progress,
+        Component::Meter,
+        Component::Separator,
+        Component::Dialog,
+        Component::Popover,
+        Component::Tabs,
+        Component::Accordion,
+        Component::Combobox,
+        Component::Pager,
+        Component::Form,
+        Component::ErrorSummary,
+        Component::Counter,
+        Component::Theme,
+        Component::Flash,
+        Component::Select,
+        Component::Range,
+        Component::Color,
+        Component::Stream,
+        Component::Table,
+        Component::PagedTable,
+        Component::Wizard,
+        Component::Toast,
+        Component::Breadcrumbs,
+        Component::Skeleton,
+        Component::EmptyState,
+        Component::Stat,
+        Component::Chart,
+        Component::Sidebar,
+        Component::NavMenu,
+        Component::DescriptionList,
+        Component::ToggleGroup,
+        Component::ContextMenu,
+        Component::InputOtp,
+        Component::Drawer,
+        Component::Palette,
+        Component::Marquee,
+        Component::Variant,
+        Component::Blocks,
+    ];
+
+    /// What [`stylesheet_for`] always includes: the layout and the primitives.
+    pub const BASE: &'static [Component] = &[
+        Component::Layout,
+        Component::Button,
+        Component::Input,
+        Component::Badge,
+        Component::Card,
+        Component::Icon,
+        Component::Stack,
+        Component::Cluster,
+        Component::Grid,
+        Component::Split,
+    ];
+
+    /// This component's `CSS`: empty for `Blocks` (its parts are [`blocks::CSS`]) and for
+    /// `Stream` without the `http` feature.
+    pub fn css(self) -> &'static str {
+        match self {
+            Component::Layout => layout::CSS,
+            Component::Button => button::CSS,
+            Component::Input => input::CSS,
+            Component::Badge => badge::CSS,
+            Component::Card => card::CSS,
+            Component::Icon => icon::CSS,
+            Component::Avatar => avatar::CSS,
+            Component::Stack => stack::CSS,
+            Component::Cluster => cluster::CSS,
+            Component::Grid => grid::CSS,
+            Component::Split => split::CSS,
+            Component::Calendar => calendar::CSS,
+            Component::DatePicker => date_picker::CSS,
+            Component::Upload => upload::CSS,
+            Component::Kanban => kanban::CSS,
+            Component::Sortable => sortable::CSS,
+            Component::Tooltip => tooltip::CSS,
+            Component::Alert => alert::CSS,
+            Component::Progress => progress::CSS,
+            Component::Meter => meter::CSS,
+            Component::Separator => separator::CSS,
+            Component::Dialog => dialog::CSS,
+            Component::Popover => popover::CSS,
+            Component::Tabs => tabs::CSS,
+            Component::Accordion => accordion::CSS,
+            Component::Combobox => combobox::CSS,
+            Component::Pager => pager::CSS,
+            Component::Form => form::CSS,
+            Component::ErrorSummary => error_summary::CSS,
+            Component::Counter => counter::CSS,
+            Component::Theme => theme::CSS,
+            Component::Flash => flash::CSS,
+            Component::Select => select::CSS,
+            Component::Range => range::CSS,
+            Component::Color => color::CSS,
+            #[cfg(feature = "http")]
+            Component::Stream => stream::CSS,
+            #[cfg(not(feature = "http"))]
+            Component::Stream => "",
+            Component::Table => table::CSS,
+            Component::PagedTable => paged_table::CSS,
+            Component::Wizard => wizard::CSS,
+            Component::Toast => toast::CSS,
+            Component::Breadcrumbs => breadcrumbs::CSS,
+            Component::Skeleton => skeleton::CSS,
+            Component::EmptyState => empty_state::CSS,
+            Component::Stat => stat::CSS,
+            Component::Chart => chart::CSS,
+            Component::Sidebar => sidebar::CSS,
+            Component::NavMenu => nav_menu::CSS,
+            Component::DescriptionList => description_list::CSS,
+            Component::ToggleGroup => toggle_group::CSS,
+            Component::ContextMenu => context_menu::CSS,
+            Component::InputOtp => input_otp::CSS,
+            Component::Drawer => drawer::CSS,
+            Component::Palette => palette::CSS,
+            Component::Marquee => marquee::CSS,
+            Component::Variant => variant::CSS,
+            Component::Blocks => "",
+        }
+    }
 }
 
 /// Strip comments and collapse whitespace in a stylesheet, leaving quoted strings alone. A
@@ -401,8 +682,10 @@ mod tests {
     fn ids_come_from_labels() {
         let ui = Ui::from(Caps::all());
         let html = |r: &dyn Render| r.render().into_string();
-        assert!(html(&ui.menu("My account")).contains(r#"id="my-account""#));
-        assert!(html(&ui.drawer("Menu")).contains(r#"id="menu""#));
+        assert!(html(&ui.menu("My account")).contains(r#"id="lui-menu-my-account""#));
+        assert!(html(&ui.drawer("Menu")).contains(r#"id="lui-drawer-menu""#));
+        assert!(html(&ui.dialog("Delete account")).contains(r#"id="lui-dialog-delete-account""#));
+        assert!(html(&ui.palette("/go")).contains(r#"id="lui-palette""#));
         assert!(html(&ui.dialog("Delete account").id("confirm")).contains(r#"id="confirm""#));
     }
 
@@ -416,9 +699,12 @@ mod tests {
             r#".a .b>p,a:hover{margin:0 8px;content:"  ← "}@media (min-width:60rem) and (x){.c{top:calc(1px + 2px)}}"#
         );
         let full = [
+            layout::RESET,
             layout::Tokens::default().css().as_str(),
             &COMPONENT_CSS.concat(),
             &caps::beacon_css(),
+            &blocks::CSS.concat(),
+            layout::MODES,
         ]
         .concat();
         let min = stylesheet();
@@ -443,7 +729,7 @@ mod tests {
     /// passed to `Page::tokens` reaches everything. Literals live in `layout::Tokens` alone.
     #[test]
     fn no_colour_literal_outside_tokens() {
-        for css in COMPONENT_CSS {
+        for css in COMPONENT_CSS.iter().chain(&[layout::RESET, layout::MODES]) {
             for line in css.lines() {
                 let hex = line.char_indices().any(|(i, c)| {
                     c == '#'
@@ -1520,6 +1806,238 @@ mod tests {
         );
     }
 
+    /// The stylesheet is five cascade layers in a fixed order, the minifier keeps them, and
+    /// nothing of the demo's own site is in it.
+    #[test]
+    fn the_stylesheet_is_layered() {
+        let css = stylesheet();
+        assert!(
+            css.starts_with("@layer lui.reset,lui.tokens,lui.components,lui.blocks,lui.modes;")
+        );
+        for layer in ["reset", "tokens", "components", "blocks", "modes"] {
+            assert_eq!(
+                css.matches(&format!("@layer lui.{layer}{{")).count(),
+                1,
+                "{layer}"
+            );
+        }
+        assert_eq!(
+            minify_css("@layer a, b;\n@layer a { p { margin: 0 } }"),
+            "@layer a,b;@layer a{p{margin:0}}"
+        );
+        assert!(
+            !css.contains(".lui-site")
+                && !css.contains(".lui-index")
+                && !css.contains(".lui-props")
+        );
+    }
+
+    /// `Component` has one variant per `COMPONENT_CSS` entry, in its order: a component
+    /// appended there needs its variant appended too.
+    #[test]
+    fn every_component_css_has_a_variant() {
+        let parts: Vec<&str> = (Component::ALL.iter())
+            .filter(|c| **c != Component::Blocks)
+            .map(|c| c.css())
+            .filter(|css| !css.is_empty())
+            .collect();
+        assert_eq!(
+            parts.len(),
+            COMPONENT_CSS.len(),
+            "a Component variant is missing"
+        );
+        for (i, (a, b)) in parts.iter().zip(COMPONENT_CSS).enumerate() {
+            assert!(a == b, "Component::ALL[{i}] is out of COMPONENT_CSS order");
+        }
+        for (i, c) in Component::ALL.iter().enumerate() {
+            assert_eq!(*c as usize, i, "{c:?} is out of place in Component::ALL");
+        }
+        let dialog = stylesheet_for(&[Component::Dialog]);
+        assert!(dialog.contains(".lui-dialog") && dialog.contains(".lui-button"));
+        assert!(!dialog.contains(".lui-kanban") && !dialog.contains(".lui-auth"));
+        assert!(
+            std::ptr::eq(dialog, stylesheet_for(&[Component::Dialog])),
+            "built once"
+        );
+    }
+
+    /// The text of every CSS const in the library's sources, per file name.
+    fn css_by_file() -> Vec<(String, String)> {
+        library_sources()
+            .into_iter()
+            .map(|path| {
+                let source = std::fs::read_to_string(&path).unwrap();
+                let mut css = String::new();
+                for start in source.match_indices(": &str = r#\"").map(|(i, _)| i) {
+                    let head = &source[..start];
+                    let name = head.rsplit("pub const ").next().unwrap_or("");
+                    if !matches!(name.trim(), "CSS" | "RESET" | "MODES") {
+                        continue;
+                    }
+                    let body = &source[start..];
+                    css.push_str(&body[..body.find("\"#;").unwrap()]);
+                }
+                let name = path.file_name().unwrap().to_string_lossy().to_string();
+                (name, css)
+            })
+            .filter(|(_, css)| !css.is_empty())
+            .collect()
+    }
+
+    /// Every `property: value` declaration in `css`.
+    fn declarations(css: &str) -> Vec<(String, String)> {
+        css.split(['{', '}', ';'])
+            .filter_map(|d| d.split_once(':'))
+            .map(|(p, v)| (p.trim().to_string(), v.trim().to_string()))
+            .collect()
+    }
+
+    /// Type sizes and stacking come from tokens: `font-size` is a `var(--lui-text-n)` (or
+    /// relative: `em`, `%`, `inherit`) and `z-index` a `var(--lui-z-*)` (or a local order
+    /// from -1 to 3 inside one component). The files listed still write literals and lose
+    /// their entry in M39's sweep, run after the other milestones merge.
+    #[test]
+    fn no_literal_font_size_or_z_outside_tokens() {
+        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
+        const PENDING_SWEEP: &[&str] = &[
+            "accordion.rs",
+            "alert.rs",
+            "app_shell.rs",
+            "auth_page.rs",
+            "avatar.rs",
+            "badge.rs",
+            "breadcrumbs.rs",
+            "button.rs",
+            "calendar.rs",
+            "card.rs",
+            "chart.rs",
+            "color.rs",
+            "combobox.rs",
+            "counter.rs",
+            "date_picker.rs",
+            "description_list.rs",
+            "dialog.rs",
+            "drawer.rs",
+            "empty_state.rs",
+            "error_page.rs",
+            "error_summary.rs",
+            "form.rs",
+            "input.rs",
+            "input_otp.rs",
+            "kanban.rs",
+            "nav_menu.rs",
+            "paged_table.rs",
+            "pager.rs",
+            "palette.rs",
+            "popover.rs",
+            "progress.rs",
+            "range.rs",
+            "select.rs",
+            "separator.rs",
+            "settings_page.rs",
+            "sidebar.rs",
+            "sortable.rs",
+            "stat.rs",
+            "table.rs",
+            "tabs.rs",
+            "toast.rs",
+            "toggle_group.rs",
+            "tooltip.rs",
+            "upload.rs",
+            "wizard.rs",
+        ];
+        let mut failed = Vec::new();
+        for (file, css) in css_by_file() {
+            let bad: Vec<String> = declarations(&css)
+                .into_iter()
+                .filter(|(p, v)| match p.as_str() {
+                    "font-size" => {
+                        !(v.starts_with("var(--lui-text-")
+                            || v == "inherit"
+                            || (v.ends_with("em") && !v.ends_with("rem"))
+                            || v.ends_with('%'))
+                    }
+                    "z-index" => {
+                        !(v.starts_with("var(--lui-z-")
+                            || matches!(v.as_str(), "auto" | "-1" | "0" | "1" | "2" | "3"))
+                    }
+                    _ => false,
+                })
+                .map(|(p, v)| format!("{p}: {v}"))
+                .collect();
+            match (bad.is_empty(), PENDING_SWEEP.contains(&file.as_str())) {
+                (false, false) => failed.push(format!("{file}: {bad:?}")),
+                (true, true) => failed.push(format!("{file} is clean: drop it from PENDING_SWEEP")),
+                _ => {}
+            }
+        }
+        assert!(failed.is_empty(), "{failed:#?}");
+    }
+
+    /// Component CSS uses logical properties (`margin-inline-start`, `inset-inline-end`,
+    /// `text-align: start`), so a right-to-left page mirrors. Transforms, `translate` and the
+    /// `inset` shorthand are fine. The files listed still use physical ones and lose their
+    /// entry in M39's sweep.
+    #[test]
+    fn no_physical_property_in_component_css() {
+        // Not yet swept: rewriting these files now would conflict with M38/M40/M41 CSS edits.
+        const PENDING_SWEEP: &[&str] = &[
+            "accordion.rs",
+            "avatar.rs",
+            "breadcrumbs.rs",
+            "button.rs",
+            "card.rs",
+            "color.rs",
+            "combobox.rs",
+            "date_picker.rs",
+            "dialog.rs",
+            "drawer.rs",
+            "error_summary.rs",
+            "form.rs",
+            "input.rs",
+            "input_otp.rs",
+            "paged_table.rs",
+            "pager.rs",
+            "palette.rs",
+            "popover.rs",
+            "range.rs",
+            "select.rs",
+            "sidebar.rs",
+            "table.rs",
+            "tabs.rs",
+            "toggle_group.rs",
+            "tooltip.rs",
+            "wizard.rs",
+        ];
+        let physical = |p: &str, v: &str| {
+            matches!(
+                p,
+                "left"
+                    | "right"
+                    | "margin-left"
+                    | "margin-right"
+                    | "padding-left"
+                    | "padding-right"
+            ) || p.starts_with("border-left")
+                || p.starts_with("border-right")
+                || (matches!(p, "text-align" | "float" | "clear") && matches!(v, "left" | "right"))
+        };
+        let mut failed = Vec::new();
+        for (file, css) in css_by_file() {
+            let bad: Vec<String> = declarations(&css)
+                .into_iter()
+                .filter(|(p, v)| physical(p, v))
+                .map(|(p, v)| format!("{p}: {v}"))
+                .collect();
+            match (bad.is_empty(), PENDING_SWEEP.contains(&file.as_str())) {
+                (false, false) => failed.push(format!("{file}: {bad:?}")),
+                (true, true) => failed.push(format!("{file} is clean: drop it from PENDING_SWEEP")),
+                _ => {}
+            }
+        }
+        assert!(failed.is_empty(), "{failed:#?}");
+    }
+
     /// Every component's CSS together, inlined once per page, stays under 64 KB (57.6 KB and
     /// 10.3 KB gzipped at M26; README "What a page weighs").
     #[test]
@@ -1527,9 +2045,11 @@ mod tests {
         // 64 KB until M29 added blocks, a chart and six components, 72 KB until M30's colour
         // scales, depth tokens and motion, 88 KB until M34 restyled every component after its
         // reference; M34's real limit is +10 KB gzipped over 14.4 KB, checked at its wrap-up
-        // (README: "What a page weighs").
+        // (README: "What a page weighs"). 128 KB until M39 folded the dark palette into
+        // light-dark() and moved the demo's CSS out: 117 240 bytes then, 111 358 after; 124 KB
+        // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens.
         assert!(
-            stylesheet().len() < 128 * 1024,
+            stylesheet().len() < 124 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
