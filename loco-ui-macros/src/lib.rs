@@ -40,6 +40,10 @@
 //!   calls `.x(v)` only when the option is `Some(v)` (Maud's toggle and optional syntax).
 //!   `x=|i| { markup }` passes a closure returning markup (`rows=|i| { .. }` on a pager), and
 //!   `x={ markup }` passes markup, itself `lui!` (`footer={ Button("Save") primary; }`).
+//! - **Choices**: a string given to `size`, `tone`, `variant` or `radius` names a value of
+//!   that type in `loco_ui::variant`, looked up at compile time, so `tone="danger"` is
+//!   `.tone(Tone::Danger)` and `tone="dangr"` does not compile. A number (`size=2`, through
+//!   `From<u8>`) and `(expr)` (`tone=(Tone::Danger)`) pass through as for any setter.
 //! - **A component's block** is either items or a body. It holds items when it starts with
 //!   one: a lowercase name followed by its arguments (`tab "Use"`, `column "name" "Name"`,
 //!   `tab (p.title)`, `separator()`). An item's attributes are the modifiers that apply to it
@@ -143,6 +147,19 @@ fn snake(name: &str) -> String {
         }
     }
     out
+}
+
+/// The `loco_ui::variant` type behind a choice attribute (`tone` → `Tone`), whose string
+/// literal is looked up at compile time.
+fn choice(attribute: &Ident) -> Option<Ident> {
+    let ty = match attribute.to_string().as_str() {
+        "size" => "Size",
+        "tone" => "Tone",
+        "variant" => "Variant",
+        "radius" => "Radius",
+        _ => return None,
+    };
+    Some(Ident::new(ty, attribute.span()))
 }
 
 fn stream(tokens: &[TokenTree]) -> TokenStream {
@@ -402,7 +419,24 @@ impl Cx {
     /// An attribute's value at `tokens[index]` and the index after it.
     fn value(&self, tokens: &[TokenTree], index: usize, name: &Ident) -> Result<(Value, usize)> {
         match tokens.get(index) {
-            Some(TokenTree::Literal(l)) => Ok((Value::Args(quote!(#l)), index + 1)),
+            Some(TokenTree::Literal(l)) => match choice(name) {
+                Some(ty) if l.to_string().starts_with('"') => {
+                    let message = format!(
+                        "`{name}={l}` is not a `{ty}`: write one of `loco_ui::variant::{ty}::NAMES`"
+                    );
+                    let ty = quote_spanned!(l.span()=> ::loco_ui::variant::#ty);
+                    let value = Ident::new("__LUI_CHOICE", Span::mixed_site());
+                    let lookup = quote_spanned!(l.span()=> {
+                        const #value: #ty = match #ty::parse(#l) {
+                            ::core::option::Option::Some(v) => v,
+                            ::core::option::Option::None => ::core::panic!(#message),
+                        };
+                        #value
+                    });
+                    Ok((Value::Args(lookup), index + 1))
+                }
+                _ => Ok((Value::Args(quote!(#l)), index + 1)),
+            },
             Some(TokenTree::Punct(p)) if p.as_char() == '-' => {
                 let lit = tokens.get(index + 1).cloned();
                 Ok((Value::Args(quote!(-#lit)), index + 2))

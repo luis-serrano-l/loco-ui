@@ -68,7 +68,10 @@
             { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No border or fill until hovered." },
             { "name": "soft", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A quiet tinted fill in the brand colour, for a secondary action." },
             { "name": "surface", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A pale brand fill inside a brand border." },
-            { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "1 (2rem tall), 2 (2.25rem) or 3 (2.5rem); 2.75rem each on a touch screen." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "1 (2rem tall), 2 (2.25rem) or 3 (2.5rem); 2.75rem each on a touch screen." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "neutral", "attr": "", "doc": "The colour; a tone other than neutral makes the button solid unless a variant is given." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "outline", "attr": "", "doc": "How the tone is painted: solid, soft, surface, outline or ghost." },
+            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "small", "attr": "", "doc": "The corners, from square to a pill." },
             { "name": "small", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Size 1: 2rem tall instead of 2.25rem." },
             { "name": "icon_only", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Square, for a glyph or an icon." },
             { "name": "submit", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "`type=\"submit\"`, the default unless a command or popover target is set." },
@@ -155,7 +158,9 @@
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The control's id, `f-<name>` by default." },
             { "name": "gradient_border", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The border drawn with `--lui-gradient-ring`." },
             { "name": "leading", "kind": "value", "args": "slot: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon or text inside the field's border, before the text." },
-            { "name": "trailing", "kind": "value", "args": "slot: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon or text inside the field's border, after the text." }
+            { "name": "trailing", "kind": "value", "args": "slot: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon or text inside the field's border, after the text." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "A text field's height and text: Radix's sizes 1 to 3." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "A text field's look: surface (a border), soft (a tint) or ghost (neither)." }
           ]
         },
         {
@@ -201,7 +206,11 @@
             { "name": "solid", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Filled with the tone, light text on it." },
             { "name": "surface", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A pale tint inside a border of the tone." },
             { "name": "href", "kind": "value", "args": "href: &'a str", "default": "", "attr": "href", "doc": "Make the badge a link." },
-            { "name": "shimmer", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A light sweeps across the badge, over its own fill." }
+            { "name": "shimmer", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A light sweeps across the badge, over its own fill." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "1", "attr": "", "doc": "Radix's sizes 1 to 3: more padding, and larger text at 3." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "brand", "attr": "", "doc": "The colour." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "How the tone is painted; ghost is the tone's text with no fill or border." },
+            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "small", "attr": "", "doc": "The corners, from square to a pill." }
           ]
         }
       ]
@@ -240,7 +249,9 @@
             { "name": "gradient_border", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The border drawn with `--lui-gradient-ring`." },
             { "name": "reveal", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fades and rises as it scrolls into view." },
             { "name": "classic", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Radix's classic card: a deeper shadow and no border line." },
-            { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No frame, fill or shadow: only the card's spacing." }
+            { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No frame, fill or shadow: only the card's spacing." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The padding and gaps: 1rem, 1.5rem (the default) or 2rem." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "Surface or ghost, as in Radix; the others draw as surface." }
           ]
         }
       ]
@@ -291,7 +302,10 @@
             { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–5: 1.5, 2, 2.5, 3 or 4rem across." },
             { "name": "small", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`.size(1)`: 1.5rem across, for lists and table rows." },
             { "name": "large", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "`.size(4)`: 3rem across, for a profile header." },
-            { "name": "square", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Rounded corners instead of a circle (a team, a project)." }
+            { "name": "square", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Rounded corners instead of a circle (a team, a project)." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "brand", "attr": "", "doc": "The colour of the initials' tile." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Soft (a tint) or solid (filled); Radix has no other, so the rest draw as soft." },
+            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "full", "attr": "", "doc": "The corners, from square to the circle." }
           ]
         },
         {
@@ -570,7 +584,8 @@
             { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the title of the tab added last." },
             { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles in a column on the left, the open panel beside them." },
             { "name": "select_below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Under 30rem of its own width the titles give way to a `<select>`." },
-            { "name": "underline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)." }
+            { "name": "underline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The titles' text and padding: smaller at 1, larger at 3." }
           ]
         }
       ]
@@ -925,7 +940,8 @@
           "calls": ["ui.flash()"],
           "props": [
             { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A dismiss link on each message, back to this page (which no longer has the flash)." },
-            { "name": "auto_hide", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fade calm messages out after a few seconds." }
+            { "name": "auto_hide", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fade calm messages out after a few seconds." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Each message's callout: soft, surface or outline, as on an alert." }
           ]
         }
       ]
@@ -969,7 +985,9 @@
             { "name": "search", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "A filter box submitting `<name>-q` to `action` with GET." },
             { "name": "search_over", "kind": "number", "args": "n: usize", "default": "15", "attr": "", "doc": "Show the filter box above this many options (default 15)." },
             { "name": "value", "kind": "value", "args": "value: &'a str", "default": "", "attr": "", "doc": "The chosen option's value, instead of the query's `name`." },
-            { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the select, which gets `aria-invalid`." }
+            { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the select, which gets `aria-invalid`." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The trigger's height and text: Radix's sizes 1 to 3." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "The trigger's look: surface (a border), soft (a tint) or ghost (neither)." }
           ]
         },
         {
@@ -1164,7 +1182,10 @@
             { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something to watch." },
             { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Something worked." },
             { "name": "surface", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A paler tint inside a border in the level's colour." },
-            { "name": "outline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No tint: a border in the level's colour on the page." }
+            { "name": "outline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No tint: a border in the level's colour on the page." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "Radix's sizes 1 to 3: the padding, gaps and text." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "info", "attr": "", "doc": "The colour; danger also makes it `role=\"alert\"`." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Soft, surface or outline; ghost drops the frame, and solid draws as soft." }
           ]
         }
       ]
@@ -1189,7 +1210,11 @@
           "calls": ["ui.progress(value: u64, max: u64)"],
           "props": [
             { "name": "label", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A label above the bar, with the percentage beside it." },
-            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The bar's id instead of `lui-progress-<label>`." }
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The bar's id instead of `lui-progress-<label>`." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The bar's height: 0.25, 0.5 or 0.75rem." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "brand", "attr": "", "doc": "The fill's colour." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "Soft tints the track with the tone; the others keep the gray track." },
+            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "full", "attr": "", "doc": "The ends of the track and the fill, from square to round." }
           ]
         }
       ]
@@ -1537,7 +1562,9 @@
             { "name": "option", "kind": "item", "args": "value: &'a str, text: &'a str", "default": "", "attr": "value", "doc": "An option posting `value`, shown as `text`." },
             { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "The option added last shows this icon, its text becoming a hidden label." },
             { "name": "value", "kind": "value", "args": "value: &'a str", "default": "", "attr": "checked", "doc": "Press this option (again for more with `.multiple()`); the query's own values by default." },
-            { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "Several options may be pressed (checkboxes, not radios)." }
+            { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "Several options may be pressed (checkboxes, not radios)." },
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The items' height and text: Radix's sizes 1 to 3." },
+            { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "medium", "attr": "", "doc": "The corners of the track and the chip, from square to a pill." }
           ]
         }
       ]

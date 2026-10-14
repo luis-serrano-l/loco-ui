@@ -1,6 +1,6 @@
 //! The playground under a component's props table: a GET form of the props that take a
-//! switch, a condition, a text or a number, which re-renders the component with the chosen
-//! ones and writes the matching `lui!` line. Rust cannot call a setter by its name at run
+//! switch, a condition, a text, a number or a choice (a `<select>` of its names), which
+//! re-renders the component with the chosen ones and writes the matching `lui!` line. Rust cannot call a setter by its name at run
 //! time, so each builder here has a small function mapping its props to its setters; props
 //! that take a list, markup or several values (and builders made mostly of those) stay in the
 //! table without a control. Query keys are `pg.<Builder>.<prop>`, so a playground's state is
@@ -38,7 +38,7 @@ impl<'a> Try<'a> {
         let key = self.key(prop);
         self.ui.param(&key).filter(|v| !v.trim().is_empty())
     }
-    /// A number, when it parses.
+    /// A number or a choice (`Tone`, `Size`..), when it parses.
     fn num<T: std::str::FromStr>(&self, prop: &str) -> Option<T> {
         self.text(prop).and_then(|v| v.trim().parse().ok())
     }
@@ -62,11 +62,16 @@ pub(crate) const ENTRIES: &[Entry] = &[
         builder: "Button",
         call: "Button(\"Save\")",
         props: &[
-            "primary", "danger", "ghost", "small", "disabled", "loading", "shimmer",
+            "primary", "danger", "ghost", "small", "disabled", "loading", "shimmer", "size",
+            "tone", "variant", "radius",
         ],
         rest: ";",
         build: |query| {
             let builder = query.ui.button("Save");
+            let builder = with(builder, query.num::<Size>("size"), |b, v| b.size(v));
+            let builder = with(builder, query.num("tone"), |b, v| b.tone(v));
+            let builder = with(builder, query.num("variant"), |b, v| b.variant(v));
+            let builder = with(builder, query.num("radius"), |b, v| b.radius(v));
             let builder = switch(builder, query.on("shimmer"), |b| b.shimmer());
             let builder = switch(builder, query.on("primary"), |b| b.primary());
             let builder = switch(builder, query.on("danger"), |b| b.danger());
@@ -79,10 +84,25 @@ pub(crate) const ENTRIES: &[Entry] = &[
     Entry {
         builder: "Badge",
         call: "Badge(\"New\")",
-        props: &["secondary", "danger", "outline", "ok", "warn", "shimmer"],
+        props: &[
+            "secondary",
+            "danger",
+            "outline",
+            "ok",
+            "warn",
+            "shimmer",
+            "size",
+            "tone",
+            "variant",
+            "radius",
+        ],
         rest: ";",
         build: |query| {
             let builder = query.ui.badge("New");
+            let builder = with(builder, query.num::<Size>("size"), |b, v| b.size(v));
+            let builder = with(builder, query.num("tone"), |b, v| b.tone(v));
+            let builder = with(builder, query.num("variant"), |b, v| b.variant(v));
+            let builder = with(builder, query.num("radius"), |b, v| b.radius(v));
             let builder = switch(builder, query.on("shimmer"), |b| b.shimmer());
             let builder = switch(builder, query.on("secondary"), |b| b.secondary());
             let builder = switch(builder, query.on("danger"), |b| b.danger());
@@ -94,7 +114,15 @@ pub(crate) const ENTRIES: &[Entry] = &[
     Entry {
         builder: "Alert",
         call: "Alert(\"Heads up\")",
-        props: &["description", "danger", "warn", "ok"],
+        props: &[
+            "description",
+            "danger",
+            "warn",
+            "ok",
+            "size",
+            "tone",
+            "variant",
+        ],
         rest: ";",
         build: |query| {
             let builder = with(
@@ -102,6 +130,9 @@ pub(crate) const ENTRIES: &[Entry] = &[
                 query.text("description"),
                 |b, v| b.description(v),
             );
+            let builder = with(builder, query.num::<Size>("size"), |b, v| b.size(v));
+            let builder = with(builder, query.num("tone"), |b, v| b.tone(v));
+            let builder = with(builder, query.num("variant"), |b, v| b.variant(v));
             let builder = switch(builder, query.on("danger"), |b| b.danger());
             let builder = switch(builder, query.on("warn"), |b| b.warn());
             switch(builder, query.on("ok"), |b| b.ok()).render()
@@ -134,25 +165,31 @@ pub(crate) const ENTRIES: &[Entry] = &[
     Entry {
         builder: "Avatar",
         call: "Avatar(\"Ada Lovelace\")",
-        props: &["small", "large"],
+        props: &["small", "large", "tone", "variant", "radius"],
         rest: ";",
         build: |query| {
             let builder = switch(query.ui.avatar("Ada Lovelace"), query.on("small"), |b| {
                 b.small()
             });
+            let builder = with(builder, query.num("tone"), |b, v| b.tone(v));
+            let builder = with(builder, query.num("variant"), |b, v| b.variant(v));
+            let builder = with(builder, query.num("radius"), |b, v| b.radius(v));
             switch(builder, query.on("large"), |b| b.large()).render()
         },
     },
     Entry {
         builder: "Progress",
         call: "Progress(40, 100)",
-        props: &["label"],
+        props: &["label", "size", "tone", "variant", "radius"],
         rest: ";",
         build: |query| {
-            with(query.ui.progress(40, 100), query.text("label"), |b, v| {
+            let builder = with(query.ui.progress(40, 100), query.text("label"), |b, v| {
                 b.label(v)
-            })
-            .render()
+            });
+            let builder = with(builder, query.num::<Size>("size"), |b, v| b.size(v));
+            let builder = with(builder, query.num("tone"), |b, v| b.tone(v));
+            let builder = with(builder, query.num("variant"), |b, v| b.variant(v));
+            with(builder, query.num("radius"), |b, v| b.radius(v)).render()
         },
     },
     Entry {
@@ -407,6 +444,16 @@ fn snippet(query: &Try, entry: &Entry, props: &[Prop]) -> String {
                     line += &format!(" {}={:?}", prop.name, value);
                 }
             }
+            // A size is written as its number, any other choice as its name.
+            PropKind::Choice { of } => {
+                if let Some(value) = query.text(prop.name).filter(|v| of.contains(v)) {
+                    if value.parse::<u8>().is_ok() {
+                        line += &format!(" {}={value}", prop.name);
+                    } else {
+                        line += &format!(" {}={value:?}", prop.name);
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -422,6 +469,10 @@ fn control(ui: &Ui, query: &Try, entry: &Entry, prop: &Prop) -> Markup {
     match prop.kind {
         PropKind::Switch | PropKind::Condition => {
             html! { (ui.checkbox(&key, prop.name).checked(query.on(prop.name))) }
+        }
+        PropKind::Choice { of } => {
+            let options = std::iter::once(("", prop.default)).chain(of.iter().map(|c| (*c, *c)));
+            html! { (ui.select(&key, prop.name).size(1).options(options)) }
         }
         _ => {
             html! { (ui.input(&key, prop.name).hide_label().value(query.text(prop.name).unwrap_or(""))) }

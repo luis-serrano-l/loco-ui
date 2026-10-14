@@ -1,7 +1,9 @@
 //! # Card
 //!
 //! A bordered box with a header (title, description, and anything else such as an action),
-//! a body and a footer: shadcn's Card. Settings panels, pricing tiers, sign-in boxes.
+//! a body and a footer: shadcn's Card, in Radix Themes Card's variants (surface, `.classic()`,
+//! `.ghost()`) and three of its sizes (`.size(..)`, the padding). Settings panels, pricing
+//! tiers, sign-in boxes.
 //!
 //! **Platform features:** plain `<div>`s and a heading; the header is a grid, so an action
 //! put in `.header(..)` sits at the top right beside the title. Four opt-in showpiece
@@ -51,17 +53,22 @@
 //! let m = ui.card().title("Pro").beam().glow().gradient_border().reveal().render().into_string();
 //! assert!(m.starts_with(r#"<div class="lui-card lui-card-beam lui-card-glow lui-card-gradient-border lui-card-reveal">"#));
 //! assert_eq!(lui! { Card title="Pro" beam glow gradient_border reveal; }.into_string(), m);
+//! // Tighter padding, and no frame.
+//! let m = ui.card().title("Note").size(1).variant(Variant::Ghost).render().into_string();
+//! assert!(m.starts_with(r#"<div class="lui-card lui-card-ghost" data-size="1" data-variant="ghost">"#));
+//! assert_eq!(lui! { Card title="Note" size=1 variant="ghost"; }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::props::{Prop, PropKind};
+use crate::variant::{Size, Variant};
 
 /// A card, made by [`Ui::card`].
 ///
 /// **Setters.** Values and items: `.title(..)`, `.description(..)`, `.header(..)`, `.body(..)`,
-/// `.footer(..)`, `.id(..)`; switches: `.classic()`, `.ghost()`, `.beam()`, `.glow()`,
+/// `.footer(..)`, `.id(..)`, `.size(..)`, `.variant(..)`; switches: `.classic()`, `.ghost()`, `.beam()`, `.glow()`,
 /// `.gradient_border()`, `.reveal()`.
 #[derive(Clone, Debug, Default)]
 pub struct Card<'a> {
@@ -71,7 +78,9 @@ pub struct Card<'a> {
     body: Option<Markup>,
     footer: Option<Markup>,
     id: Option<&'a str>,
-    variant: Option<&'static str>,
+    variant: Option<Variant>,
+    classic: bool,
+    size: Size,
     beam: bool,
     glow: bool,
     gradient_border: bool,
@@ -104,6 +113,20 @@ impl Card<'_> {
             .doc("Radix's classic card: a deeper shadow and no border line."),
         Prop::new("ghost", PropKind::Switch, "")
             .doc("No frame, fill or shadow: only the card's spacing."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("2")
+        .doc("The padding and gaps: 1rem, 1.5rem (the default) or 2rem."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("surface")
+        .doc("Surface or ghost, as in Radix; the others draw as surface."),
     ];
 }
 
@@ -156,14 +179,28 @@ impl<'a> Card<'a> {
     /// Radix's classic card: a deeper shadow and no border line, for a card that should
     /// stand out from a surface of cards.
     pub fn classic(mut self) -> Self {
-        self.variant = Some(" lui-card-classic");
+        self.classic = true;
+        self.variant = None;
         self
     }
 
     /// No frame, fill or shadow: the card's spacing and header only, to group content that
     /// already sits in a frame.
-    pub fn ghost(mut self) -> Self {
-        self.variant = Some(" lui-card-ghost");
+    pub fn ghost(self) -> Self {
+        self.variant(Variant::Ghost)
+    }
+
+    /// Surface (the default) or ghost, Radix's card variants besides classic; solid, soft
+    /// and outline draw as surface.
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self.classic = false;
+        self
+    }
+
+    /// The padding and gaps: 1rem at size 1, 1.5rem at 2 (the default), 2rem at 3.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
         self
     }
 
@@ -202,9 +239,13 @@ impl Render for Card<'_> {
         let has_header =
             self.title.is_some() || self.description.is_some() || self.header.is_some();
         let mut class = String::from("lui-card");
-        if let Some(v) = self.variant {
-            class.push_str(v);
+        if self.classic {
+            class.push_str(" lui-card-classic");
         }
+        if self.variant == Some(Variant::Ghost) {
+            class.push_str(" lui-card-ghost");
+        }
+        let size = (self.size != Size::S2).then(|| self.size.as_str());
         for (on, name) in [
             (self.beam, " lui-card-beam"),
             (self.glow, " lui-card-glow"),
@@ -216,7 +257,7 @@ impl Render for Card<'_> {
             }
         }
         html! {
-            div class=(class) id=[self.id] {
+            div class=(class) data-size=[size] data-variant=[self.variant.map(Variant::as_str)] id=[self.id] {
                 @if has_header {
                     div class="lui-card-header" {
                         @if self.title.is_some() || self.description.is_some() {
@@ -260,6 +301,11 @@ pub const CSS: &str = r#"
 .lui-card-body > :first-child { margin-top: 0; }
 .lui-card-body > :last-child { margin-bottom: 0; }
 .lui-card-footer { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem; padding-inline: 1.5rem; }
+/* .size(1) and .size(3): Radix's card sizes 2 and 4 (16 and 32px); the default is its 3. */
+.lui-card[data-size="1"] { gap: 1rem; padding-block: 1rem; }
+.lui-card[data-size="1"] > :is(.lui-card-header, .lui-card-body, .lui-card-footer) { padding-inline: 1rem; }
+.lui-card[data-size="3"] { gap: 2rem; padding-block: 2rem; }
+.lui-card[data-size="3"] > :is(.lui-card-header, .lui-card-body, .lui-card-footer) { padding-inline: 2rem; }
 /* Showpieces, each opt-in by its setter and each at rest without its feature. */
 .lui-card:is(.lui-card-beam, .lui-card-glow) { position: relative; isolation: isolate; }
 /* .beam(): a conic gradient on ::before, cut to the 1px border ring by the mask, its start

@@ -42,6 +42,7 @@ fn feedback(ui: &Ui) -> Markup {
             Alert("Payment failed") danger description="The card was declined. Try another one.";
             Alert("Backups are complete") ok surface;
             Alert("Storage is 90% full") warn outline description="Old builds are removed after 30 days.";
+            Alert("Draft saved") tone="neutral" variant="surface" size=1;
             Progress(62, 100) label="Uploading photos";
             Progress(0, 0) label="Waiting for the server";
             Meter(83, 0, 100) label="Disk used" low=60 high=80 optimum=0;

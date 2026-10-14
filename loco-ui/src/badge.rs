@@ -1,9 +1,10 @@
 //! # Badge
 //!
 //! A short label beside something: a status, a count, a tag. After Radix Themes Badge: a tone
-//! (the brand by default; `.secondary()` gray, `.danger()`, `.ok()`, `.warn()`) in a look (soft
-//! by default: a tint with darker text; `.solid()`, `.surface()` or `.outline()`), at Radix's
-//! size 1 with no wrapping.
+//! (the brand by default; `.secondary()` gray, `.danger()`, `.ok()`, `.warn()`, or any
+//! [`Tone`](crate::variant::Tone) with `.tone(..)`) in a variant (soft by default: a tint with
+//! darker text; `.solid()`, `.surface()`, `.outline()`, or `.variant(..)`), at Radix's size 1
+//! unless `.size(..)` says 2 or 3, with no wrapping.
 //!
 //! **Platform features:** a `<span>` (or an `<a>` with `.href()`); nothing interactive of its
 //! own. `.shimmer()` sweeps a light across it, as on a button: an `::after` layer moved with
@@ -37,24 +38,33 @@
 //! assert_eq!(lui! { Badge("New") shimmer; }.into_string(), new);
 //! // Radix's other looks, in any tone.
 //! let loud = ui.badge("Failed").danger().solid().render().into_string();
-//! assert_eq!(loud, r#"<span class="lui-badge lui-badge-danger lui-badge-solid">Failed</span>"#);
+//! assert_eq!(loud, r#"<span class="lui-badge lui-badge-danger lui-badge-solid" data-tone="danger" data-variant="solid">Failed</span>"#);
 //! assert_eq!(lui! { Badge("Failed") danger solid; }.into_string(), loud);
+//! // The typed setters, written as strings in `lui!`.
+//! let beta = ui.badge("Beta").tone(Tone::Info).variant(Variant::Surface).size(2).radius(Radius::Full);
+//! let beta = beta.render().into_string();
+//! assert!(beta.contains(r#"data-size="2" data-tone="info" data-variant="surface" data-radius="full""#));
+//! assert_eq!(lui! { Badge("Beta") tone="info" variant="surface" size=2 radius="full"; }.into_string(), beta);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::props::{Prop, PropKind};
+use crate::variant::{Radius, Size, Tone, Variant};
 
 /// A badge, made by [`Ui::badge`].
 ///
-/// **Setters.** Values and items: `.href(..)`; switches: `.secondary()`, `.danger()`,
+/// **Setters.** Values and items: `.href(..)`, `.size(..)`, `.tone(..)`, `.variant(..)`,
+/// `.radius(..)`; switches: `.secondary()`, `.danger()`,
 /// `.outline()`, `.ok()`, `.warn()`, `.solid()`, `.surface()`, `.shimmer()`.
 #[derive(Clone, Debug)]
 pub struct Badge<'a> {
     text: &'a str,
-    tone: Option<&'static str>,
-    look: Option<&'static str>,
+    tone: Option<Tone>,
+    variant: Option<Variant>,
+    size: Size,
+    radius: Option<Radius>,
     href: Option<&'a str>,
     shimmer: bool,
 }
@@ -75,6 +85,30 @@ impl Badge<'_> {
             .doc("Make the badge a link."),
         Prop::new("shimmer", PropKind::Switch, "")
             .doc("A light sweeps across the badge, over its own fill."),
+        Prop::new(
+            "size",
+            PropKind::Choice { of: Size::NAMES },
+            "size: impl Into<Size>",
+        )
+        .default("1")
+        .doc("Radix's sizes 1 to 3: more padding, and larger text at 3."),
+        Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
+            .default("brand")
+            .doc("The colour."),
+        Prop::new(
+            "variant",
+            PropKind::Choice { of: Variant::NAMES },
+            "variant: Variant",
+        )
+        .default("soft")
+        .doc("How the tone is painted; ghost is the tone's text with no fill or border."),
+        Prop::new(
+            "radius",
+            PropKind::Choice { of: Radius::NAMES },
+            "radius: Radius",
+        )
+        .default("small")
+        .doc("The corners, from square to a pill."),
     ];
 }
 
@@ -84,7 +118,9 @@ impl Ui {
         Badge {
             text,
             tone: None,
-            look: None,
+            variant: None,
+            size: Size::S1,
+            radius: None,
             href: None,
             shimmer: false,
         }
@@ -92,49 +128,64 @@ impl Ui {
 }
 
 impl<'a> Badge<'a> {
-    fn tone(mut self, tone: &'static str) -> Self {
+    /// The colour: brand (the default), neutral, ok, warn, danger or info.
+    pub fn tone(mut self, tone: Tone) -> Self {
         self.tone = Some(tone);
         self
     }
 
-    fn look(mut self, look: &'static str) -> Self {
-        self.look = Some(look);
+    /// How the tone is painted: soft (the default), solid, surface, outline, or ghost (the
+    /// tone's text alone).
+    pub fn variant(mut self, variant: Variant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
+
+    /// Radix's sizes 1 (the default) to 3: more padding, and larger text at 3.
+    pub fn size(mut self, size: impl Into<Size>) -> Self {
+        self.size = size.into();
+        self
+    }
+
+    /// The corners: none, small (the default), medium, large or full (a pill).
+    pub fn radius(mut self, radius: Radius) -> Self {
+        self.radius = Some(radius);
         self
     }
 
     /// A gray tone instead of the brand: a draft, a count.
     pub fn secondary(self) -> Self {
-        self.tone("lui-badge-secondary")
+        self.tone(Tone::Neutral)
     }
 
     /// The `--lui-danger` tone: failed, overdue.
     pub fn danger(self) -> Self {
-        self.tone("lui-badge-danger")
+        self.tone(Tone::Danger)
     }
 
     /// A border and no fill, gray unless a tone is given (a tag).
     pub fn outline(self) -> Self {
-        self.look("lui-badge-outline")
+        self.variant(Variant::Outline)
     }
 
     /// Filled with the tone, light text on it: the loudest look ("New").
     pub fn solid(self) -> Self {
-        self.look("lui-badge-solid")
+        self.variant(Variant::Solid)
     }
 
     /// A pale tint inside a border of the tone.
     pub fn surface(self) -> Self {
-        self.look("lui-badge-surface")
+        self.variant(Variant::Surface)
     }
 
     /// A tint of `--lui-ok`: done, paid, healthy.
     pub fn ok(self) -> Self {
-        self.tone("lui-badge-ok")
+        self.tone(Tone::Ok)
     }
 
     /// A tint of `--lui-warn`: pending, degraded.
     pub fn warn(self) -> Self {
-        self.tone("lui-badge-warn")
+        self.tone(Tone::Warn)
     }
 
     /// Make the badge a link.
@@ -154,18 +205,31 @@ impl<'a> Badge<'a> {
 impl Render for Badge<'_> {
     fn render(&self) -> Markup {
         let mut class = String::from("lui-badge");
-        for part in [self.tone, self.look].into_iter().flatten() {
-            class.push(' ');
-            class.push_str(part);
-        }
+        class.push_str(match self.tone {
+            Some(Tone::Neutral) => " lui-badge-secondary",
+            Some(Tone::Danger) => " lui-badge-danger",
+            Some(Tone::Ok) => " lui-badge-ok",
+            Some(Tone::Warn) => " lui-badge-warn",
+            Some(Tone::Brand | Tone::Info) | None => "",
+        });
+        class.push_str(match self.variant {
+            Some(Variant::Solid) => " lui-badge-solid",
+            Some(Variant::Surface) => " lui-badge-surface",
+            Some(Variant::Outline) => " lui-badge-outline",
+            Some(Variant::Soft | Variant::Ghost) | None => "",
+        });
         if self.shimmer {
             class.push_str(" lui-badge-shimmer");
         }
+        let size = (self.size != Size::S1).then(|| self.size.as_str());
+        let tone = self.tone.map(Tone::as_str);
+        let variant = self.variant.map(Variant::as_str);
+        let radius = self.radius.map(Radius::as_str);
         html! {
             @if let Some(href) = self.href {
-                a class=(class) href=(href) { (self.text) }
+                a class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius] href=(href) { (self.text) }
             } @else {
-                span class=(class) { (self.text) }
+                span class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius] { (self.text) }
             }
         }
     }
@@ -196,6 +260,12 @@ pub const CSS: &str = r#"
 .lui-badge.lui-badge-outline { background: transparent; border-color: color-mix(in srgb, var(--lui-badge-tone) 45%, transparent); }
 a.lui-badge:hover { background: color-mix(in srgb, var(--lui-badge-tone) 22%, transparent); }
 a.lui-badge.lui-badge-solid:hover { background: color-mix(in srgb, var(--lui-badge-tone) 88%, var(--lui-fg)); }
+/* .tone(..) for the two tones without a class (brand also beats the neutral outline), the ghost
+   variant (the tone's text alone), and Radix's sizes 2 and 3. */
+.lui-badge:is([data-tone=brand], [data-tone=info]) { --lui-badge-tone: var(--lui-primary); --lui-badge-on: var(--lui-on-primary); }
+.lui-badge[data-variant=ghost] { background: transparent; }
+.lui-badge[data-size="2"] { padding: 0.25rem 0.5rem; }
+.lui-badge[data-size="3"] { padding: 0.25rem 0.625rem; font-size: 0.875rem; line-height: 1.25rem; }
 .lui-badge .lui-icon { width: 0.75rem; height: 0.75rem; }
 /* .shimmer(): the button's sweep (@keyframes lui-shimmer in button.rs) over the badge's fill. */
 .lui-badge.lui-badge-shimmer { --lui-sweep: var(--lui-shimmer-surface); }
