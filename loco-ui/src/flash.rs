@@ -3,7 +3,8 @@
 //! One-shot status messages that survive a Post/Redirect/Get, no script. Four levels
 //! (`info`, `ok`, `warn`, `danger`), several at once stacked in arrival order, an optional
 //! dismiss link, and an optional auto-hide for the calm levels. Each message is an alert's
-//! callout, soft unless `.variant(..)` makes them surface or outline.
+//! callout, soft unless `.variant(..)` makes them surface or outline. `.title(..)` puts a
+//! bold line over each message and `.action(..)` a link button under it.
 //!
 //! **Platform features:** a cookie with `Max-Age=60` set by [`crate::Ui::redirect`] on the
 //! redirect, read on the next request through `UiState`, and cleared by the next
@@ -50,6 +51,12 @@
 //! let m = ui.flash().variant(Variant::Outline).render().into_string();
 //! assert!(m.starts_with(r#"<div class="lui-flash" data-variant="outline">"#) && m.contains("lui-callout-outline"));
 //! assert_eq!(lui! { Flash variant="outline"; }.into_string(), m);
+//! // A title over the message and a link under it.
+//! let ui = Ui::from_request("/notes", "", "lui-flash=ok%3ANote%20moved%20to%20Archive.");
+//! let m = ui.flash().title("Moved").action("Open Archive", "/archive").render().into_string();
+//! assert!(m.contains(r#"<p class="lui-flash-title">Moved</p><p class="lui-flash-text">Note moved to Archive.</p>"#));
+//! assert!(m.contains(r#"href="/archive""#));
+//! assert_eq!(lui! { Flash title="Moved" action=("Open Archive", "/archive"); }.into_string(), m);
 //! ```
 
 use maud::{Markup, Render, html};
@@ -121,10 +128,13 @@ pub fn stack(messages: &[(Level, &str)]) -> String {
 /// The request's flash messages as a stack of banners, made by [`Ui::flash`]; nothing when
 /// there are none.
 ///
-/// **Setters.** Values and items: `.variant(..)`; switches: `.dismiss()`, `.auto_hide()`.
+/// **Setters.** Values and items: `.variant(..)`, `.title(..)`, `.action(..)`; switches:
+/// `.dismiss()`, `.auto_hide()`.
 #[derive(Clone, Debug)]
 pub struct Flash<'a> {
     ui: &'a Ui,
+    title: Option<&'a str>,
+    action: Option<(&'a str, &'a str)>,
     dismiss: bool,
     auto_hide: bool,
     variant: Option<Variant>,
@@ -146,6 +156,9 @@ impl Flash<'_> {
         )
         .default("soft")
         .doc("Each message's callout: soft, surface or outline, as on an alert."),
+        Prop::new("title", PropKind::Value, "text: &'a str").doc("A bold line over each message."),
+        Prop::new("action", PropKind::Value, "label: &'a str, href: &'a str")
+            .doc("A link button under each message (\"Undo\", \"View\")."),
     ];
 }
 
@@ -154,6 +167,8 @@ impl Ui {
     pub fn flash(&self) -> Flash<'_> {
         Flash {
             ui: self,
+            title: None,
+            action: None,
             dismiss: false,
             auto_hide: false,
             variant: None,
@@ -161,7 +176,20 @@ impl Ui {
     }
 }
 
-impl Flash<'_> {
+impl<'a> Flash<'a> {
+    /// A bold line over each message: the flash cookie carries the message, the route that
+    /// shows it says what it is about.
+    pub fn title(mut self, text: &'a str) -> Self {
+        self.title = Some(text);
+        self
+    }
+
+    /// A link button under each message ("Undo", "View").
+    pub fn action(mut self, label: &'a str, href: &'a str) -> Self {
+        self.action = Some((label, href));
+        self
+    }
+
     /// A dismiss link on each message, back to this page (which no longer has the flash).
     pub fn dismiss(mut self) -> Self {
         self.dismiss = true;
@@ -198,7 +226,11 @@ impl Render for Flash<'_> {
                         div class={ "lui-flash-item lui-callout lui-callout-" (level.as_str()) " lui-flash-" (level.as_str()) @if let Some(v) = framed { " lui-callout-" (v) } @if hide { " lui-flash-auto" } }
                             role=(if *level == Level::Danger { "alert" } else { "status" }) {
                             (match level { Level::Ok => Icon::CircleCheck, Level::Info => Icon::Info, _ => Icon::TriangleAlert })
+                            @if let Some(t) = self.title { p class="lui-flash-title" { (t) } }
                             p class="lui-flash-text" { (message) }
+                            @if let Some((label, href)) = self.action {
+                                div class="lui-flash-actions" { (self.ui.link_button(label, href).small()) }
+                            }
                             @if let Some(href) = dismiss {
                                 a class="lui-flash-dismiss" href=(href) aria-label=(self.ui.fill(Text::DismissMessage, &[message])) { (Icon::X) }
                             }
@@ -215,6 +247,10 @@ pub const CSS: &str = r#"
 .lui-flash { display: grid; gap: var(--lui-space-2); margin-block: var(--lui-space-4); }
 .lui-flash-item { grid-template-columns: 1rem minmax(0, 1fr) auto; }
 .lui-flash-item > .lui-icon { grid-row: 1; }
+.lui-flash-title { font-weight: 600; }
+.lui-flash-title + .lui-flash-text { grid-row: 2; }
+.lui-flash-actions { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); margin-top: var(--lui-space-1) !important; }
+.lui-flash-actions a { text-decoration: none; }
 .lui-flash[data-variant=ghost] > .lui-flash-item { background: transparent; border-color: transparent; }
 .lui-flash-dismiss {
   grid-column: 3 !important; grid-row: 1; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; margin: -0.125rem -0.5rem 0 0 !important;

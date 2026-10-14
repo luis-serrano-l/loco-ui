@@ -4,16 +4,19 @@
 //! and an icon, in an info, danger, warning or success tone (or any
 //! [`Tone`](crate::variant::Tone) with `.tone(..)`), soft by default or `.surface()`,
 //! `.outline()` (`.variant(..)`), at Radix's sizes 1 to 3. For a message that stays where it
-//! is, unlike a flash or a toast.
+//! is, unlike a flash or a toast. `.action(..)` adds a button under the text, and
+//! `.dismiss()` a close button that keeps it closed, as a [`crate::banner::Banner`] does.
 //!
 //! **Platform features:** a `role="alert"` box for the danger tone (read out when the page
-//! loads) and `role="status"` for the others; the icon is decorative.
+//! loads) and `role="status"` for the others; the icon is decorative. The close button is a
+//! `<form method="post">` to [`crate::banner::DISMISS_PATH`], which sets a `lui-dismiss-<id>`
+//! cookie and redirects back; the next page renders nothing for it.
 //!
 //! **Accessibility:** `role="alert"` for the danger tone, `role="status"` for the others; the
 //! icon is decorative. Checked by axe-core in headless Firefox on every demo route, both
 //! capability variants, light and dark (no serious or critical violation).
 //!
-//! **What it does not do without script:** nothing is missing.
+//! **What it does not do without script:** close in place: closing is a round trip.
 //!
 //! **Fallback:** none needed.
 //!
@@ -35,23 +38,36 @@
 //! let m = ui.alert("Draft").tone(Tone::Neutral).variant(Variant::Outline).size(1).render().into_string();
 //! assert!(m.contains(r#"class="lui-alert lui-callout lui-callout-neutral lui-callout-outline" data-size="1" data-tone="neutral" data-variant="outline""#));
 //! assert_eq!(lui! { Alert("Draft") tone="neutral" variant="outline" size=1; }.into_string(), m);
+//! // A button under the text, and a close button that keeps it closed.
+//! let ui = Ui::from_request("/billing", "", "");
+//! let m = ui.alert("Trial ends Friday").info().action(ui.link_button("Upgrade", "/plans").small()).dismiss().render().into_string();
+//! assert!(m.contains(r#"<div class="lui-alert-actions"><a class="lui-button"#) && m.contains(r#"name="id" value="trial-ends-friday""#));
+//! let same = lui! { Alert("Trial ends Friday") info action=(ui.link_button("Upgrade", "/plans").small()) dismiss; };
+//! assert_eq!(same.into_string(), m);
+//! let gone = Ui::from_request("/billing", "", "lui-dismiss-trial-ends-friday=1");
+//! assert_eq!(gone.alert("Trial ends Friday").dismiss().render().into_string(), "");
 //! ```
 
 use maud::{Markup, Render, html};
 
+use crate::button::Button;
 use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
 use crate::variant::{Size, Tone, Variant};
-use crate::{Icon, Ui};
+use crate::{Icon, Ui, slug};
 
 /// A callout, made by [`Ui::alert`].
 ///
 /// **Setters.** Values and items: `.description(..)`, `.body(..)`, `.icon(..)`, `.size(..)`,
-/// `.tone(..)`, `.variant(..)`; switches:
-/// `.danger()`, `.warn()`, `.ok()`, `.surface()`, `.outline()`.
+/// `.tone(..)`, `.variant(..)`, `.action(..)`, `.id(..)`; switches:
+/// `.danger()`, `.warn()`, `.ok()`, `.info()`, `.surface()`, `.outline()`, `.dismiss()`.
 #[derive(Clone, Debug)]
 pub struct Alert<'a> {
+    ui: &'a Ui,
     title: &'a str,
+    action: Option<Button<'a>>,
+    id: Option<&'a str>,
+    dismiss: bool,
     description: Option<&'a str>,
     body: Option<Markup>,
     tone: Option<Tone>,
@@ -73,6 +89,8 @@ impl Alert<'_> {
         Prop::new("danger", PropKind::Switch, "").doc("Something went wrong."),
         Prop::new("warn", PropKind::Switch, "").doc("Something to watch."),
         Prop::new("ok", PropKind::Switch, "").doc("Something worked."),
+        Prop::new("info", PropKind::Switch, "")
+            .doc("Something to know: the brand scale, the default."),
         Prop::new("surface", PropKind::Switch, "")
             .doc("A paler tint inside a border in the level's colour."),
         Prop::new("outline", PropKind::Switch, "")
@@ -94,14 +112,24 @@ impl Alert<'_> {
         )
         .default("soft")
         .doc("Soft, surface or outline; ghost drops the frame, and solid draws as soft."),
+        Prop::new("action", PropKind::Value, "button: Button<'a>")
+            .doc("A button or link button under the text."),
+        Prop::new("id", PropKind::Value, "id: &'a str")
+            .doc("The id its dismiss cookie is named after instead of the title's slug."),
+        Prop::new("dismiss", PropKind::Switch, "")
+            .doc("A close button that keeps it closed with a `lui-dismiss-<id>` cookie."),
     ];
 }
 
 impl Ui {
     /// A callout headed `title`.
-    pub fn alert<'a>(&self, title: &'a str) -> Alert<'a> {
+    pub fn alert<'a>(&'a self, title: &'a str) -> Alert<'a> {
         Alert {
+            ui: self,
             title,
+            action: None,
+            id: None,
+            dismiss: false,
             description: None,
             body: None,
             tone: None,
@@ -144,6 +172,31 @@ impl<'a> Alert<'a> {
     /// Something worked: `--lui-ok`.
     pub fn ok(self) -> Self {
         self.tone(Tone::Ok)
+    }
+
+    /// Something to know: the brand scale, as with no tone at all.
+    pub fn info(self) -> Self {
+        self.tone(Tone::Info)
+    }
+
+    /// A button or link button under the text (`ui.link_button("Upgrade", "/plans").small()`).
+    pub fn action(mut self, button: Button<'a>) -> Self {
+        self.action = Some(button);
+        self
+    }
+
+    /// The id its dismiss cookie is named after (`lui-dismiss-<id>`) instead of the title's
+    /// slug.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
+        self
+    }
+
+    /// A close button that keeps it closed with a `lui-dismiss-<id>` cookie, set by the form
+    /// at [`crate::banner::DISMISS_PATH`].
+    pub fn dismiss(mut self) -> Self {
+        self.dismiss = true;
+        self
     }
 
     /// A paler tint inside a border in the level's colour (Radix's surface variant).
@@ -194,14 +247,24 @@ impl Render for Alert<'_> {
             _ => None,
         };
         let size = (self.size != Size::S2).then(|| self.size.as_str());
+        let id = self.id.map_or_else(
+            || slug(self.title).trim_matches('-').to_string(),
+            str::to_string,
+        );
+        let dismiss = self.dismiss.then_some(self.ui);
+        if dismiss.is_some_and(|ui| ui.dismissed(&id)) {
+            return Markup::default();
+        }
         html! {
-            div class={ "lui-alert lui-callout lui-callout-" (level) @if let Some(v) = variant { " lui-callout-" (v) } }
+            div class={ "lui-alert lui-callout lui-callout-" (level) @if let Some(v) = variant { " lui-callout-" (v) } @if dismiss.is_some() { " lui-alert-dismissible" } }
                 data-size=[size] data-tone=[self.tone.map(Tone::as_str)] data-variant=[self.variant.map(Variant::as_str)]
                 role=(if self.tone == Some(Tone::Danger) { "alert" } else { "status" }) {
                 (icon.hidden())
                 p class="lui-alert-title" { (self.title) }
                 @if let Some(d) = self.description { p class="lui-alert-description" { (d) } }
                 @if let Some(b) = &self.body { div class="lui-alert-description" { (b) } }
+                @if let Some(b) = &self.action { div class="lui-alert-actions" { (b) } }
+                @if let Some(ui) = dismiss { (crate::banner::dismiss_form(ui, &id, self.title, "lui-alert-dismiss")) }
             }
         }
     }
@@ -238,4 +301,9 @@ pub const CSS: &str = r#"
 .lui-callout a:hover { text-decoration-thickness: 2px; }
 .lui-alert-title { font-weight: 600; }
 .lui-alert-description p { margin: 0; }
+.lui-alert-actions { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); margin-top: var(--lui-space-2) !important; }
+.lui-alert-actions a { text-decoration: none; }
+.lui-alert-dismissible { grid-template-columns: 1rem minmax(0, 1fr) auto; }
+.lui-alert-dismiss { grid-column: 3 !important; grid-row: 1; margin: -0.375rem -0.5rem -0.375rem 0 !important; }
+.lui-alert-dismiss .lui-button { color: inherit; }
 "#;
