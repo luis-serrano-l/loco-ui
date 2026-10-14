@@ -57,7 +57,9 @@
 //! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
 //! own move form with its new index. A table's "select all matching" box ticks the row
-//! boxes on the page as well.
+//! boxes on the page as well. A code block's copy button (`data-lui="copy"`, rendered
+//! `hidden`) is shown where `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1) can
+//! write, and copies the block on a click.
 //!
 //! [`script_tag`] goes at the end of `<body>`; `router` (feature `axum`) serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
@@ -73,7 +75,7 @@ use maud::{Markup, html};
 /// Path the script is served from. [`script_url`] appends a content hash.
 pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 
-/// The whole enhancement script. Plain ES2020, no build step, about 12 KB as [`served`].
+/// The whole enhancement script. Plain ES2020, no build step, about 14 KB as [`served`].
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
@@ -382,6 +384,21 @@ document.addEventListener("dragend", function () {
   f.append(b); f.requestSubmit(b); b.remove();
 });
 
+// Copy buttons (a code block's .copy()): rendered hidden, shown when the clipboard can be
+// written; a click copies the block its commandfor names and says "Copied" for 2s.
+var copies = function () { if (navigator.clipboard) document.querySelectorAll("[data-lui=copy][hidden]").forEach(function (s) { s.hidden = false; }); };
+copies(); document.addEventListener("lui:swap", copies);
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-lui=copy] [commandfor]"), pre = b && document.getElementById(b.getAttribute("commandfor"));
+  if (!pre) return;
+  e.preventDefault();
+  navigator.clipboard.writeText(pre.textContent).then(function () {
+    var was = b.getAttribute("aria-label");
+    b.setAttribute("aria-label", b.closest("[data-lui=copy]").getAttribute("data-lui-copied")); b.setAttribute("data-lui-done", "");
+    setTimeout(function () { b.setAttribute("aria-label", was); b.removeAttribute("data-lui-done"); }, 2000);
+  });
+});
+
 // Back and Forward: the entry's stored copy of each root when there is one, else a fetch.
 addEventListener("popstate", function (e) {
   var lui = e.state && e.state.lui;
@@ -402,7 +419,7 @@ addEventListener("popstate", function (e) {
 "##;
 
 /// [`JS`] as served: comment lines and indentation dropped, nothing else touched. The budget
-/// (13 KB) applies to this; the source keeps its comments for the reader.
+/// (14.5 KB) applies to this; the source keeps its comments for the reader.
 pub fn served() -> &'static str {
     static SERVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     SERVED.get_or_init(|| {
@@ -724,12 +741,12 @@ mod tests {
     fn script_is_small_and_plain() {
         // 13 KB served and 16 KB of source until M41's select-all box.
         assert!(
-            served().len() < 13568,
+            served().len() < 15360, // 13 KB until M41's select-all and M40a's copy button
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 16640,
+            JS.len() < 18432, // 16 KB until M41 and M40a
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

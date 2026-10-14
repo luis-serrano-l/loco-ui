@@ -250,6 +250,28 @@ by milestone, newest first, rather than against 0.1.0.
 - Fix: the enhancement script no longer copies a urlencoded POST's fields into the URL
   (a sign-up put the password in the request line and the server log).
 
+#### M40a · Typography and layout
+
+- Type: `ui.heading(text)` (Radix sizes 1–9, `.as_h(1..6)`, `.weight(..)`, `.trim()`),
+  `ui.text(text)` (sizes 1–9, `.weight(..)`, `.tone(..)`, `.muted()`, `.as_p()`,
+  `.as_div()`, `.truncate()`), `ui.link(text, href)` (`.external()`, `.muted()`,
+  `.underline(Always | Hover | None)`), `ui.kbd(keys)`, `ui.code(text)` (tone and variant),
+  `ui.code_block(text)` (`.language(..)`, `.title(..)`, `.copy()`: a button only the
+  enhancement script shows), `ui.blockquote()` (`.caption(..)`, `.cite(url)`) and
+  `ui.prose()`, which styles plain HTML from Markdown or a CMS inside one block.
+- Layout: `ui.container()` (Radix's four widths), `ui.section()` (four heights, `.label(..)`),
+  `ui.inset()` (`.top()`, `.bottom()`), `ui.aspect_ratio()` (`.ratio(w, h)`),
+  `ui.scroll_area(label)` (`.height(..)`, edge shadows from `scroll-state()` queries),
+  `ui.center()` and `ui.spacer()`. Stack and Cluster take `.align(..)`, `.justify(..)` and
+  `.padding(n)`; Cluster `.nowrap()`.
+- `ui.spinner()` (`.size(..)`, `.label(..)`), the ring Button's busy state now draws, and
+  `ui.indicator(count)` (`.dot()`, `.max(n)`, `.tone(..)`, `.label(..)`).
+- `ui.text(..)` takes an `i18n::Text` key (the word, as before) or a `&str` (the component).
+  New choices in `variant`: `Weight`, `Align`, `Justify`, `Underline`, written as strings in
+  `lui!` (`weight="medium"`). New texts: `OpensInNewTab`, `Code`, `Copy`, `Copied`,
+  `IndicatorNew`. Six demo pages: `/typography`, `/code-block`, `/prose`, `/container`,
+  `/scroll-area`, `/spinner`.
+
 #### M36 · A description list that lines up, and one look per app
 
 - The description list puts every term in one shared column (subgrid) from 30rem, both

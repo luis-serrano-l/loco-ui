@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<section class="lui-section" data-size="4" aria-label="Pricing">
+<h2>Pricing</h2>
+</section>
+
+caps: none
+<section class="lui-section" data-size="4" aria-label="Pricing">
+<h2>Pricing</h2>
+</section>

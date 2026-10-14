@@ -168,7 +168,12 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::SelectAllMatching, "Elegir las {} filas que coinciden")
     .with(Text::DownloadJson, "Descargar JSON")
     .with(Text::Open, "Abrir")
-    .with(Text::OpenRow, "Abrir {}");
+    .with(Text::OpenRow, "Abrir {}")
+    .with(Text::OpensInNewTab, "(se abre en una pestaña nueva)")
+    .with(Text::Code, "Código")
+    .with(Text::Copy, "Copiar")
+    .with(Text::Copied, "Copiado")
+    .with(Text::IndicatorNew, "one:{} nuevo|other:{} nuevos");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

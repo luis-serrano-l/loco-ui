@@ -1,0 +1,14 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-prose">
+<h2>Install</h2>
+<p>Add the crate.</p>
+</div>
+
+caps: none
+<div class="lui-prose">
+<h2>Install</h2>
+<p>Add the crate.</p>
+</div>

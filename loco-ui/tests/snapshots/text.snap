@@ -1,0 +1,8 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<p class="lui-text lui-text-muted" data-size="2">No invoices yet.</p>
+
+caps: none
+<p class="lui-text lui-text-muted" data-size="2">No invoices yet.</p>

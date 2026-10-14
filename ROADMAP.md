@@ -2586,7 +2586,7 @@ Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` 
 `props::COMPONENTS` entry, one `SPECS` entry. Agents append at the end of each list.
 
 **M40a · Typography and layout** (demo group `primitives.rs`)
-- [ ] `ui.heading(text)`: `size(Size1..9)`, `.as_h(1..6)`, `.weight()`, `.trim()`
+- [x] `ui.heading(text)`: `size(Size1..9)`, `.as_h(1..6)`, `.weight()`, `.trim()`
   (Radix Heading). `ui.text(text)`: size, weight, `.muted()`, `.as_p()/.as_span()`,
   `.truncate()`, `.color(Tone)`. `ui.link(text, href)`: `.external()` (rel + icon),
   `.muted()`, `.underline(Always|Hover|None)`. `ui.kbd("⌘K")`, `ui.code("x")` (inline),
@@ -2596,13 +2596,32 @@ Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` 
   the text"). `ui.blockquote(markup).cite(..)`. `ui.prose(markup)`: the former global
   element styles, scoped (M39 moves them; coordinate: M40a creates `.lui-prose` CSS, M39
   deletes the globals).
-- [ ] `ui.container(markup).size(1..4)`, `ui.section(markup)`, `ui.inset(markup)`,
+  Done: heading.rs, text.rs, link.rs, kbd.rs, code.rs (Code and CodeBlock), blockquote.rs and
+  prose.rs, demo pages `/typography`, `/code-block`, `/prose`. Kept different: sizes 1–9 are
+  a `u8` (like Avatar), `Text::tone(..)` not `.color(..)` (every component says tone),
+  `.as_div()` not `.as_span()` (span is the default), `ui.text(..)` takes an `i18n::Text` key
+  or a `&str` through `text::TextArg`, the markup goes in `.body(..)` and not the call,
+  `CodeBlock::language(..)` (a `lang` setter would read as the HTML attribute), Blockquote
+  `.caption(..)` for the `<cite>` and `.cite(url)` for the attribute. The copy button is a
+  ghost Button with `command="--copy"`, hidden until enhance.rs shows it (script budget
+  raised to 14.5 KB served). Link underlines always by default (axe link-in-text-block).
+  The globals that `.lui-prose` now scopes are listed in FINDINGS for M39 to delete.
+- [x] `ui.container(markup).size(1..4)`, `ui.section(markup)`, `ui.inset(markup)`,
   `ui.aspect_ratio(markup).ratio(16, 9)`, `ui.scroll_area(markup).height(..)` (CSS
   `overflow: auto` + `scrollbar-gutter`, `scroll-state()` sticky shadow where supported),
   `ui.center(markup)`, `ui.spacer()`. Stack/Cluster gain `.align()`, `.justify()`,
   `.wrap()`, `.padding()`.
-- [ ] `ui.spinner().size().label(..)` (extracted from Button's spinner, Button reuses it),
+  Done: container.rs, section.rs, inset.rs, aspect_ratio.rs, scroll_area.rs, center.rs,
+  spacer.rs, demo pages `/container` and `/scroll-area`; `variant::Align`, `Justify`. Kept
+  different: `ui.scroll_area(label)` takes its name (a focusable region needs one), Cluster
+  has `.nowrap()` (it wraps already), padding is the shared `lui-pad-N` steps beside
+  `lui-gap-N`, the scroll shadows are `@container scroll-state(..)` (Chrome only).
+- [x] `ui.spinner().size().label(..)` (extracted from Button's spinner, Button reuses it),
   `ui.indicator(count|dot)` (notification badge on a wrapped child).
+  Done: spinner.rs (role=status, `Text::Loading`; Button's busy ring is
+  `Spinner::decoration()`, and Spinner is in `Component::BASE`), indicator.rs
+  (`ui.indicator(count)` with `.dot()`, `.max(n)`, `.tone(..)`, `.label(..)`; the badge is
+  `ui.badge` solid and full, with no z-index for Blitz), demo page `/spinner`.
 
 **M40b · Navigation** (demo group `navigation.rs`)
 - [ ] `ui.pagination(href)`: numbered pages with ellipsis, prev/next, `.page()` read from

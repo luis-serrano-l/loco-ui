@@ -104,7 +104,7 @@ pub enum Text {
     LoadMore,
     /// "Showing {} of {}": pager.
     ShowingOf,
-    /// "Loading": skeleton.
+    /// "Loading": skeleton, spinner.
     Loading,
     /// "Pages": the table pager's `<nav>`.
     Pages,
@@ -376,6 +376,16 @@ pub enum Text {
     Open,
     /// "Open {}": table: a row's link.
     OpenRow,
+    /// "(opens in a new tab)": link: an external link's hint for screen readers.
+    OpensInNewTab,
+    /// "Code": code block: the region's name when it has no title.
+    Code,
+    /// "Copy": code block: the copy button.
+    Copy,
+    /// "Copied": code block: the copy button once it has copied.
+    Copied,
+    /// "one:{} new|other:{} new": indicator: the count in words, read with [`Strings::count`].
+    IndicatorNew,
 }
 
 /// How many texts there are.
@@ -384,7 +394,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 155] = [
+    pub const ALL: [Text; 160] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -540,6 +550,11 @@ impl Text {
         Text::DownloadJson,
         Text::Open,
         Text::OpenRow,
+        Text::OpensInNewTab,
+        Text::Code,
+        Text::Copy,
+        Text::Copied,
+        Text::IndicatorNew,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -728,6 +743,11 @@ const ENGLISH: [&str; N] = [
     "Download JSON",
     "Open",
     "Open {}",
+    "(opens in a new tab)",
+    "Code",
+    "Copy",
+    "Copied",
+    "one:{} new|other:{} new",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

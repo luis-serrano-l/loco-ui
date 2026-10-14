@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-inset lui-inset-top">
+<img src="/cover.jpg" alt="">
+</div>
+
+caps: none
+<div class="lui-inset lui-inset-top">
+<img src="/cover.jpg" alt="">
+</div>

@@ -1,0 +1,10 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<span class="lui-spinner" role="status" aria-label="Loading results" data-size="3">
+</span>
+
+caps: none
+<span class="lui-spinner" role="status" aria-label="Loading results" data-size="3">
+</span>

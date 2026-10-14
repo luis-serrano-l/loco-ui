@@ -584,8 +584,7 @@ impl Render for Button<'_> {
         } else {
             text
         };
-        let spinner =
-            html! { @if self.loading { span class="lui-button-spinner" aria-hidden="true" {} } };
+        let spinner = html! { @if self.loading { (crate::spinner::Spinner::decoration()) } };
         if let Some(href) = self.href {
             let off = self.disabled || self.loading;
             return html! {
@@ -725,14 +724,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* Busy: the label keeps its place (and the button's width and name) under a centred spinner. */
 .lui-button[aria-busy=true] { position: relative; cursor: progress; opacity: 1; }
 .lui-button[aria-busy=true] > .lui-button-label { opacity: 0; }
-.lui-button[aria-busy=true] > .lui-button-spinner { position: absolute; inset: 0; margin: auto; }
-.lui-button-spinner {
-  width: 1rem; height: 1rem; flex: none; box-sizing: border-box; border-radius: 50%;
-  border: 2px solid currentColor; border-right-color: transparent;
-  animation: lui-spin 0.6s linear infinite;
-}
-@keyframes lui-spin { to { transform: rotate(1turn); } }
-@media (prefers-reduced-motion: reduce) { .lui-button-spinner { animation-duration: 1.5s; } }
+/* The ring is ui.spinner's (spinner.rs), aria-hidden here since the button says aria-busy. */
+.lui-button[aria-busy=true] > .lui-spinner { position: absolute; inset: 0; margin: auto; }
 /* .shimmer(): a light sweeping across, drawn by ::after over the button's own background (so a
    gradient fill underneath stays). At rest without translate or under reduced motion. */
 .lui-button.lui-button-shimmer { --lui-sweep: var(--lui-shimmer-surface); }

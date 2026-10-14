@@ -1,0 +1,8 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<code class="lui-code" data-tone="brand" data-variant="outline">Ok(())</code>
+
+caps: none
+<code class="lui-code" data-tone="brand" data-variant="outline">Ok(())</code>

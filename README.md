@@ -513,6 +513,22 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Drawer | shadcn Sheet and Drawer | viewport | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
 | Command palette | shadcn Command | viewport | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
 | Marquee | Magic UI Marquee | content | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
+| Heading | Radix Themes Heading | - | `<h1>`, `text-wrap: balance`, `text-box` | 1 / 1 / 1; 114 / 121 / 17.5; 133 / no / 18.2 | untrimmed line box without text-box; greedy line breaks without balance | No |
+| Text | Radix Themes Text | - | `text-overflow: ellipsis` | 1 / 7 / 1.3 | none needed | No |
+| Link | Radix Themes Link | - | `<a href>`, `text-underline-offset`, `target="_blank"` | 1 / 1 / 1; 87 / 70 / 12.1; 1 / 1 / 1 | none needed | No |
+| Kbd | Radix Themes Kbd | - | `<kbd>`, `box-shadow` | 1 / 1 / 1; 10 / 4 / 5.1 | none needed | No |
+| Code | Radix Themes Code, shadcn/ui docs code block | content | `<pre>`, `overflow-x: auto`, `tab-size`, `navigator.clipboard` | 1 / 1 / 1; 1 / 1 / 1; 21 / 91 / 7; 66 / 63 / 13.1 | select the text: the copy button is hidden until the script shows it | Partly: the copy button needs script; without it the code is selected by hand |
+| Blockquote | Radix Themes Blockquote | - | `<figure>`, `border-inline-start` | 1 / 1 / 1; 87 / 66 / 14.1 | none needed | No |
+| Prose | shadcn/ui Typography | content | `:where()`, `text-wrap: pretty` | 88 / 78 / 14; 117 / no / 26 | greedy line breaks without text-wrap: pretty | No |
+| Container | Radix Themes Container | content | `max-width`, `min()` | 1 / 1 / 1; 79 / 75 / 11.1 | none needed | No |
+| Section | Radix Themes Section | - | `<section>`, `padding-block` | 1 / 1 / 1; 87 / 66 / 14.1 | none needed | No |
+| Inset | Radix Themes Inset | - | `overflow: clip` | 90 / 81 / 16 | overflow: hidden cuts the same corners | No |
+| Aspect ratio | Radix Themes AspectRatio | content | `aspect-ratio`, `object-fit: cover` | 88 / 89 / 15; 32 / 36 / 10 | the box takes its content's height | No |
+| Scroll area | Radix Themes ScrollArea | content | `scrollbar-gutter: stable`, `scrollbar-width`, `scroll-state()` | 94 / 97 / 18.2; 121 / 64 / 18.2; 133 / no / no | no edge shadows without scroll-state(): the scrollbar alone shows there is more | No |
+| Center | Radix Themes Flex align=center justify=center | content | `place-items: center` | 59 / 45 / 11 | none needed | No |
+| Spacer | Radix Themes Box flexGrow=1 | content | `flex: 1 1 auto` | 29 / 28 / 9 | an empty block outside a flex container | No |
+| Spinner | Radix Themes Spinner | - | `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 74 / 63 / 10.1 | none needed | No |
+| Indicator | Origin UI notification badge | - | `inset-inline-end`, `translate` | 87 / 63 / 14.1; 104 / 72 / 14.1 | none needed | No |
 <!-- matrix:end -->
 
 ## Findings

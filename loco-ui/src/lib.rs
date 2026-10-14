@@ -54,17 +54,22 @@
 
 pub mod accordion;
 pub mod alert;
+pub mod aspect_ratio;
 pub mod avatar;
 pub mod badge;
+pub mod blockquote;
 pub mod blocks;
 pub mod breadcrumbs;
 pub mod button;
 pub mod calendar;
 pub mod card;
+pub mod center;
 pub mod chart;
 pub mod cluster;
+pub mod code;
 pub mod color;
 pub mod combobox;
+pub mod container;
 pub mod context_menu;
 pub mod cookie;
 pub mod counter;
@@ -78,12 +83,17 @@ pub mod error_summary;
 pub mod flash;
 pub mod form;
 pub mod grid;
+pub mod heading;
 pub mod i18n;
 pub mod icon;
+pub mod indicator;
 pub mod input;
 pub mod input_otp;
+pub mod inset;
 pub mod kanban;
+pub mod kbd;
 pub mod layout;
+pub mod link;
 #[cfg(feature = "loco")]
 pub mod loco;
 pub mod marquee;
@@ -97,15 +107,20 @@ pub mod popover;
 pub mod posted;
 pub mod progress;
 pub mod props;
+pub mod prose;
 pub mod range;
 #[cfg(feature = "axum")]
 pub mod saved;
+pub mod scroll_area;
+pub mod section;
 pub mod select;
 pub mod separator;
 pub mod sidebar;
 pub mod skeleton;
 pub mod sortable;
+pub mod spacer;
 pub mod spec;
+pub mod spinner;
 pub mod split;
 pub mod stack;
 pub mod stat;
@@ -114,6 +129,7 @@ pub mod state;
 pub mod stream;
 pub mod table;
 pub mod tabs;
+pub mod text;
 pub mod theme;
 pub mod toast;
 pub mod toggle_group;
@@ -162,7 +178,7 @@ pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::Saved;
     pub use crate::lui;
-    pub use crate::variant::{Radius, Size, Tone, Variant};
+    pub use crate::variant::{Align, Justify, Radius, Size, Tone, Underline, Variant, Weight};
     pub use crate::{
         Cap, Caps, Icon, MenuItem, Page, Posted, Redirect, Row, TableQuery, Theme, Ui,
     };
@@ -379,6 +395,22 @@ pub enum Component {
     Marquee,
     /// The shared `data-radius` rules of [`variant`].
     Variant,
+    Heading,
+    Text,
+    Link,
+    Kbd,
+    Code,
+    Blockquote,
+    Prose,
+    Container,
+    Section,
+    Inset,
+    AspectRatio,
+    ScrollArea,
+    Center,
+    Spacer,
+    Spinner,
+    Indicator,
     Blocks,
 }
 
@@ -440,6 +472,22 @@ impl Component {
         Component::Palette,
         Component::Marquee,
         Component::Variant,
+        Component::Heading,
+        Component::Text,
+        Component::Link,
+        Component::Kbd,
+        Component::Code,
+        Component::Blockquote,
+        Component::Prose,
+        Component::Container,
+        Component::Section,
+        Component::Inset,
+        Component::AspectRatio,
+        Component::ScrollArea,
+        Component::Center,
+        Component::Spacer,
+        Component::Spinner,
+        Component::Indicator,
         Component::Blocks,
     ];
 
@@ -455,6 +503,8 @@ impl Component {
         Component::Cluster,
         Component::Grid,
         Component::Split,
+        // The busy button's ring.
+        Component::Spinner,
     ];
 
     /// This component's `CSS`: empty for `Blocks` (its parts are [`blocks::CSS`]) and for
@@ -519,6 +569,22 @@ impl Component {
             Component::Palette => palette::CSS,
             Component::Marquee => marquee::CSS,
             Component::Variant => variant::CSS,
+            Component::Heading => heading::CSS,
+            Component::Text => text::CSS,
+            Component::Link => link::CSS,
+            Component::Kbd => kbd::CSS,
+            Component::Code => code::CSS,
+            Component::Blockquote => blockquote::CSS,
+            Component::Prose => prose::CSS,
+            Component::Container => container::CSS,
+            Component::Section => section::CSS,
+            Component::Inset => inset::CSS,
+            Component::AspectRatio => aspect_ratio::CSS,
+            Component::ScrollArea => scroll_area::CSS,
+            Component::Center => center::CSS,
+            Component::Spacer => spacer::CSS,
+            Component::Spinner => spinner::CSS,
+            Component::Indicator => indicator::CSS,
             Component::Blocks => "",
         }
     }
@@ -641,6 +707,22 @@ pub const COMPONENT_CSS: &[&str] = &[
     palette::CSS,
     marquee::CSS,
     variant::CSS,
+    heading::CSS,
+    text::CSS,
+    link::CSS,
+    kbd::CSS,
+    code::CSS,
+    blockquote::CSS,
+    prose::CSS,
+    container::CSS,
+    section::CSS,
+    inset::CSS,
+    aspect_ratio::CSS,
+    scroll_area::CSS,
+    center::CSS,
+    spacer::CSS,
+    spinner::CSS,
+    indicator::CSS,
 ];
 
 #[cfg(test)]
@@ -1402,6 +1484,10 @@ mod tests {
             "body",
             "a component's main markup; Form's is an item, markup placed among its fields",
         ),
+        (
+            "underline",
+            "Tabs' switch draws the underline style; Link's choice says when a link is underlined",
+        ),
     ];
 
     /// Setters that take a whole list in one call instead of an adder per item, each with the
@@ -1527,6 +1613,10 @@ mod tests {
             "Combobox::label",
             "a form control's name is its label; here visually hidden",
         ),
+        (
+            "Section::label",
+            "a region's name, as `.label(..)` names a button",
+        ),
         ("Marquee::duration", "a custom property in `style`"),
         (
             "InputOtp::length",
@@ -1600,6 +1690,7 @@ mod tests {
         "accept",
         "accesskey",
         "action",
+        "cite",
         "aria-controls",
         "aria-current",
         "aria-haspopup",
@@ -1981,7 +2072,6 @@ mod tests {
             "accordion.rs",
             "avatar.rs",
             "breadcrumbs.rs",
-            "button.rs",
             "card.rs",
             "color.rs",
             "combobox.rs",
@@ -2044,8 +2134,10 @@ mod tests {
         // (README: "What a page weighs"). 128 KB until M39 folded the dark palette into
         // light-dark() and moved the demo's CSS out: 117 240 bytes then, 111 358 after; 124 KB
         // once M38's data-* variant rules joined, until M39's sweep moves the literals to tokens.
+        // 136 KB once M40a's sixteen typography and layout components joined (about 14.5 KB
+        // minified: 133 620 bytes in all).
         assert!(
-            stylesheet().len() < 124 * 1024,
+            stylesheet().len() < 136 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2160,6 +2252,22 @@ mod tests {
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
             ("variant", variant::CSS),
+            ("heading", heading::CSS),
+            ("text", text::CSS),
+            ("link", link::CSS),
+            ("kbd", kbd::CSS),
+            ("code", code::CSS),
+            ("blockquote", blockquote::CSS),
+            ("prose", prose::CSS),
+            ("container", container::CSS),
+            ("section", section::CSS),
+            ("inset", inset::CSS),
+            ("aspect_ratio", aspect_ratio::CSS),
+            ("scroll_area", scroll_area::CSS),
+            ("center", center::CSS),
+            ("spacer", spacer::CSS),
+            ("spinner", spinner::CSS),
+            ("indicator", indicator::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -2182,6 +2290,7 @@ mod tests {
                 "the page frame: its container is the viewport (the drawer decides)",
             ),
             ("stack", "one column"),
+            ("center", "one centred column"),
             (
                 "marquee",
                 "one looping row, or at rest a row that wraps by its own content",
@@ -2478,6 +2587,18 @@ mod tests {
             [
                 ui.chart("Signups").render(),
                 ui.chart("Signups").id("signups").render(),
+            ]
+        }),
+        ("Blockquote", "cite", |ui| {
+            [
+                ui.blockquote().render(),
+                ui.blockquote().cite("https://example.com").render(),
+            ]
+        }),
+        ("CodeBlock", "id", |ui| {
+            [
+                ui.code_block("x").render(),
+                ui.code_block("x").id("snippet").render(),
             ]
         }),
         ("Color", "value", |ui| {
@@ -2799,6 +2920,12 @@ mod tests {
             [
                 ui.range("v", "V").render(),
                 ui.range("v", "V").step(5).render(),
+            ]
+        }),
+        ("Section", "label", |ui| {
+            [
+                ui.section().render(),
+                ui.section().label("Pricing").render(),
             ]
         }),
         ("Stat", "href", |ui| {

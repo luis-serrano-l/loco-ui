@@ -190,11 +190,6 @@ impl Ui {
         self.dir.unwrap_or(self.strings.dir())
     }
 
-    /// A component text in the visitor's language.
-    pub fn text(&self, text: Text) -> &'static str {
-        self.strings.get(text)
-    }
-
     /// The app's own text `key` ([`Strings::with_custom`]) in the visitor's language, else
     /// in the app's default language, else `key` itself, so a missing text shows.
     ///

@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-center lui-center-text" style="min-height: 12rem">
+<p>Nothing here yet</p>
+</div>
+
+caps: none
+<div class="lui-center lui-center-text" style="min-height: 12rem">
+<p>Nothing here yet</p>
+</div>

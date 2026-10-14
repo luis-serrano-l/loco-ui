@@ -895,6 +895,184 @@ pub const SPECS: &[ComponentSpec] = &[
         fallback: "at rest: the items wrap and the copy is hidden, without translate or under reduced motion",
         needs_js: NeedsJs::No,
     },
+    ComponentSpec {
+        name: "Heading",
+        module: "heading",
+        look: "Radix Themes Heading",
+        responsive: Responsive::None,
+        features: &[
+            f("<h1>", ALWAYS),
+            f("text-wrap: balance", b("114", "121", "17.5")),
+            f("text-box", b("133", "no", "18.2")),
+        ],
+        fallback: "untrimmed line box without text-box; greedy line breaks without balance",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Text",
+        module: "text",
+        look: "Radix Themes Text",
+        responsive: Responsive::None,
+        features: &[f("text-overflow: ellipsis", b("1", "7", "1.3"))],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Link",
+        module: "link",
+        look: "Radix Themes Link",
+        responsive: Responsive::None,
+        features: &[
+            f("<a href>", ALWAYS),
+            f("text-underline-offset", b("87", "70", "12.1")),
+            f("target=\"_blank\"", ALWAYS),
+        ],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Kbd",
+        module: "kbd",
+        look: "Radix Themes Kbd",
+        responsive: Responsive::None,
+        features: &[f("<kbd>", ALWAYS), f("box-shadow", b("10", "4", "5.1"))],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Code",
+        module: "code",
+        look: "Radix Themes Code, shadcn/ui docs code block",
+        responsive: Responsive::Content,
+        features: &[
+            f("<pre>", ALWAYS),
+            f("overflow-x: auto", ALWAYS),
+            f("tab-size", b("21", "91", "7")),
+            f("navigator.clipboard", b("66", "63", "13.1")),
+        ],
+        fallback: "select the text: the copy button is hidden until the script shows it",
+        needs_js: NeedsJs::Partial(
+            "the copy button needs script; without it the code is selected by hand",
+        ),
+    },
+    ComponentSpec {
+        name: "Blockquote",
+        module: "blockquote",
+        look: "Radix Themes Blockquote",
+        responsive: Responsive::None,
+        features: &[
+            f("<figure>", ALWAYS),
+            f("border-inline-start", b("87", "66", "14.1")),
+        ],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Prose",
+        module: "prose",
+        look: "shadcn/ui Typography",
+        responsive: Responsive::Content,
+        features: &[
+            f(":where()", b("88", "78", "14")),
+            f("text-wrap: pretty", b("117", "no", "26")),
+        ],
+        fallback: "greedy line breaks without text-wrap: pretty",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Container",
+        module: "container",
+        look: "Radix Themes Container",
+        responsive: Responsive::Content,
+        features: &[f("max-width", ALWAYS), f("min()", b("79", "75", "11.1"))],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Section",
+        module: "section",
+        look: "Radix Themes Section",
+        responsive: Responsive::None,
+        features: &[
+            f("<section>", ALWAYS),
+            f("padding-block", b("87", "66", "14.1")),
+        ],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Inset",
+        module: "inset",
+        look: "Radix Themes Inset",
+        responsive: Responsive::None,
+        features: &[f("overflow: clip", b("90", "81", "16"))],
+        fallback: "overflow: hidden cuts the same corners",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Aspect ratio",
+        module: "aspect_ratio",
+        look: "Radix Themes AspectRatio",
+        responsive: Responsive::Content,
+        features: &[
+            f("aspect-ratio", b("88", "89", "15")),
+            f("object-fit: cover", b("32", "36", "10")),
+        ],
+        fallback: "the box takes its content's height",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Scroll area",
+        module: "scroll_area",
+        look: "Radix Themes ScrollArea",
+        responsive: Responsive::Content,
+        features: &[
+            f("scrollbar-gutter: stable", b("94", "97", "18.2")),
+            f("scrollbar-width", b("121", "64", "18.2")),
+            f("scroll-state()", b("133", "no", "no")),
+        ],
+        fallback: "no edge shadows without scroll-state(): the scrollbar alone shows there is more",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Center",
+        module: "center",
+        look: "Radix Themes Flex align=center justify=center",
+        responsive: Responsive::Content,
+        features: &[f("place-items: center", b("59", "45", "11"))],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Spacer",
+        module: "spacer",
+        look: "Radix Themes Box flexGrow=1",
+        responsive: Responsive::Content,
+        features: &[f("flex: 1 1 auto", b("29", "28", "9"))],
+        fallback: "an empty block outside a flex container",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Spinner",
+        module: "spinner",
+        look: "Radix Themes Spinner",
+        responsive: Responsive::None,
+        features: &[
+            f("@keyframes", ALWAYS),
+            f("prefers-reduced-motion", b("74", "63", "10.1")),
+        ],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Indicator",
+        module: "indicator",
+        look: "Origin UI notification badge",
+        responsive: Responsive::None,
+        features: &[f("inset-inline-end", b("87", "63", "14.1")), TRANSLATE],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
 ];
 
 fn json_str(s: &str) -> String {
@@ -1093,6 +1271,22 @@ mod tests {
         ("drawer", include_str!("drawer.rs")),
         ("palette", include_str!("palette.rs")),
         ("marquee", include_str!("marquee.rs")),
+        ("heading", include_str!("heading.rs")),
+        ("text", include_str!("text.rs")),
+        ("link", include_str!("link.rs")),
+        ("kbd", include_str!("kbd.rs")),
+        ("code", include_str!("code.rs")),
+        ("blockquote", include_str!("blockquote.rs")),
+        ("prose", include_str!("prose.rs")),
+        ("container", include_str!("container.rs")),
+        ("section", include_str!("section.rs")),
+        ("inset", include_str!("inset.rs")),
+        ("aspect_ratio", include_str!("aspect_ratio.rs")),
+        ("scroll_area", include_str!("scroll_area.rs")),
+        ("center", include_str!("center.rs")),
+        ("spacer", include_str!("spacer.rs")),
+        ("spinner", include_str!("spinner.rs")),
+        ("indicator", include_str!("indicator.rs")),
     ];
 
     fn header(source: &str) -> String {
@@ -1115,7 +1309,11 @@ mod tests {
         for c in SPECS {
             let (_, source) = SOURCES.iter().find(|(m, _)| *m == c.module).unwrap();
             let css = source.split("pub const CSS").nth(1).unwrap_or("");
-            let container = css.contains("@container");
+            // A scroll-state() query answers to scrolling, not to the width.
+            let container = css
+                .split("@container")
+                .skip(1)
+                .any(|q| !q.trim_start().starts_with("scroll-state("));
             let viewport = css
                 .split("@media")
                 .skip(1)

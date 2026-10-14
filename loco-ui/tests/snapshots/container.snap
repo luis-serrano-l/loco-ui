@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-container" data-size="1">
+<p>Narrow</p>
+</div>
+
+caps: none
+<div class="lui-container" data-size="1">
+<p>Narrow</p>
+</div>

@@ -21,7 +21,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 49] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 55] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -364,6 +364,48 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 49] = [
         "Server state",
         "group rows, stretched row links, tones, <tfoot>",
         "Rows grouped by a column, linked as a whole, toned or disabled.",
+    ),
+    (
+        "/typography",
+        "Typography",
+        "Primitives",
+        "<h1>–<h6>, text-wrap: balance, text-box, <kbd>, <code>, <blockquote>",
+        "Heading, text, link, keycap, inline code and a quotation on one type scale.",
+    ),
+    (
+        "/code-block",
+        "Code block",
+        "Primitives",
+        "<pre><code>, overflow-x: auto, navigator.clipboard (script only)",
+        "Lines of code that scroll inside their box, with a file name and a copy button the script shows.",
+    ),
+    (
+        "/prose",
+        "Prose",
+        "Primitives",
+        ":where(), :is(), text-wrap: pretty",
+        "Readable styles for plain HTML from Markdown or a CMS, scoped to one block.",
+    ),
+    (
+        "/container",
+        "Page layout",
+        "Primitives",
+        "max-width, padding-block, aspect-ratio, place-items, flex-grow",
+        "Container, section, inset, aspect ratio, center and spacer: the page's bones.",
+    ),
+    (
+        "/scroll-area",
+        "Scroll area",
+        "Primitives",
+        "overflow: auto, scrollbar-gutter, scroll-state()",
+        "A box that scrolls inside itself, with edge shadows where the browser can tell.",
+    ),
+    (
+        "/spinner",
+        "Spinner and indicator",
+        "Primitives",
+        "@keyframes, role=status, inset-inline-end",
+        "A loading ring, and a count or dot on the corner of a button or avatar.",
     ),
 ];
 
