@@ -218,7 +218,7 @@ impl<'a> Wizard<'a> {
     }
 
     /// What the visitor entered so far, by field name, for every step's fields and the
-    /// review: the pairs the posts carried, usually kept in a [`crate::Saved`] cookie.
+    /// review: the pairs the posts carried, usually kept in a `Saved` cookie (feature `axum`).
     pub fn values(mut self, values: &'a [(String, String)]) -> Self {
         self.values = values;
         self

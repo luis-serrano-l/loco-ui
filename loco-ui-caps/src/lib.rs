@@ -28,7 +28,7 @@
 //! [`Caps::from_query`] lets `?caps=popover,anchor` force a set (tests, `curl`, clients
 //! without cookies), and [`beacon_cookie`] turns the beacon route's query string into the
 //! `Set-Cookie` value to answer with (status 204, `Cache-Control: no-store`). The `axum`
-//! feature only wraps them: a `Caps` extractor and [`router`] for the beacon route.
+//! feature only wraps them: a `Caps` extractor and `router` for the beacon route.
 //!
 //! ```rust
 //! use loco_ui_caps::{self as caps, Cap, Caps};
@@ -47,8 +47,10 @@
 //! ```
 
 // docs.rs builds with nightly and `--cfg docsrs`: feature-gated items get a "requires feature" badge.
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs)]
+#![forbid(unsafe_code)]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 use maud::{Markup, html};
 

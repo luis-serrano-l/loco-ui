@@ -34,7 +34,8 @@ Answered 2026-09-24: keep `axum-nojs`. Reversed 2026-09-25: renamed to `loco-ui`
 Hosting answered 2026-09-24: **a static snapshot on GitHub Pages.** Pages serves only static
 files, so the snapshot shows every page as it renders, and `<dialog>`, `popover`, `<details>`
 and tooltips still work. Forms, cookies and paging need the server, and a banner on every page
-says so. The export (`scripts/snapshot.sh`) and the workflow (`.github/workflows/pages.yml`) are done.
+says so. The export (`scripts/snapshot.sh`) and the deploy (the `pages` job in `.github/workflows/rust.yml`,
+run only after every other check passes) are done.
 Yours: Settings → Pages → Source "GitHub Actions", then push `main`; the site lands at
 https://luis-serrano-l.github.io/loco-ui/ (put that link in `docs/launch-post.md`).
 

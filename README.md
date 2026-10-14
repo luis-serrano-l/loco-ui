@@ -1,5 +1,11 @@
 # loco-ui
 
+[![crates.io](https://img.shields.io/crates/v/loco-ui.svg)](https://crates.io/crates/loco-ui)
+[![docs.rs](https://img.shields.io/docsrs/loco-ui)](https://docs.rs/loco-ui)
+[![CI](https://github.com/luis-serrano-l/loco-ui/actions/workflows/rust.yml/badge.svg)](https://github.com/luis-serrano-l/loco-ui/actions/workflows/rust.yml)
+[![MSRV 1.88](https://img.shields.io/badge/MSRV-1.88-blue.svg)](loco-ui/Cargo.toml)
+[![MIT licence](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **[Live demo](https://luis-serrano-l.github.io/loco-ui/)** (every component, static snapshot on
 GitHub Pages) · **[Source on GitHub](https://github.com/luis-serrano-l/loco-ui)**
 
@@ -22,6 +28,34 @@ redirect). One optional 12 KB script makes those forms and links update the page
 instead of reloading it; block it and every page still works. On Loco, a scaffold generates
 HTML controllers and Maud views for a model. The core is plain functions over strings, so it
 also works with any other Rust server.
+
+## Install
+
+loco-ui is not on crates.io yet. Until the publish (0.2.0), depend on the repository:
+
+```toml
+[dependencies]
+loco-ui = { git = "https://github.com/luis-serrano-l/loco-ui", features = ["axum"] }
+maud = "0.27" # `lui!` and `html!` expand to `maud::` paths, so your crate names it too
+```
+
+After the publish, `cargo add` does the same. Pick the line for your server:
+
+**Axum.** `cargo add loco-ui --features axum` and `cargo add maud`. Handlers take `ui: Ui`
+and return `Page` or `Redirect`; `enhance::router()` and `caps::router()` serve the script
+and the beacon route.
+
+**Loco.** `cargo add loco-ui --features loco` and `cargo add maud`, then
+`loco_ui::loco::Initializer` in `App::initializers` mounts both routes. Or let the installer
+do all of it, scaffold templates included: `cargo install --git
+https://github.com/luis-serrano-l/loco-ui loco-ui --bin cargo-lui`, then `cargo lui install`
+in the app ("Use with Loco" below). The `loco` feature needs Rust 1.94, which loco-rs 1.2
+asks for; the rest builds on 1.88.
+
+**Any server.** `cargo add loco-ui` and `cargo add maud`, with no features: the crate then
+depends on Maud and its own two crates only. `Ui::from_request(path, query, cookies)` gives
+the builders and `.into_string()` the HTML; `--features http` adds `http::Response` and
+streaming ("Use with any server" below).
 
 ![Five layers, bottom to top: the HTML and CSS platform; primitives such as button, input and card; components such as dialog, tabs and table; widgets such as calendar and kanban; and components you write in your own crate](docs/layers.svg)
 
@@ -99,7 +133,7 @@ rustc's own "no method named `requird` … did you mean `required`" at the attri
 `loco_ui::props()` lists every component's setters with kind, arguments, default and the
 HTML attribute they set; the demo shows them as a table on each page.
 
-The dependencies: `cargo add loco-ui --features axum`, `cargo add maud` (`lui!` expands to
+The dependencies: `loco-ui` with the `axum` feature (see Install), `maud` (`lui!` expands to
 `maud::html!`, so the crate that calls it needs `maud` itself), plus `axum` and `serde` with
 `derive`. A handler that reads a post by name, or one with a file field, takes `posted:
 Posted` (urlencoded or multipart) instead of `Form<T>`: `posted.get("email")`,
@@ -521,7 +555,7 @@ demo/src/site.rs            the component index, the page shell, the index page 
 demo/src/code.rs            the code under each component page: SOURCES, snippet(), syntect highlighting
 demo/src/tests.rs           the no-script test, strict CSP, snippets, state round trips
 demo/src/snapshot.rs        the static snapshot for GitHub Pages (scripts/snapshot.sh)
-.github/workflows/pages.yml builds the snapshot and deploys it to GitHub Pages
+.github/workflows/rust.yml  CI jobs; `pages` deploys the snapshot to GitHub Pages
 loco-ui/loco-templates/   Loco scaffold overrides: HTML controller + Maud views, Post/Redirect/Get
 examples/loco-app/          Loco app (sign-in, scaffolded notes); tests/pages.rs: one script, Blitz shots loco-*.png
 loco-ui-test/src/lib.rs   Page: render a route through Blitz, assert layout, screenshot

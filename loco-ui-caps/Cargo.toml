@@ -2,10 +2,14 @@
 name = "loco-ui-caps"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 description = "Server-side browser feature detection with no JavaScript: @supports beacons set one cookie per capability"
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/luis-serrano-l/loco-ui"
+homepage = "https://luis-serrano-l.github.io/loco-ui/"
+documentation = "https://docs.rs/loco-ui-caps"
+include = ["src/**/*", "examples/**/*", "README.md", "LICENSE"]
 keywords = ["feature-detection", "supports", "cookie", "axum", "loco"]
 categories = ["web-programming", "web-programming::http-server"]
 

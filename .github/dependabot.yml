@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: monthly
+  # axe-core for scripts/browser-check.mjs.
+  - package-ecosystem: npm
+    directory: /scripts
+    schedule:
+      interval: monthly

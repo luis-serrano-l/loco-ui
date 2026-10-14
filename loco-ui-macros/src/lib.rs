@@ -59,6 +59,9 @@
 //! … a method with a similar name exists: `vertical`"), since every expanded call keeps the
 //! span it came from.
 
+#![forbid(unsafe_code)]
+#![deny(rustdoc::broken_intra_doc_links)]
+
 use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
 
