@@ -49,13 +49,18 @@ async function until(fn, what, ms = 3000) {
 const text = (css) => js("return document.querySelector(arguments[0]).textContent.trim()", css);
 
 try {
-  // Counter: five fast clicks, all counted, no page load.
+  // Counter: five clicks, each as soon as the button is enabled again (a form's submit
+  // buttons are disabled while its request is in flight, so a double click sends once), all
+  // counted, no page load.
   await go("/counter");
   await click("button[value=reset]");
   await until(async () => (await text(".lui-counter output")) === "0", "reset");
-  for (let i = 0; i < 5; i++) await click("button[value=inc]");
+  for (let i = 0; i < 5; i++) {
+    await until(async () => await js("return !document.querySelector('button[value=inc]').disabled"), "increment enabled", 10000);
+    await click("button[value=inc]");
+  }
   await until(async () => (await text(".lui-counter output")) === "10", "counter to reach 10 in steps of 2", 10000);
-  assert(await navigations() === 1, "counter: 5 quick clicks counted in place, no reload");
+  assert(await navigations() === 1, "counter: 5 clicks counted in place, no reload");
   await js("document.querySelector('.lui-counter input[name=value]').value = 20");
   await click(".lui-counter button[value=set]");
   await until(async () => (await text(".lui-counter output")) === "20", "typed value set");
