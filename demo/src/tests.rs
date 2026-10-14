@@ -1094,11 +1094,6 @@ async fn every_route_is_conforming_html() {
 /// Known conformance bugs: the route (a `PATHS` entry) and a piece of the problem's text.
 /// Each names the milestone that fixes it; the test fails once one is fixed and still listed.
 const CONFORMANCE_BUGS: &[(&str, &str)] = &[
-    // A form's id is derived from its action, so two forms posting to the same action share
-    // one (`lui-form--blocks-settings` on the settings block's two sections, and again on
-    // the index where its preview sits). M38 fixes this (the "Ids" box).
-    ("/blocks/settings", r#"id "lui-form--blocks-settings""#),
-    ("/", r#"id "lui-form--blocks-settings""#),
     // The index shows several previews that render the same field (`f-email`, `f-name`,
     // `f-password`) or the same sign-in form. M42 fixes this (the docs site's stages).
     ("/", r#"id "lui-form--app-signin""#),
