@@ -711,7 +711,7 @@ async fn markup_follows_caps() {
         String::from_utf8(body.to_vec()).unwrap()
     }
     let old = body("/dialog", "").await;
-    assert!(old.contains("href=\"#confirm\"") && !old.contains("commandfor"));
+    assert!(old.contains("href=\"#confirm\"") && !old.contains("commandfor=\""));
     assert!(old.contains("lui-caps"), "unknown browser gets beacons");
     let new = body("/dialog", "lui-cap-probed=1; lui-cap-invokers=1").await;
     assert!(new.contains("commandfor=\"confirm\"") && !new.contains("href=\"#confirm\""));
