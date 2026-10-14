@@ -3,7 +3,8 @@ source: loco-ui/tests/snapshots.rs
 ---
 caps: all
 <div class="lui-field">
-<label for="f-email">Email *</label>
+<label for="f-email">Email <span class="lui-field-required" aria-hidden="true">*</span>
+</label>
 <input id="f-email" name="email" type="email" value="ada@x.org" required aria-invalid="true" aria-describedby="f-email-help f-email-error">
 <small id="f-email-help" class="lui-field-help">We never share it.</small>
 <p id="f-email-error" class="lui-error" role="alert">
@@ -16,7 +17,8 @@ caps: all
 
 caps: none
 <div class="lui-field">
-<label for="f-email">Email *</label>
+<label for="f-email">Email <span class="lui-field-required" aria-hidden="true">*</span>
+</label>
 <input id="f-email" name="email" type="email" value="ada@x.org" required aria-invalid="true" aria-describedby="f-email-help f-email-error">
 <small id="f-email-help" class="lui-field-help">We never share it.</small>
 <p id="f-email-error" class="lui-error" role="alert">

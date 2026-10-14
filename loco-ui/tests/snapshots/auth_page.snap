@@ -8,9 +8,11 @@ caps: all
 <p class="lui-auth-description">Welcome back.</p>
 <form id="lui-form--signin" data-lui="swap" class="lui-form" method="post" action="/signin">
 <div class="lui-field">
-<label for="f-email">Email *</label>
+<label for="f-email">Email <span class="lui-field-required" aria-hidden="true">*</span>
+</label>
 <input id="f-email" name="email" type="email" value="" required>
 </div>
+<p class="lui-form-hint" aria-hidden="true">* required</p>
 <div class="lui-form-actions">
 <button type="submit" class="lui-button lui-button-primary">Sign in</button>
 </div>
@@ -28,9 +30,11 @@ caps: none
 <p class="lui-auth-description">Welcome back.</p>
 <form id="lui-form--signin" data-lui="swap" class="lui-form" method="post" action="/signin">
 <div class="lui-field">
-<label for="f-email">Email *</label>
+<label for="f-email">Email <span class="lui-field-required" aria-hidden="true">*</span>
+</label>
 <input id="f-email" name="email" type="email" value="" required>
 </div>
+<p class="lui-form-hint" aria-hidden="true">* required</p>
 <div class="lui-form-actions">
 <button type="submit" class="lui-button lui-button-primary">Sign in</button>
 </div>
