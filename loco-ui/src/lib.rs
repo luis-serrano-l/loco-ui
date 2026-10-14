@@ -1781,4 +1781,696 @@ mod tests {
             assert!(nested.starts_with('<') && nested == part.render().into_string());
         }
     }
+
+    use maud::Markup;
+
+    /// The example calls behind [`every_attr_prop_sets_its_attribute`]: for each builder and
+    /// setter whose `PROPS` entry names an HTML attribute, the builder without the setter and
+    /// with it, in that order.
+    type AttrExample = (&'static str, &'static str, fn(&Ui) -> [Markup; 2]);
+
+    const ATTR_EXAMPLES: &[AttrExample] = &[
+        ("Avatar", "src", |ui| {
+            [
+                ui.avatar("Ada").render(),
+                ui.avatar("Ada").src("/a.png").render(),
+            ]
+        }),
+        ("Badge", "href", |ui| {
+            [
+                ui.badge("New").render(),
+                ui.badge("New").href("/new").render(),
+            ]
+        }),
+        ("Button", "submit", |ui| {
+            [
+                ui.button("Go").command("close", "d").render(),
+                ui.button("Go").command("close", "d").submit().render(),
+            ]
+        }),
+        ("Button", "reset", |ui| {
+            [ui.button("Go").render(), ui.button("Go").reset().render()]
+        }),
+        ("Button", "command", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").command("show-modal", "d").render(),
+            ]
+        }),
+        ("Button", "popovertarget", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").popovertarget("p").render(),
+            ]
+        }),
+        ("Button", "form", |ui| {
+            [ui.button("Go").render(), ui.button("Go").form("f").render()]
+        }),
+        ("Button", "name", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").name("op").render(),
+            ]
+        }),
+        ("Button", "value", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").value("inc").render(),
+            ]
+        }),
+        ("Button", "aria_label", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").aria_label("Go on").render(),
+            ]
+        }),
+        ("Button", "class", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").class("x").render(),
+            ]
+        }),
+        ("Button", "disabled", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").disabled().render(),
+            ]
+        }),
+        ("Button", "id", |ui| {
+            [ui.button("Go").render(), ui.button("Go").id("go").render()]
+        }),
+        ("Button", "role", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").role("tab").render(),
+            ]
+        }),
+        ("Button", "title", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").title("Go on").render(),
+            ]
+        }),
+        ("Button", "style", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").style("order: 1").render(),
+            ]
+        }),
+        ("Button", "aria_haspopup", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").aria_haspopup("menu").render(),
+            ]
+        }),
+        ("Button", "pressed", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").pressed(true).render(),
+            ]
+        }),
+        ("Button", "accesskey", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").accesskey("g").render(),
+            ]
+        }),
+        ("Button", "aria_keyshortcuts", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").aria_keyshortcuts("Alt+G").render(),
+            ]
+        }),
+        ("Button", "formmethod", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").formmethod("get").render(),
+            ]
+        }),
+        ("Button", "formaction", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").formaction("/go").render(),
+            ]
+        }),
+        ("Button", "formnovalidate", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").formnovalidate().render(),
+            ]
+        }),
+        ("Button", "rel", |ui| {
+            [
+                ui.link_button("Go", "/go").render(),
+                ui.link_button("Go", "/go").rel("next").render(),
+            ]
+        }),
+        ("Button", "current", |ui| {
+            [
+                ui.link_button("Go", "/go").render(),
+                ui.link_button("Go", "/go").current(true).render(),
+            ]
+        }),
+        ("Calendar", "value", |ui| {
+            [
+                ui.calendar("due").radio().render(),
+                ui.calendar("due").radio().value("2026-09-24").render(),
+            ]
+        }),
+        ("Calendar", "required", |ui| {
+            [
+                ui.calendar("due").radio().render(),
+                ui.calendar("due").radio().required().render(),
+            ]
+        }),
+        ("Card", "id", |ui| {
+            [ui.card().render(), ui.card().id("plan").render()]
+        }),
+        ("Chart", "id", |ui| {
+            [
+                ui.chart("Signups").render(),
+                ui.chart("Signups").id("signups").render(),
+            ]
+        }),
+        ("Color", "value", |ui| {
+            [
+                ui.color("accent", "Accent").render(),
+                ui.color("accent", "Accent").value("#2f5bea").render(),
+            ]
+        }),
+        ("Combobox", "label", |ui| {
+            [
+                ui.combobox("q", "/s").render(),
+                ui.combobox("q", "/s").label("Language").render(),
+            ]
+        }),
+        ("Counter", "min", |ui| {
+            [
+                ui.counter("/c", 3).typed().render(),
+                ui.counter("/c", 3).typed().min(0).render(),
+            ]
+        }),
+        ("Counter", "max", |ui| {
+            [
+                ui.counter("/c", 3).typed().render(),
+                ui.counter("/c", 3).typed().max(9).render(),
+            ]
+        }),
+        ("Counter", "step", |ui| {
+            [
+                ui.counter("/c", 3).typed().render(),
+                ui.counter("/c", 3).typed().step(2).render(),
+            ]
+        }),
+        ("DatePicker", "value", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due")
+                    .native()
+                    .value("2026-09-24")
+                    .render(),
+            ]
+        }),
+        ("DatePicker", "min", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due")
+                    .native()
+                    .min("2026-01-01")
+                    .render(),
+            ]
+        }),
+        ("DatePicker", "max", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due")
+                    .native()
+                    .max("2026-12-31")
+                    .render(),
+            ]
+        }),
+        ("DatePicker", "required", |ui| {
+            [
+                ui.date_picker("due", "Due").native().render(),
+                ui.date_picker("due", "Due").native().required().render(),
+            ]
+        }),
+        ("Dialog", "id", |ui| {
+            [
+                ui.dialog("Hi").render(),
+                ui.dialog("Hi").id("hello").render(),
+            ]
+        }),
+        ("Dialog", "open", |ui| {
+            [
+                ui.dialog("Hi").render(),
+                ui.dialog("Hi").open(true).render(),
+            ]
+        }),
+        ("Dialog", "closedby", |ui| {
+            [
+                ui.dialog("Hi").render(),
+                ui.dialog("Hi").closedby("closerequest").render(),
+            ]
+        }),
+        ("Drawer", "id", |ui| {
+            [
+                ui.drawer("Menu").render(),
+                ui.drawer("Menu").id("nav").render(),
+            ]
+        }),
+        ("Drawer", "open", |ui| {
+            [
+                ui.drawer("Menu").render(),
+                ui.drawer("Menu").open(true).render(),
+            ]
+        }),
+        ("Form", "value", |ui| {
+            [
+                ui.form("/f").text("n", "N").render(),
+                ui.form("/f").text("n", "N").value("Ada").render(),
+            ]
+        }),
+        ("Form", "id", |ui| {
+            [ui.form("/f").render(), ui.form("/f").id("profile").render()]
+        }),
+        ("Input", "email", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").email().render(),
+            ]
+        }),
+        ("Input", "password", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").password().render(),
+            ]
+        }),
+        ("Input", "pattern", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").pattern("[0-9]+", "Digits").render(),
+            ]
+        }),
+        ("Input", "multiple", |ui| {
+            [
+                ui.input("n", "N").file(".pdf").render(),
+                ui.input("n", "N").file(".pdf").multiple().render(),
+            ]
+        }),
+        ("Input", "required", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").required().render(),
+            ]
+        }),
+        ("Input", "maxlength", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").maxlength(8).render(),
+            ]
+        }),
+        ("Input", "value", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").value("Ada").render(),
+            ]
+        }),
+        ("Input", "checked", |ui| {
+            [
+                ui.checkbox("n", "N").render(),
+                ui.checkbox("n", "N").checked(true).render(),
+            ]
+        }),
+        ("Input", "placeholder", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").placeholder("Ada").render(),
+            ]
+        }),
+        ("Input", "search", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").search().render(),
+            ]
+        }),
+        ("Input", "list", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").list("names").render(),
+            ]
+        }),
+        ("Input", "autocomplete", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").autocomplete("name").render(),
+            ]
+        }),
+        ("Input", "autofocus", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").autofocus().render(),
+            ]
+        }),
+        ("Input", "inputmode", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").inputmode("numeric").render(),
+            ]
+        }),
+        ("Input", "step", |ui| {
+            [
+                ui.input("n", "N").number(0, 9).render(),
+                ui.input("n", "N").number(0, 9).step(3).render(),
+            ]
+        }),
+        ("Input", "aria_controls", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").aria_controls("results").render(),
+            ]
+        }),
+        ("Input", "form", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").form("f").render(),
+            ]
+        }),
+        ("Input", "class", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").class("x").render(),
+            ]
+        }),
+        ("Input", "id", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").id("name").render(),
+            ]
+        }),
+        ("RadioGroup", "value", |ui| {
+            [
+                ui.radio_group("p", "P").option("a", "A").render(),
+                ui.radio_group("p", "P")
+                    .option("a", "A")
+                    .value("a")
+                    .render(),
+            ]
+        }),
+        ("RadioGroup", "required", |ui| {
+            [
+                ui.radio_group("p", "P").option("a", "A").render(),
+                ui.radio_group("p", "P")
+                    .option("a", "A")
+                    .required()
+                    .render(),
+            ]
+        }),
+        ("Marquee", "duration", |ui| {
+            [
+                ui.marquee("M").text("a").render(),
+                ui.marquee("M").text("a").duration(20).render(),
+            ]
+        }),
+        ("Meter", "low", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).low(2).render(),
+            ]
+        }),
+        ("Meter", "high", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).high(8).render(),
+            ]
+        }),
+        ("Meter", "optimum", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).optimum(0).render(),
+            ]
+        }),
+        ("Meter", "id", |ui| {
+            [
+                ui.meter(5, 0, 10).render(),
+                ui.meter(5, 0, 10).id("disk").render(),
+            ]
+        }),
+        ("Palette", "accesskey", |ui| {
+            [
+                ui.palette("/s").render(),
+                ui.palette("/s").accesskey("p").render(),
+            ]
+        }),
+        ("Palette", "id", |ui| {
+            [
+                ui.palette("/s").render(),
+                ui.palette("/s").id("commands").render(),
+            ]
+        }),
+        ("Menu", "action", |ui| {
+            [
+                ui.menu("M").link("A", "/a").render(),
+                ui.menu("M").link("A", "/a").action("Go", "/go").render(),
+            ]
+        }),
+        ("Menu", "disabled", |ui| {
+            [
+                ui.menu("M").action("Go", "/go").render(),
+                ui.menu("M").action("Go", "/go").disabled().render(),
+            ]
+        }),
+        ("Menu", "id", |ui| {
+            [ui.menu("M").render(), ui.menu("M").id("more").render()]
+        }),
+        ("Progress", "id", |ui| {
+            [
+                ui.progress(1, 2).render(),
+                ui.progress(1, 2).id("upload").render(),
+            ]
+        }),
+        ("Range", "value", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").value(70).render(),
+            ]
+        }),
+        ("Range", "min", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").min(10).render(),
+            ]
+        }),
+        ("Range", "max", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").max(50).render(),
+            ]
+        }),
+        ("Range", "step", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").step(5).render(),
+            ]
+        }),
+        ("Stat", "href", |ui| {
+            [
+                ui.stat("A", "1").render(),
+                ui.stat("A", "1").href("/a").render(),
+            ]
+        }),
+        ("Tooltip", "id", |ui| {
+            [
+                ui.tooltip("Tip", html! { "x" }).render(),
+                ui.tooltip("Tip", html! { "x" }).id("tip").render(),
+            ]
+        }),
+        ("Upload", "accept", |ui| {
+            [
+                ui.upload("/u", "f").render(),
+                ui.upload("/u", "f").accept("image/*").render(),
+            ]
+        }),
+        ("Upload", "multiple", |ui| {
+            [
+                ui.upload("/u", "f").render(),
+                ui.upload("/u", "f").multiple().render(),
+            ]
+        }),
+        ("Upload", "href", |ui| {
+            [
+                ui.upload("/u", "f").file("a.txt", 1).render(),
+                ui.upload("/u", "f")
+                    .file("a.txt", 1)
+                    .href("/a.txt")
+                    .render(),
+            ]
+        }),
+        ("ErrorPage", "home", |ui| {
+            [
+                ui.error_page(404).render(),
+                ui.error_page(404).home("/dashboard").render(),
+            ]
+        }),
+        ("RecordPage", "edit", |ui| {
+            [
+                ui.record_page("R").render(),
+                ui.record_page("R").edit("/r/edit").render(),
+            ]
+        }),
+        ("RecordPage", "delete", |ui| {
+            [
+                ui.record_page("R").render(),
+                ui.record_page("R").delete("/r/delete").render(),
+            ]
+        }),
+        ("RecordPage", "back", |ui| {
+            [
+                ui.record_page("R").render(),
+                ui.record_page("R").back("/rs").render(),
+            ]
+        }),
+        ("ContextMenu", "action", |ui| {
+            [
+                ui.context_menu("C").link("A", "/a").render(),
+                ui.context_menu("C")
+                    .link("A", "/a")
+                    .action("Go", "/go")
+                    .render(),
+            ]
+        }),
+        ("ContextMenu", "disabled", |ui| {
+            [
+                ui.context_menu("C").action("Go", "/go").render(),
+                ui.context_menu("C").action("Go", "/go").disabled().render(),
+            ]
+        }),
+        ("ContextMenu", "id", |ui| {
+            [
+                ui.context_menu("C").render(),
+                ui.context_menu("C").id("more").render(),
+            ]
+        }),
+        ("InputOtp", "length", |ui| {
+            [
+                ui.input_otp("code", "Code").render(),
+                ui.input_otp("code", "Code").length(4).render(),
+            ]
+        }),
+        ("NavMenu", "link", |ui| {
+            [
+                ui.nav_menu("Main").render(),
+                ui.nav_menu("Main").link("A", "/a").render(),
+            ]
+        }),
+        ("NavMenu", "id", |ui| {
+            [
+                ui.nav_menu("Main").panel("P", [("A", "/a")]).render(),
+                ui.nav_menu("Main")
+                    .panel("P", [("A", "/a")])
+                    .id("top")
+                    .render(),
+            ]
+        }),
+        ("Sidebar", "link", |ui| {
+            [
+                ui.sidebar("Mail").render(),
+                ui.sidebar("Mail").link("A", "/a").render(),
+            ]
+        }),
+        ("Sidebar", "id", |ui| {
+            [
+                ui.sidebar("Mail").group("G").link("A", "/a").render(),
+                ui.sidebar("Mail")
+                    .group("G")
+                    .link("A", "/a")
+                    .id("side")
+                    .render(),
+            ]
+        }),
+        ("ToggleGroup", "option", |ui| {
+            [
+                ui.toggle_group("a", "A").render(),
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+            ]
+        }),
+        ("ToggleGroup", "value", |ui| {
+            [
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+                ui.toggle_group("a", "A")
+                    .option("l", "Left")
+                    .value("l")
+                    .render(),
+            ]
+        }),
+        ("ToggleGroup", "multiple", |ui| {
+            [
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+                ui.toggle_group("a", "A")
+                    .option("l", "Left")
+                    .multiple()
+                    .render(),
+            ]
+        }),
+    ];
+
+    /// Whether some tag in `html` carries the attribute `name`.
+    fn has_attribute(html: &str, name: &str) -> bool {
+        let needle = format!(" {name}");
+        html.split('<').skip(1).any(|tag| {
+            let tag = tag.split('>').next().unwrap_or("");
+            tag.match_indices(&needle).any(|(at, found)| {
+                matches!(
+                    tag[at + found.len()..].chars().next(),
+                    None | Some('=' | ' ' | '/')
+                )
+            })
+        })
+    }
+
+    /// Each setter whose `PROPS` entry names an HTML attribute sets that attribute, under
+    /// every capability and under none: the output changes and some tag carries it. Every
+    /// such setter needs an entry in [`ATTR_EXAMPLES`].
+    #[test]
+    fn every_attr_prop_sets_its_attribute() {
+        let mut wrong = Vec::new();
+        for component in props() {
+            for prop in component.props.iter().filter(|p| !p.attr.is_empty()) {
+                let name = format!("{}::{}", component.builder, prop.name);
+                let Some((.., example)) = ATTR_EXAMPLES
+                    .iter()
+                    .find(|(b, n, _)| *b == component.builder && *n == prop.name)
+                else {
+                    wrong.push(format!("{name}: no entry in ATTR_EXAMPLES"));
+                    continue;
+                };
+                for caps in [Caps::all(), Caps::NONE] {
+                    let [without, with] = example(&Ui::from(caps)).map(Markup::into_string);
+                    if without == with {
+                        wrong.push(format!("{name} changes nothing (caps {:?})", caps.names()));
+                    } else if !has_attribute(&with, prop.attr) {
+                        wrong.push(format!(
+                            "{name} sets no `{}` (caps {:?})",
+                            prop.attr,
+                            caps.names()
+                        ));
+                    }
+                }
+            }
+        }
+        for (builder, name, _) in ATTR_EXAMPLES {
+            let listed = props().iter().any(|c| {
+                c.builder == *builder
+                    && c.props
+                        .iter()
+                        .any(|p| p.name == *name && !p.attr.is_empty())
+            });
+            if !listed {
+                wrong.push(format!(
+                    "{builder}::{name}: in ATTR_EXAMPLES, but PROPS gives it no attr"
+                ));
+            }
+        }
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+    }
 }
