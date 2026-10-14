@@ -22,16 +22,16 @@
 //! ```rust
 //! use loco_ui::prelude::*;
 //! let ui = Ui::default();
+//! // Markdown rendered elsewhere goes in as `PreEscaped`, after it has been sanitised.
+//! let m = ui.prose().body(PreEscaped("<p>From <em>Markdown</em>.</p>".to_owned())).render().into_string();
+//! assert!(m.ends_with("<p>From <em>Markdown</em>.</p></div>"));
+//! # use maud::PreEscaped;
 //! let doc = html! { h2 { "Install" } p { "Add the crate." } };
 //! let m = ui.prose().body(doc.clone()).render().into_string();
 //! assert_eq!(m, r#"<div class="lui-prose"><h2>Install</h2><p>Add the crate.</p></div>"#);
 //! // The same in `lui!`, where the block is the content:
 //! let same = lui! { Prose { h2 { "Install" } p { "Add the crate." } } };
 //! assert_eq!(same.into_string(), m);
-//! // Markdown rendered elsewhere goes in as `PreEscaped`, after it has been sanitised.
-//! let m = ui.prose().body(PreEscaped("<p>From <em>Markdown</em>.</p>".to_owned())).render().into_string();
-//! assert!(m.ends_with("<p>From <em>Markdown</em>.</p></div>"));
-//! # use maud::PreEscaped;
 //! ```
 
 use maud::{Markup, Render, html};

@@ -1868,7 +1868,7 @@
           "status": "beta",
           "calls": ["ui.code_block(text: &str)"],
           "props": [
-            { "name": "lang", "kind": "value", "args": "lang: &'a str", "default": "", "attr": "", "doc": "The language, written as `class=\"language-…\"` for a highlighter." },
+            { "name": "language", "kind": "value", "args": "language: &'a str", "default": "", "attr": "", "doc": "The language, written as `class=\"language-…\"` for a highlighter." },
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A file name or caption above the code; it names the region too." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "Replace the id derived from the title (or the code)." },
             { "name": "copy", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A copy button in the corner, shown and wired by the enhancement script only." }
@@ -1895,8 +1895,8 @@
           "calls": ["ui.blockquote()"],
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "The quotation." },
-            { "name": "cite", "kind": "value", "args": "source: &'a str", "default": "", "attr": "", "doc": "Who said it, or the work it is from, in a `<cite>` under the quotation." },
-            { "name": "href", "kind": "value", "args": "url: &'a str", "default": "", "attr": "", "doc": "The URL of the source, written as the blockquote's `cite` attribute." }
+            { "name": "caption", "kind": "value", "args": "source: &'a str", "default": "", "attr": "", "doc": "Who said it, or the work it is from, in a `<cite>` under the quotation." },
+            { "name": "cite", "kind": "value", "args": "url: &'a str", "default": "", "attr": "cite", "doc": "The URL of the source, written as the blockquote's `cite` attribute." }
           ]
         }
       ]
@@ -1968,7 +1968,7 @@
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What the band holds." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "3", "attr": "", "doc": "Radix's sizes 1–4: 24, 40, 64 or 80px above and below." },
-            { "name": "label", "kind": "value", "args": "label: &'a str", "default": "", "attr": "", "doc": "A name (`aria-label`), which makes the section a region landmark." }
+            { "name": "label", "kind": "value", "args": "label: &'a str", "default": "", "attr": "aria-label", "doc": "A name (`aria-label`), which makes the section a region landmark." }
           ]
         }
       ]
@@ -2025,10 +2025,10 @@
       "name": "Scroll area",
       "module": "scroll_area",
       "look": "Radix Themes ScrollArea",
-      "responsive": "container",
+      "responsive": "content",
       "features": [
         { "name": "scrollbar-gutter: stable", "baseline": { "chrome": "94", "firefox": "97", "safari": "18.2" } },
-        { "name": "scrollbar-width", "baseline": { "chrome": "121", "firefox": "64", "safari": "26" } },
+        { "name": "scrollbar-width", "baseline": { "chrome": "121", "firefox": "64", "safari": "18.2" } },
         { "name": "scroll-state()", "baseline": { "chrome": "133", "firefox": "no", "safari": "no" } }
       ],
       "fallback": "no edge shadows without scroll-state(): the scrollbar alone shows there is more",

@@ -54,6 +54,7 @@ impl Section<'_> {
             .default("3")
             .doc("Radix's sizes 1–4: 24, 40, 64 or 80px above and below."),
         Prop::new("label", PropKind::Value, "label: &'a str")
+            .attr("aria-label")
             .doc("A name (`aria-label`), which makes the section a region landmark."),
     ];
 }

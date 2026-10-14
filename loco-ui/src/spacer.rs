@@ -26,7 +26,7 @@
 //! assert_eq!(same.into_string(), m);
 //! // At least 2rem, even when the row is full.
 //! let m = ui.spacer().min("2rem").render().into_string();
-//! assert_eq!(m, r#"<div class="lui-spacer" aria-hidden="true" style="min-width: 2rem; min-height: 2rem"></div>"#);
+//! assert_eq!(m, r#"<div class="lui-spacer" aria-hidden="true" style="flex: 1 0 2rem"></div>"#);
 //! assert_eq!(lui! { Spacer min="2rem"; }.into_string(), m);
 //! ```
 
@@ -67,7 +67,7 @@ impl<'a> Spacer<'a> {
 
 impl Render for Spacer<'_> {
     fn render(&self) -> Markup {
-        let style = self.min.map(|m| format!("min-width: {m}; min-height: {m}"));
+        let style = self.min.map(|m| format!("flex: 1 0 {m}"));
         html! { div class="lui-spacer" aria-hidden="true" style=[style] {} }
     }
 }

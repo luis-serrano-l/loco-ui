@@ -984,3 +984,36 @@ is not drawn only because it sits behind the motion query.
   merge picks one. `Look::with_tokens` was folded into `Ui::tokens`. Shadows have one
   geometry for both schemes (the light one) with colours in `light-dark()`.
 
+### M40a · Typography and layout
+
+- **Nine sizes are a `u8`.** `Heading::size` and `Text::size` take Radix's type ramp 1 to 9,
+  and `Container::size` and `Section::size` Radix's four widths and heights, as `u8`
+  (clamped), like Avatar and Dialog: `variant::Size` stays at three steps so the controls
+  keep their `From<u8>` saturation. `Kbd` and `Spinner` have three sizes and take `Size`.
+- **`ui.text(..)` does two things.** Given an `i18n::Text` key it is the component word it
+  always was; given a `&str` it is the Text component, through the `text::TextArg` trait.
+  Rust has no overloading, and the plan asked for `ui.text(text)` while every component
+  already reads its words with `ui.text(Text::X)`; the trait keeps both spellings.
+- **`text-box` is not in Firefox.** `.trim()` on a heading uses `text-box: trim-both cap
+  alphabetic` (Chrome 133, Safari 18.2) under `@supports`; Firefox keeps the half-leading
+  above and below (https://bugzilla.mozilla.org/show_bug.cgi?id=1816038).
+- **`text-wrap: pretty` is not in Firefox**
+  (https://caniuse.com/mdn-css_properties_text-wrap_pretty): prose paragraphs break
+  greedily there.
+- **Scroll-state queries are Chrome only.** The scroll area's edge shadows are
+  `@container scroll-state(scrollable: top | bottom)` (Chrome 133,
+  https://caniuse.com/mdn-css_at-rules_container_scroll-state_queries); Firefox, Safari and
+  Blitz show the scrollbar alone.
+- **The copy button is a custom invoker command.** The Button primitive is `type="submit"`
+  unless it has a command or a popover target, and a code block can sit inside a form, so
+  the copy button is `.command("--copy", <pre id>)`: `type="button"`, and `commandfor` names
+  the block the script copies. A browser with invoker commands fires a `command` event at
+  the `<pre>` that nothing handles (https://open-ui.org/components/invokers.explainer/).
+- **Blitz paints a positioned element with a `z-index` at the page origin** (the M36 entry):
+  the indicator's badge has no `z-index` and stays on its corner by source order.
+- **Bare-element styles that can now leave `layout::RESET`.** `ui.prose()` scopes them:
+  `p, li { max-width }`, `h1`, `h2`, `h3`, `p { margin }`, `a` and `code`. The bare `table`,
+  `th, td`, `th` and `tbody tr` rules stay until `table.rs` (M41's) carries its own cell
+  padding and rules. Until the delete both apply, and prose wins inside `.lui-prose`: its
+  layer comes after the reset.
+

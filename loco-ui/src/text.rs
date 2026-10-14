@@ -46,6 +46,23 @@ use crate::i18n;
 use crate::props::{Prop, PropKind};
 use crate::variant::{Tone, Weight};
 
+impl Ui {
+    /// Two things by what it is given: a [`i18n::Text`] key gives that component text in the
+    /// visitor's language, and a `&str` gives the Text component reading it
+    /// ([`Text`]).
+    ///
+    /// ```rust
+    /// use loco_ui::i18n::Text;
+    /// use loco_ui::prelude::*;
+    /// let ui = Ui::default();
+    /// assert_eq!(ui.text(Text::Close), "Close");
+    /// assert_eq!(ui.text("Hi").render().into_string(), r#"<span class="lui-text">Hi</span>"#);
+    /// ```
+    pub fn text<'a, T: TextArg<'a>>(&self, text: T) -> T::Output {
+        text.make(self)
+    }
+}
+
 /// What [`Ui::text`] takes: an [`i18n::Text`] key, which gives that component word in the
 /// visitor's language, or a `&str`, which gives a [`Text`] reading it.
 pub trait TextArg<'a> {

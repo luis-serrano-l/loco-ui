@@ -6,7 +6,7 @@
 //! the tone, or solid, surface, outline or ghost) and the shadcn/ui docs' code block (a
 //! bordered panel, an optional file name above, a copy button in the corner).
 //!
-//! The library does no syntax highlighting, so it stays free of dependencies: `.lang("rust")`
+//! The library does no syntax highlighting, so it stays free of dependencies: `.language("rust")`
 //! writes `class="language-rust"` on the `<code>`, which any highlighter (a server-side one
 //! such as syntect, as the demo uses, or highlight.js) picks up.
 //!
@@ -38,11 +38,11 @@
 //! assert_eq!(c, r#"<code class="lui-code" data-tone="brand" data-variant="outline">Ok(())</code>"#);
 //! assert_eq!(lui! { Code("Ok(())") tone="brand" variant="outline"; }.into_string(), c);
 //! // A block with a file name and a copy button (shown by the script only).
-//! let block = ui.code_block("[dependencies]\nloco-ui = \"0.2\"").lang("toml").title("Cargo.toml").copy();
+//! let block = ui.code_block("[dependencies]\nloco-ui = \"0.2\"").language("toml").title("Cargo.toml").copy();
 //! let block = block.render().into_string();
-//! assert!(block.contains(r#"<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="region" aria-label="Cargo.toml"><code class="language-toml">[dependencies]"#));
+//! assert!(block.contains(r#"<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="region" aria-label="Cargo.toml"><code class="lui-code-block-code language-toml">[dependencies]"#));
 //! assert!(block.contains(r#"data-lui="copy" hidden"#));
-//! let same = lui! { CodeBlock("[dependencies]\nloco-ui = \"0.2\"") lang="toml" title="Cargo.toml" copy; };
+//! let same = lui! { CodeBlock("[dependencies]\nloco-ui = \"0.2\"") language="toml" title="Cargo.toml" copy; };
 //! assert_eq!(same.into_string(), block);
 //! ```
 
@@ -95,7 +95,7 @@ impl Ui {
         CodeBlock {
             caps: self.caps,
             text,
-            lang: None,
+            language: None,
             title: None,
             id: None,
             copy: false,
@@ -135,12 +135,12 @@ impl Render for Code<'_> {
 
 /// A block of code, made by [`Ui::code_block`].
 ///
-/// **Setters.** Values: `.lang(..)`, `.title(..)`, `.id(..)`; switches: `.copy()`.
+/// **Setters.** Values: `.language(..)`, `.title(..)`, `.id(..)`; switches: `.copy()`.
 #[derive(Clone, Debug)]
 pub struct CodeBlock<'a> {
     caps: Caps,
     text: &'a str,
-    lang: Option<&'a str>,
+    language: Option<&'a str>,
     title: Option<&'a str>,
     id: Option<&'a str>,
     copy: bool,
@@ -152,7 +152,7 @@ impl CodeBlock<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
-        Prop::new("lang", PropKind::Value, "lang: &'a str")
+        Prop::new("language", PropKind::Value, "language: &'a str")
             .doc("The language, written as `class=\"language-…\"` for a highlighter."),
         Prop::new("title", PropKind::Value, "title: &'a str")
             .doc("A file name or caption above the code; it names the region too."),
@@ -167,8 +167,8 @@ impl CodeBlock<'_> {
 impl<'a> CodeBlock<'a> {
     /// The language, written as `class="language-…"` on the `<code>` so a highlighter finds
     /// it; the library itself colours nothing.
-    pub fn lang(mut self, lang: &'a str) -> Self {
-        self.lang = Some(lang);
+    pub fn language(mut self, language: &'a str) -> Self {
+        self.language = Some(language);
         self
     }
 
@@ -210,12 +210,15 @@ impl Render for CodeBlock<'_> {
             (None, None) => text_id(self.text),
         };
         let [name, copy, copied] = self.words;
-        let lang = self.lang.map(|l| format!("language-{l}"));
+        let class = match self.language {
+            Some(l) => format!("lui-code-block-code language-{l}"),
+            None => "lui-code-block-code".to_owned(),
+        };
         html! {
             div class="lui-code-block" {
                 @if let Some(title) = self.title { div class="lui-code-block-title" { (title) } }
                 pre class="lui-code-block-pre" id=(id) tabindex="0" role="region" aria-label=(self.title.unwrap_or(name)) {
-                    code class=[lang] { (self.text.trim_end_matches('\n')) }
+                    code class=(class) { (self.text.trim_end_matches('\n')) }
                 }
                 @if self.copy {
                     // Hidden until the script shows it: a button that copies needs script.
@@ -264,7 +267,7 @@ pub const CSS: &str = r#"
   font-family: var(--lui-font-mono); font-size: var(--lui-text-2); line-height: var(--lui-leading-3); color: var(--lui-fg);
   scrollbar-width: thin; scrollbar-color: var(--lui-line) transparent;
 }
-.lui-code-block-pre > code { font: inherit; background: none; border: 0; padding: 0; }
+.lui-code-block-code { font: inherit; background: none; border: 0; padding: 0; }
 .lui-code-block-copy { position: absolute; top: 0.375rem; inset-inline-end: 0.375rem; }
 .lui-code-block-copy[hidden] { display: none; }
 .lui-code-block:has(.lui-code-block-copy:not([hidden])) .lui-code-block-pre { padding-inline-end: 3rem; }

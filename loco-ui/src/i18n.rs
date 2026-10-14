@@ -104,7 +104,7 @@ pub enum Text {
     LoadMore,
     /// "Showing {} of {}": pager.
     ShowingOf,
-    /// "Loading": skeleton.
+    /// "Loading": skeleton, spinner.
     Loading,
     /// "Pages": the table pager's `<nav>`.
     Pages,

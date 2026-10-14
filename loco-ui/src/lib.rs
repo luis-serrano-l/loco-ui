@@ -503,6 +503,8 @@ impl Component {
         Component::Cluster,
         Component::Grid,
         Component::Split,
+        // The busy button's ring.
+        Component::Spinner,
     ];
 
     /// This component's `CSS`: empty for `Blocks` (its parts are [`blocks::CSS`]) and for
@@ -1606,6 +1608,10 @@ mod tests {
             "Combobox::label",
             "a form control's name is its label; here visually hidden",
         ),
+        (
+            "Section::label",
+            "a region's name, as `.label(..)` names a button",
+        ),
         ("Marquee::duration", "a custom property in `style`"),
         (
             "InputOtp::length",
@@ -1679,6 +1685,7 @@ mod tests {
         "accept",
         "accesskey",
         "action",
+        "cite",
         "aria-controls",
         "aria-current",
         "aria-haspopup",
@@ -2577,6 +2584,12 @@ mod tests {
                 ui.chart("Signups").id("signups").render(),
             ]
         }),
+        ("Blockquote", "cite", |ui| {
+            [
+                ui.blockquote().render(),
+                ui.blockquote().cite("https://example.com").render(),
+            ]
+        }),
         ("CodeBlock", "id", |ui| {
             [
                 ui.code_block("x").render(),
@@ -2902,6 +2915,12 @@ mod tests {
             [
                 ui.range("v", "V").render(),
                 ui.range("v", "V").step(5).render(),
+            ]
+        }),
+        ("Section", "label", |ui| {
+            [
+                ui.section().render(),
+                ui.section().label("Pricing").render(),
             ]
         }),
         ("Stat", "href", |ui| {

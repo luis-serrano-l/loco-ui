@@ -524,7 +524,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Section | Radix Themes Section | - | `<section>`, `padding-block` | 1 / 1 / 1; 87 / 66 / 14.1 | none needed | No |
 | Inset | Radix Themes Inset | - | `overflow: clip` | 90 / 81 / 16 | overflow: hidden cuts the same corners | No |
 | Aspect ratio | Radix Themes AspectRatio | content | `aspect-ratio`, `object-fit: cover` | 88 / 89 / 15; 32 / 36 / 10 | the box takes its content's height | No |
-| Scroll area | Radix Themes ScrollArea | container | `scrollbar-gutter: stable`, `scrollbar-width`, `scroll-state()` | 94 / 97 / 18.2; 121 / 64 / 26; 133 / no / no | no edge shadows without scroll-state(): the scrollbar alone shows there is more | No |
+| Scroll area | Radix Themes ScrollArea | content | `scrollbar-gutter: stable`, `scrollbar-width`, `scroll-state()` | 94 / 97 / 18.2; 121 / 64 / 18.2; 133 / no / no | no edge shadows without scroll-state(): the scrollbar alone shows there is more | No |
 | Center | Radix Themes Flex align=center justify=center | content | `place-items: center` | 59 / 45 / 11 | none needed | No |
 | Spacer | Radix Themes Box flexGrow=1 | content | `flex: 1 1 auto` | 29 / 28 / 9 | an empty block outside a flex container | No |
 | Spinner | Radix Themes Spinner | - | `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 74 / 63 / 10.1 | none needed | No |

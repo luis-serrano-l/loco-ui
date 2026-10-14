@@ -22,15 +22,15 @@
 //! use loco_ui::prelude::*;
 //! let ui = Ui::default();
 //! let q = ui.blockquote().body(html! { p { "Simple things should be simple." } }).render().into_string();
-//! assert_eq!(q, r#"<figure class="lui-blockquote"><blockquote><p>Simple things should be simple.</p></blockquote></figure>"#);
+//! assert_eq!(q, r#"<figure class="lui-blockquote"><blockquote class="lui-blockquote-quote"><p>Simple things should be simple.</p></blockquote></figure>"#);
 //! // The same in `lui!`, where the block is the quotation:
 //! let same = lui! { Blockquote { p { "Simple things should be simple." } } };
 //! assert_eq!(same.into_string(), q);
 //! // With its source, as text and as a URL.
-//! let q = ui.blockquote().cite("Alan Kay").href("https://example.com/kay").body(html! { "Simple things should be simple." });
+//! let q = ui.blockquote().caption("Alan Kay").cite("https://example.com/kay").body(html! { "Simple things should be simple." });
 //! let q = q.render().into_string();
-//! assert_eq!(q, r#"<figure class="lui-blockquote"><blockquote cite="https://example.com/kay">Simple things should be simple.</blockquote><figcaption><cite>Alan Kay</cite></figcaption></figure>"#);
-//! let same = lui! { Blockquote cite="Alan Kay" href="https://example.com/kay" { "Simple things should be simple." } };
+//! assert_eq!(q, r#"<figure class="lui-blockquote"><blockquote class="lui-blockquote-quote" cite="https://example.com/kay">Simple things should be simple.</blockquote><figcaption class="lui-blockquote-caption"><cite>Alan Kay</cite></figcaption></figure>"#);
+//! let same = lui! { Blockquote caption="Alan Kay" cite="https://example.com/kay" { "Simple things should be simple." } };
 //! assert_eq!(same.into_string(), q);
 //! ```
 
@@ -41,12 +41,12 @@ use crate::props::{Prop, PropKind};
 
 /// A quotation, made by [`Ui::blockquote`].
 ///
-/// **Setters.** Values: `.body(..)`, `.cite(..)`, `.href(..)`.
+/// **Setters.** Values: `.body(..)`, `.caption(..)`, `.cite(..)`.
 #[derive(Clone, Debug)]
 pub struct Blockquote<'a> {
     content: Markup,
+    caption: Option<&'a str>,
     cite: Option<&'a str>,
-    href: Option<&'a str>,
 }
 
 impl Blockquote<'_> {
@@ -54,9 +54,10 @@ impl Blockquote<'_> {
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("body", PropKind::Value, "markup: Markup").doc("The quotation."),
-        Prop::new("cite", PropKind::Value, "source: &'a str")
+        Prop::new("caption", PropKind::Value, "source: &'a str")
             .doc("Who said it, or the work it is from, in a `<cite>` under the quotation."),
-        Prop::new("href", PropKind::Value, "url: &'a str")
+        Prop::new("cite", PropKind::Value, "url: &'a str")
+            .attr("cite")
             .doc("The URL of the source, written as the blockquote's `cite` attribute."),
     ];
 }
@@ -66,8 +67,8 @@ impl Ui {
     pub fn blockquote<'a>(&self) -> Blockquote<'a> {
         Blockquote {
             content: Markup::default(),
+            caption: None,
             cite: None,
-            href: None,
         }
     }
 }
@@ -80,15 +81,15 @@ impl<'a> Blockquote<'a> {
     }
 
     /// Who said it, or the work it is from, in a `<cite>` under the quotation.
-    pub fn cite(mut self, source: &'a str) -> Self {
-        self.cite = Some(source);
+    pub fn caption(mut self, source: &'a str) -> Self {
+        self.caption = Some(source);
         self
     }
 
     /// The URL of the source, written as the blockquote's `cite` attribute (browsers do not
     /// show it; crawlers and reader modes read it).
-    pub fn href(mut self, url: &'a str) -> Self {
-        self.href = Some(url);
+    pub fn cite(mut self, url: &'a str) -> Self {
+        self.cite = Some(url);
         self
     }
 }
@@ -97,8 +98,8 @@ impl Render for Blockquote<'_> {
     fn render(&self) -> Markup {
         html! {
             figure class="lui-blockquote" {
-                blockquote cite=[self.href] { (self.content) }
-                @if let Some(source) = self.cite { figcaption { cite { (source) } } }
+                blockquote class="lui-blockquote-quote" cite=[self.cite] { (self.content) }
+                @if let Some(source) = self.caption { figcaption class="lui-blockquote-caption" { cite { (source) } } }
             }
         }
     }
@@ -109,12 +110,12 @@ pub const CSS: &str = r#"
 /* After Radix Themes Blockquote: a bar max(0.25rem, 0.25em) wide in brand step 6 on the start
    edge, the text min(1.25rem, max(0.75rem, 0.5em)) past it; the caption muted at --lui-text-2. */
 .lui-blockquote { margin: 0; }
-.lui-blockquote > blockquote {
+.lui-blockquote-quote {
   margin: 0; padding-inline-start: min(1.25rem, max(0.75rem, 0.5em));
   border-inline-start: max(0.25rem, 0.25em) solid var(--lui-brand-6); color: var(--lui-fg); overflow-wrap: break-word;
 }
-.lui-blockquote > blockquote > :last-child { margin-bottom: 0; }
-.lui-blockquote > figcaption { margin-top: 0.5rem; padding-inline-start: calc(min(1.25rem, max(0.75rem, 0.5em)) + max(0.25rem, 0.25em)); color: var(--lui-muted); font-size: var(--lui-text-2); }
-.lui-blockquote > figcaption::before { content: "— "; }
-.lui-blockquote cite { font-style: normal; }
+.lui-blockquote-quote > :last-child { margin-bottom: 0; }
+.lui-blockquote-caption { margin-top: 0.5rem; padding-inline-start: calc(min(1.25rem, max(0.75rem, 0.5em)) + max(0.25rem, 0.25em)); color: var(--lui-muted); font-size: var(--lui-text-2); }
+.lui-blockquote-caption::before { content: "— "; }
+.lui-blockquote-caption cite { font-style: normal; }
 "#;

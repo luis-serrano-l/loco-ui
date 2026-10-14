@@ -1,7 +1,7 @@
 //! # Kbd
 //!
 //! A key or a shortcut drawn as a keycap: `⌘K` in a menu, `Esc` in a dialog's hint, `Ctrl`
-//! `Shift` `P` in the docs. After Radix Themes Kbd: the system font at 0.75em, a box
+//! `Shift` `P` in the docs. After Radix Themes Kbd: the system font at 0.75rem, a box
 //! 1.75em tall and at least as wide, a pale fill and a two-part inset shadow that reads as a
 //! key's edge.
 //!

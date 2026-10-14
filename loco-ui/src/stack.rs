@@ -163,18 +163,18 @@ pub const CSS: &str = r#"
 .lui-stack > * { margin-block: 0; }
 /* Fields and blocks take the full width; a button or badge keeps its own. */
 .lui-stack > :is(.lui-button, .lui-badge) { align-self: flex-start; }
-/* .align(..) and .justify(..) on a stack or a cluster (cluster.rs), after Radix Themes Flex. */
-:is(.lui-stack, .lui-cluster)[data-align=start] { align-items: flex-start; }
-:is(.lui-stack, .lui-cluster)[data-align=center] { align-items: center; }
-:is(.lui-stack, .lui-cluster)[data-align=end] { align-items: flex-end; }
-:is(.lui-stack, .lui-cluster)[data-align=baseline] { align-items: baseline; }
-:is(.lui-stack, .lui-cluster)[data-align=stretch] { align-items: stretch; }
+/* .align(..) and .justify(..), after Radix Themes Flex (cluster.rs has its own). */
+.lui-stack[data-align=start] { align-items: flex-start; }
+.lui-stack[data-align=center] { align-items: center; }
+.lui-stack[data-align=end] { align-items: flex-end; }
+.lui-stack[data-align=baseline] { align-items: baseline; }
+.lui-stack[data-align=stretch] { align-items: stretch; }
 .lui-stack[data-align] > :is(.lui-button, .lui-badge) { align-self: auto; }
-:is(.lui-stack, .lui-cluster)[data-justify=start] { justify-content: flex-start; }
-:is(.lui-stack, .lui-cluster)[data-justify=center] { justify-content: center; }
-:is(.lui-stack, .lui-cluster)[data-justify=end] { justify-content: flex-end; }
-:is(.lui-stack, .lui-cluster)[data-justify=between] { justify-content: space-between; }
-/* .padding(n): the steps of the gap scale. */
+.lui-stack[data-justify=start] { justify-content: flex-start; }
+.lui-stack[data-justify=center] { justify-content: center; }
+.lui-stack[data-justify=end] { justify-content: flex-end; }
+.lui-stack[data-justify=between] { justify-content: space-between; }
+/* .padding(n) on a stack or a cluster: the steps of the gap scale, shared like lui-gap-N. */
 .lui-pad-0 { padding: 0; }
 .lui-pad-1 { padding: var(--lui-space-1); }
 .lui-pad-2 { padding: var(--lui-space-2); }

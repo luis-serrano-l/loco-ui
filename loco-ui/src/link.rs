@@ -14,6 +14,8 @@
 //! in a new tab)" to a screen reader and draws its arrow `aria-hidden`. Checked by axe-core
 //! in headless Firefox on every demo route, both capability variants, light and dark (no
 //! serious or critical violation).
+//! A link in running text keeps the text's height under a coarse pointer: WCAG 2.5.8
+//! exempts inline targets, and a 44px link would break the line spacing.
 //!
 //! **What it does not do without script:** nothing is missing.
 //!

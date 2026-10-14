@@ -1622,7 +1622,17 @@ async fn typography_and_layout_primitives() {
         "a truncated text keeps one line: {cut:?}"
     );
     assert!(page.is_visible(".lui-stage .lui-kbd") && page.is_visible(".lui-stage .lui-code"));
-    assert!(page.is_visible(".lui-stage .lui-blockquote figcaption"));
+    assert!(page.is_visible(".lui-stage .lui-blockquote-caption"));
+
+    let page = Page::render(demo::router(), "/prose", MODERN).await;
+    let stage = page.bbox(".lui-stage").unwrap();
+    let table = page.bbox(".lui-stage .lui-prose table").unwrap();
+    let h1 = page.bbox(".lui-stage .lui-prose h1").unwrap();
+    assert!(
+        table.width <= stage.width + 1.0,
+        "the table stays in the stage: {table:?}"
+    );
+    assert!(h1.height >= 36.0, "the prose h1 takes size 8: {h1:?}");
 
     let page = Page::render(demo::router(), "/code-block", MODERN).await;
     assert!(page.is_visible(".lui-stage .lui-code-block-pre"));

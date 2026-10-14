@@ -190,21 +190,6 @@ impl Ui {
         self.dir.unwrap_or(self.strings.dir())
     }
 
-    /// Two things by what it is given: a [`Text`] key gives that component text in the
-    /// visitor's language, and a `&str` gives the Text component reading it
-    /// ([`crate::text::Text`]).
-    ///
-    /// ```rust
-    /// use loco_ui::i18n::Text;
-    /// use loco_ui::prelude::*;
-    /// let ui = Ui::default();
-    /// assert_eq!(ui.text(Text::Close), "Close");
-    /// assert_eq!(ui.text("Hi").render().into_string(), r#"<span class="lui-text">Hi</span>"#);
-    /// ```
-    pub fn text<'a, T: crate::text::TextArg<'a>>(&self, text: T) -> T::Output {
-        text.make(self)
-    }
-
     /// The app's own text `key` ([`Strings::with_custom`]) in the visitor's language, else
     /// in the app's default language, else `key` itself, so a missing text shows.
     ///

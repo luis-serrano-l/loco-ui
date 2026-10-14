@@ -154,23 +154,21 @@ fn typography(ui: &Ui) -> Markup {
     let file = "release-2026-10-14-final-really-final.tar.gz";
     lui! {
         // code: /typography
-        Stack gap=4 {
-            Heading("The quick brown fox") size=8;
-            Heading("A section, level 2") as_h=2 size=5;
-            Heading("A trimmed label") as_h=3 size=2 weight="medium" trim;
-            Text("A lede at size 4 in the muted gray.") as_p size=4 muted;
-            Text("Payment failed: the card was declined.") as_p tone="danger" weight="medium";
-            Grid("12rem") { Text(file) truncate; Text(file) truncate muted; }
-            p {
-                "Read the " Link("pricing", "/pricing"); ", the "
-                Link("changelog", "/typography") underline="hover"; ", or "
-                Link("Radix Themes", "https://www.radix-ui.com/themes") external; "."
-            }
-            p { "Press " Kbd("⌘K"); " or " Kbd("Ctrl"); " " Kbd("K"); " to search, " Kbd("Esc") size=1; " to close." }
-            p { "Run " Code("cargo add loco-ui"); ", then return " Code("Ok(())") tone="brand"; " or " Code("Err(e)") tone="danger" variant="outline"; "." }
-            Blockquote cite="Alan Kay" {
-                p { "Simple things should be simple, complex things should be possible." }
-            }
+        Heading("The quick brown fox") as_h=2 size=8;
+        Heading("A section, level 3") as_h=3 size=5;
+        Heading("A trimmed label") as_h=4 size=2 weight="medium" trim;
+        Text("A lede at size 4 in the muted gray.") as_p size=4 muted;
+        Text("Payment failed: the card was declined.") as_p tone="danger" weight="medium";
+        Grid("12rem") { Text(file) truncate; Text(file) truncate muted; }
+        p {
+            "Read the " Link("pricing", "/pricing"); ", the "
+            Link("changelog", "/typography") underline="hover"; ", or "
+            Link("Radix Themes", "https://www.radix-ui.com/themes") external; "."
+        }
+        p { "Press " Kbd("⌘K"); " or " Kbd("Ctrl"); " " Kbd("K"); " to search, " Kbd("Esc") size=1; " to close." }
+        p { "Run " Code("cargo add loco-ui"); ", then return " Code("Ok(())") tone="brand"; " or " Code("Err(e)") tone="danger" variant="outline"; "." }
+        Blockquote caption="Alan Kay" {
+            p { "Simple things should be simple, complex things should be possible." }
         }
         // end code
     }
@@ -183,11 +181,9 @@ const MAIN_RS: &str = "async fn hello(ui: Ui) -> Page {\n    ui.page(\"Hello\", 
 fn code_blocks(ui: &Ui) -> Markup {
     lui! {
         // code: /code-block
-        Stack gap=4 {
-            CodeBlock(CARGO_TOML) lang="toml" title="Cargo.toml" copy;
-            CodeBlock(MAIN_RS) lang="rust" copy;
-            CodeBlock("cargo lui add heading text link kbd code blockquote prose container section inset aspect-ratio scroll-area center spacer spinner indicator");
-        }
+        CodeBlock(CARGO_TOML) language="toml" title="Cargo.toml" copy;
+        CodeBlock(MAIN_RS) language="rust" copy;
+        CodeBlock("cargo lui add heading text link kbd code blockquote prose container section inset aspect-ratio scroll-area center spacer spinner indicator");
         // end code
     }
 }
@@ -216,19 +212,17 @@ fn containers(ui: &Ui) -> Markup {
     let tile = |t: &str| html! { div class="lui-layout-tile" { (t) } };
     lui! {
         // code: /container
-        Stack gap=4 {
-            Container size=1 { (tile("Container size 1: at most 448px, centred")) }
-            Section size=1 label="A section" { (tile("Section size 1: 24px above and below")) }
-            Grid("14rem") {
-                Card {
-                    Inset top { AspectRatio ratio=(16, 9) { (tile("Inset top, 16 / 9")) } }
-                    Text("A cover reaching the card's edges.") as_p size=2 muted;
-                }
-                Card { Center min_height="9rem" text_center { Heading("Centred") as_h=3 size=3; Text("both ways") muted; } }
+        Container size=1 { (tile("Container size 1: at most 448px, centred")) }
+        Section size=1 label="A section" { (tile("Section size 1: 24px above and below")) }
+        Grid("14rem") {
+            Card {
+                Inset top { AspectRatio ratio=(16, 9) { (tile("Inset top, 16 / 9")) } }
+                Text("A cover reaching the card's edges.") as_p size=2 muted;
             }
-            Cluster padding=2 { Button("Back"); Spacer; Button("Next") primary; }
-            Stack align="center" justify="center" padding=4 gap=2 { (tile("align=center")) (tile("padding=4")) }
+            Card { Center min_height="9rem" text_center { Heading("Centred") as_h=3 size=3; Text("both ways") muted; } }
         }
+        Cluster padding=2 { Button("Back"); Spacer; Button("Next") primary; }
+        Stack align="center" justify="center" padding=4 gap=2 { (tile("align=center")) (tile("padding=4")) }
         // end code
     }
 }
@@ -248,14 +242,12 @@ fn scroll_areas(ui: &Ui) -> Markup {
 fn spinners(ui: &Ui) -> Markup {
     lui! {
         // code: /spinner
-        Stack gap=6 {
-            Cluster gap=4 { Spinner size=1; Spinner; Spinner size=3 label="Loading results"; Button("Saving") loading=(true); }
-            Cluster gap=6 {
-                Indicator(3) { Button("Inbox"); }
-                Indicator(120) max=99 { Button("Mail") soft; }
-                Indicator(1) dot tone="ok" { Avatar("Ada Lovelace"); }
-                Indicator(0) { Button("Nothing new") ghost; }
-            }
+        Cluster gap=4 { Spinner size=1; Spinner; Spinner size=3 label="Loading results"; Button("Saving") loading=(true); }
+        Cluster gap=6 {
+            Indicator(3) { Button("Inbox"); }
+            Indicator(120) max=99 { Button("Mail") soft; }
+            Indicator(1) dot tone="ok" { Avatar("Ada Lovelace"); }
+            Indicator(0) { Button("Nothing new") ghost; }
         }
         // end code
     }

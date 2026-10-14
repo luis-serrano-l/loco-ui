@@ -188,4 +188,14 @@ pub const CSS: &str = r#"
 .lui-cluster-end { justify-content: flex-end; }
 .lui-cluster-nowrap { flex-wrap: nowrap; min-width: 0; }
 .lui-cluster-nowrap > * { min-width: 0; }
+/* .align(..) and .justify(..), after Radix Themes Flex. */
+.lui-cluster[data-align=start] { align-items: flex-start; }
+.lui-cluster[data-align=center] { align-items: center; }
+.lui-cluster[data-align=end] { align-items: flex-end; }
+.lui-cluster[data-align=baseline] { align-items: baseline; }
+.lui-cluster[data-align=stretch] { align-items: stretch; }
+.lui-cluster[data-justify=start] { justify-content: flex-start; }
+.lui-cluster[data-justify=center] { justify-content: center; }
+.lui-cluster[data-justify=end] { justify-content: flex-end; }
+.lui-cluster[data-justify=between] { justify-content: space-between; }
 "#;

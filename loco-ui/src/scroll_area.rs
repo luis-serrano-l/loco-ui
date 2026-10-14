@@ -7,7 +7,7 @@
 //!
 //! **Platform features:** `overflow: auto` (baseline); `scrollbar-gutter: stable` (Chrome 94,
 //! Firefox 97, Safari 18.2) keeps the width when the bar comes and goes; `scrollbar-width`
-//! and `scrollbar-color` (Chrome 121, Firefox 64, Safari 26); the edge shadows are
+//! (Chrome 121, Firefox 64, Safari 18.2) and `scrollbar-color` (Safari 26); the edge shadows are
 //! `scroll-state()` container queries (Chrome 133, not Firefox or Safari yet) on two sticky
 //! edges.
 //!

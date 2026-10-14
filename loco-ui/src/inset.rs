@@ -116,9 +116,11 @@ pub const CSS: &str = r#"
    border. Outside a card the inset has no padding to cancel and sits as a plain block. */
 .lui-inset { --lui-inset-pad: 0px; overflow: hidden; overflow: clip; margin-inline: calc(-1 * var(--lui-inset-pad)); }
 .lui-inset > :is(img, video, svg, iframe) { display: block; width: 100%; height: auto; object-fit: cover; }
-.lui-card .lui-card-body > .lui-inset { --lui-inset-pad: 1.5rem; }
-.lui-card[data-size="1"] .lui-card-body > .lui-inset { --lui-inset-pad: 1rem; }
-.lui-card[data-size="3"] .lui-card-body > .lui-inset { --lui-inset-pad: 2rem; }
+.lui-card > .lui-card-body > .lui-inset { --lui-inset-pad: 1.5rem; }
+.lui-card[data-size="1"] > .lui-card-body > .lui-inset { --lui-inset-pad: 1rem; }
+.lui-card[data-size="3"] > .lui-card-body > .lui-inset { --lui-inset-pad: 2rem; }
+/* A card inside a card has no inline padding (card.rs), so there is nothing to cancel. */
+.lui-card .lui-card > .lui-card-body > .lui-inset { --lui-inset-pad: 0px; }
 .lui-card-body > .lui-inset.lui-inset-top { margin-top: calc(-1 * var(--lui-inset-pad)); border-start-start-radius: calc(var(--lui-radius-lg) - 1px); border-start-end-radius: calc(var(--lui-radius-lg) - 1px); }
 .lui-card-body > .lui-inset.lui-inset-bottom { margin-bottom: calc(-1 * var(--lui-inset-pad)); border-end-start-radius: calc(var(--lui-radius-lg) - 1px); border-end-end-radius: calc(var(--lui-radius-lg) - 1px); }
 "#;

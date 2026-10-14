@@ -3,16 +3,16 @@ source: loco-ui/tests/snapshots.rs
 ---
 caps: all
 <figure class="lui-blockquote">
-<blockquote cite="https://example.com/kay">Simple things should be simple.</blockquote>
-<figcaption>
+<blockquote class="lui-blockquote-quote" cite="https://example.com/kay">Simple things should be simple.</blockquote>
+<figcaption class="lui-blockquote-caption">
 <cite>Alan Kay</cite>
 </figcaption>
 </figure>
 
 caps: none
 <figure class="lui-blockquote">
-<blockquote cite="https://example.com/kay">Simple things should be simple.</blockquote>
-<figcaption>
+<blockquote class="lui-blockquote-quote" cite="https://example.com/kay">Simple things should be simple.</blockquote>
+<figcaption class="lui-blockquote-caption">
 <cite>Alan Kay</cite>
 </figcaption>
 </figure>

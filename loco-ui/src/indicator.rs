@@ -172,4 +172,5 @@ pub const CSS: &str = r#"
 .lui-indicator-dot[data-tone=ok] { --lui-indicator-tone: var(--lui-ok); }
 .lui-indicator-dot[data-tone=warn] { --lui-indicator-tone: var(--lui-warn); }
 .lui-indicator-dot[data-tone=neutral] { --lui-indicator-tone: var(--lui-gray-9); }
+[dir=rtl] .lui-indicator-dot { translate: -25% -25%; }
 "#;

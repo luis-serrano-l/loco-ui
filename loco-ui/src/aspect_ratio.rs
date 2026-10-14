@@ -15,7 +15,9 @@
 //!
 //! **What it does not do without script:** nothing is missing.
 //!
-//! **Fallback:** a browser without `aspect-ratio` gives the box its content's height.
+//! **Fallback:** a browser without `aspect-ratio` leaves the content in the flow (the child
+//! is stretched over the box only under `@supports (aspect-ratio: 1 / 1)`), so the box takes
+//! its content's height.
 //!
 //! ```rust
 //! use loco_ui::prelude::*;
@@ -93,6 +95,8 @@ impl Render for AspectRatio {
 pub const CSS: &str = r#"
 /* After Radix Themes AspectRatio: the ratio on the box, its child absolutely filling it. */
 .lui-aspect-ratio { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; }
-.lui-aspect-ratio > * { position: absolute; inset: 0; width: 100%; height: 100%; }
-.lui-aspect-ratio > :is(img, video) { object-fit: cover; }
+.lui-aspect-ratio > :is(img, video) { display: block; width: 100%; object-fit: cover; }
+@supports (aspect-ratio: 1 / 1) {
+  .lui-aspect-ratio > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+}
 "#;

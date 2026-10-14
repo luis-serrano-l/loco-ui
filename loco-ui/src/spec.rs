@@ -1025,10 +1025,10 @@ pub const SPECS: &[ComponentSpec] = &[
         name: "Scroll area",
         module: "scroll_area",
         look: "Radix Themes ScrollArea",
-        responsive: Responsive::Container,
+        responsive: Responsive::Content,
         features: &[
             f("scrollbar-gutter: stable", b("94", "97", "18.2")),
-            f("scrollbar-width", b("121", "64", "26")),
+            f("scrollbar-width", b("121", "64", "18.2")),
             f("scroll-state()", b("133", "no", "no")),
         ],
         fallback: "no edge shadows without scroll-state(): the scrollbar alone shows there is more",
@@ -1309,7 +1309,11 @@ mod tests {
         for c in SPECS {
             let (_, source) = SOURCES.iter().find(|(m, _)| *m == c.module).unwrap();
             let css = source.split("pub const CSS").nth(1).unwrap_or("");
-            let container = css.contains("@container");
+            // A scroll-state() query answers to scrolling, not to the width.
+            let container = css
+                .split("@container")
+                .skip(1)
+                .any(|q| !q.trim_start().starts_with("scroll-state("));
             let viewport = css
                 .split("@media")
                 .skip(1)

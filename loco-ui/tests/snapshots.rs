@@ -560,15 +560,15 @@ const EXAMPLES: &[Example] = &[
     }),
     example("CodeBlock", |ui| {
         ui.code_block("[dependencies]\nloco-ui = \"0.2\"")
-            .lang("toml")
+            .language("toml")
             .title("Cargo.toml")
             .copy()
             .render()
     }),
     example("Blockquote", |ui| {
         ui.blockquote()
-            .cite("Alan Kay")
-            .href("https://example.com/kay")
+            .caption("Alan Kay")
+            .cite("https://example.com/kay")
             .body(html! { "Simple things should be simple." })
             .render()
     }),
