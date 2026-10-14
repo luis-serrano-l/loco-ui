@@ -686,7 +686,11 @@ async fn markup_follows_caps() {
             .await
             .contains("view-transition-name: lui-tabs-demo")
     );
-    assert!(!body("/tabs", "").await.contains("view-transition-name: lui-tabs-demo"));
+    assert!(
+        !body("/tabs", "")
+            .await
+            .contains("view-transition-name: lui-tabs-demo")
+    );
 }
 
 /// A component page lists what its builders accept under the snippet, from

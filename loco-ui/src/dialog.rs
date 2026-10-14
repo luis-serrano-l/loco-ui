@@ -43,7 +43,7 @@
 //! use loco_ui::prelude::*;
 //! let ui = Ui::from(Caps::all());
 //! let hi = ui.dialog("Say hi").body(html! { p { "Hello." } });
-//! assert!(hi.render().into_string().contains(r#"commandfor="say-hi""#), "the id is the trigger's slug");
+//! assert!(hi.render().into_string().contains(r#"commandfor="lui-dialog-say-hi""#), "the id is the trigger's slug");
 //!
 //! let m = ui.dialog("Delete account")
 //!     .id("confirm")
@@ -120,7 +120,7 @@ impl DialogSize {
 #[derive(Clone, Debug)]
 pub struct Dialog<'a> {
     ui: &'a Ui,
-    id: String,
+    id: Option<&'a str>,
     trigger: &'a str,
     body: Markup,
     open: bool,
@@ -140,8 +140,8 @@ impl Dialog<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("body", PropKind::Value, "body: Markup")
             .doc("What the dialog says."),
-        Prop::new("id", PropKind::Value, "id: &str").attr("id")
-            .doc("The dialog's id instead of the trigger's slug."),
+        Prop::new("id", PropKind::Value, "id: &'a str").attr("id")
+            .doc("The dialog's id instead of `lui-dialog-` and the trigger's slug."),
         Prop::new("open", PropKind::Condition, "open: bool").attr("open")
             .doc("Render the dialog already open (non-modal, no backdrop)."),
         Prop::new("title", PropKind::Value, "title: &'a str")
@@ -169,13 +169,13 @@ impl Dialog<'_> {
 }
 
 impl Ui {
-    /// A dialog opened by a button labelled `trigger`. Its id is the trigger's slug
-    /// (`"Delete account"` is `delete-account`); it renders open when the URL says
-    /// `?dialog=<id>`.
+    /// A dialog opened by a button labelled `trigger`. Its id is `lui-dialog-` and the
+    /// trigger's slug (`"Delete account"` is `lui-dialog-delete-account`); it renders open
+    /// when the URL says `?dialog=<id>`.
     pub fn dialog<'a>(&'a self, trigger: &'a str) -> Dialog<'a> {
         Dialog {
             ui: self,
-            id: slug(trigger),
+            id: None,
             trigger,
             body: Markup::default(),
             open: false,
@@ -198,9 +198,10 @@ impl<'a> Dialog<'a> {
         self
     }
 
-    /// The dialog's id instead of the trigger's slug; it must be unique on the page.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = id.to_string();
+    /// The dialog's id instead of `lui-dialog-` and the trigger's slug; it must be unique on
+    /// the page.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -283,7 +284,7 @@ impl Render for Dialog<'_> {
     fn render(&self) -> Markup {
         let Dialog {
             ui,
-            ref id,
+            id,
             trigger,
             ref body,
             open,
@@ -296,7 +297,8 @@ impl Render for Dialog<'_> {
             cancel,
             closedby,
         } = *self;
-        let open = open || ui.state.dialog() == Some(id);
+        let id = &id.map_or_else(|| format!("lui-dialog-{}", slug(trigger)), str::to_string);
+        let open = open || ui.state.dialog_is(id);
         let returns_to = returns_to.unwrap_or(ui.state.path());
         let returns_to = (!returns_to.is_empty()).then_some(returns_to);
         let invokers = ui.has(Cap::Invokers);

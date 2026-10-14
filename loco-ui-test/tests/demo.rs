@@ -180,7 +180,8 @@ async fn tabs_strip_and_vertical() {
         "open panel sits below the strip: {panel:?} vs {first:?}"
     );
     assert!(
-        modern.exists("#lui-tabs-demo .lui-tabs-panel:nth-of-type(2)[hidden]") && !modern.is_visible("#lui-tabs-demo .lui-tabs-panel:nth-of-type(2)"),
+        modern.exists("#lui-tabs-demo .lui-tabs-panel:nth-of-type(2)[hidden]")
+            && !modern.is_visible("#lui-tabs-demo .lui-tabs-panel:nth-of-type(2)"),
         "closed panel hidden"
     );
     assert_eq!(
@@ -241,7 +242,10 @@ async fn tabs_strip_and_vertical() {
     let second = old
         .bbox("#lui-tabs-demo .lui-tabs-trigger:nth-child(2)")
         .unwrap();
-    assert!((first.y - second.y).abs() < 1.0, "the same strip: {first:?} {second:?}");
+    assert!(
+        (first.y - second.y).abs() < 1.0,
+        "the same strip: {first:?} {second:?}"
+    );
 }
 
 #[tokio::test]
@@ -288,7 +292,9 @@ async fn accordion_multi_open_with_controls_and_nesting() {
     assert!(page.exists("#lui-accordion-faq > .lui-accordion-item:nth-of-type(2) > a[aria-expanded='false'][href='/accordion?open.faq=0%2C1%2C2&open.faq-more=0']"), "a closed title adds itself to the list");
     assert!(page.exists("#lui-accordion-faq > .lui-accordion-item:nth-of-type(1) > a[aria-expanded='true'][href='/accordion?open.faq=2&open.faq-more=0']"), "an open title removes itself");
     assert!(
-        page.is_visible("#lui-accordion-faq > .lui-accordion-item:nth-of-type(2) .lui-accordion-summary"),
+        page.is_visible(
+            "#lui-accordion-faq > .lui-accordion-item:nth-of-type(2) .lui-accordion-summary"
+        ),
         "summary line shows on a closed section"
     );
     assert!(
@@ -297,7 +303,11 @@ async fn accordion_multi_open_with_controls_and_nesting() {
         ),
         "summary line hidden once open"
     );
-    assert!(page.is_visible("#lui-accordion-faq > .lui-accordion-item:nth-of-type(1) .lui-accordion-icon"));
+    assert!(
+        page.is_visible(
+            "#lui-accordion-faq > .lui-accordion-item:nth-of-type(1) .lui-accordion-icon"
+        )
+    );
     let outer = page
         .bbox("#lui-accordion-faq > .lui-accordion-item:nth-of-type(3) > a")
         .unwrap();

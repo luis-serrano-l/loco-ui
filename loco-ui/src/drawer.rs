@@ -67,7 +67,7 @@ use crate::{Cap, Icon, Ui, slug};
 #[derive(Clone, Debug)]
 pub struct Drawer<'a> {
     ui: &'a Ui,
-    id: String,
+    id: Option<&'a str>,
     label: &'a str,
     nav: Markup,
     body: Markup,
@@ -86,9 +86,9 @@ impl Drawer<'_> {
             .doc("The navigation inside the drawer, usually a `ul` of links."),
         Prop::new("body", PropKind::Value, "body: Markup")
             .doc("The page's content, beside the drawer."),
-        Prop::new("id", PropKind::Value, "id: &str")
+        Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
-            .doc("The drawer's id instead of the label's slug."),
+            .doc("The drawer's id instead of `lui-drawer-` and the label's slug."),
         Prop::new("title", PropKind::Value, "title: &'a str")
             .doc("A heading at the top of the panel (also its accessible name)."),
         Prop::new("description", PropKind::Value, "text: &'a str")
@@ -103,12 +103,12 @@ impl Drawer<'_> {
 }
 
 impl Ui {
-    /// A drawer opened by a button labelled `label`; its id is the label's slug, and
-    /// `?dialog=<id>` renders it open.
+    /// A drawer opened by a button labelled `label`; its id is `lui-drawer-` and the label's
+    /// slug (`lui-drawer-menu`), and `?dialog=<id>` renders it open.
     pub fn drawer<'a>(&'a self, label: &'a str) -> Drawer<'a> {
         Drawer {
             ui: self,
-            id: slug(label),
+            id: None,
             label,
             nav: Markup::default(),
             body: Markup::default(),
@@ -134,9 +134,9 @@ impl<'a> Drawer<'a> {
         self
     }
 
-    /// The drawer's id instead of the label's slug.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = id.to_string();
+    /// The drawer's id instead of `lui-drawer-` and the label's slug.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -176,7 +176,7 @@ impl Render for Drawer<'_> {
     fn render(&self) -> Markup {
         let Drawer {
             ui,
-            ref id,
+            id,
             label,
             ref nav,
             ref body,
@@ -186,9 +186,10 @@ impl Render for Drawer<'_> {
             sidebar,
             open,
         } = *self;
+        let id = &id.map_or_else(|| format!("lui-drawer-{}", slug(label)), str::to_string);
         let desc_id = format!("{id}-description");
         let invokers = ui.has(Cap::Invokers);
-        let open = open || ui.state.dialog() == Some(id);
+        let open = open || ui.state.dialog_is(id);
         let title = title.unwrap_or(label);
         let title_id = format!("{id}-title");
         let open_href = format!("#{id}");

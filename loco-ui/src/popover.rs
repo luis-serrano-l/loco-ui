@@ -193,7 +193,7 @@ impl<'a> From<(&'a str, &'a str)> for MenuItem<'a> {
 #[derive(Clone, Debug)]
 pub struct Menu<'a> {
     caps: Caps,
-    id: String,
+    id: Option<&'a str>,
     label: &'a str,
     items: Vec<MenuItem<'a>>,
     placement: Placement,
@@ -224,9 +224,9 @@ impl Menu<'_> {
             .attr("disabled")
             .doc("The item is shown but not usable."),
         Prop::new("danger", PropKind::Modifier, "").doc("The item is destructive."),
-        Prop::new("id", PropKind::Value, "id: &str")
+        Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
-            .doc("The menu's id instead of the label's slug."),
+            .doc("The menu's id instead of `lui-menu-` and the label's slug."),
         Prop::new("align_end", PropKind::Switch, "").doc(
             "Open below the button with right edges aligned, for a button at the end of a row.",
         ),
@@ -235,11 +235,11 @@ impl Menu<'_> {
 }
 
 impl Ui {
-    /// A menu behind a button labelled `label`; its id is the label's slug.
+    /// A menu behind a button labelled `label`; its id is `lui-menu-` and the label's slug.
     pub fn menu<'a>(&self, label: &'a str) -> Menu<'a> {
         Menu {
             caps: self.caps,
-            id: slug(label),
+            id: None,
             label,
             items: Vec::new(),
             placement: Placement::default(),
@@ -315,9 +315,9 @@ impl<'a> Menu<'a> {
         self.last(|it| it.danger = true)
     }
 
-    /// The menu's id instead of the label's slug.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = id.to_string();
+    /// The menu's id instead of `lui-menu-` and the label's slug.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -338,7 +338,9 @@ impl Render for Menu<'_> {
     fn render(&self) -> Markup {
         menu(
             &self.caps,
-            &self.id,
+            &self
+                .id
+                .map_or_else(|| format!("lui-menu-{}", slug(self.label)), str::to_string),
             self.label,
             &self.items,
             self.placement,

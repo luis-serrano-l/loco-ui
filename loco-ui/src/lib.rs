@@ -170,20 +170,22 @@ pub mod prelude {
 }
 
 /// A key made safe for an `id`: anything but letters, digits, `-` and `_` becomes `-`, and
-/// ASCII letters are lowercased, so `"Account"` gives `account`. Components derive the ids
-/// a caller does not care about from a label this way; so can yours.
+/// letters are lowercased, so `"Account"` gives `account`. Letters and digits are Unicode
+/// ones (`char::is_alphanumeric`), so a label in any script keeps its words: two Japanese
+/// labels give two ids, not two runs of dashes. Combining marks are not stripped. Components
+/// derive the ids a caller does not care about from a label this way; so can yours.
 ///
 /// ```rust
 /// assert_eq!(loco_ui::slug("Billing & plans"), "billing---plans");
+/// assert_eq!(loco_ui::slug("Configuración"), "configuración");
+/// assert_ne!(loco_ui::slug("設定"), loco_ui::slug("請求"));
 /// ```
 pub fn slug(key: &str) -> String {
     key.chars()
-        .map(|c| {
-            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
-                c.to_ascii_lowercase()
-            } else {
-                '-'
-            }
+        .flat_map(|c| {
+            let keep = c.is_alphanumeric() || c == '-' || c == '_';
+            let lower = keep.then(|| c.to_lowercase());
+            lower.into_iter().flatten().chain((!keep).then_some('-'))
         })
         .collect()
 }

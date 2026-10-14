@@ -35,7 +35,7 @@
 //!     .link("New invoice", "/invoices/new").keywords("bill create");
 //! assert_eq!(palette.exact(), None, "an exact name would redirect");
 //! let m = palette.render().into_string();
-//! assert!(m.contains(r#"popovertarget="palette""#) && m.contains(r#"list="palette-list""#));
+//! assert!(m.contains(r#"popovertarget="lui-palette""#) && m.contains(r#"list="lui-palette-list""#));
 //! assert!(m.contains("lui-palette-results") && m.contains("New invoice"));
 //! // The same in `lui!`:
 //! let same = lui! { Palette("/search") {
@@ -137,19 +137,19 @@ impl Palette<'_> {
             .attr("accesskey")
             .doc("The opener's access key (default `k`)."),
         Prop::new("id", PropKind::Value, "id: &'a str")
-            .default("palette")
+            .default("lui-palette")
             .attr("id")
-            .doc("The palette's id instead of `palette`."),
+            .doc("The palette's id instead of `lui-palette`."),
     ];
 }
 
 impl Ui {
-    /// A palette `#palette` whose searches go to `action`; add destinations with
+    /// A palette `#lui-palette` whose searches go to `action`; add destinations with
     /// [`Palette::command`].
     pub fn palette<'a>(&'a self, action: &'a str) -> Palette<'a> {
         Palette {
             ui: self,
-            id: "palette",
+            id: "lui-palette",
             action,
             commands: Vec::new(),
             group: "",
@@ -223,7 +223,7 @@ impl<'a> Palette<'a> {
         self
     }
 
-    /// The palette's id instead of `palette`.
+    /// The palette's id instead of `lui-palette`.
     pub fn id(mut self, id: &'a str) -> Self {
         self.id = id;
         self

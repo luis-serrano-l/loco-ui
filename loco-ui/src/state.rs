@@ -264,6 +264,18 @@ impl UiState {
         self.get("dialog").filter(|d| !d.is_empty())
     }
 
+    /// Whether `?dialog=` names the dialog or drawer `id`. A derived id carries a `lui-`
+    /// prefix since M38 (`lui-dialog-delete-account`); for one release a link written before
+    /// that, `?dialog=delete-account`, still opens it.
+    pub fn dialog_is(&self, id: &str) -> bool {
+        self.dialog().is_some_and(|d| {
+            d == id
+                || ["lui-dialog-", "lui-drawer-"]
+                    .iter()
+                    .any(|prefix| id.strip_prefix(prefix) == Some(d))
+        })
+    }
+
     /// Merged state as key/value pairs.
     pub fn entries(&self) -> BTreeMap<&str, &str> {
         self.from_cookie
@@ -449,6 +461,17 @@ mod tests {
                 .is_empty(),
             "an open dialog is not remembered"
         );
+    }
+
+    #[test]
+    fn a_deep_link_from_before_the_prefix_still_opens_its_dialog() {
+        let old = UiState::from_request("/p", "dialog=delete-account", "");
+        assert!(old.dialog_is("lui-dialog-delete-account") && old.dialog_is("delete-account"));
+        assert!(old.dialog_is("lui-drawer-delete-account"));
+        assert!(!old.dialog_is("lui-dialog-delete"));
+        let new = UiState::from_request("/p", "dialog=lui-dialog-delete-account", "");
+        assert!(new.dialog_is("lui-dialog-delete-account"));
+        assert!(!UiState::from_request("/p", "", "").dialog_is("lui-dialog-x"));
     }
 
     #[test]
