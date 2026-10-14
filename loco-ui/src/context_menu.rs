@@ -71,15 +71,15 @@ impl ContextMenu<'_> {
             .doc("A `<form method=\"post\">` button posting to `action`."),
         Prop::new("group", PropKind::Item, "text: &'a str").doc("A heading over the items after it."),
         Prop::new("separator", PropKind::Item, "").doc("A rule between groups."),
-        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>").doc(
+        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>").applies_to(&["link", "action"]).doc(
             "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech).",
         ),
-        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str")
+        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str").applies_to(&["link", "action"])
             .doc("A shortcut shown after the item's text, as `<kbd>`."),
-        Prop::new("disabled", PropKind::Modifier, "")
+        Prop::new("disabled", PropKind::Modifier, "").applies_to(&["link", "action"])
             .attr("disabled")
             .doc("The item is shown but not usable."),
-        Prop::new("danger", PropKind::Modifier, "").doc("The item is destructive."),
+        Prop::new("danger", PropKind::Modifier, "").applies_to(&["link", "action"]).doc("The item is destructive."),
         Prop::new("body", PropKind::Value, "body: Markup").doc("The thing the actions are on."),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
@@ -106,7 +106,10 @@ impl<'a> ContextMenu<'a> {
         self
     }
 
-    fn last(mut self, change: impl FnOnce(&mut MenuItem<'a>)) -> Self {
+    #[track_caller]
+    fn last(mut self, method: &str, change: impl FnOnce(&mut MenuItem<'a>)) -> Self {
+        let last = self.items.last().map(MenuItem::adder);
+        crate::props::check_last::<Self>(ContextMenu::PROPS, method, last);
         if let Some(item) = self.items.last_mut() {
             change(item);
         }
@@ -135,24 +138,28 @@ impl<'a> ContextMenu<'a> {
 
     /// An icon, or a glyph or emoji, before the item's text (decorative, hidden from
     /// assistive tech).
+    #[track_caller]
     pub fn icon(self, icon: impl Into<Glyph<'a>>) -> Self {
         let icon = icon.into();
-        self.last(|it| it.icon = Some(icon))
+        self.last("icon", |it| it.icon = Some(icon))
     }
 
     /// A shortcut shown after the item's text, as `<kbd>`; a label only.
+    #[track_caller]
     pub fn shortcut(self, keys: &'a str) -> Self {
-        self.last(|it| it.shortcut = Some(keys))
+        self.last("shortcut", |it| it.shortcut = Some(keys))
     }
 
     /// The item is shown but not usable: a link without `href`, a button with `disabled`.
+    #[track_caller]
     pub fn disabled(self) -> Self {
-        self.last(|it| it.disabled = true)
+        self.last("disabled", |it| it.disabled = true)
     }
 
     /// The item is destructive: coloured with `--lui-danger`.
+    #[track_caller]
     pub fn danger(self) -> Self {
-        self.last(|it| it.danger = true)
+        self.last("danger", |it| it.danger = true)
     }
 
     /// The thing the actions are on.

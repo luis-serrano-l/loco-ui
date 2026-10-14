@@ -192,6 +192,7 @@ impl Avatars<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("avatar", PropKind::Item, "name: &'a str").doc("A person in the row."),
         Prop::new("src", PropKind::Modifier, "src: &'a str")
+            .applies_to(&["avatar"])
             .doc("The picture of the person added last."),
         Prop::new("max", PropKind::Number, "max: usize")
             .doc("Show this many, then a `+n` count of the rest."),
@@ -217,7 +218,13 @@ impl<'a> Avatars<'a> {
     }
 
     /// The picture of the person added last.
+    #[track_caller]
     pub fn src(mut self, src: &'a str) -> Self {
+        crate::props::check_last::<Self>(
+            Avatars::PROPS,
+            "src",
+            self.avatars.last().map(|_| "avatar"),
+        );
         if let Some(a) = self.avatars.last_mut() {
             a.src = Some(src);
         }

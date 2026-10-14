@@ -79,6 +79,10 @@ pub struct Prop {
     pub attr: &'static str,
     /// The first sentence of the setter's documentation.
     pub doc: &'static str,
+    /// For a modifier, the items it may follow, by the name of the setter that adds them
+    /// (`["link", "action"]`); empty for every other kind. A modifier called after any
+    /// other item (or before the first) panics in a debug build.
+    pub applies_to: &'static [&'static str],
 }
 
 impl Prop {
@@ -95,6 +99,7 @@ impl Prop {
             default,
             attr: "",
             doc: "",
+            applies_to: &[],
         }
     }
 
@@ -114,6 +119,56 @@ impl Prop {
     pub const fn doc(mut self, doc: &'static str) -> Self {
         self.doc = doc;
         self
+    }
+
+    /// The items a modifier changes, by the name of the setter that adds them.
+    pub const fn applies_to(mut self, items: &'static [&'static str]) -> Self {
+        self.applies_to = items;
+        self
+    }
+}
+
+/// Panics in a debug build when the modifier `method` of builder `B` follows an item it does
+/// not apply to: `last` is the name of the setter that added the last item, `None` before the
+/// first. The items it applies to are its [`Prop::applies_to`] in `props`, so the props table
+/// and the check cannot disagree. A release build keeps the old behaviour: the modifier
+/// changes whatever was added last, or nothing.
+#[track_caller]
+pub(crate) fn check_last<B>(props: &[Prop], method: &str, last: Option<&str>) {
+    if cfg!(debug_assertions) {
+        // `loco_ui::popover::Menu<'_>` reads `Menu`.
+        let path = std::any::type_name::<B>()
+            .split('<')
+            .next()
+            .unwrap_or_default();
+        let builder = path.rsplit("::").next().unwrap_or(path);
+        let applies = props
+            .iter()
+            .find(|p| p.name == method)
+            .map_or(&[][..], |p| p.applies_to);
+        if !last.is_some_and(|l| applies.contains(&l)) {
+            let after = last.map_or("nothing was added yet".to_string(), |l| {
+                format!("the last item was {}", a(l))
+            });
+            let mut what: Vec<String> = applies.iter().map(|i| a(i)).collect();
+            let end = what.pop().unwrap_or_default();
+            let what = if what.is_empty() {
+                end
+            } else {
+                format!("{} or {end}", what.join(", "))
+            };
+            panic!("{builder}::{method}() applies to {what}, but {after}");
+        }
+    }
+}
+
+/// `link` as "a link", `action` as "an action".
+fn a(item: &str) -> String {
+    let item = item.replace('_', " ");
+    if item.starts_with(['a', 'e', 'i', 'o', 'u']) {
+        format!("an {item}")
+    } else {
+        format!("a {item}")
     }
 }
 
@@ -613,3 +668,139 @@ pub(crate) const COMPONENTS: &[Component] = &[
         status: Status::Beta,
     },
 ];
+
+/// A modifier after the wrong item panics in a debug build, naming the builder and the method;
+/// one test per builder, plus the pass case it must not trip.
+#[cfg(test)]
+mod misfires {
+    use crate::Ui;
+    use maud::html;
+
+    #[test]
+    #[should_panic(
+        expected = "Menu::danger() applies to a link, an action or a submenu, but the last item was a separator"
+    )]
+    fn menu() {
+        let _ = Ui::default().menu("m").link("a", "/a").separator().danger();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "ContextMenu::icon() applies to a link or an action, but the last item was a group"
+    )]
+    fn context_menu() {
+        let _ = Ui::default().context_menu("c").group("g").icon("x");
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Kanban::description() applies to a card, but the last item was a column"
+    )]
+    fn kanban() {
+        let _ = Ui::default().kanban("/k").column("a", "A").description("x");
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Sortable::description() applies to an item, but nothing was added yet"
+    )]
+    fn sortable() {
+        let _ = Ui::default().sortable("s", "/s").description("x");
+    }
+
+    #[test]
+    #[should_panic(expected = "Palette::icon() applies to a link, but the last item was a group")]
+    fn palette() {
+        let _ = Ui::default()
+            .palette("/p")
+            .link("a", "/a")
+            .group("g")
+            .icon("x");
+    }
+
+    #[test]
+    #[should_panic(expected = "Sidebar::badge() applies to a link, but the last item was a group")]
+    fn sidebar() {
+        let _ = Ui::default()
+            .sidebar("s")
+            .link("a", "/a")
+            .group("g")
+            .badge(3);
+    }
+
+    #[test]
+    #[should_panic(expected = "AppShell::icon() applies to a link, but nothing was added yet")]
+    fn app_shell() {
+        let _ = Ui::default().app_shell("App").icon("x");
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Tabs::badge() applies to a tab or a lazy, but nothing was added yet"
+    )]
+    fn tabs() {
+        let _ = Ui::default().tabs("t").badge(3);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Accordion::description() applies to an item, but nothing was added yet"
+    )]
+    fn accordion() {
+        let _ = Ui::default().accordion("a").description("x");
+    }
+
+    #[test]
+    #[should_panic(expected = "Avatars::src() applies to an avatar, but nothing was added yet")]
+    fn avatars() {
+        let _ = Ui::default().avatars("people").src("/a.png");
+    }
+
+    #[test]
+    #[should_panic(expected = "Upload::preview() applies to a file, but nothing was added yet")]
+    fn upload() {
+        let _ = Ui::default().upload("/u", "f").preview("/a.png");
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Wizard::optional() applies to a step, but the last item was a review"
+    )]
+    fn wizard() {
+        let _ = Ui::default()
+            .wizard("w", "/w")
+            .step("A", html! {})
+            .review("R")
+            .optional();
+    }
+
+    #[test]
+    fn the_right_item_passes() {
+        let ui = Ui::default();
+        let _ = ui
+            .menu("m")
+            .link("a", "/a")
+            .danger()
+            .submenu("s", [("b", "/b")])
+            .icon("x");
+        let _ = ui
+            .kanban("/k")
+            .column("a", "A")
+            .limit(2)
+            .card("c", "C")
+            .description("x")
+            .limit(3);
+        let _ = ui
+            .tabs("t")
+            .tab("A", html! {})
+            .badge(1)
+            .lazy("B", || html! {})
+            .badge(2);
+        let _ = ui
+            .sidebar("s")
+            .group("g")
+            .link("a", "/a")
+            .icon("x")
+            .badge(1);
+    }
+}

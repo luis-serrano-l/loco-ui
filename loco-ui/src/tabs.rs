@@ -137,6 +137,7 @@ impl Tabs<'_> {
         )
         .doc("A tab whose panel is rendered only when it is the open one."),
         Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .applies_to(&["tab", "lazy"])
             .doc("A count after the title of the tab added last."),
         Prop::new("vertical", PropKind::Switch, "")
             .doc("Titles in a column on the left, the open panel beside them."),
@@ -192,7 +193,13 @@ impl<'a> Tabs<'a> {
     }
 
     /// A count after the title of the tab added last.
+    #[track_caller]
     pub fn badge(mut self, text: impl Display) -> Self {
+        let last = self.tabs.last().map(|t| match t.body {
+            Body::Ready(_) => "tab",
+            Body::Lazy(_) => "lazy",
+        });
+        crate::props::check_last::<Self>(Tabs::PROPS, "badge", last);
         if let Some(t) = self.tabs.last_mut() {
             t.badge = Some(text.to_string());
         }

@@ -97,8 +97,10 @@ impl Upload<'_> {
         Prop::new("file", PropKind::Item, "name: &'a str, size: u64")
             .doc("A file the server already holds, `size` in bytes."),
         Prop::new("preview", PropKind::Modifier, "src: &'a str")
+            .applies_to(&["file"])
             .doc("A thumbnail for the file added last (an image URL)."),
         Prop::new("href", PropKind::Modifier, "href: &'a str")
+            .applies_to(&["file"])
             .attr("href")
             .doc("A link to the file added last, on its name."),
         Prop::new("remove", PropKind::Value, "action: &'a str")
@@ -153,7 +155,13 @@ impl<'a> Upload<'a> {
     }
 
     /// A thumbnail for the file added last (an image URL).
+    #[track_caller]
     pub fn preview(mut self, src: &'a str) -> Self {
+        crate::props::check_last::<Self>(
+            Upload::PROPS,
+            "preview",
+            self.files.last().map(|_| "file"),
+        );
         if let Some(f) = self.files.last_mut() {
             f.preview = Some(src);
         }
@@ -161,7 +169,9 @@ impl<'a> Upload<'a> {
     }
 
     /// A link to the file added last, on its name.
+    #[track_caller]
     pub fn href(mut self, href: &'a str) -> Self {
+        crate::props::check_last::<Self>(Upload::PROPS, "href", self.files.last().map(|_| "file"));
         if let Some(f) = self.files.last_mut() {
             f.href = Some(href);
         }

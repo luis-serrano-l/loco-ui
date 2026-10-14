@@ -951,6 +951,15 @@ pub fn to_json() -> String {
                                 of.join(", ")
                             )
                         }
+                        crate::props::PropKind::Modifier => {
+                            let to: Vec<String> =
+                                p.applies_to.iter().map(|c| json_str(c)).collect();
+                            format!(
+                                "{}, \"applies_to\": [{}]",
+                                json_str(p.kind.as_str()),
+                                to.join(", ")
+                            )
+                        }
                         _ => json_str(p.kind.as_str()),
                     };
                     out.push_str(&format!(

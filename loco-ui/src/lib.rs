@@ -1573,6 +1573,19 @@ mod tests {
         ),
     ];
 
+    /// Modules whose modifiers do not yet check the item they follow, each with the reason.
+    const MODIFIERS_UNCHECKED: &[(&str, &str)] = &[
+        (
+            "form",
+            "M40's controls work owns form.rs; Form::required() is the pinned case",
+        ),
+        (
+            "table",
+            "M41 owns table.rs; Table::column(..).keep(..).numeric() is the pinned case",
+        ),
+        ("toggle_group", "M40's controls work owns toggle_group.rs"),
+    ];
+
     /// Modules that derive ids with `slug` yet need no `.id(..)`, each with the reason.
     const SLUG_WITHOUT_ID: &[(&str, &str)] = &[
         (
@@ -1730,6 +1743,31 @@ mod tests {
             let has = |k| c.props.iter().any(|p| p.kind == k);
             if has(Modifier) && !has(Item) {
                 wrong.push(format!("{}: modifiers without an item", c.builder));
+            }
+            // 8. A modifier says which items it may follow, each one a setter of this
+            // builder that adds an item, so its debug check and its props row agree.
+            for p in c.props.iter().filter(|p| p.kind == Modifier) {
+                if listed(MODIFIERS_UNCHECKED, c.module) {
+                    continue;
+                }
+                if p.applies_to.is_empty() {
+                    wrong.push(format!(
+                        "{}::{}: a modifier without `applies_to`",
+                        c.builder, p.name
+                    ));
+                }
+                for item in p.applies_to {
+                    let adds = c
+                        .props
+                        .iter()
+                        .any(|q| q.name == *item && matches!(q.kind, Item | Modifier));
+                    if !adds {
+                        wrong.push(format!(
+                            "{}::{}: applies to `{item}`, not an item setter",
+                            c.builder, p.name
+                        ));
+                    }
+                }
             }
             // Constructors: text first, or `name` then its label; an id is a setter.
             for call in c.calls {

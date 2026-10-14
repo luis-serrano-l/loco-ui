@@ -91,12 +91,16 @@ impl Kanban<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("column", PropKind::Item, "key: &'a str, title: &'a str").doc("A column."),
         Prop::new("limit", PropKind::Modifier, "limit: usize")
+            .applies_to(&["column", "card"])
             .doc("A work-in-progress limit for the column added last."),
         Prop::new("card", PropKind::Modifier, "key: &'a str, title: &'a str")
+            .applies_to(&["column", "card"])
             .doc("A card in the column added last."),
         Prop::new("description", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["card"])
             .doc("Small print under the card added last."),
         Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .applies_to(&["card"])
             .doc("A badge in the meta row of the card added last: a label, an estimate, a tag."),
     ];
 }
@@ -113,6 +117,14 @@ impl Ui {
 }
 
 impl<'a> Kanban<'a> {
+    /// `card` once the last column has one, `column` before.
+    #[track_caller]
+    fn check(&self, method: &str) {
+        let last =
+            (self.columns.last()).map(|c| if c.cards.is_empty() { "column" } else { "card" });
+        crate::props::check_last::<Self>(Kanban::PROPS, method, last);
+    }
+
     /// A column: `key` is what a move to it posts as `to`, `title` its heading.
     pub fn column(mut self, key: &'a str, title: &'a str) -> Self {
         self.columns.push(Column {
@@ -126,7 +138,9 @@ impl<'a> Kanban<'a> {
 
     /// A work-in-progress limit for the column added last: its count reads `n / limit` and
     /// turns red past it (the server decides whether to refuse a move).
+    #[track_caller]
     pub fn limit(mut self, limit: usize) -> Self {
+        self.check("limit");
         if let Some(c) = self.columns.last_mut() {
             c.limit = Some(limit);
         }
@@ -134,7 +148,9 @@ impl<'a> Kanban<'a> {
     }
 
     /// A card in the column added last: `key` is what a move posts as `card`.
+    #[track_caller]
     pub fn card(mut self, key: &'a str, title: &'a str) -> Self {
+        self.check("card");
         if let Some(c) = self.columns.last_mut() {
             c.cards.push(Card {
                 key,
@@ -147,7 +163,9 @@ impl<'a> Kanban<'a> {
     }
 
     /// Small print under the card added last: an owner, a due date, a tag.
+    #[track_caller]
     pub fn description(mut self, text: &'a str) -> Self {
+        self.check("description");
         if let Some(card) = self.columns.last_mut().and_then(|c| c.cards.last_mut()) {
             card.note = Some(text);
         }
@@ -156,7 +174,9 @@ impl<'a> Kanban<'a> {
 
     /// A badge in the meta row of the card added last, beside its move buttons: a label, an
     /// estimate, a tag.
+    #[track_caller]
     pub fn badge(mut self, text: impl Display) -> Self {
+        self.check("badge");
         if let Some(card) = self.columns.last_mut().and_then(|c| c.cards.last_mut()) {
             card.badge = Some(text.to_string());
         }

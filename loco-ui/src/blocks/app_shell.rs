@@ -71,8 +71,10 @@ impl AppShell<'_> {
         Prop::new("link", PropKind::Item, "label: &'a str, href: &'a str")
             .doc("A link in the sidebar; the one to the current path is marked current."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["link"])
             .doc("An icon before the link added last."),
         Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .applies_to(&["link"])
             .doc("A count after the link added last."),
         Prop::new("user", PropKind::Value, "name: &'a str, signout: &'a str")
             .doc("Who is signed in, and where the sign-out button posts."),
@@ -107,13 +109,17 @@ impl<'a> AppShell<'a> {
     }
 
     /// An icon before the link added last.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(AppShell::PROPS, "icon", self.nav.last_item());
         self.nav = self.nav.icon(icon);
         self
     }
 
     /// A count after the link added last.
+    #[track_caller]
     pub fn badge(mut self, text: impl Display) -> Self {
+        crate::props::check_last::<Self>(AppShell::PROPS, "badge", self.nav.last_item());
         self.nav = self.nav.badge(text);
         self
     }

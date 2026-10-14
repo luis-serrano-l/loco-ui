@@ -95,8 +95,10 @@ impl Sidebar<'_> {
             .attr("href")
             .doc("A link; the one to the current path is marked current."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["link"])
             .doc("An icon before the link added last."),
         Prop::new("badge", PropKind::Modifier, "text: impl Display")
+            .applies_to(&["link"])
             .doc("A count after the link added last."),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
@@ -122,6 +124,15 @@ impl Ui {
 }
 
 impl<'a> Sidebar<'a> {
+    /// The setter that added the last item: `link`, or `group` before the group's first link.
+    pub(crate) fn last_item(&self) -> Option<&'static str> {
+        match self.groups.last() {
+            Some((_, links)) if !links.is_empty() => Some("link"),
+            Some((Some(_), _)) => Some("group"),
+            _ => None,
+        }
+    }
+
     /// Start a group of links under a small heading.
     pub fn group(mut self, heading: &'a str) -> Self {
         self.groups.push((Some(heading), Vec::new()));
@@ -142,7 +153,9 @@ impl<'a> Sidebar<'a> {
     }
 
     /// An icon before the link added last.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(Sidebar::PROPS, "icon", self.last_item());
         if let Some(l) = self.groups.last_mut().and_then(|g| g.1.last_mut()) {
             l.icon = Some(icon.into());
         }
@@ -150,7 +163,9 @@ impl<'a> Sidebar<'a> {
     }
 
     /// A count after the link added last.
+    #[track_caller]
     pub fn badge(mut self, text: impl Display) -> Self {
+        crate::props::check_last::<Self>(Sidebar::PROPS, "badge", self.last_item());
         if let Some(l) = self.groups.last_mut().and_then(|g| g.1.last_mut()) {
             l.badge = Some(text.to_string());
         }

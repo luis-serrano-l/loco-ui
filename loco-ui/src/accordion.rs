@@ -41,7 +41,7 @@
 //!     .multiple()
 //!     .controls();
 //! let html = m.render().into_string();
-//! assert!(html.contains("href=\"/help?open.faq=2\">Install"), "open item's link removes itself from the list");
+//! assert!(html.contains(r#"href="/help?open.faq=2" data-state="open" aria-expanded="true""#), "open item's link removes itself from the list");
 //! assert!(html.contains("href=\"/help?open.faq=0%2C1%2C2\">Expand all"));
 //! assert!(html.contains("class=\"lui-accordion-summary\">One line."));
 //! // The same in `lui!`:
@@ -91,8 +91,10 @@ impl Accordion<'_> {
         Prop::new("item", PropKind::Item, "title: &'a str, body: Markup")
             .doc("A section titled `title` with its body."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["item"])
             .doc("An icon, or a glyph or emoji, before the title of the section added last, hidden from assistive tech."),
         Prop::new("description", PropKind::Modifier, "summary: &'a str")
+            .applies_to(&["item"])
             .doc("A muted line under the title of the section added last, visible while it is closed."),
         Prop::new("multiple", PropKind::Switch, "")
             .doc("Several sections may be open at once (`?open.<group>=0,2`)."),
@@ -116,6 +118,11 @@ impl Ui {
 }
 
 impl<'a> Accordion<'a> {
+    /// `item` once a section is added: the only kind of item.
+    fn last(&self) -> Option<&'static str> {
+        self.items.last().map(|_| "item")
+    }
+
     /// A section titled `title` with its body.
     pub fn item(mut self, title: &'a str, body: Markup) -> Self {
         self.items.push(Item {
@@ -129,7 +136,9 @@ impl<'a> Accordion<'a> {
 
     /// An icon, or a glyph or emoji, before the title of the section added last, hidden from
     /// assistive tech.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(Accordion::PROPS, "icon", self.last());
         if let Some(it) = self.items.last_mut() {
             it.icon = Some(icon.into());
         }
@@ -137,7 +146,9 @@ impl<'a> Accordion<'a> {
     }
 
     /// A muted line under the title of the section added last, visible while it is closed.
+    #[track_caller]
     pub fn description(mut self, summary: &'a str) -> Self {
+        crate::props::check_last::<Self>(Accordion::PROPS, "description", self.last());
         if let Some(it) = self.items.last_mut() {
             it.summary = Some(summary);
         }

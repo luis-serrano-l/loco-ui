@@ -108,6 +108,8 @@ pub struct Palette<'a> {
     group: &'a str,
     label: &'a str,
     accesskey: String,
+    /// The setter that added the last item, for the modifiers' check.
+    last: Option<&'static str>,
 }
 
 impl Palette<'_> {
@@ -122,10 +124,13 @@ impl Palette<'_> {
         )
         .doc("Several `(label, href)` destinations at once."),
         Prop::new("keywords", PropKind::Modifier, "keywords: &'a str")
+            .applies_to(&["link"])
             .doc("Extra words that find the command added last, space-separated."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["link"])
             .doc("An icon before the command added last."),
         Prop::new("shortcut", PropKind::Modifier, "keys: &'a str")
+            .applies_to(&["link"])
             .doc("A key hint at the end of the command added last (shown, not bound)."),
         Prop::new("group", PropKind::Item, "heading: &'a str")
             .doc("List the commands added after this under a heading."),
@@ -155,6 +160,7 @@ impl Ui {
             group: "",
             label: self.text(Text::Search),
             accesskey: "k".to_string(),
+            last: None,
         }
     }
 }
@@ -170,6 +176,7 @@ impl<'a> Palette<'a> {
             icon: None,
             shortcut: None,
         });
+        self.last = Some("link");
         self
     }
 
@@ -181,7 +188,9 @@ impl<'a> Palette<'a> {
     }
 
     /// Extra words that find the command added last, space-separated; never shown.
+    #[track_caller]
     pub fn keywords(mut self, keywords: &'a str) -> Self {
+        crate::props::check_last::<Self>(Palette::PROPS, "keywords", self.last);
         if let Some(c) = self.commands.last_mut() {
             c.keywords = keywords;
         }
@@ -189,7 +198,9 @@ impl<'a> Palette<'a> {
     }
 
     /// An icon before the command added last.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(Palette::PROPS, "icon", self.last);
         if let Some(c) = self.commands.last_mut() {
             c.icon = Some(icon.into());
         }
@@ -198,7 +209,9 @@ impl<'a> Palette<'a> {
 
     /// A key hint at the end of the command added last, right-aligned: shown to the visitor,
     /// not bound (the page's own keys are the app's business).
+    #[track_caller]
     pub fn shortcut(mut self, keys: &'a str) -> Self {
+        crate::props::check_last::<Self>(Palette::PROPS, "shortcut", self.last);
         if let Some(c) = self.commands.last_mut() {
             c.shortcut = Some(keys);
         }
@@ -208,6 +221,7 @@ impl<'a> Palette<'a> {
     /// List the commands added after this under a heading.
     pub fn group(mut self, heading: &'a str) -> Self {
         self.group = heading;
+        self.last = Some("group");
         self
     }
 

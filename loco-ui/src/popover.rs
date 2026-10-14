@@ -35,9 +35,9 @@
 //! ```rust
 //! use loco_ui::prelude::*;
 //! let ui = Ui::from(Caps::all());
-//! // The id is the label's slug: this menu is `#account`.
+//! // The id is `lui-menu-` and the label's slug: this menu is `#lui-menu-account`.
 //! let m = ui.menu("Account").link("Profile", "/profile").link("Sign out", "/logout");
-//! assert!(m.render().into_string().contains(r#"id="account""#));
+//! assert!(m.render().into_string().contains(r#"id="lui-menu-account""#));
 //! // `icon`, `shortcut`, `disabled` and `danger` apply to the item just added.
 //! let m = ui.menu("Account")
 //!     .group("Signed in as Ada")
@@ -50,7 +50,7 @@
 //!     .align_end();
 //! let html = m.render().into_string();
 //! assert!(html.contains("<form method=\"post\" action=\"/logout\""));
-//! assert!(html.contains("position-area: bottom span-left") && html.contains(r#"id="account-theme""#));
+//! assert!(html.contains("position-area: bottom span-left") && html.contains(r#"id="lui-menu-account-theme""#));
 //! // The same in `lui!`:
 //! let same = lui! { Menu("Account") align_end {
 //!     group "Signed in as Ada";
@@ -156,6 +156,17 @@ impl<'a> MenuItem<'a> {
         Self::new(Kind::Separator, "")
     }
 
+    /// The name of the setter that adds an item of this kind, for the modifiers' check.
+    pub(crate) const fn adder(&self) -> &'static str {
+        match self.kind {
+            Kind::Link(_) => "link",
+            Kind::Action(_) => "action",
+            Kind::Heading => "group",
+            Kind::Separator => "separator",
+            Kind::Submenu(_) => "submenu",
+        }
+    }
+
     /// Destructive: coloured with `--lui-danger`.
     pub const fn danger(mut self) -> Self {
         self.danger = true;
@@ -199,6 +210,9 @@ pub struct Menu<'a> {
     placement: Placement,
 }
 
+/// The items a menu's modifiers change: everything but a group heading and a separator.
+pub(crate) const ITEMS: &[&str] = &["link", "action", "submenu"];
+
 impl Menu<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
@@ -215,15 +229,15 @@ impl Menu<'_> {
             "text: &'a str, items: impl IntoIterator<Item = I>",
         )
         .doc("A nested menu of `items` (`MenuItem`s or `(text, href)` links)."),
-        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>").doc(
+        Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>").applies_to(ITEMS).doc(
             "An icon, or a glyph or emoji, before the item's text (decorative, hidden from assistive tech).",
         ),
-        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str")
+        Prop::new("shortcut", PropKind::Modifier, "keys: &'a str").applies_to(ITEMS)
             .doc("A shortcut shown after the item's text, as `<kbd>`."),
-        Prop::new("disabled", PropKind::Modifier, "")
+        Prop::new("disabled", PropKind::Modifier, "").applies_to(ITEMS)
             .attr("disabled")
             .doc("The item is shown but not usable."),
-        Prop::new("danger", PropKind::Modifier, "").doc("The item is destructive."),
+        Prop::new("danger", PropKind::Modifier, "").applies_to(ITEMS).doc("The item is destructive."),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The menu's id instead of `lui-menu-` and the label's slug."),
@@ -253,7 +267,10 @@ impl<'a> Menu<'a> {
         self
     }
 
-    fn last(mut self, change: impl FnOnce(&mut MenuItem<'a>)) -> Self {
+    #[track_caller]
+    fn last(mut self, method: &str, change: impl FnOnce(&mut MenuItem<'a>)) -> Self {
+        let last = self.items.last().map(MenuItem::adder);
+        crate::props::check_last::<Self>(Menu::PROPS, method, last);
         if let Some(item) = self.items.last_mut() {
             change(item);
         }
@@ -295,24 +312,28 @@ impl<'a> Menu<'a> {
 
     /// An icon, or a glyph or emoji, before the item's text (decorative, hidden from
     /// assistive tech).
+    #[track_caller]
     pub fn icon(self, icon: impl Into<Glyph<'a>>) -> Self {
         let icon = icon.into();
-        self.last(|it| it.icon = Some(icon))
+        self.last("icon", |it| it.icon = Some(icon))
     }
 
     /// A shortcut shown after the item's text, as `<kbd>`; a label only.
+    #[track_caller]
     pub fn shortcut(self, keys: &'a str) -> Self {
-        self.last(|it| it.shortcut = Some(keys))
+        self.last("shortcut", |it| it.shortcut = Some(keys))
     }
 
     /// The item is shown but not usable: a link without `href`, a button with `disabled`.
+    #[track_caller]
     pub fn disabled(self) -> Self {
-        self.last(|it| it.disabled = true)
+        self.last("disabled", |it| it.disabled = true)
     }
 
     /// The item is destructive: coloured with `--lui-danger`.
+    #[track_caller]
     pub fn danger(self) -> Self {
-        self.last(|it| it.danger = true)
+        self.last("danger", |it| it.danger = true)
     }
 
     /// The menu's id instead of `lui-menu-` and the label's slug.

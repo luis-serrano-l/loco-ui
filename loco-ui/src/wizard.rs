@@ -132,6 +132,7 @@ impl Wizard<'_> {
         Prop::new("review", PropKind::Item, "title: &'a str")
             .doc("The last step."),
         Prop::new("optional", PropKind::Modifier, "")
+            .applies_to(&["step"])
             .doc("The step added last can be skipped."),
         Prop::new("values", PropKind::Value, "values: &'a [(String, String)]")
             .doc("What the visitor entered so far, by field name, for every step's fields and the review."),
@@ -187,7 +188,16 @@ impl<'a> Wizard<'a> {
     }
 
     /// The step added last can be skipped: a "Skip" button beside Next posts `skip=1`.
+    #[track_caller]
     pub fn optional(mut self) -> Self {
+        let last = (self.steps.last()).map(|s| {
+            if matches!(s.body, Body::Review) {
+                "review"
+            } else {
+                "step"
+            }
+        });
+        crate::props::check_last::<Self>(Wizard::PROPS, "optional", last);
         if let Some(s) = self.steps.last_mut() {
             s.optional = true;
         }

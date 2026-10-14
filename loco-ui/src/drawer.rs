@@ -35,11 +35,12 @@
 //! use loco_ui::prelude::*;
 //! let ui = Ui::from(Caps::all());
 //! let nav = html! { ul { li { a href="/" { "Home" } } } };
-//! // The id is the label's slug: this drawer is `#menu`.
+//! // The id is `lui-drawer-` and the label's slug: this drawer is `#lui-drawer-menu`.
 //! let m = ui.drawer("Menu").nav(nav.clone()).body(html! { p { "Page" } }).render().into_string();
-//! assert!(m.contains(r#"command="show-modal" commandfor="menu""#) && m.contains(r#"closedby="any""#));
-//! // `?dialog=menu` opens it from the server.
-//! let ui = Ui::from_request("/", "dialog=menu", "");
+//! assert!(m.contains(r#"command="show-modal" commandfor="lui-drawer-menu""#) && m.contains(r#"closedby="any""#));
+//! // `?dialog=lui-drawer-menu` opens it from the server (and, for one release, the
+//! // `?dialog=menu` written before the prefix).
+//! let ui = Ui::from_request("/", "dialog=lui-drawer-menu", "");
 //! let m = ui.drawer("Menu").title("Browse").sidebar().nav(nav.clone()).render().into_string();
 //! assert!(m.contains("lui-drawer-sidebar") && m.contains(" open>"));
 //! // The same in `lui!`:
@@ -48,7 +49,7 @@
 //! // A description under the title and a footer under the navigation.
 //! let m = ui.drawer("Menu").description("Everything in the app.").footer(html! { a href="/signout" { "Sign out" } });
 //! let m = m.render().into_string();
-//! assert!(m.contains(r#"aria-describedby="menu-description""#) && m.contains(r#"<div class="lui-drawer-foot">"#));
+//! assert!(m.contains(r#"aria-describedby="lui-drawer-menu-description""#) && m.contains(r#"<div class="lui-drawer-foot">"#));
 //! let same = lui! { Drawer("Menu") description="Everything in the app." footer={ a href="/signout" { "Sign out" } }; };
 //! assert_eq!(same.into_string(), m);
 //! ```
