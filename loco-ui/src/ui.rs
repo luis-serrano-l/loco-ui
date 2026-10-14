@@ -274,6 +274,7 @@ impl Ui {
             body,
             cookies: self.state.set_cookies().into(),
             css: Vec::new(),
+            links: Vec::new(),
             script: true,
             status: 200,
         };
@@ -327,6 +328,8 @@ pub struct Page {
     body: Markup,
     cookies: Box<[String]>,
     css: Vec<&'static str>,
+    /// `<link rel href>` pairs for the head ([`Page::link_rel`]).
+    links: Vec<(Box<str>, Box<str>)>,
     script: bool,
     status: u16,
 }
@@ -376,6 +379,20 @@ impl Page {
         self
     }
 
+    /// A `<link rel=.. href=..>` in this page's `<head>`: `rel="prev"` and `rel="next"` for a
+    /// paged list (see [`crate::pagination::Pagination::link_rels`]), `canonical`, `alternate`.
+    ///
+    /// ```rust
+    /// use loco_ui::prelude::*;
+    /// let ui = Ui::default();
+    /// let html = ui.page("Page 2", html! {}).link_rel("prev", "/list?page=1").into_string();
+    /// assert!(html.contains(r#"<link rel="prev" href="/list?page=1">"#));
+    /// ```
+    pub fn link_rel(mut self, rel: &str, href: &str) -> Self {
+        self.links.push((rel.into(), href.into()));
+        self
+    }
+
     /// Show `header` above `<main>` instead of loco-ui's own header; empty markup shows none.
     pub fn header(mut self, header: Markup) -> Self {
         self.header = Some(Box::new(header));
@@ -409,6 +426,7 @@ impl Render for Page {
             self.theme,
             self.tokens.as_deref(),
             &self.css,
+            &self.links,
             self.header.as_deref(),
             self.script,
             self.body.clone(),

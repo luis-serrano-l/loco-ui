@@ -38,6 +38,10 @@
 //!     body (html! { h1 { "Hello" } });
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // On `/p/apollo/settings` the link to `/p/apollo` is current.
+//! let ui = Ui::from_request("/p/apollo/settings", "", "");
+//! let m = ui.app_shell("Acme").current_prefix().link("Apollo", "/p/apollo").render().into_string();
+//! assert!(m.contains(r#"<a href="/p/apollo" aria-current="page">"#));
 //! ```
 
 use std::fmt::Display;
@@ -53,7 +57,7 @@ use crate::sidebar::Sidebar;
 /// A sidebar and content, made by [`Ui::app_shell`].
 ///
 /// **Setters.** Values and items: `.group(..)`, `.link(..)`, `.icon(..)`, `.badge(..)`,
-/// `.user(..)`, `.body(..)`.
+/// `.user(..)`, `.body(..)`; switches: `.current_prefix()`.
 #[derive(Clone, Debug)]
 pub struct AppShell<'a> {
     ui: &'a Ui,
@@ -77,6 +81,8 @@ impl AppShell<'_> {
         Prop::new("user", PropKind::Value, "name: &'a str, signout: &'a str")
             .doc("Who is signed in, and where the sign-out button posts."),
         Prop::new("body", PropKind::Value, "body: Markup").doc("The page's content."),
+        Prop::new("current_prefix", PropKind::Switch, "")
+            .doc("Mark a link current also when the path is under it (`/projects` on `/projects/42`)."),
     ];
 }
 
@@ -127,6 +133,13 @@ impl<'a> AppShell<'a> {
     /// The page's content.
     pub fn body(mut self, body: Markup) -> Self {
         self.body = body;
+        self
+    }
+
+    /// Mark a link current also when the path is under it: `/projects` on `/projects/42`
+    /// (see [`Sidebar::current_prefix`]).
+    pub fn current_prefix(mut self) -> Self {
+        self.nav = self.nav.current_prefix();
         self
     }
 }

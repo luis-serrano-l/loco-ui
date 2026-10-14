@@ -79,7 +79,7 @@ use crate::{Cap, Caps, Ui};
 /// **Setters.** Values and items: `.command(..)`, `.popovertarget(..)`, `.form(..)`,
 /// `.name(..)`, `.value(..)`, `.aria_label(..)`, `.class(..)`, `.body(..)`, `.id(..)`,
 /// `.role(..)`, `.title(..)`, `.style(..)`, `.aria_haspopup(..)`, `.accesskey(..)`,
-/// `.aria_keyshortcuts(..)`, `.formmethod(..)`, `.formaction(..)`, `.rel(..)`,
+/// `.aria_keyshortcuts(..)`, `.formmethod(..)`, `.formaction(..)`, `.rel(..)`, `.interestfor(..)`,
 /// `.size(..)`, `.tone(..)`, `.variant(..)`, `.radius(..)`; switches: `.primary()`, `.danger()`, `.ghost()`, `.soft()`, `.surface()`,
 /// `.small()`, `.icon_only()`, `.submit()`, `.reset()`,
 /// `.disabled()`, `.formnovalidate()`, `.shimmer()`; from a condition: `.loading(bool)`, `.pressed(bool)`,
@@ -190,6 +190,9 @@ impl Button<'_> {
         Prop::new("current", PropKind::Condition, "on: bool")
             .attr("aria-current")
             .doc("`aria-current=\"page\"`."),
+        Prop::new("interestfor", PropKind::Value, "id: &'a str")
+            .attr("interestfor")
+            .doc("Show the popover with this id while the button or link has the pointer or focus (`interestfor`)."),
         Prop::new("shimmer", PropKind::Switch, "")
             .doc("A light sweeps across the button, over its own background."),
     ];
@@ -211,6 +214,7 @@ struct Attrs<'a> {
     formnovalidate: bool,
     rel: Option<&'a str>,
     current: bool,
+    interestfor: Option<&'a str>,
 }
 
 impl Ui {
@@ -501,6 +505,14 @@ impl<'a> Button<'a> {
         self
     }
 
+    /// Show the popover with this id while the button or link has the pointer or focus
+    /// (`interestfor`, Chrome 142): a hover card. Check `Cap::InterestInvokers` first; a
+    /// browser without it ignores the attribute.
+    pub fn interestfor(mut self, id: &'a str) -> Self {
+        self.attrs.interestfor = Some(id);
+        self
+    }
+
     /// A light sweeps across the button, over its own background: an opt-in showpiece for
     /// the one action a page wants noticed. At rest without `translate` or under
     /// `prefers-reduced-motion: reduce`.
@@ -592,7 +604,7 @@ impl Render for Button<'_> {
                 a class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius] href=[(!off).then_some(href)] role=[attrs.role.or(off.then_some("link"))]
                     aria-disabled=[off.then_some("true")] aria-busy=[self.loading.then_some("true")]
                     aria-label=[self.label] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
-                    rel=[attrs.rel] aria-current=[attrs.current.then_some("page")]
+                    rel=[attrs.rel] aria-current=[attrs.current.then_some("page")] interestfor=[attrs.interestfor]
                     accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts] { (spinner) (text) }
             };
         }
@@ -622,6 +634,7 @@ impl Render for Button<'_> {
                 aria-haspopup=[attrs.aria_haspopup] aria-pressed=[attrs.aria_pressed.map(|p| if p { "true" } else { "false" })]
                 accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts]
                 formmethod=[attrs.formmethod] formaction=[attrs.formaction] formnovalidate[attrs.formnovalidate]
+                interestfor=[attrs.interestfor]
                 { (spinner) (text) }
         }
     }

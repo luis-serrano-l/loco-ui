@@ -6,9 +6,10 @@
 //! along the visitor is, the last step is a review whose every value links back to its step,
 //! and a visitor who closes the tab comes back to the step they left.
 //!
-//! The look follows the Origin UI Stepper: numbered dots (a check when done) with the title
-//! and "optional" beside them, joined by connectors that are the progress on screen (primary
-//! after a done step). A column in a narrow container, a row from 30rem.
+//! The look follows the Origin UI Stepper: the progress is a [`Steps`](crate::steps) list,
+//! numbered dots (a check when done) with the title and "optional" beside them, joined by
+//! connectors that are the progress on screen (primary after a done step). A column in a
+//! narrow container, a row from 30rem.
 //!
 //! **Platform features:**
 //! - Post/Redirect/Get per step: a redirect after each valid POST, so refresh never
@@ -68,7 +69,7 @@ use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
-use crate::{Icon, Ui, enhance, form::Form};
+use crate::{Ui, enhance, form::Form};
 
 /// What a step shows: fields (listed by the review) or any markup.
 #[derive(Clone, Debug)]
@@ -331,6 +332,22 @@ impl Render for Wizard<'_> {
         let failed = |i: usize| {
             i == current && matches!(&steps[i].body, Body::Fields(f) if self.filled(f).has_errors())
         };
+        // The step list is a `Steps`: done steps link back, the current one may be in error.
+        let links: Vec<String> = (0..current).map(|i| self.link(i)).collect();
+        let mut list = ui.steps();
+        for (i, s) in steps.iter().enumerate() {
+            list = list.step(s.title);
+            list = match i.cmp(&current) {
+                std::cmp::Ordering::Less => list.done().href(&links[i]),
+                std::cmp::Ordering::Equal if failed(i) => list.current().error(),
+                std::cmp::Ordering::Equal => list.current(),
+                std::cmp::Ordering::Greater => list,
+            };
+            if s.optional {
+                list = list.optional();
+            }
+        }
+        let progress_steps = list.render();
         html! {
             div id=(enhance::swap_id("lui-wizard", id)) data-lui="swap" class="lui-wizard" {
                 @if current > 0 && state.remembered(&key) {
@@ -339,26 +356,7 @@ impl Render for Wizard<'_> {
                         a href=(self.link(0)) { (ui.text(Text::StartOver)) }
                     }
                 }
-                ol class="lui-wizard-steps" {
-                    @for (i, s) in steps.iter().enumerate() {
-                        @let class = match (i == current, i < current, failed(i)) {
-                            (true, _, true) => "lui-wizard-current lui-wizard-error",
-                            (true, _, false) => "lui-wizard-current",
-                            (false, true, _) => "lui-wizard-done",
-                            (false, false, _) => "",
-                        };
-                        li class=[(!class.is_empty()).then_some(class)] aria-current=[(i == current).then_some("step")] {
-                            span class="lui-wizard-dot" aria-hidden="true" {
-                                @if failed(i) { "!" } @else if i < current { (Icon::Check) } @else { (i + 1) }
-                            }
-                            span class="lui-wizard-label" {
-                                @if i < current { a href=(self.link(i)) { (s.title) } } @else { span { (s.title) } }
-                                @if s.optional { " " small { (ui.text(Text::Optional)) } }
-                                @if failed(i) { span class="lui-sr" { (ui.text(Text::HasErrors)) } }
-                            }
-                        }
-                    }
-                }
+                (progress_steps)
                 @if progress {
                     progress class="lui-wizard-progress" value=(current) max=(steps.len().saturating_sub(1).max(1)) aria-label=(ui.text(Text::Progress)) {
                         (ui.fill(Text::StepsDone, &[&current, &steps.len().saturating_sub(1)]))
@@ -389,50 +387,15 @@ impl Render for Wizard<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* After the Origin UI Stepper: each step a 2rem dot (its number; a check when done; "!" when
-   the server sent it back) with the title and "optional" beside or under it, joined by
-   2px connectors that are the progress: primary after a done step, --lui-gray-6 after the rest.
-   A column in a narrow container, a row from 30rem (dots on a line, titles under them).
-   The <progress> element stays for assistive tech only; .hide_progress() drops it. */
+/* After the Origin UI Stepper: the step list is a `Steps` (its CSS is in steps.rs), with
+   room under it before the form. The <progress> element stays for assistive tech only;
+   .hide_progress() drops it. */
 .lui-wizard { container: lui-wizard / inline-size; }
-.lui-wizard-steps { display: grid; list-style: none; margin: 0 0 var(--lui-space-6); padding: 0; --lui-wizard-dot: 2rem; }
-.lui-wizard-steps li {
-  position: relative; display: grid; grid-template-columns: var(--lui-wizard-dot) minmax(0, 1fr); align-items: start;
-  column-gap: var(--lui-space-3); padding-bottom: var(--lui-space-6); max-width: none; color: var(--lui-muted); font-size: 0.875rem;
-}
-.lui-wizard-steps li:last-child { padding-bottom: 0; }
-.lui-wizard-dot {
-  display: grid; place-items: center; width: var(--lui-wizard-dot); height: var(--lui-wizard-dot); border-radius: 50%;
-  background: var(--lui-gray-3); color: var(--lui-gray-11); font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums;
-}
-.lui-wizard-dot > .lui-icon { width: 0.875rem; height: 0.875rem; }
-.lui-wizard-done .lui-wizard-dot, .lui-wizard-current .lui-wizard-dot { background: var(--lui-primary); color: var(--lui-on-primary); }
-.lui-wizard-current .lui-wizard-dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--lui-primary) 25%, transparent); }
-.lui-wizard-error .lui-wizard-dot { background: var(--lui-danger); color: var(--lui-on-danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lui-danger) 25%, transparent); }
-.lui-wizard-label { display: grid; align-content: center; min-height: var(--lui-wizard-dot); font-weight: 500; }
-.lui-wizard-label small { font-size: 0.75rem; font-weight: 400; color: var(--lui-muted); }
-.lui-wizard-current .lui-wizard-label, .lui-wizard-done .lui-wizard-label { color: var(--lui-fg); }
-.lui-wizard-error .lui-wizard-label { color: var(--lui-danger); }
-.lui-wizard-label a { color: inherit; text-decoration: none; }
-.lui-wizard-label a:hover { text-decoration: underline; }
-/* Connectors: down from each dot to the next (narrow), across (wide). */
-.lui-wizard-steps li:not(:last-child)::after {
-  content: ""; position: absolute; left: calc(var(--lui-wizard-dot) / 2 - 1px); top: calc(var(--lui-wizard-dot) + var(--lui-space-1));
-  bottom: var(--lui-space-1); width: 2px; border-radius: 1px; background: var(--lui-gray-6);
-}
-.lui-wizard-steps .lui-wizard-done::after { background: var(--lui-primary); }
-@container lui-wizard (width >= 30rem) {
-  .lui-wizard-steps { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-  .lui-wizard-steps li { grid-template-columns: none; align-content: start; justify-items: center; row-gap: var(--lui-space-2); padding-bottom: 0; text-align: center; }
-  .lui-wizard-label { min-height: 0; align-content: start; padding-inline: var(--lui-space-2); }
-  .lui-wizard-steps li:not(:last-child)::after {
-    top: calc(var(--lui-wizard-dot) / 2 - 1px); bottom: auto; width: auto; height: 2px;
-    left: calc(50% + var(--lui-wizard-dot) / 2 + var(--lui-space-2)); right: calc(-50% + var(--lui-wizard-dot) / 2 + var(--lui-space-2));
-  }
-}
+.lui-wizard > .lui-steps { margin-bottom: var(--lui-space-6); }
 .lui-wizard-progress { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .lui-wizard-resume { padding: 0.75rem 1rem; font-size: 0.875rem; border: 1px solid var(--lui-line); border-radius: var(--lui-radius); background: var(--lui-card); max-width: none; }
-.lui-wizard-form fieldset { min-width: 0; margin: 0; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); padding: var(--lui-space-6); }
+.lui-wizard-form fieldset { min-width: 0; margin: 0; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); padding: var(--lui-space-4); }
+@container lui-wizard (width >= 30rem) { .lui-wizard-form fieldset { padding: var(--lui-space-6); } }
 .lui-wizard-form fieldset[aria-invalid=true] { border-color: var(--lui-danger); }
 .lui-wizard-form legend { padding: 0 0.5rem; font-weight: 600; }
 .lui-wizard-form label { display: block; margin: 0.75rem 0; font-size: 0.875rem; }
@@ -462,11 +425,11 @@ mod tests {
         let ui = Ui::from_request("/w", "step.x=1", "");
         let m = three(&ui).finish("Done").render().into_string();
         assert!(
-            m.contains("<a href=\"/w?step.x=0\">A</a>") && m.contains("class=\"lui-wizard-done\""),
+            m.contains("<a href=\"/w?step.x=0\">A</a>") && m.contains("class=\"lui-steps-done\""),
             "{m}"
         );
         assert!(m.contains(
-            "aria-current=\"step\"><span class=\"lui-wizard-dot\" aria-hidden=\"true\">2</span>"
+            "aria-current=\"step\"><span class=\"lui-steps-dot\" aria-hidden=\"true\">2</span>"
         ));
         assert!(m.contains("value=\"1\"") && m.contains(">Next<") && !m.contains(">Done<"));
         assert!(
@@ -488,7 +451,7 @@ mod tests {
         let errors = [("b", "Say more.")];
         let m = three(&ui).errors(&errors).render().into_string();
         assert!(
-            m.contains("class=\"lui-wizard-current lui-wizard-error\" aria-current=\"step\""),
+            m.contains("class=\"lui-steps-current lui-steps-error\" aria-current=\"step\""),
             "{m}"
         );
         assert!(m.contains("<fieldset aria-invalid=\"true\">") && m.contains("Say more."));

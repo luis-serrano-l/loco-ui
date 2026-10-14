@@ -2,7 +2,7 @@
 
 use loco_ui_test::Page;
 
-const MODERN: &str = "lui-cap-probed=1; lui-cap-invokers=1; lui-cap-anchor=1; lui-cap-details_content=1; lui-cap-view_transitions=1; lui-cap-popover=1; lui-cap-light_dark=1; lui-cap-streaming_dsd=1; lui-cap-base_select=1";
+const MODERN: &str = "lui-cap-probed=1; lui-cap-invokers=1; lui-cap-anchor=1; lui-cap-details_content=1; lui-cap-view_transitions=1; lui-cap-popover=1; lui-cap-light_dark=1; lui-cap-streaming_dsd=1; lui-cap-base_select=1; lui-cap-interest_invokers=1";
 const OLD: &str = "lui-cap-probed=1";
 
 fn shot(page: &mut Page, name: &str) {
@@ -815,18 +815,18 @@ async fn form_groups_help_counters_and_layouts() {
 #[tokio::test]
 async fn wizard_marks_steps() {
     let page = Page::render(demo::router(), "/wizard?step.signup=1", MODERN).await;
-    assert_eq!(page.count(".lui-wizard-steps li"), 3);
+    assert_eq!(page.count(".lui-steps li"), 3);
     assert_eq!(
-        page.text("li[aria-current=step] .lui-wizard-label")
+        page.text("li[aria-current=step] .lui-steps-label")
             .as_deref(),
         Some("Newsletter (optional)")
     );
     assert!(
-        page.exists(".lui-wizard-done a[href='/wizard?step.signup=0']"),
+        page.exists(".lui-steps-done a[href='/wizard?step.signup=0']"),
         "done step links back"
     );
     assert!(
-        !page.exists(".lui-wizard-steps li:nth-child(3) a"),
+        !page.exists(".lui-steps li:nth-child(3) a"),
         "future step is not a link"
     );
     assert!(
@@ -836,7 +836,7 @@ async fn wizard_marks_steps() {
     assert!(page.exists("a.lui-wizard-back[href='/wizard?step.signup=0']"));
     let steps: Vec<_> = (1..=3)
         .map(|i| {
-            page.bbox(&format!(".lui-wizard-steps li:nth-child({i})"))
+            page.bbox(&format!(".lui-steps li:nth-child({i})"))
                 .unwrap()
         })
         .collect();
@@ -849,7 +849,7 @@ async fn wizard_marks_steps() {
     let first = Page::render(demo::router(), "/wizard", MODERN).await;
     assert_eq!(
         first
-            .text("li[aria-current=step] .lui-wizard-label")
+            .text("li[aria-current=step] .lui-steps-label")
             .as_deref(),
         Some("Account")
     );
@@ -863,7 +863,7 @@ async fn wizard_marks_steps() {
     );
     assert!(!first.exists(".lui-wizard-resume"), "nothing to resume");
     assert!(
-        page.exists(".lui-wizard-steps li:nth-child(2) small"),
+        page.exists(".lui-steps li:nth-child(2) small"),
         "the optional step says so"
     );
     assert!(
@@ -881,7 +881,7 @@ async fn wizard_marks_steps() {
     )
     .await;
     assert_eq!(
-        back.text("li[aria-current=step] .lui-wizard-label")
+        back.text("li[aria-current=step] .lui-steps-label")
             .as_deref(),
         Some("Review")
     );

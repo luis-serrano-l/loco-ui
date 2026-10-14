@@ -109,6 +109,7 @@ stylesheet parses, at image priority, after the page's own resources. Each answe
 | `light_dark` | `(color: light-dark(#000, #fff))` | `light-dark()` (informational) | Chrome 123, Firefox 120, Safari 17.5 |
 | `streaming_dsd` | `selector(:popover-open)` | `<template shadowrootmode>` | Chrome 111, Firefox 123, Safari 16.4 |
 | `base_select` | `selector(::picker(select))` | `appearance: base-select`, `<selectedcontent>` | Chrome 135, Safari 27 |
+| `interest_invokers` | `selector(:interest-source)` | `interestfor` on a link or button | Chrome 142 |
 
 CSS cannot test HTML attributes, so `invokers` and `streaming_dsd` are **proxies**: CSS
 features that shipped in the same release or later. Both err on the safe side and never

@@ -84,11 +84,14 @@ pub enum Cap {
     StreamingDsd,
     /// Customisable `<select>`: `appearance: base-select`, `<selectedcontent>` (Chrome 135, Safari 27).
     BaseSelect,
+    /// Interest invokers: `interestfor` opens a popover on hover or focus, tested through
+    /// `:interest-source` (Chrome 142; not yet in Firefox or Safari).
+    InterestInvokers,
 }
 
 impl Cap {
     /// Every capability, in display order.
-    pub const ALL: [Cap; 9] = [
+    pub const ALL: [Cap; 10] = [
         Cap::Probed,
         Cap::Invokers,
         Cap::Anchor,
@@ -98,6 +101,7 @@ impl Cap {
         Cap::LightDark,
         Cap::StreamingDsd,
         Cap::BaseSelect,
+        Cap::InterestInvokers,
     ];
 
     /// Flag name used in cookies, beacon URLs and CSS class names.
@@ -112,6 +116,7 @@ impl Cap {
             Cap::LightDark => "light_dark",
             Cap::StreamingDsd => "streaming_dsd",
             Cap::BaseSelect => "base_select",
+            Cap::InterestInvokers => "interest_invokers",
         }
     }
 
@@ -138,6 +143,7 @@ impl Cap {
             // Proxy: `:popover-open` shipped after declarative shadow DOM in every engine.
             Cap::StreamingDsd => Some("selector(:popover-open)"),
             Cap::BaseSelect => Some("selector(::picker(select))"),
+            Cap::InterestInvokers => Some("selector(:interest-source)"),
         }
     }
 
@@ -163,6 +169,9 @@ impl Cap {
             }
             Cap::StreamingDsd => "out-of-order streaming via declarative shadow DOM slots",
             Cap::BaseSelect => "<select> shows rich option content via <selectedcontent>",
+            Cap::InterestInvokers => {
+                "hover cards open on hover and focus via interestfor; otherwise on click"
+            }
         }
     }
 

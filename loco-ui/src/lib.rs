@@ -63,6 +63,7 @@ pub mod calendar;
 pub mod card;
 pub mod chart;
 pub mod cluster;
+pub mod collapsible;
 pub mod color;
 pub mod combobox;
 pub mod context_menu;
@@ -78,6 +79,7 @@ pub mod error_summary;
 pub mod flash;
 pub mod form;
 pub mod grid;
+pub mod hover_card;
 pub mod i18n;
 pub mod icon;
 pub mod input;
@@ -92,6 +94,7 @@ pub mod nav_menu;
 mod oklch;
 pub mod paged_table;
 pub mod pager;
+pub mod pagination;
 pub mod palette;
 pub mod popover;
 pub mod posted;
@@ -110,14 +113,17 @@ pub mod split;
 pub mod stack;
 pub mod stat;
 pub mod state;
+pub mod steps;
 #[cfg(feature = "http")]
 pub mod stream;
 pub mod table;
 pub mod tabs;
 pub mod theme;
+pub mod timeline;
 pub mod toast;
 pub mod toggle_group;
 pub mod tooltip;
+pub mod tree;
 pub mod ui;
 pub mod upload;
 pub mod variant;
@@ -365,6 +371,12 @@ pub const COMPONENT_CSS: &[&str] = &[
     palette::CSS,
     marquee::CSS,
     variant::CSS,
+    pagination::CSS,
+    steps::CSS,
+    timeline::CSS,
+    tree::CSS,
+    collapsible::CSS,
+    hover_card::CSS,
 ];
 
 #[cfg(test)]
@@ -1642,6 +1654,12 @@ mod tests {
             ("palette", palette::CSS),
             ("marquee", marquee::CSS),
             ("variant", variant::CSS),
+            ("pagination", pagination::CSS),
+            ("steps", steps::CSS),
+            ("timeline", timeline::CSS),
+            ("tree", tree::CSS),
+            ("collapsible", collapsible::CSS),
+            ("hover_card", hover_card::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -1726,6 +1744,7 @@ mod tests {
                 "color",
                 "a row of picker, value chip and presets that wraps",
             ),
+            ("tree", "one column of rows; the depth is an indent, not a width"),
         ];
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.

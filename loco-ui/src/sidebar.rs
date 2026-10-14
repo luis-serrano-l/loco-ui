@@ -50,6 +50,10 @@
 //! let rail = ui.sidebar("Mail").collapsible().link("Inbox", "/inbox").icon(Icon::Mail).render().into_string();
 //! assert!(rail.starts_with(r#"<details class="lui-sidebar-rail" open>"#));
 //! assert_eq!(lui! { Sidebar("Mail") collapsible { link "Inbox" "/inbox" icon=(Icon::Mail); } }.into_string(), rail);
+//! // `/projects/42` is under the link to `/projects`, which is marked current.
+//! let ui = Ui::from_request("/projects/42", "", "");
+//! let m = ui.sidebar("App").current_prefix().link("Home", "/").link("Projects", "/projects").render().into_string();
+//! assert!(m.contains(r#"<a href="/projects" aria-current="page">"#) && !m.contains(r#"<a href="/" aria-current"#));
 //! ```
 
 use std::fmt::Display;
@@ -72,7 +76,7 @@ struct Link<'a> {
 /// A navigation column, made by [`Ui::sidebar`].
 ///
 /// **Setters.** Values and items: `.group(..)`, `.link(..)`, `.icon(..)`, `.badge(..)`,
-/// `.id(..)`; switches: `.collapsible()`.
+/// `.id(..)`; switches: `.collapsible()`, `.current_prefix()`.
 #[derive(Clone, Debug)]
 pub struct Sidebar<'a> {
     label: &'a str,
@@ -80,6 +84,7 @@ pub struct Sidebar<'a> {
     groups: Vec<(Option<&'a str>, Vec<Link<'a>>)>,
     id: Option<&'a str>,
     collapsible: bool,
+    prefix: bool,
     caps: Caps,
     /// Inside another `<nav>` (the app shell's drawer): a `<div>`, not a second landmark.
     inner: bool,
@@ -103,6 +108,8 @@ impl Sidebar<'_> {
             .doc("The prefix of the group headings' ids instead of `lui-sidebar-<label>`."),
         Prop::new("collapsible", PropKind::Switch, "")
             .doc("A toggle that folds it to an icon rail, the labels shown as tooltips."),
+        Prop::new("current_prefix", PropKind::Switch, "")
+            .doc("Mark a link current also when the path is under it (`/projects` on `/projects/42`)."),
     ];
 }
 
@@ -115,6 +122,7 @@ impl Ui {
             groups: vec![(None, Vec::new())],
             id: None,
             collapsible: false,
+            prefix: false,
             caps: self.caps,
             inner: false,
         }
@@ -172,6 +180,13 @@ impl<'a> Sidebar<'a> {
         self
     }
 
+    /// Mark a link current also when the path is under it: `/projects` on `/projects/42`.
+    /// Of several links above the path, the longest wins; `/` only ever matches itself.
+    pub fn current_prefix(mut self) -> Self {
+        self.prefix = true;
+        self
+    }
+
     /// Rendered inside another `<nav>`: the same column in a `<div>`.
     pub(crate) fn inner(mut self) -> Self {
         self.inner = true;
@@ -185,6 +200,8 @@ impl Render for Sidebar<'_> {
             || format!("lui-sidebar-{}", slug(self.label)),
             str::to_string,
         );
+        let hrefs = self.groups.iter().flat_map(|g| g.1.iter().map(|l| l.href));
+        let current = current_href(&self.here, hrefs, self.prefix);
         let groups = html! {
                 @for (i, (heading, links)) in self.groups.iter().enumerate().filter(|(_, g)| g.0.is_some() || !g.1.is_empty()) {
                     @let heading_id = format!("{root}-{i}");
@@ -193,7 +210,7 @@ impl Render for Sidebar<'_> {
                         ul aria-labelledby=[heading.map(|_| heading_id.as_str())] {
                             @for l in links {
                                 li {
-                                    a href=(l.href) aria-current=[(l.href == self.here).then_some("page")] {
+                                    a href=(l.href) aria-current=[(Some(l.href) == current).then_some("page")] {
                                         @if let Some(icon) = l.icon { (icon.hidden()) } @else {
                                             span class="lui-sidebar-initial" aria-hidden="true" { (l.text.chars().next().unwrap_or(' ')) }
                                         }
@@ -223,6 +240,32 @@ impl Render for Sidebar<'_> {
         }
         nav
     }
+}
+
+/// Which of `hrefs` is the current page at `here`: the one equal to it, else (with
+/// `prefix`) the longest one `here` is under at a `/` boundary. An href with a query only
+/// matches exactly, and `/` only matches `/`. Sidebar, NavMenu and the app shell share it.
+pub(crate) fn current_href<'h>(
+    here: &str,
+    hrefs: impl IntoIterator<Item = &'h str>,
+    prefix: bool,
+) -> Option<&'h str> {
+    let mut best: Option<&'h str> = None;
+    for href in hrefs {
+        if href == here {
+            return Some(href);
+        }
+        let under = prefix
+            && href != "/"
+            && !href.contains('?')
+            && here
+                .strip_prefix(href.trim_end_matches('/'))
+                .is_some_and(|rest| rest.starts_with('/'));
+        if under && best.is_none_or(|b| b.len() < href.len()) {
+            best = Some(href);
+        }
+    }
+    best
 }
 
 /// Styles for this component; included in [`crate::stylesheet`]. shadcn Sidebar: small muted

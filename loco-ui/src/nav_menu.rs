@@ -43,12 +43,17 @@
 //! // Panel links with a line of description each.
 //! let m = ui.nav_menu("Main").panel("Products", [("Mail", "/mail", "Read and send")]).render().into_string();
 //! assert!(m.contains(r#"<span class="lui-popover-description">Read and send</span>"#));
+//! // `/blog/2026/hello` is under the link to `/blog`, which is marked current.
+//! let ui = Ui::from_request("/blog/2026/hello", "", "");
+//! let m = ui.nav_menu("Main").current_prefix().link("Blog", "/blog").render().into_string();
+//! assert!(m.contains(r#"href="/blog" aria-current="page""#));
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::popover::{MenuItem, Placement, menu};
 use crate::props::{Prop, PropKind};
+use crate::sidebar::current_href;
 use crate::{Caps, Ui, slug};
 
 /// One entry of the row: a link, or a panel of links.
@@ -60,7 +65,8 @@ enum Entry<'a> {
 
 /// A row of links and panels, made by [`Ui::nav_menu`].
 ///
-/// **Setters.** Values and items: `.link(..)`, `.panel(..)`, `.id(..)`.
+/// **Setters.** Values and items: `.link(..)`, `.panel(..)`, `.id(..)`; switches:
+/// `.current_prefix()`.
 #[derive(Clone, Debug)]
 pub struct NavMenu<'a> {
     caps: Caps,
@@ -68,6 +74,7 @@ pub struct NavMenu<'a> {
     here: String,
     entries: Vec<Entry<'a>>,
     id: Option<&'a str>,
+    prefix: bool,
 }
 
 impl NavMenu<'_> {
@@ -86,6 +93,8 @@ impl NavMenu<'_> {
         Prop::new("id", PropKind::Value, "id: &'a str")
             .attr("id")
             .doc("The prefix of the panels' ids instead of `nav-<label>`."),
+        Prop::new("current_prefix", PropKind::Switch, "")
+            .doc("Mark a link current also when the path is under it (`/projects` on `/projects/42`)."),
     ];
 }
 
@@ -98,6 +107,7 @@ impl Ui {
             here: self.state.path().to_string(),
             entries: Vec::new(),
             id: None,
+            prefix: false,
         }
     }
 }
@@ -127,6 +137,13 @@ impl<'a> NavMenu<'a> {
         self.id = Some(id);
         self
     }
+
+    /// Mark a link current also when the path is under it: `/projects` on `/projects/42`.
+    /// Of several links above the path, the longest wins; `/` only ever matches itself.
+    pub fn current_prefix(mut self) -> Self {
+        self.prefix = true;
+        self
+    }
 }
 
 impl Render for NavMenu<'_> {
@@ -134,13 +151,18 @@ impl Render for NavMenu<'_> {
         let root = self
             .id
             .map_or_else(|| format!("nav-{}", slug(self.label)), str::to_string);
+        let hrefs = self.entries.iter().filter_map(|e| match e {
+            Entry::Link(_, href) => Some(*href),
+            Entry::Panel(..) => None,
+        });
+        let current = current_href(&self.here, hrefs, self.prefix);
         html! {
             nav class="lui-nav-menu" aria-label=(self.label) {
                 ul {
                     @for e in &self.entries {
                         li {
                             @match e {
-                                Entry::Link(text, href) => a class="lui-nav-menu-link" href=(href) aria-current=[(*href == self.here).then_some("page")] { (text) },
+                                Entry::Link(text, href) => a class="lui-nav-menu-link" href=(href) aria-current=[(Some(*href) == current).then_some("page")] { (text) },
                                 Entry::Panel(text, items) => (menu(&self.caps, &format!("{root}-{}", slug(text)), text, items, Placement::BottomStart, false)),
                             }
                         }

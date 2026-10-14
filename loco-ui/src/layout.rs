@@ -511,6 +511,7 @@ pub(crate) fn page(
     theme: Theme,
     tokens: Option<&Tokens>,
     css: &[&str],
+    links: &[(Box<str>, Box<str>)],
     top: Option<&Markup>,
     script: bool,
     body: Markup,
@@ -526,6 +527,7 @@ pub(crate) fn page(
                 // Hold a cross-document view transition until `#main` is parsed. Streamed
                 // pages must not: their parse ends only when the last slot has filled.
                 @if caps.has(crate::Cap::ViewTransitions) { link rel="expect" href="#main" blocking="render"; }
+                @for (rel, href) in links { link rel=(rel) href=(href); }
                 style { (PreEscaped(stylesheet())) }
                 @if let Some(t) = tokens { style class="lui-tokens" { (PreEscaped(t.css())) } }
                 @if !css.is_empty() { style class="lui-user" { @for c in css { (PreEscaped(crate::minify_css(c))) } } }
