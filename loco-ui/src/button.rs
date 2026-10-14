@@ -227,6 +227,10 @@ struct Attrs<'a> {
     formnovalidate: bool,
     rel: Option<&'a str>,
     current: bool,
+    /// Set by a component that names its own tooltip, never by a caller.
+    aria_describedby: Option<&'a str>,
+    /// A component's part class (`lui-dialog-open`), kept beside the caller's `.class(..)`.
+    part: Option<&'static str>,
 }
 
 impl Ui {
@@ -275,6 +279,31 @@ impl<'a> Button<'a> {
             trailing: None,
             attrs: Attrs::default(),
         }
+    }
+
+    /// The same button as a link to `href` with `role="button"`: a component's trigger
+    /// where the browser has no invoker commands.
+    pub(crate) fn to_link(mut self, href: &'a str) -> Self {
+        self.href = Some(href);
+        self.attrs.role = self.attrs.role.or(Some("button"));
+        self
+    }
+
+    /// A component's part class beside the caller's own `.class(..)`.
+    pub(crate) fn part(mut self, class: &'static str) -> Self {
+        self.attrs.part = Some(class);
+        self
+    }
+
+    /// `aria-describedby`, for a tooltip that names its trigger.
+    pub(crate) fn describedby(mut self, id: &'a str) -> Self {
+        self.attrs.aria_describedby = Some(id);
+        self
+    }
+
+    /// What the button shows: its body, or its text.
+    pub(crate) fn face(&self) -> Markup {
+        html! { @if let Some(m) = &self.content { (m) } @else { (self.text) } }
     }
 
     /// A link for a component that holds only `caps`.
@@ -554,7 +583,7 @@ impl<'a> Button<'a> {
         Some(self.look()).filter(|look| *look != (Tone::Neutral, Variant::Outline))
     }
 
-    fn classes(&self) -> String {
+    pub(crate) fn classes(&self) -> String {
         let mut c = String::from("lui-button");
         // The looks that had a class before tones and variants composed keep it.
         match self.look() {
@@ -578,6 +607,10 @@ impl<'a> Button<'a> {
         }
         if self.block {
             c.push_str(" lui-button-block");
+        }
+        if let Some(part) = self.attrs.part {
+            c.push(' ');
+            c.push_str(part);
         }
         if let Some(extra) = self.class {
             c.push(' ');
@@ -624,7 +657,7 @@ impl Render for Button<'_> {
             return html! {
                 a class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius] href=[(!off).then_some(href)] role=[attrs.role.or(off.then_some("link"))]
                     aria-disabled=[off.then_some("true")] aria-busy=[self.loading.then_some("true")]
-                    aria-label=[self.label] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
+                    aria-label=[self.label] aria-describedby=[attrs.aria_describedby] id=[attrs.id] title=[attrs.title] style=[attrs.style.as_deref()]
                     rel=[attrs.rel] aria-current=[attrs.current.then_some("page")]
                     accesskey=[attrs.accesskey] aria-keyshortcuts=[attrs.aria_keyshortcuts] { (spinner) (text) }
             };
@@ -649,7 +682,7 @@ impl Render for Button<'_> {
             button type=(kind) class=(class) data-size=[size] data-tone=[tone] data-variant=[variant] data-radius=[radius]
                 command=[command.map(|c| c.0)] commandfor=[command.map(|c| c.1)]
                 popovertarget=[target] popovertargetaction=[fallback.map(|(_, a)| a)]
-                form=[self.form] name=[self.name] value=[self.value] aria-label=[self.label]
+                form=[self.form] name=[self.name] value=[self.value] aria-label=[self.label] aria-describedby=[attrs.aria_describedby]
                 aria-busy=[self.loading.then_some("true")] disabled[self.disabled || self.loading]
                 id=[attrs.id] role=[attrs.role] title=[attrs.title] style=[attrs.style.as_deref()]
                 aria-haspopup=[attrs.aria_haspopup] aria-pressed=[attrs.aria_pressed.map(|p| if p { "true" } else { "false" })]

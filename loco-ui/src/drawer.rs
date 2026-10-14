@@ -52,10 +52,14 @@
 //! assert!(m.contains(r#"aria-describedby="lui-drawer-menu-description""#) && m.contains(r#"<div class="lui-drawer-foot">"#));
 //! let same = lui! { Drawer("Menu") description="Everything in the app." footer={ a href="/signout" { "Sign out" } }; };
 //! assert_eq!(same.into_string(), m);
+//! // A styled opener of your own.
+//! let m = ui.drawer("Menu").trigger(ui.button("Browse").ghost().leading(Icon::Menu)).render().into_string();
+//! assert!(m.contains(r#"class="lui-button lui-button-ghost lui-drawer-open""#));
 //! ```
 
 use maud::{Markup, Render, html};
 
+use crate::button::Button;
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Icon, Ui, slug};
@@ -63,8 +67,8 @@ use crate::{Cap, Icon, Ui, slug};
 /// Navigation in a drawer beside the page's content, made by [`Ui::drawer`].
 ///
 /// **Setters.** Values and items: `.nav(..)`, `.body(..)`, `.id(..)`, `.title(..)`,
-/// `.description(..)`, `.footer(..)`; switches:
-/// `.sidebar()`; from a condition: `.open(bool)`.
+/// `.description(..)`, `.footer(..)`, `.trigger(..)`; switches:
+/// `.sidebar()`, `.no_trigger()`; from a condition: `.open(bool)`.
 #[derive(Clone, Debug)]
 pub struct Drawer<'a> {
     ui: &'a Ui,
@@ -77,6 +81,8 @@ pub struct Drawer<'a> {
     footer: Option<Markup>,
     sidebar: bool,
     open: bool,
+    button: Option<Button<'a>>,
+    no_trigger: bool,
 }
 
 impl Drawer<'_> {
@@ -97,6 +103,11 @@ impl Drawer<'_> {
         Prop::new("footer", PropKind::Value, "footer: Markup")
             .doc("Actions pinned to the bottom of the panel, under the scrolling navigation."),
         Prop::new("sidebar", PropKind::Switch, "").doc("A permanent sidebar above 60rem."),
+        Prop::new("trigger", PropKind::Value, "button: Button<'a>").doc(
+            "The opener as a styled button of the caller's; its command or link is the drawer's.",
+        ),
+        Prop::new("no_trigger", PropKind::Switch, "")
+            .doc("No opener: a link to `?dialog=<id>` or a button elsewhere opens it."),
         Prop::new("open", PropKind::Condition, "open: bool")
             .attr("open")
             .doc("Render it open (non-modal) from the server."),
@@ -118,6 +129,8 @@ impl Ui {
             footer: None,
             sidebar: false,
             open: false,
+            button: None,
+            no_trigger: false,
         }
     }
 }
@@ -166,6 +179,20 @@ impl<'a> Drawer<'a> {
         self
     }
 
+    /// The opener as a styled button of the caller's in place of the menu button: its look is
+    /// kept, and the drawer sets what opens it (`command="show-modal"`, or a link to `#id`).
+    pub fn trigger(mut self, button: Button<'a>) -> Self {
+        self.button = Some(button);
+        self
+    }
+
+    /// No opener: the drawer alone, opened by `?dialog=<id>`, a link to `#id` or a button
+    /// elsewhere with `.command("show-modal", id)`.
+    pub fn no_trigger(mut self) -> Self {
+        self.no_trigger = true;
+        self
+    }
+
     /// Render it open (non-modal) from the server.
     pub fn open(mut self, open: bool) -> Self {
         self.open = open;
@@ -186,6 +213,8 @@ impl Render for Drawer<'_> {
             ref footer,
             sidebar,
             open,
+            ref button,
+            no_trigger,
         } = *self;
         let id = &id.map_or_else(|| format!("lui-drawer-{}", slug(label)), str::to_string);
         let desc_id = format!("{id}-description");
@@ -196,11 +225,12 @@ impl Render for Drawer<'_> {
         let open_href = format!("#{id}");
         html! {
             div class={ "lui-drawer" @if sidebar { " lui-drawer-sidebar" } } {
-                @let menu = html! { (Icon::Menu) (label) };
-                @if invokers {
-                    (ui.button(label).class("lui-drawer-open").body(menu).command("show-modal", id).aria_haspopup("dialog"))
+                @let opener = button.clone().unwrap_or_else(|| ui.button(label).body(html! { (Icon::Menu) (label) })).part("lui-drawer-open");
+                @if no_trigger {
+                } @else if invokers {
+                    (opener.command("show-modal", id).aria_haspopup("dialog"))
                 } @else {
-                    (ui.link_button(label, &open_href).class("lui-drawer-open").body(menu).role("button"))
+                    (opener.to_link(&open_href))
                 }
                 dialog id=(id) class="lui-drawer-panel" closedby="any" aria-labelledby=(title_id)
                     aria-describedby=[description.map(|_| &desc_id)] open[open] {

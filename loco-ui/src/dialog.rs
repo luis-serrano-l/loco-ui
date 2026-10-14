@@ -82,10 +82,19 @@
 //! let wide = ui.dialog("Terms").size(4).render().into_string();
 //! assert!(wide.contains(r#"class="lui-dialog-xl""#));
 //! assert_eq!(lui! { Dialog("Terms") size=4; }.into_string(), wide);
+//!
+//! // A styled opener of your own; the dialog sets its command. Or none at all.
+//! let ui = Ui::from(Caps::all());
+//! let styled = ui.dialog("Delete").trigger(ui.button("Delete").danger().leading(Icon::Trash)).render().into_string();
+//! assert!(styled.contains(r#"lui-button-danger""#) && styled.contains(r#"commandfor="lui-dialog-delete""#));
+//! assert_eq!(lui! { Dialog("Delete") trigger=(ui.button("Delete").danger().leading(Icon::Trash)); }.into_string(), styled);
+//! let bare = ui.dialog("Terms").no_trigger().render().into_string();
+//! assert!(bare.starts_with(r#"<div class="lui-dialog"><dialog id="lui-dialog-terms""#));
 //! ```
 
 use maud::{Markup, Render, html};
 
+use crate::button::Button;
 use crate::i18n::Text;
 use crate::props::{Prop, PropKind};
 use crate::{Cap, Icon, Ui, slug};
@@ -115,8 +124,8 @@ impl DialogSize {
 /// a "Close" button, unless told otherwise.
 ///
 /// **Setters.** Values and items: `.body(..)`, `.id(..)`, `.title(..)`, `.confirm(..)`,
-/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`; switches: `.small()`,
-/// `.large()`, `.danger()`; from a condition: `.open(bool)`.
+/// `.returns_to(..)`, `.close(..)`, `.cancel(..)`, `.closedby(..)`, `.size(..)`, `.trigger(..)`;
+/// switches: `.small()`, `.large()`, `.danger()`, `.no_trigger()`; from a condition: `.open(bool)`.
 #[derive(Clone, Debug)]
 pub struct Dialog<'a> {
     ui: &'a Ui,
@@ -132,6 +141,8 @@ pub struct Dialog<'a> {
     close: &'a str,
     cancel: &'a str,
     closedby: &'a str,
+    button: Option<Button<'a>>,
+    no_trigger: bool,
 }
 
 impl Dialog<'_> {
@@ -165,6 +176,10 @@ impl Dialog<'_> {
             .doc("Label of the cancel button beside the confirm button."),
         Prop::new("closedby", PropKind::Value, "closedby: &'a str").default("any").attr("closedby")
             .doc("The `closedby` attribute."),
+        Prop::new("trigger", PropKind::Value, "button: Button<'a>")
+            .doc("The opener as a styled button of the caller's (`ui.button(..).danger()`); its command or link is the dialog's."),
+        Prop::new("no_trigger", PropKind::Switch, "")
+            .doc("No opener: a link to `?dialog=<id>` or a button elsewhere opens it."),
     ];
 }
 
@@ -187,6 +202,8 @@ impl Ui {
             close: self.text(Text::Close),
             cancel: self.text(Text::Cancel),
             closedby: "any",
+            button: None,
+            no_trigger: false,
         }
     }
 }
@@ -272,6 +289,21 @@ impl<'a> Dialog<'a> {
         self
     }
 
+    /// The opener as a styled button of the caller's (`ui.button("Delete").danger()`) in place
+    /// of the plain one: its look, icons and size are kept, and the dialog sets what opens it
+    /// (`command="show-modal"`, or a link to `#id` without invoker commands).
+    pub fn trigger(mut self, button: Button<'a>) -> Self {
+        self.button = Some(button);
+        self
+    }
+
+    /// No opener: the dialog alone, opened by `?dialog=<id>`, a link to `#id` or a button
+    /// elsewhere with `.command("show-modal", id)`.
+    pub fn no_trigger(mut self) -> Self {
+        self.no_trigger = true;
+        self
+    }
+
     /// The `closedby` attribute: `any` (Escape and outside click, the default),
     /// `closerequest` (Escape only) or `none`.
     pub fn closedby(mut self, closedby: &'a str) -> Self {
@@ -296,6 +328,8 @@ impl Render for Dialog<'_> {
             close,
             cancel,
             closedby,
+            ref button,
+            no_trigger,
         } = *self;
         let id = &id.map_or_else(|| format!("lui-dialog-{}", slug(trigger)), str::to_string);
         let open = open || ui.state.dialog_is(id);
@@ -306,10 +340,12 @@ impl Render for Dialog<'_> {
         let open_href = format!("#{id}");
         html! {
             div class={ "lui-dialog" @if danger { " lui-dialog-danger" } } {
-                @if invokers {
-                    (ui.button(trigger).command("show-modal", id).aria_haspopup("dialog"))
+                @let opener = button.clone().unwrap_or_else(|| ui.button(trigger));
+                @if no_trigger {
+                } @else if invokers {
+                    (opener.command("show-modal", id).aria_haspopup("dialog"))
                 } @else {
-                    (ui.link_button(trigger, &open_href).class("lui-dialog-open").role("button"))
+                    (opener.to_link(&open_href).part("lui-dialog-open"))
                 }
                 dialog id=(id) class=(size.class()) closedby=(closedby) aria-labelledby=[title.map(|_| &title_id)] open[open] {
                     @if let Some(t) = title { h2 id=(title_id) class="lui-dialog-title" { (t) } }

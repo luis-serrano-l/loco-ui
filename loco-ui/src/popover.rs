@@ -62,6 +62,10 @@
 //!     action "Sign out" "/logout" danger;
 //! } };
 //! assert_eq!(same.into_string(), html);
+//! // A styled opener of your own: the menu sets its popover target.
+//! let more = ui.button("").ghost().icon_only().aria_label("More").leading(Icon::Ellipsis);
+//! let m = ui.menu("More").link("Rename", "/rename").trigger(more).render().into_string();
+//! assert!(m.contains(r#"class="lui-button lui-button-ghost lui-button-icon""#) && m.contains(r#"popovertarget="lui-menu-more""#));
 //! ```
 
 use maud::{Markup, Render, html};
@@ -199,7 +203,7 @@ impl<'a> From<(&'a str, &'a str)> for MenuItem<'a> {
 /// start-aligned, unless told otherwise.
 ///
 /// **Setters.** Values and items: `.submenu(..)`, `.link(..)`, `.action(..)`, `.group(..)`,
-/// `.icon(..)`, `.shortcut(..)`, `.id(..)`; switches: `.separator()`, `.disabled()`,
+/// `.icon(..)`, `.shortcut(..)`, `.id(..)`, `.trigger(..)`; switches: `.separator()`, `.disabled()`,
 /// `.danger()`, `.align_end()`, `.open_right()`.
 #[derive(Clone, Debug)]
 pub struct Menu<'a> {
@@ -208,6 +212,7 @@ pub struct Menu<'a> {
     label: &'a str,
     items: Vec<MenuItem<'a>>,
     placement: Placement,
+    button: Option<Button<'a>>,
 }
 
 /// The items a menu's modifiers change: everything but a group heading and a separator.
@@ -245,6 +250,8 @@ impl Menu<'_> {
             "Open below the button with right edges aligned, for a button at the end of a row.",
         ),
         Prop::new("open_right", PropKind::Switch, "").doc("Open to the right of the button."),
+        Prop::new("trigger", PropKind::Value, "button: Button<'a>")
+            .doc("The opener as a styled button of the caller's; the menu sets its `popovertarget`."),
     ];
 }
 
@@ -257,6 +264,7 @@ impl Ui {
             label,
             items: Vec::new(),
             placement: Placement::default(),
+            button: None,
         }
     }
 }
@@ -353,11 +361,19 @@ impl<'a> Menu<'a> {
         self.placement = Placement::Right;
         self
     }
+
+    /// The opener as a styled button of the caller's (`ui.button("").icon_only().leading(..)`)
+    /// in place of the label and chevron: the menu sets its `popovertarget`, and without
+    /// popover support its look goes on the `<summary>`.
+    pub fn trigger(mut self, button: Button<'a>) -> Self {
+        self.button = Some(button);
+        self
+    }
 }
 
 impl Render for Menu<'_> {
     fn render(&self) -> Markup {
-        menu(
+        menu_from(
             &self.caps,
             &self
                 .id
@@ -365,7 +381,7 @@ impl Render for Menu<'_> {
             self.label,
             &self.items,
             self.placement,
-            false,
+            Trigger::Own(self.button.as_ref()),
         )
     }
 }
@@ -380,29 +396,55 @@ pub(crate) fn menu(
     placement: Placement,
     compact: bool,
 ) -> Markup {
+    let trigger = if compact {
+        Trigger::Compact
+    } else {
+        Trigger::Own(None)
+    };
+    menu_from(caps, id, label, items, placement, trigger)
+}
+
+/// What opens a menu: a table row's small ghost icon button, or the label and chevron
+/// unless the caller gave a styled button of their own.
+#[derive(Clone, Copy)]
+enum Trigger<'b, 'a> {
+    Compact,
+    Own(Option<&'b Button<'a>>),
+}
+
+fn menu_from(
+    caps: &Caps,
+    id: &str,
+    label: &str,
+    items: &[MenuItem],
+    placement: Placement,
+    trigger: Trigger,
+) -> Markup {
+    let compact = matches!(trigger, Trigger::Compact);
+    let own = match trigger {
+        Trigger::Own(b) => b,
+        Trigger::Compact => None,
+    };
     let popover = caps.has(Cap::Popover);
     let anchor = caps.has(Cap::Anchor);
     let list = html! { ul role="menu" { @for it in items { (item(id, it, popover, anchor)) } } };
     // A row menu repeats once per row, so its face is a text glyph rather than an SVG.
-    let face = if compact {
-        html! { "\u{22ef}" }
-    } else {
-        html! { (label) (Icon::ChevronDown) }
+    let face = match own {
+        Some(b) => b.face(),
+        None if compact => html! { "\u{22ef}" },
+        None => html! { (label) (Icon::ChevronDown) },
     };
-    let trigger = Button::new(*caps, label)
-        .popovertarget(id)
-        .aria_haspopup("menu")
-        .body(face.clone());
+    let trigger = match own {
+        Some(b) => b.clone(),
+        None => Button::new(*caps, label).body(face.clone()),
+    };
+    let trigger = trigger.popovertarget(id).aria_haspopup("menu");
     let trigger = if compact {
         trigger.ghost().small().icon_only().aria_label(label)
     } else {
         trigger
     };
-    let summary_class = if compact {
-        "lui-button lui-button-ghost lui-button-small lui-button-icon"
-    } else {
-        "lui-button"
-    };
+    let summary_class = trigger.classes();
     html! {
         @if !popover {
             details class={ "lui-popover lui-popover-details " (placement.class()) } id=(id) {
