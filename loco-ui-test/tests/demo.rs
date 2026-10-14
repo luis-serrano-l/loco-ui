@@ -785,9 +785,9 @@ async fn counter_and_inputs() {
 async fn form_groups_help_counters_and_layouts() {
     let page = Page::render(demo::router(), "/form", MODERN).await;
     assert_eq!(
-        page.count("form.lui-form fieldset.lui-form-group legend"),
-        2,
-        "two groups with legends"
+        page.count("form.lui-form fieldset.lui-form-group > legend"),
+        3,
+        "three groups with legends"
     );
     assert!(page.exists("form.lui-form[enctype='multipart/form-data'] input[type=file][accept='image/png,image/jpeg']"), "file field makes the form multipart");
     assert_eq!(
@@ -1088,7 +1088,7 @@ async fn buttons_badges_and_icons() {
     );
     assert_eq!(
         page.count(".lui-stage svg.lui-icon"),
-        35,
+        37,
         "every icon in Icon::ALL, and two leading or trailing a button"
     );
 }
@@ -1836,4 +1836,86 @@ async fn hover_card_falls_back_to_a_click() {
 async fn sidebar_marks_the_link_above_the_path() {
     let page = Page::render(demo::router(), "/sidebar/work/notes", OLD).await;
     assert!(page.is_visible("main a[href='/sidebar/work'][aria-current=page]"));
+}
+
+/// M40c's inputs without script: the steppers sit after the number (CSS `order`, first in
+/// the markup so a stepper's value posts first), the password's reveal button stays hidden,
+/// stars line up in one row, chips share the tag box with its text field.
+#[tokio::test]
+async fn number_rating_tags_and_reveal() {
+    let mut page = Page::render(demo::router(), "/number?qty=3", MODERN).await;
+    shot(&mut page, "number-steppers");
+    let (field, steppers) = (
+        page.bbox("#f-qty").unwrap(),
+        page.bbox(".lui-input-steppers").unwrap(),
+    );
+    assert!(
+        steppers.x >= field.x + field.width - 1.0,
+        "the steppers come after the field"
+    );
+    assert!(
+        page.html
+            .matches(r#"name="qty" value="4" aria-label="increment""#)
+            .count()
+            == 1
+            && page
+                .html
+                .contains(r#"name="qty" value="2" aria-label="decrement""#),
+        "the steppers post the value one step up and down"
+    );
+    let (prefix, price) = (
+        page.bbox("#f-price-prefix").unwrap(),
+        page.bbox("#f-price").unwrap(),
+    );
+    assert!(
+        prefix.x + prefix.width <= price.x + 1.0 && (prefix.y - price.y).abs() < price.height,
+        "$ sits before the price"
+    );
+
+    let page = Page::render(demo::router(), "/field", MODERN).await;
+    assert!(
+        page.exists(".lui-input-reveal[hidden]") && !page.is_visible(".lui-input-reveal"),
+        "no reveal without the script"
+    );
+
+    let mut page = Page::render(demo::router(), "/rating?stars=4", MODERN).await;
+    shot(&mut page, "rating-stars");
+    let (one, five) = (
+        page.bbox("label[for=f-stars-1]").unwrap(),
+        page.bbox("label[for=f-stars-5]").unwrap(),
+    );
+    assert!(
+        (one.y - five.y).abs() < 1.0 && five.x > one.x,
+        "five stars in a row"
+    );
+    assert!(page.exists("#f-stars-4[checked]"));
+    assert!(
+        page.exists("[role=img][aria-label='4 out of 5']"),
+        "the read-only average is an image"
+    );
+
+    let mut page = Page::render(
+        demo::router(),
+        "/tag-input?tags%5B%5D=rust&tags%5B%5D=web",
+        MODERN,
+    )
+    .await;
+    shot(&mut page, "tag-input-chips");
+    let (boxed, chip) = (
+        page.bbox(".lui-tag-input-box").unwrap(),
+        page.bbox(".lui-tag-input-chip").unwrap(),
+    );
+    assert!(
+        chip.y >= boxed.y && chip.y + chip.height <= boxed.y + boxed.height + 1.0,
+        "chips sit inside the box"
+    );
+    assert_eq!(page.count("form .lui-tag-input-chip a[href]"), 2);
+
+    let page = Page::render(demo::router(), "/checkbox-group?topics%5B%5D=rust", MODERN).await;
+    assert!(page.exists("#f-topics-0[checked]") && page.exists("input[name='topics[]'][disabled]"));
+    let page = Page::render(demo::router(), "/search?find=rust", MODERN).await;
+    assert!(
+        page.is_visible("search.lui-search") && page.exists("a.lui-button[href='/search']"),
+        "Clear drops the query"
+    );
 }

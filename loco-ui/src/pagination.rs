@@ -273,7 +273,7 @@ impl Render for Pagination<'_> {
                                 @let n = *n;
                                 li class={ "lui-pagination-num" @if !narrow(n) { " lui-pagination-wide" } } {
                                     @let href = self.link(n);
-                                    @let b = ui.link_button("", &href).class("lui-pagination-link").current(n == page).body(html! { (ui.number(n as f64)) });
+                                    @let b = ui.link_button("", &href).class("lui-pagination-link").current(n == page).body(html! { (ui.format_number(n as f64)) });
                                     @if n == page { (b) } @else { (b.ghost()) }
                                 }
                                 // A narrow-only gap: the next slot shown when narrow is not n + 1

@@ -70,7 +70,7 @@ fn calendar(ui: &Ui) -> Markup {
     let (invoice, release) = (soon(6), soon(21));
     lui! {
             // code: /calendar
-            Calendar("day") disabled_dates=(|d| d.weekday() >= 5)
+            Calendar("day") disabled_dates=(&|d| d.weekday() >= 5)
                 event=(&invoice, "Invoice due") event=(&release, "Release");
             // end code
     }
@@ -86,7 +86,7 @@ async fn calendar_page(ui: Ui) -> Page {
         h2 { "In a form" }
         // code: /calendar
         Form("/calendar") get submit="Save" {
-            DatePicker("due", "Due date") required disabled_dates=(|d| d.weekday() >= 5);
+            DatePicker("due", "Due date") required disabled_dates=(&|d| d.weekday() >= 5);
             DatePicker("born", "Born") native max="2026-12-31";
         }
         // end code

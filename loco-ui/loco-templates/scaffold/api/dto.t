@@ -133,9 +133,9 @@ pub fn form(
 {%- elif f.input_kind == "text_number" or f.rust_type is containing("f32") or f.rust_type is containing("f64") %}
             pattern "{{ f.field_name }}" "{{ f.label }}" "-?[0-9]+([.][0-9]+)?" "A number, like 12.50."{{ req }};
 {%- elif f.input_kind == "number" and f.rust_type is containing("i16") %}
-            number "{{ f.field_name }}" "{{ f.label }}" (i16::MIN.into()) (i16::MAX.into()){{ req }};
+            number "{{ f.field_name }}" "{{ f.label }}" (i16::MIN) (i16::MAX){{ req }};
 {%- elif f.input_kind == "number" %}
-            number "{{ f.field_name }}" "{{ f.label }}" (i32::MIN.into()) (i32::MAX.into()){{ req }};
+            number "{{ f.field_name }}" "{{ f.label }}" (i32::MIN) (i32::MAX){{ req }};
 {%- else %}
             text "{{ f.field_name }}" "{{ f.label }}"{{ req }};
 {%- endif %}

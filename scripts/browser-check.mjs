@@ -322,6 +322,18 @@ try {
   await until(async () => (await js("return document.querySelector('.lui-color-presets button[aria-pressed=true]')?.value")) === "#b3261e", "preset saved");
   assert(/Inputs saved/.test(await js("return document.querySelector('.lui-flash')?.textContent || ''")), "color: a preset posts the form");
 
+  // Number: the up stepper steps the field in place, nothing is sent (M40c).
+  await go("/number?qty=3");
+  await click(".lui-input-group:has(#f-qty) [data-lui=steppers] button");
+  assert(await js("return document.querySelector('#f-qty').value") === "4", "number: the up stepper steps in place");
+  assert(await navigations() === 1 && (await js("return location.search")) === "?qty=3", "number: no request");
+  // Password: the reveal button the script shows switches the field to text and back.
+  await go("/field");
+  assert(await js("return getComputedStyle(document.querySelector('.lui-input-reveal')).display") !== "none", "reveal: the script shows the button");
+  await click(".lui-input-reveal button");
+  assert(await js("return document.querySelector('#f-password').type") === "text", "reveal: the password shows");
+  assert(await js("return document.querySelector('.lui-input-reveal button').getAttribute('aria-pressed')") === "true", "reveal: the button is pressed");
+
   // Button: Tab onto the primary button; the keyboard focus ring is a 3px outline (Blitz
   // cannot check this: :focus-visible never matches there, blitz#839).
   await go("/button");

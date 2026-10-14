@@ -130,8 +130,8 @@ impl<'a> Indicator<'a> {
 impl Render for Indicator<'_> {
     fn render(&self) -> Markup {
         let shown = match self.max {
-            Some(max) if self.count > max => format!("{}+", self.ui.number(max as f64)),
-            _ => self.ui.number(self.count as f64),
+            Some(max) if self.count > max => format!("{}+", self.ui.format_number(max as f64)),
+            _ => self.ui.format_number(self.count as f64),
         };
         let words = match self.label {
             Some(label) => label.to_owned(),

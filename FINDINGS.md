@@ -1098,3 +1098,32 @@ is not drawn only because it sits behind the motion query.
   client; the server only learns `?open.<id>=` from links. Putting a link in the summary
   (as the accordion does) is invalid HTML (`<a>` inside `<summary>`), so the tree leaves the
   toggle native and opens the current page's folders itself.
+
+### M40c · Inputs
+
+- **`<input type="month">` and `type="week"` are text boxes in Firefox and desktop Safari.**
+  Chrome and Edge draw pickers; Firefox and Safari show a plain text field that accepts any
+  text, so `Input::month()` and `.week()` validate on the server like any text
+  (https://caniuse.com/input-datetime). The field still posts `YYYY-MM` or `YYYY-Www` when
+  typed that way.
+- **A number's steppers are submit buttons, so Enter in an earlier field presses one.** The
+  HTML spec's implicit submission clicks the form's first submit button
+  (https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission),
+  and the steppers come before the form's own button, so Enter in any field of the form
+  steps the number up. Give a stepped number a form of its own, or put a submit button
+  before it (the demo's /number uses two forms). Without script there is no way to make a button
+  that posts but is never the default; the colour presets and the counter's buttons have the
+  same trait.
+- **A stepper's value travels as the first of two pairs with one name.** The pressed button
+  is earlier in tree order than the field, so `qty=4&qty=3` arrives; `Posted::get` and
+  `Ui::param` take the first. A derived serde struct behind `Form<T>` rejects the repeat
+  (`duplicate field`), and an extractor that keeps the last value reads the old number: read
+  a stepped field with `Posted` or the query, as the demo's `/number` does.
+- **A password cannot be revealed without script.** An input's `type` can only change from
+  script, so the reveal button is `hidden` in the markup and shown by a CSS rule keyed on
+  `data-lui-js`, which the enhancement script sets on `<html>`.
+- **Blitz has no `:has()`** (see M34), so `tests/shots/rating-*.png` show only the checked
+  star filled, not the ones before it; Firefox fills them (`look.sh --only rating`).
+- **A calendar range cannot sit in a popover without script.** Each pick is a link (two
+  values cannot come from one radio group), and a page load closes a popover, so a range
+  DatePicker lays its calendar in the page.

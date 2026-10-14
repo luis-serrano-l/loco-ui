@@ -72,6 +72,8 @@ pub struct Ui {
     tokens: Option<Box<Tokens>>,
     /// The ids of the `lui-dismiss-<id>` cookies: banners and alerts closed for good.
     dismissed: Vec<String>,
+    /// The visitor's today, set by the app ([`Ui::with_today`]); UTC from the clock without.
+    today: Option<crate::calendar::Date>,
 }
 
 /// A request with no state: only what the browser supports.
@@ -127,6 +129,7 @@ impl Ui {
                 .filter_map(|(k, _)| k.strip_prefix(crate::banner::DISMISS_COOKIE))
                 .map(str::to_string)
                 .collect(),
+            today: None,
         }
     }
 
@@ -171,6 +174,27 @@ impl Ui {
     /// ```
     pub fn tokens(mut self, tokens: Tokens) -> Ui {
         self.tokens = Some(Box::new(tokens));
+        self
+    }
+
+    /// Today for this request: what [`Ui::with_today`] set (the visitor's day in their time
+    /// zone), else today in UTC from the server's clock. Calendars and date pickers mark it.
+    pub fn today(&self) -> crate::calendar::Date {
+        self.today.unwrap_or_else(crate::calendar::Date::today)
+    }
+
+    /// Set today for this request: the app knows the visitor's time zone (a profile setting,
+    /// a cookie) and the server's UTC day would be wrong near midnight; a test pins a day.
+    ///
+    /// ```rust
+    /// use loco_ui::{calendar::Date, prelude::*};
+    /// let day = Date::parse("2026-09-24").unwrap();
+    /// let ui = Ui::default().with_today(day);
+    /// assert_eq!(ui.today(), day);
+    /// assert!(ui.calendar("due").render().into_string().contains("September 2026"));
+    /// ```
+    pub fn with_today(mut self, date: crate::calendar::Date) -> Ui {
+        self.today = Some(date);
         self
     }
 
@@ -231,7 +255,7 @@ impl Ui {
     }
 
     /// `n` with the visitor's language's separators ([`Strings::number`]).
-    pub fn number(&self, n: f64) -> String {
+    pub fn format_number(&self, n: f64) -> String {
         self.strings.number(n)
     }
 
@@ -260,6 +284,21 @@ impl Ui {
             .iter()
             .filter(move |(k, _)| k == key)
             .map(|(_, v)| v.as_str())
+    }
+
+    /// Every query parameter as `(key, value)`, in order: what a component rebuilds a link
+    /// from when it drops one value of a repeated key.
+    pub(crate) fn param_pairs(&self) -> impl Iterator<Item = (&str, &str)> {
+        (self.params.iter()).map(|(k, v)| (k.as_str(), v.as_str()))
+    }
+
+    /// Every value of the query parameter `key`, in order, for a key built on the spot
+    /// (`tags[]`): [`Ui::params`] with the key borrowed only while it runs.
+    pub(crate) fn param_values(&self, key: &str) -> Vec<&str> {
+        (self.params.iter())
+            .filter(|(k, _)| k == key)
+            .map(|(_, v)| v.as_str())
+            .collect()
     }
 
     /// This page's URL with the query parameter `key` set to `value` (added last when absent)

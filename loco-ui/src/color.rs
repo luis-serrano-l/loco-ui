@@ -50,7 +50,8 @@ use crate::{Caps, Ui};
 
 /// A colour input with a swatch of its current value, made by [`Ui::color`].
 ///
-/// **Setters.** Values and items: `.value(..)`, `.presets(..)`, `.alpha(..)`.
+/// **Setters.** Values and items: `.value(..)`, `.presets(..)`, `.alpha(..)`; switches:
+/// `.disabled()`, `.readonly()`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Color<'a> {
     name: &'a str,
@@ -59,6 +60,8 @@ pub struct Color<'a> {
     alpha: Option<u8>,
     label: &'a str,
     strings: &'static Strings,
+    pub(crate) disabled: bool,
+    pub(crate) readonly: bool,
 }
 
 impl Color<'_> {
@@ -72,6 +75,11 @@ impl Color<'_> {
             .doc("`#rrggbb` swatches that post `<name>-preset` when clicked."),
         Prop::new("alpha", PropKind::Number, "percent: u8")
             .doc("An opacity slider (`<name>-alpha`) at `percent`, clamped to 100."),
+        Prop::new("disabled", PropKind::Switch, "")
+            .attr("disabled")
+            .doc("`disabled` and `aria-disabled`: shown greyed and not posted."),
+        Prop::new("readonly", PropKind::Switch, "")
+            .doc("Shown and posted, not changeable: disabled controls and hidden inputs with the values."),
     ];
 }
 
@@ -81,12 +89,36 @@ impl Ui {
     /// says otherwise.
     pub fn color<'a>(&'a self, name: &'a str, label: &'a str) -> Color<'a> {
         Color {
+            value: self.param(name).unwrap_or("#000000"),
+            ..Color::bare(self.strings, name, label)
+        }
+    }
+}
+
+impl<'a> Color<'a> {
+    /// A colour input with nothing read from a request: what a form's colour field starts
+    /// from.
+    pub(crate) fn bare(strings: &'static Strings, name: &'a str, label: &'a str) -> Self {
+        Color {
             name,
             label,
-            value: self.param(name).unwrap_or("#000000"),
-            strings: self.strings,
+            value: "#000000",
+            strings,
             ..Color::default()
         }
+    }
+
+    /// `disabled` and `aria-disabled`: shown greyed and not posted.
+    pub fn disabled(mut self) -> Self {
+        self.disabled = true;
+        self
+    }
+
+    /// Shown and posted, not changeable. HTML has no read-only colour input, so the controls
+    /// are disabled and hidden inputs post the colour and its opacity.
+    pub fn readonly(mut self) -> Self {
+        self.readonly = true;
+        self
     }
 }
 
@@ -122,6 +154,8 @@ impl Render for Color<'_> {
     fn render(&self) -> Markup {
         let Color {
             strings: _,
+            disabled,
+            readonly,
             name,
             value,
             presets,
@@ -131,12 +165,15 @@ impl Render for Color<'_> {
         let id = format!("f-{name}");
         let pct = alpha.unwrap_or(100);
         let preset_name = format!("{name}-preset");
+        let off = disabled || readonly;
+        let aria_off = disabled.then_some("true");
         crate::labelled(
             Some(label),
             &id,
             html! {
                 div class="lui-color" {
-                    input type="color" class="lui-color-input" id=(id) name=(name) value=(value);
+                    input type="color" class="lui-color-input" id=(id) name=(name) value=(value) disabled[off] aria-disabled=[aria_off];
+                    @if readonly { (crate::input::keep(name, value)) }
                     span class="lui-color-value" {
                         span class="lui-color-swatch" style={ "--lui-color-value: " (value) "; --lui-color-alpha: " (pct) "%" } aria-hidden="true" {}
                         code { @if pct < 100 { (hex_alpha(value, pct)) } @else { (value) } }
@@ -144,16 +181,18 @@ impl Render for Color<'_> {
                     @if alpha.is_some() {
                         label class="lui-color-alpha" {
                             (self.strings.get(Text::Opacity).replace("{}", "").trim_end()) " "
-                            input type="range" class="lui-range-input lui-color-alpha-range" id={ (id) "-alpha" } name={ (name) "-alpha" } min="0" max="100" value=(pct)
+                            input type="range" class="lui-range-input lui-color-alpha-range" id={ (id) "-alpha" } name={ (name) "-alpha" } min="0" max="100" value=(pct) disabled[off]
                                 style={ "--lui-range-fill: " (pct) "%" };
                             span { output for={ (id) "-alpha" } { (pct) } "%" }
+                            @if readonly { (crate::input::keep(&format!("{name}-alpha"), &pct.to_string())) }
                         }
                     }
                     @if !presets.is_empty() {
                         span class="lui-color-presets" role="group" aria-label=(self.strings.get(Text::Presets)) {
                             @for p in presets {
                                 @let use_p = self.strings.fill(Text::UseValue, &[p]);
-                                (Button::new(Caps::NONE, "").name(&preset_name).value(p).aria_label(&use_p).pressed(p.eq_ignore_ascii_case(value)).style(format!("--lui-color-value: {p}")))
+                                @let b = Button::new(Caps::NONE, "").name(&preset_name).value(p).aria_label(&use_p).pressed(p.eq_ignore_ascii_case(value)).style(format!("--lui-color-value: {p}"));
+                                (if off { b.disabled() } else { b })
                             }
                         }
                     }

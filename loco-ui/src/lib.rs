@@ -67,6 +67,7 @@ pub mod card;
 pub mod carousel;
 pub mod center;
 pub mod chart;
+pub mod checkbox_group;
 pub mod cluster;
 pub mod code;
 pub mod collapsible;
@@ -103,6 +104,7 @@ pub mod loco;
 pub mod marquee;
 pub mod meter;
 pub mod nav_menu;
+pub mod number;
 mod oklch;
 pub mod paged_table;
 pub mod pager;
@@ -115,9 +117,11 @@ pub mod progress;
 pub mod props;
 pub mod prose;
 pub mod range;
+pub mod rating;
 #[cfg(feature = "axum")]
 pub mod saved;
 pub mod scroll_area;
+pub mod search;
 pub mod section;
 pub mod select;
 pub mod separator;
@@ -136,6 +140,7 @@ pub mod steps;
 pub mod stream;
 pub mod table;
 pub mod tabs;
+pub mod tag_input;
 pub mod text;
 pub mod theme;
 pub mod timeline;
@@ -438,6 +443,11 @@ pub enum Component {
     Tree,
     Collapsible,
     HoverCard,
+    CheckboxGroup,
+    Number,
+    Search,
+    Rating,
+    TagInput,
     Blocks,
 }
 
@@ -524,6 +534,11 @@ impl Component {
         Component::Tree,
         Component::Collapsible,
         Component::HoverCard,
+        Component::CheckboxGroup,
+        Component::Number,
+        Component::Search,
+        Component::Rating,
+        Component::TagInput,
         Component::Blocks,
     ];
 
@@ -630,6 +645,11 @@ impl Component {
             Component::Tree => tree::CSS,
             Component::Collapsible => collapsible::CSS,
             Component::HoverCard => hover_card::CSS,
+            Component::CheckboxGroup => checkbox_group::CSS,
+            Component::Number => number::CSS,
+            Component::Search => search::CSS,
+            Component::Rating => rating::CSS,
+            Component::TagInput => tag_input::CSS,
             Component::Blocks => "",
         }
     }
@@ -779,6 +799,11 @@ pub const COMPONENT_CSS: &[&str] = &[
     tree::CSS,
     collapsible::CSS,
     hover_card::CSS,
+    checkbox_group::CSS,
+    number::CSS,
+    search::CSS,
+    rating::CSS,
+    tag_input::CSS,
 ];
 
 #[cfg(test)]
@@ -958,6 +983,8 @@ mod tests {
             }
             let source = std::fs::read_to_string(&path).unwrap();
             let code = source.split("#[cfg(test)]\nmod tests").next().unwrap();
+            // A debug assertion speaks to the developer, not the visitor.
+            let mut in_assert = false;
             let (mut in_css, mut in_props) = (false, false);
             for (n, line) in code.lines().enumerate() {
                 let t = line.trim();
@@ -966,6 +993,13 @@ mod tests {
                 }
                 if in_css {
                     in_css = !t.starts_with("\"#;");
+                    continue;
+                }
+                if t.starts_with("debug_assert!(") {
+                    in_assert = true;
+                }
+                if in_assert {
+                    in_assert = !t.ends_with(");");
                     continue;
                 }
                 if t.starts_with("pub const PROPS") {
@@ -1442,6 +1476,26 @@ mod tests {
             "Pagination takes the row count; Table adds a totals cell under a column",
         ),
         (
+            "range",
+            "Form adds a slider (name, label, min, max); Calendar and DatePicker pick a range into a second name",
+        ),
+        (
+            "radio",
+            "Form adds a radio group (name, legend, options); Calendar's days become radios",
+        ),
+        (
+            "tel",
+            "Form adds a phone field (name, label); Input switches its own type",
+        ),
+        (
+            "url",
+            "Form adds a URL field (name, label); Input switches its own type",
+        ),
+        (
+            "width",
+            "Input picks a size, Form's modifier sets it on the field added last; Table's is a column width",
+        ),
+        (
             "footer",
             "Card's footer is markup; Table adds a `<tfoot>` row of cells, like its rows",
         ),
@@ -1576,6 +1630,19 @@ mod tests {
     /// reason.
     const LIST_IN_ONE_CALL: &[(&str, &str)] = &[
         (
+            "radio",
+            "Form adds a radio group with its options, from data as `.select(..)` does",
+        ),
+        (
+            "checkboxes",
+            "Form adds a checkbox group with its options, from data as `.select(..)` does",
+        ),
+        (
+            "value",
+            "the checked values of a checkbox group: a saved set, from data",
+        ),
+        ("tags", "a tag input's saved tags come from data"),
+        (
             "options",
             "a select's options come from data (a slice, a query), tuples welcome",
         ),
@@ -1659,6 +1726,24 @@ mod tests {
 
     /// Setters whose name is not the HTML attribute they set, each with the reason.
     const NAMED_OTHERWISE: &[(&str, &str)] = &[
+        ("Input::tel", "the switch is named after the `type` it sets"),
+        ("Input::url", "the switch is named after the `type` it sets"),
+        (
+            "CheckboxGroup::value",
+            "the values to check, as every field's `.value(..)`",
+        ),
+        (
+            "Rating::value",
+            "the score to check, as every field's `.value(..)`",
+        ),
+        (
+            "Search::results_id",
+            "names the results by their id; `aria-controls` is how it says so",
+        ),
+        (
+            "TagInput::action",
+            "the page the Add round trip goes to, as a form's `action`",
+        ),
         (
             "Button::submit",
             "the switch is named after the `type` it sets",
@@ -2262,8 +2347,10 @@ mod tests {
         // feedback components.
         // 132 KB once M40b's six navigation components joined; 168 KB with M40a, M40b and
         // M40d together, until M39's sweep trims the literals.
+        // M40c added the number, search, rating, tag input and checkbox group components and
+        // the input group (addons, steppers, reveal): 176 KB with every M40 branch merged.
         assert!(
-            stylesheet().len() < 168 * 1024,
+            stylesheet().len() < 176 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2439,6 +2526,11 @@ mod tests {
             ("tree", tree::CSS),
             ("collapsible", collapsible::CSS),
             ("hover_card", hover_card::CSS),
+            ("checkbox_group", checkbox_group::CSS),
+            ("number", number::CSS),
+            ("search", search::CSS),
+            ("rating", rating::CSS),
+            ("tag_input", tag_input::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -2528,7 +2620,18 @@ mod tests {
                 "tree",
                 "one column of rows; the depth is an indent, not a width",
             ),
+            ("number", "one row: the field and its addons, as input"),
+            (
+                "date_picker",
+                "a range's two dates are a row that wraps; the calendar adapts by itself",
+            ),
+            ("rating", "one row of stars that wraps"),
+            (
+                "tag_input",
+                "one box of chips and a text box that wraps as it fills",
+            ),
         ];
+
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.
         const VIEWPORT: &[(&str, &str)] = &[
@@ -3311,6 +3414,274 @@ mod tests {
                     .option("l", "Left")
                     .multiple()
                     .render(),
+            ]
+        }),
+        ("Color", "disabled", |ui| {
+            [
+                ui.color("c", "C").render(),
+                ui.color("c", "C").disabled().render(),
+            ]
+        }),
+        ("Counter", "disabled", |ui| {
+            [
+                ui.counter("/c", 3).render(),
+                ui.counter("/c", 3).disabled().render(),
+            ]
+        }),
+        ("Form", "disabled", |ui| {
+            [
+                ui.form("/f").text("n", "N").render(),
+                ui.form("/f").text("n", "N").disabled().render(),
+            ]
+        }),
+        ("Form", "autocomplete", |ui| {
+            [
+                ui.form("/f").text("n", "N").render(),
+                ui.form("/f").text("n", "N").autocomplete("name").render(),
+            ]
+        }),
+        ("Input", "tel", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").tel().render(),
+            ]
+        }),
+        ("Input", "url", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").url().render(),
+            ]
+        }),
+        ("Input", "disabled", |ui| {
+            [
+                ui.input("n", "N").render(),
+                ui.input("n", "N").disabled().render(),
+            ]
+        }),
+        ("RadioGroup", "disabled", |ui| {
+            [
+                ui.radio_group("r", "R").option("a", "A").render(),
+                ui.radio_group("r", "R")
+                    .option("a", "A")
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("Range", "disabled", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").disabled().render(),
+            ]
+        }),
+        ("Select", "required", |ui| {
+            [
+                ui.select("s", "S").options([("a", "A")]).render(),
+                ui.select("s", "S")
+                    .options([("a", "A")])
+                    .required()
+                    .render(),
+            ]
+        }),
+        ("Select", "disabled", |ui| {
+            [
+                ui.select("s", "S").options([("a", "A")]).render(),
+                ui.select("s", "S")
+                    .options([("a", "A")])
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("Select", "multiple", |ui| {
+            [
+                ui.select("s", "S").options([("a", "A")]).render(),
+                ui.select("s", "S")
+                    .options([("a", "A")])
+                    .multiple()
+                    .render(),
+            ]
+        }),
+        ("SelectOption", "disabled", |ui| {
+            [
+                (ui.select("s", "S"))
+                    .options([select::SelectOption::new("a", "A")])
+                    .render(),
+                (ui.select("s", "S"))
+                    .options([select::SelectOption::new("a", "A").disabled()])
+                    .render(),
+            ]
+        }),
+        ("Range", "id", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").id("x").render(),
+            ]
+        }),
+        ("InputOtp", "id", |ui| {
+            [
+                ui.input_otp("c", "C").render(),
+                ui.input_otp("c", "C").id("x").render(),
+            ]
+        }),
+        ("Combobox", "disabled", |ui| {
+            [
+                ui.combobox("q", "/s").render(),
+                ui.combobox("q", "/s").disabled().render(),
+            ]
+        }),
+        ("DatePicker", "disabled", |ui| {
+            [
+                ui.date_picker("d", "D").render(),
+                ui.date_picker("d", "D").disabled().render(),
+            ]
+        }),
+        ("ToggleGroup", "disabled", |ui| {
+            [
+                ui.toggle_group("a", "A").option("l", "Left").render(),
+                ui.toggle_group("a", "A")
+                    .option("l", "Left")
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("CheckboxGroup", "disabled", |ui| {
+            [
+                ui.checkbox_group("c", "C").option("a", "A").render(),
+                ui.checkbox_group("c", "C")
+                    .option("a", "A")
+                    .disabled()
+                    .render(),
+            ]
+        }),
+        ("CheckboxGroup", "value", |ui| {
+            [
+                ui.checkbox_group("c", "C").option("a", "A").render(),
+                ui.checkbox_group("c", "C")
+                    .option("a", "A")
+                    .value(&["a"])
+                    .render(),
+            ]
+        }),
+        ("CheckboxGroup", "id", |ui| {
+            [
+                ui.checkbox_group("c", "C").option("a", "A").render(),
+                ui.checkbox_group("c", "C")
+                    .option("a", "A")
+                    .id("x")
+                    .render(),
+            ]
+        }),
+        ("Number", "min", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").min(0).render(),
+            ]
+        }),
+        ("Number", "max", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").max(9).render(),
+            ]
+        }),
+        ("Number", "step", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").step(0.5).render(),
+            ]
+        }),
+        ("Number", "value", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").value(2).render(),
+            ]
+        }),
+        ("Number", "required", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").required().render(),
+            ]
+        }),
+        ("Number", "disabled", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").disabled().render(),
+            ]
+        }),
+        ("Number", "placeholder", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").placeholder("1").render(),
+            ]
+        }),
+        ("Number", "id", |ui| {
+            [
+                ui.number("n", "N").render(),
+                ui.number("n", "N").id("x").render(),
+            ]
+        }),
+        ("Search", "action", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").action("/find").render(),
+            ]
+        }),
+        ("Search", "placeholder", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").placeholder("Find").render(),
+            ]
+        }),
+        ("Search", "results_id", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").results_id("r").render(),
+            ]
+        }),
+        ("Search", "id", |ui| {
+            [
+                ui.search("q", "Q").render(),
+                ui.search("q", "Q").id("x").render(),
+            ]
+        }),
+        ("Rating", "value", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").value(3).render(),
+            ]
+        }),
+        ("Rating", "required", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").required().render(),
+            ]
+        }),
+        ("Rating", "disabled", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").disabled().render(),
+            ]
+        }),
+        ("Rating", "id", |ui| {
+            [
+                ui.rating("r", "R").render(),
+                ui.rating("r", "R").id("x").render(),
+            ]
+        }),
+        ("TagInput", "action", |ui| {
+            [
+                ui.tag_input("t", "T").render(),
+                ui.tag_input("t", "T").action("/e").render(),
+            ]
+        }),
+        ("TagInput", "placeholder", |ui| {
+            [
+                ui.tag_input("t", "T").render(),
+                ui.tag_input("t", "T").placeholder("Add").render(),
+            ]
+        }),
+        ("TagInput", "id", |ui| {
+            [
+                ui.tag_input("t", "T").render(),
+                ui.tag_input("t", "T").id("x").render(),
             ]
         }),
     ];

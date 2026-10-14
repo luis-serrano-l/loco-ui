@@ -89,6 +89,10 @@ fn fields(ui: &Ui) -> Markup {
             Input("site", "Website") leading="https://" placeholder="example.com";
             Input("q", "Search") search leading=(Icon::Search) placeholder="Search the docs…";
             Input("weight", "Weight") number=(0, 500) trailing="kg";
+            Input("password", "Password") password reveal;
+            Input("phone", "Phone") tel optional autocomplete="tel" width=2;
+            Input("account", "Account") value="ACME-42" readonly help="Read-only: shown and sent, not editable.";
+
             Input("key", "API key") gradient_border placeholder="sk-live-...";
             Checkbox("terms", "I accept the terms") required;
             Switch("digest", "Weekly digest") checked=(ui.param("digest").is_some());

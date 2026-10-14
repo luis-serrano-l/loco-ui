@@ -5,7 +5,7 @@ caps: all
 <search class="lui-combobox">
 <form method="get" action="/langs">
 <ul class="lui-combobox-chips" aria-label="Selected">
-<li class="lui-combobox-chip">Zig<input type="hidden" name="sel" value="Zig">
+<li class="lui-combobox-chip lui-tag-input-chip">Zig<input type="hidden" name="sel" value="Zig">
 <a href="/langs?q=ru" aria-label="Remove Zig">×</a>
 </li>
 </ul>
@@ -39,7 +39,7 @@ caps: none
 <search class="lui-combobox">
 <form method="get" action="/langs">
 <ul class="lui-combobox-chips" aria-label="Selected">
-<li class="lui-combobox-chip">Zig<input type="hidden" name="sel" value="Zig">
+<li class="lui-combobox-chip lui-tag-input-chip">Zig<input type="hidden" name="sel" value="Zig">
 <a href="/langs?q=ru" aria-label="Remove Zig">×</a>
 </li>
 </ul>

@@ -414,6 +414,22 @@ pub enum Text {
     Completed,
     /// "More about {}": hover card: the button that opens the card by click.
     MoreAbout,
+    /// "Show password": a password field's reveal button.
+    ShowPassword,
+    /// "one:{} star|other:{} stars": rating, one choice's name.
+    Stars,
+    /// "{} out of {}": rating, the value of a read-only rating.
+    RatingOf,
+    /// "Add": tag input, the add button.
+    Add,
+    /// "Wk": calendar, the week-number column's head.
+    WeekShort,
+    /// "Week {}": calendar, a week number as a screen reader hears it.
+    WeekNumber,
+    /// "Start date": date picker range, the first date's field.
+    StartDate,
+    /// "End date": date picker range, the last date's field.
+    EndDate,
 }
 
 /// How many texts there are.
@@ -421,7 +437,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 175] = [
+    pub const ALL: [Text; 183] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -597,6 +613,14 @@ impl Text {
         Text::Slide,
         Text::Completed,
         Text::MoreAbout,
+        Text::ShowPassword,
+        Text::Stars,
+        Text::RatingOf,
+        Text::Add,
+        Text::WeekShort,
+        Text::WeekNumber,
+        Text::StartDate,
+        Text::EndDate,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -805,6 +829,14 @@ const ENGLISH: [&str; N] = [
     "slide",
     "completed",
     "More about {}",
+    "Show password",
+    "one:{} star|other:{} stars",
+    "{} out of {}",
+    "Add",
+    "Wk",
+    "Week {}",
+    "Start date",
+    "End date",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

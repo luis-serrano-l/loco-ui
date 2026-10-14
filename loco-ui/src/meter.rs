@@ -37,12 +37,12 @@ use crate::{Ui, slug};
 /// `.id(..)`.
 #[derive(Clone, Debug)]
 pub struct Meter<'a> {
-    value: i64,
-    min: i64,
-    max: i64,
-    low: Option<i64>,
-    high: Option<i64>,
-    optimum: Option<i64>,
+    value: f64,
+    min: f64,
+    max: f64,
+    low: Option<f64>,
+    high: Option<f64>,
+    optimum: Option<f64>,
     label: Option<&'a str>,
     id: Option<&'a str>,
     strings: &'static crate::i18n::Strings,
@@ -54,13 +54,13 @@ impl Meter<'_> {
     pub const PROPS: &'static [Prop] = &[
         Prop::new("label", PropKind::Value, "text: &'a str")
             .doc("A label above the meter, with the value beside it."),
-        Prop::new("low", PropKind::Number, "low: i64")
+        Prop::new("low", PropKind::Number, "low: impl Into<f64>")
             .attr("low")
             .doc("Below this is \"low\"."),
-        Prop::new("high", PropKind::Number, "high: i64")
+        Prop::new("high", PropKind::Number, "high: impl Into<f64>")
             .attr("high")
             .doc("Above this is \"high\"."),
-        Prop::new("optimum", PropKind::Number, "optimum: i64")
+        Prop::new("optimum", PropKind::Number, "optimum: impl Into<f64>")
             .attr("optimum")
             .doc("The best value."),
         Prop::new("id", PropKind::Value, "id: &'a str")
@@ -71,11 +71,16 @@ impl Meter<'_> {
 
 impl Ui {
     /// `value` between `min` and `max`.
-    pub fn meter<'a>(&self, value: i64, min: i64, max: i64) -> Meter<'a> {
+    pub fn meter<'a>(
+        &self,
+        value: impl Into<f64>,
+        min: impl Into<f64>,
+        max: impl Into<f64>,
+    ) -> Meter<'a> {
         Meter {
-            value,
-            min,
-            max,
+            value: value.into(),
+            min: min.into(),
+            max: max.into(),
             low: None,
             high: None,
             optimum: None,
@@ -94,20 +99,20 @@ impl<'a> Meter<'a> {
     }
 
     /// Below this is "low".
-    pub fn low(mut self, low: i64) -> Self {
-        self.low = Some(low);
+    pub fn low(mut self, low: impl Into<f64>) -> Self {
+        self.low = Some(low.into());
         self
     }
 
     /// Above this is "high".
-    pub fn high(mut self, high: i64) -> Self {
-        self.high = Some(high);
+    pub fn high(mut self, high: impl Into<f64>) -> Self {
+        self.high = Some(high.into());
         self
     }
 
     /// The best value: which end of the range is good (0 for disk use, the max for a score).
-    pub fn optimum(mut self, optimum: i64) -> Self {
-        self.optimum = Some(optimum);
+    pub fn optimum(mut self, optimum: impl Into<f64>) -> Self {
+        self.optimum = Some(optimum.into());
         self
     }
 

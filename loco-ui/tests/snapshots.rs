@@ -87,7 +87,7 @@ const EXAMPLES: &[Example] = &[
             .required()
             .min("2026-09-10")
             .max("2026-10-31")
-            .disabled_dates(|d| d.weekday() >= 5)
+            .disabled_dates(&|d| d.weekday() >= 5)
             .event("2026-09-30", "Invoice due")
             .sunday_first()
             .render()
@@ -712,6 +712,44 @@ const EXAMPLES: &[Example] = &[
             .id("notes")
             .render()
     }),
+    on("CheckboxGroup", ("/news", "topics%5B%5D=rust", ""), |ui| {
+        ui.checkbox_group("topics", "Topics")
+            .option("rust", "Rust")
+            .description("Weekly")
+            .option("css", "CSS")
+            .option("old", "Old news")
+            .disabled()
+            .help("Pick any.")
+            .render()
+    }),
+    on("Number", ("/cart", "qty=2", ""), |ui| {
+        ui.number("qty", "Quantity")
+            .min(1)
+            .max(10)
+            .suffix("kg")
+            .steppers()
+            .render()
+    }),
+    on("Search", ("/notes", "q=rust&view=list", ""), |ui| {
+        ui.search("q", "Search notes")
+            .keep("view")
+            .results_id("notes")
+            .placeholder("Search notes")
+            .render()
+    }),
+    on("Rating", ("/review", "stars=4", ""), |ui| {
+        ui.rating("stars", "Your rating").required().render()
+    }),
+    on(
+        "TagInput",
+        ("/note", "tags%5B%5D=rust&tags%5B%5D=web", ""),
+        |ui| {
+            ui.tag_input("tags", "Tags")
+                .placeholder("Add a tag")
+                .help("Up to five.")
+                .render()
+        },
+    ),
 ];
 
 /// One tag per line, so a snapshot diff points at the element that changed.

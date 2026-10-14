@@ -181,13 +181,16 @@ async fn pages_ship_only_the_enhancement_script() {
             // M40a six pages of typography and layout (205 KB on the index then, and six more
             // sidebar links on every page).
             // M40d the banner, popover and carousel previews.
+            // M40c five input pages (checkbox group, number, search, rating, tag input) and the
+            // new form and field rows. Every page lists every component in its menu, so each
+            // new page adds to every other.
             let budget = match path {
-                "/" => 256, // 228 KB with M40a and M40d, then M40b's six navigation previews
+                "/" => 272, // 228 KB with M40a and M40d, then M40b's and M40c's previews
                 // M39's theme builder: density, radius, fonts and the colour-role table.
                 p if p.starts_with("/theme") => 64,
                 // M40d: six components, with the props tables of their new setters.
-                "/feedback" => 56,
-                _ => 52,
+                "/feedback" => 64,
+                _ => 56, // every page lists every component in its sidebar; M42 restructures it
             } * 1024;
             assert!(
                 markup < budget,
@@ -1168,14 +1171,8 @@ const CONFORMANCE_BUGS: &[(&str, &str)] = &[
     ("/", r#"id "f-password""#),
     // The props playground renders the stage's component a second time under the same
     // ids. M42 fixes this (the docs site's playground).
-    ("/field?email=ada", r#"id "f-name""#),
     ("/chart", r#"id "chart-signups""#),
     ("/chart", r#"id "chart-signups-title""#),
-    ("/otp", r#"id "f-code""#),
-    ("/otp", r#"id "f-code-help""#),
-    ("/otp", r#"id "f-code-count""#),
-    ("/inputs", r#"id "f-volume""#),
-    ("/inputs", r#"id "volume-ticks""#),
     // The index and the modes page both show the upload preview beside the progress
     // preview, and each renders `lui-progress-upload`. M42 fixes this (the docs site's stages).
     ("/", r#"id "lui-progress-upload""#),

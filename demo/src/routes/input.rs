@@ -1,4 +1,5 @@
-//! Input: combobox, validated form, wizard, and select, range and colour.
+//! Input: combobox, validated form, wizard, select, range and colour, and the M40c inputs:
+//! checkbox group, number, search, rating and tag input.
 
 use crate::site::page;
 use axum::{
@@ -27,6 +28,27 @@ pub(crate) const PAGES: &[super::Simple] = &[
     ),
     ("/toggle-group", toggle_group, ""),
     ("/otp", otp, ""),
+    (
+        "/checkbox-group",
+        checkbox_group,
+        "HTML has no `required` for a group of checkboxes: the server checks that one is ticked.",
+    ),
+    (
+        "/number",
+        number,
+        "Without the script a stepper sends the form with the stepped value first, and the page answers with it; with the script it steps in place. A stepper is a submit button, and Enter presses a form's first one, so the stepped quantity has a form of its own.",
+    ),
+    (
+        "/search",
+        search,
+        "The query is in the URL, so the answer can be bookmarked. Inside a swap root the enhancement script searches as you type.",
+    ),
+    ("/rating", rating, ""),
+    (
+        "/tag-input",
+        tag_input,
+        "Without the script Add sends the form back with GET and the tag becomes a chip; each \u{d7} is a link to the page without it.",
+    ),
 ];
 
 /// The other pages' live components, which the index shows too (`site::preview`), empty
@@ -175,7 +197,7 @@ fn signup_form(ui: &Ui, values: &[(String, String)], errors: &[(&str, &str)]) ->
     let inline = ui.param("layout") == Some("inline");
     // code: /form
     let form = lui! {
-        Form("/form") submit="Sign up" values=(values) errors=(errors) inline[inline] {
+        Form("/form") submit="Sign up" action_secondary=("Cancel", "/") values=(values) errors=(errors) inline[inline] {
             group "Account" description="How you sign in and what you pay.";
             text "name" "Name" required;
             email "email" "Email" required;
@@ -188,7 +210,15 @@ fn signup_form(ui: &Ui, values: &[(String, String)], errors: &[(&str, &str)]) ->
             date "start" "Start date" "2026-01-01" "2027-12-31";
             time "call" "Best time to call" "09:00" "17:00" help="Office hours, 09:00 to 17:00.";
             datetime "demo" "Demo" "2026-01-01T09:00" "2027-12-31T17:00" help="A date and a time in one field.";
+            group "Contact" description="How and about what we write to you.";
+            radio "reach" "Contact me by" ([("email", "Email"), ("phone", "Phone"), ("never", "Never")]);
+            checkboxes "news" "News about" ([("releases", "Releases"), ("events", "Events"), ("tips", "Tips")]);
+            tel "mobile" "Mobile" optional autocomplete="tel" width=2;
+            url "homepage" "Homepage" optional placeholder="https://";
+            range "alerts" "Alert volume" 0 10;
+            color "profile_color" "Profile colour";
         }
+
     };
     // end code
     form
@@ -252,14 +282,14 @@ async fn form_submit(ui: Ui, posted: Posted) -> Result<Redirect, Page> {
 #[serde(default)]
 struct Inputs {
     size: String,
-    volume: i64,
+    volume: f64,
     accent: String,
     #[serde(rename = "accent-alpha")]
     alpha: u8,
     #[serde(rename = "accent-preset")]
     preset: Option<String>,
-    price_min: i64,
-    price_max: i64,
+    price_min: f64,
+    price_max: f64,
     country: String,
 }
 
@@ -267,12 +297,12 @@ impl Default for Inputs {
     fn default() -> Self {
         Inputs {
             size: "m".into(),
-            volume: 40,
+            volume: 40.0,
             accent: ACCENTS[0].into(),
             alpha: 100,
             preset: None,
-            price_min: 20,
-            price_max: 80,
+            price_min: 20.0,
+            price_max: 80.0,
             country: "es".into(),
         }
     }
@@ -369,8 +399,10 @@ async fn inputs_submit(ui: Ui, Form(form): Form<Inputs>) -> Redirect {
         .flat_map(|(_, cs)| cs)
         .any(|(v, ..)| *v == form.country);
     let accent = form.preset.filter(hex).or(Some(form.accent).filter(hex));
-    let (lo, hi) =
-        loco_ui::range::order(form.price_min.clamp(0, 100), form.price_max.clamp(0, 100));
+    let (lo, hi) = loco_ui::range::order(
+        form.price_min.clamp(0.0, 100.0),
+        form.price_max.clamp(0.0, 100.0),
+    );
     let clean = Inputs {
         size: if size { form.size } else { defaults.size },
         country: if country {
@@ -380,7 +412,7 @@ async fn inputs_submit(ui: Ui, Form(form): Form<Inputs>) -> Redirect {
         },
         accent: accent.unwrap_or(defaults.accent),
         alpha: form.alpha.min(100),
-        volume: form.volume.clamp(0, 100),
+        volume: form.volume.clamp(0.0, 100.0),
         price_min: lo,
         price_max: hi,
         preset: None,
@@ -401,6 +433,98 @@ fn toggle_group(ui: &Ui) -> Markup {
             }
             // end code
             @if ui.param("align").is_some() { p class="lui-note" { "Alignment: " (picked("align")) ". Style: " (picked("style")) "." } }
+        }
+    }
+}
+
+/// Topics to follow, ticked in a GET form that says what it was sent with.
+fn checkbox_group(ui: &Ui) -> Markup {
+    let picked = ui.params("topics[]").collect::<Vec<_>>().join(", ");
+    lui! {
+        Form("/checkbox-group") get submit="Follow" {
+            // code: /checkbox-group
+            CheckboxGroup("topics", "Topics") help="Pick any." {
+                option "rust" "Rust" description="Releases and RFCs.";
+                option "css" "CSS";
+                option "html" "HTML";
+                option "flash" "Flash" disabled;
+            }
+            CheckboxGroup("days", "Delivery days") cards {
+                option "mon" "Monday"; option "wed" "Wednesday"; option "fri" "Friday";
+            }
+            // end code
+            @if !picked.is_empty() { p class="lui-note" { "Following " (picked) "." } }
+        }
+    }
+}
+
+/// A cart line: a quantity with steppers, a price and a weight with their units.
+fn number(ui: &Ui) -> Markup {
+    lui! {
+        // code: /number
+        Form("/number") id="cart-price" get submit="Update" {
+            Number("price", "Price") prefix="$" step=0.5 min=0 placeholder="0";
+            Number("parcel", "Parcel weight") suffix="kg" step=0.1 min=0 help="Up to one decimal.";
+        }
+        Form("/number") id="cart-qty" get submit="Update" {
+            Number("qty", "Quantity") min=1 max=10 steppers required;
+        }
+        // end code
+    }
+}
+
+/// Notes searched through a GET form in a swap root, the results named by `results_id`.
+fn search(ui: &Ui) -> Markup {
+    const NOTES: [&str; 6] = [
+        "Rust ownership, briefly",
+        "CSS container queries",
+        "Shipping without JavaScript",
+        "Rust error handling",
+        "Forms that post",
+        "HTML dialogs",
+    ];
+    let q = ui.param("find").unwrap_or("").trim().to_lowercase();
+    let found: Vec<&str> = NOTES
+        .into_iter()
+        .filter(|n| n.to_lowercase().contains(&q))
+        .collect();
+    lui! {
+        div id="notes-search" data-lui="swap" class="lui-stack" {
+            // code: /search
+            Search("find", "Search notes") results_id="notes" placeholder="Search notes";
+            // end code
+            ul id="notes" aria-live="polite" { @for n in &found { li { (n) } } }
+            @if found.is_empty() { p class="lui-note" { "No notes match." } }
+        }
+    }
+}
+
+/// A review form: a score to pick, and the average shown and posted unchanged.
+fn rating(ui: &Ui) -> Markup {
+    lui! {
+        Form("/rating") get submit="Rate" {
+            // code: /rating
+            Rating("stars", "Your rating") required;
+            Rating("average", "Average so far") value=4 readonly;
+            // end code
+            @if let Some(s) = ui.param("stars") { p class="lui-note" { "Rated " (s) " out of 5." } }
+        }
+    }
+}
+
+/// A note's tags: chips that travel in the URL while editing.
+fn tag_input(ui: &Ui) -> Markup {
+    let tags = ui
+        .params("tags[]")
+        .filter(|t| !t.trim().is_empty())
+        .collect::<Vec<_>>()
+        .join(", ");
+    lui! {
+        Form("/tag-input") get submit="Save" {
+            // code: /tag-input
+            TagInput("tags", "Tags") placeholder="Add a tag" help="Press Add, or Save with the tag typed.";
+            // end code
+            @if !tags.is_empty() { p class="lui-note" { "Tags: " (tags) "." } }
         }
     }
 }

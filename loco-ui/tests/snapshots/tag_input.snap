@@ -1,0 +1,38 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-field lui-tag-input">
+<label for="f-tags">Tags</label>
+<div class="lui-tag-input-box">
+<ul class="lui-tag-input-chips" aria-label="Selected">
+<li class="lui-tag-input-chip">rust<input type="hidden" name="tags[]" value="rust">
+<a href="/note?tags%5B%5D=web" aria-label="Remove rust">×</a>
+</li>
+<li class="lui-tag-input-chip">web<input type="hidden" name="tags[]" value="web">
+<a href="/note?tags%5B%5D=rust" aria-label="Remove web">×</a>
+</li>
+</ul>
+<input id="f-tags" class="lui-tag-input-field" name="tags[]" type="text" value="" placeholder="Add a tag" autocomplete="off" aria-label="Tags" aria-describedby="f-tags-help">
+<button type="submit" class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" formmethod="get" formaction="/note" formnovalidate>Add</button>
+</div>
+<small id="f-tags-help" class="lui-field-help">Up to five.</small>
+</div>
+
+caps: none
+<div class="lui-field lui-tag-input">
+<label for="f-tags">Tags</label>
+<div class="lui-tag-input-box">
+<ul class="lui-tag-input-chips" aria-label="Selected">
+<li class="lui-tag-input-chip">rust<input type="hidden" name="tags[]" value="rust">
+<a href="/note?tags%5B%5D=web" aria-label="Remove rust">×</a>
+</li>
+<li class="lui-tag-input-chip">web<input type="hidden" name="tags[]" value="web">
+<a href="/note?tags%5B%5D=rust" aria-label="Remove web">×</a>
+</li>
+</ul>
+<input id="f-tags" class="lui-tag-input-field" name="tags[]" type="text" value="" placeholder="Add a tag" autocomplete="off" aria-label="Tags" aria-describedby="f-tags-help">
+<button type="submit" class="lui-button lui-button-ghost" data-tone="neutral" data-variant="ghost" formmethod="get" formaction="/note" formnovalidate>Add</button>
+</div>
+<small id="f-tags-help" class="lui-field-help">Up to five.</small>
+</div>

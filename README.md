@@ -538,6 +538,11 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Tree | Origin UI Tree | content | `<details>`, `aria-current="page"`, `--lui-tree-depth` | 12 / 49 / 6; 1 / 1 / 1; 49 / 31 / 9.1 | none needed: <details> works everywhere | Partly: arrow keys between nodes (the WAI-ARIA tree pattern) need script |
 | Collapsible | shadcn/ui Collapsible | - | `<details>`, `<details name`, `::details-content` | 12 / 49 / 6; 120 / 130 / 17.2; 131 / 143 / 18.4 | opens and closes at once without ::details-content | No |
 | Hover card | Radix Themes HoverCard | - | `interestfor`, `popover="hint"`, `popovertarget`, `position-area` | 142 / no / no; 133 / no / no; 114 / 125 / 17; 125 / 147 / 26 | without interestfor a click opens the card (popovertarget); without popover a <details> | No |
+| Checkbox group | Radix Themes CheckboxGroup and CheckboxCards | container | `<fieldset>`, `appearance: none`, `:has()` | 1 / 1 / 1; 84 / 80 / 15.4; 105 / 121 / 15.4 | none needed: native checkboxes; a ticked card shows no ring without :has() | Partly: requiring at least one tick needs the server: HTML has no required for a group |
+| Number | Origin UI number inputs | content | `type="number"`, `formnovalidate`, `:has()` | 6 / 29 / 5.1; 4 / 4 / 5; 105 / 121 / 15.4 | none needed: a native number field; a stepper posts the stepped value | Partly: stepping in place without a round trip needs the enhancement script |
+| Search | Radix Themes TextField, shadcn search form | container | `<search>`, `type="search"`, `aria-controls` | 118 / 118 / 17; 5 / 4 / 5; 1 / 1 / 1 | none needed: an unknown <search> is a block holding the same GET form | Partly: searching as you type needs script |
+| Rating | Origin UI star rating | content | `type="radio"`, `:has()` | 1 / 1 / 1; 105 / 121 / 15.4 | only the picked star is filled, and hovering fills nothing, without :has() | No |
+| Tag input | Origin UI tag input, shadcn Badge | content | `formmethod`, `formnovalidate`, `:has()` | 9 / 4 / 5.1; 4 / 4 / 5; 105 / 121 / 15.4 | none needed: Add and remove are page loads that keep the tags in the URL | Partly: a chip on Enter or a comma, and removing one in place, need script |
 <!-- matrix:end -->
 
 ## Findings

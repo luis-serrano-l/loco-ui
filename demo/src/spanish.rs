@@ -189,7 +189,15 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::SlideOf, "Diapositiva {} de {}")
     .with(Text::Slide, "diapositiva")
     .with(Text::Completed, "completado")
-    .with(Text::MoreAbout, "Más sobre {}");
+    .with(Text::MoreAbout, "Más sobre {}")
+    .with(Text::ShowPassword, "Mostrar contraseña")
+    .with(Text::Stars, "one:{} estrella|other:{} estrellas")
+    .with(Text::RatingOf, "{} de {}")
+    .with(Text::Add, "Añadir")
+    .with(Text::WeekShort, "Sem")
+    .with(Text::WeekNumber, "Semana {}")
+    .with(Text::StartDate, "Fecha de inicio")
+    .with(Text::EndDate, "Fecha de fin");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

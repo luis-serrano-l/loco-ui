@@ -2441,7 +2441,7 @@ Decisions (to confirm with the owner, defaults chosen):
   it in its own CSS. Kept different: no `data-state` on Dialog, Drawer, Popover or
   `<details>`: the browser opens them without script, so a server-written state would lie;
   the docs point to `[open]` and `:popover-open`. `data-invalid` waits for M40c's controls.
-- [ ] Controls: `.disabled()` and `.readonly()` on Input/Field, Select, Combobox, Range,
+- [x] Controls: `.disabled()` and `.readonly()` on Input/Field, Select, Combobox, Range,
   Color, Counter, DatePicker, ToggleGroup option, RadioGroup option, SelectOption; a
   disabled form field renders `disabled` plus `aria-disabled`, and `Form` skips its value
   on `values()` only when readonly (a readonly value still posts). `Input::number(min,
@@ -2449,12 +2449,31 @@ Decisions (to confirm with the owner, defaults chosen):
   values become `f64` with `{}` formatting that drops `.0`. Add `tel`, `url`, `month`,
   `week` kinds, `.autocomplete` per Form adder, `.optional()` marker (text "optional" via
   `Text::Optional`).
-- [ ] Fix `Input::hide_label` (`input.rs:678-682`): render help/count/error after the
+  Done: Input gains `.disabled()`, `.readonly()`, `.optional()`, `.tel()`, `.url()`,
+  `.month()`, `.week()`, `.width(..)`; `Bound` (from f64, i16, i32, u32, i64, `Option<f64>`)
+  for `number(min, max)`, `step(impl Into<f64>)`, values written with `{}`. A disabled field
+  is `disabled` + `aria-disabled="true"`; readonly is `readonly` on text-like controls, and a
+  disabled control plus a hidden input for a checkbox, radio, select, range or colour (HTML
+  has no readonly there). Select, Combobox, Range, Color, Counter, DatePicker, Number and
+  Rating take both switches; ToggleGroup, RadioGroup and CheckboxGroup options and
+  `SelectOption` take `.disabled()`. Form: `.disabled()`, `.readonly()`, `.autocomplete(..)`
+  and `.optional()` modify the field added last, and `values()` skips a readonly field.
+  Range, Meter and Counter hold `f64`; Counter keeps its `op` protocol (`inc`, `dec`, `set`,
+  `reset`) and its markup, its number field is still `Input`. Kept different: a disabled
+  DatePicker shows its date on a disabled button with no calendar (a calendar of disabled
+  radios would read as a choice); `month` and `week` are plain text boxes in Firefox and
+  Safari (FINDINGS).
+- [x] Fix `Input::hide_label` (`input.rs:678-682`): render help/count/error after the
   bare control (visually-hidden label only), so `aria-describedby` points at real
   elements; a unit test asserts every id in `aria-describedby` exists in the output.
   Fix `.multiple()` then `.file()` losing `multiple` (`input.rs:393-421`): `file` keeps the
   flag. Textarea and select honour `autocomplete`, `form`, `inputmode`, `autofocus`,
   `class` (`input.rs:686-692`).
+  Done: `hide_label` returns the control followed by help, count and error;
+  `assert_described_ids_exist` (input.rs tests) checks every `aria-describedby` id on text,
+  textarea, select, checkbox, radio and number shapes, and the rating, tag input and
+  checkbox group tests reuse it. `file()` keeps an earlier `.multiple()`; textarea and select
+  write `autocomplete`, `form`, `inputmode`, `autofocus` and `class`.
 - [ ] Ids: `slug()` keeps Unicode letters and digits (`char::is_alphanumeric`), lowercases
   with `to_lowercase`, strips combining marks is out of scope; derived ids for Dialog,
   Menu, Drawer, Tooltip, Palette get a `lui-` prefix (**Breaking** for deep links
@@ -2481,6 +2500,13 @@ Decisions (to confirm with the owner, defaults chosen):
   without `applies_to`. The spec JSON and the demo's props tables show it. Kept different:
   the item kind is the adder's name, not a `Last` enum, so `PROPS` is the one source. Left:
   Form (M40c) and Table (M41), listed in `MODIFIERS_UNCHECKED` with ToggleGroup.
+  Form half done in M40c: `enum Last { Nothing, Field, Hidden, Body, Group }` on Form; every
+  field modifier goes through `last(method, hidden_ok, ..)`, whose `debug_assert!` says
+  "Form::required() applies to a field, but the last item was Group" (the variant's name),
+  and `.description()` asserts a group; three `#[should_panic]` tests. RadioGroup,
+  CheckboxGroup and ToggleGroup option modifiers assert an option exists. `Prop` gained
+  `applies_to` (default `&[]`); Form's modifiers say `applies_to(FIELD)`. The other builders
+  are M38b's.
 - [ ] Shared vocabulary cleanups: `ui.badge(impl Display)`; `id: &'a str` everywhere
   (Dialog, Drawer, Menu lose their `to_string`); Calendar `today/min/max/value: &'a str`;
   `Button::style` stays `Into<String>` but every other text setter becomes
@@ -2725,32 +2751,81 @@ Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` 
   `.max(n)` (4) and `.separator(glyph)`. Demo `/sidebar/work/notes`, `/nav`.
 
 **M40c · Inputs** (demo group `input.rs`)
-- [ ] `ui.checkbox_group(name, legend)`: `.option(value, label).description().disabled()`,
+- [x] `ui.checkbox_group(name, legend)`: `.option(value, label).description().disabled()`,
   `.cards()`, `.value(&[..])`, error/help, posts `name[]`; Form adder `.checkboxes(..)`.
-- [ ] Password reveal: `Input::password().reveal()` renders a `data-lui="reveal"` button
+  Done: `checkbox_group.rs`, after Radix CheckboxGroup and CheckboxCards (cards 1, 2 or 3
+  across by container width). Reads `name[]` from the query (`Ui::param_values`); ids are
+  `f-<name>-<i>`; the group is a fieldset described by help and error. Demo `/checkbox-group`.
+  Kept different: no `required` (HTML has none for a group; the server checks).
+- [x] Password reveal: `Input::password().reveal()` renders a `data-lui="reveal"` button
   with the `hidden` attribute; enhance.rs unhides it and toggles the input's `type`. An
   input type cannot change without script, so the no-script page is the same field
   without the button (same pattern as the copy button). Document in the header.
-- [ ] `ui.number(name, label)`: `<input type=number>` with `.min/.max/.step(f64)`,
+  Done: `.reveal()` on a password renders `span.lui-input-reveal[data-lui=reveal][hidden]`
+  with a ghost Eye button (`Text::ShowPassword`, `aria-pressed`). The script sets
+  `data-lui-js` on `<html>`, which a CSS rule uses to show it, and the click flips
+  `type` and `aria-pressed`. `/field` shows it; browser-check clicks it.
+- [x] `ui.number(name, label)`: `<input type=number>` with `.min/.max/.step(f64)`,
   `.prefix("$")`/`.suffix("kg")` addons (`.lui-input-group`), `.steppers()` rendering two
   buttons that post `name=value±step` through a `formaction` (no script; works) and are
   upgraded by enhance.rs to `stepUp()/stepDown()` in place. Counter becomes a thin wrapper.
-- [ ] `ui.search(name, label)`: `<search>` landmark, clear via a plain `href` link
+  Done: `number.rs` wraps Input. The steppers are submit buttons with `name=<name>
+  value=<v±step>` and `formnovalidate`, placed before the field so the pressed value is the
+  first pair posted (`Posted::get` and `Ui::param` read the first), shown after it with CSS
+  `order`; no `formaction`, so they reach the form's own action. The script's click handler
+  calls `stepUp()`/`stepDown()` and fires `input`. `ui.number(f64)` (the formatter) is now
+  `ui.format_number`. Counter keeps its `op` protocol and buttons (Blitz and browser-check
+  assert them) with f64 values; it already reuses `Input::number_within`. Kept different: a
+  stepper is a submit button, so Enter in an earlier field presses it (FINDINGS).
+- [x] `ui.search(name, label)`: `<search>` landmark, clear via a plain `href` link
   without the param, `.results_id()` for `aria-controls`.
-- [ ] Input group addons for every Input: `.prefix(Glyph|text)`, `.suffix(..)`,
+  Done: `search.rs`, after Radix TextField with a magnifier slot and the shadcn search
+  form: `<search>` holding a GET form, the field (Input `search_box` with a leading icon),
+  Search, and a ghost Clear link to the page without the query. `.keep(name)` carries other
+  parameters through both; `.action(..)` sends it elsewhere. Demo `/search` in a swap root,
+  so the script searches as you type.
+- [x] Input group addons for every Input: `.prefix(Glyph|text)`, `.suffix(..)`,
   `.addon_button(Button)`; Select gains `required`, `help`, `disabled`, `multiple`,
   `.placeholder("Choose…")`, `.hide_label()`, disabled options; `FieldKind::Select` in
   `input.rs` delegates to `select.rs` (one implementation, **Breaking** only internally).
-- [ ] `ui.rating(name, label).max(5).value(3)`: radios + CSS stars (Origin UI), `.readonly()`.
-- [ ] `ui.tag_input(name, label)`: chips from `.tags(&[..])` with remove links and an add
+  Done: `.prefix(Glyph)`, `.suffix(Glyph)` and `.addon_button(Button)` in a
+  `.lui-input-group` (text addons are joined to `aria-describedby`). Select gains every
+  setter listed, a `value=""` placeholder option, and `Select::bare` for fields;
+  `FieldKind::Select`, `Radio`, `Checkboxes`, `Range` and `Color` render through their
+  components. The Form select's HTML gained the `span.lui-select` wrapper (and the rich
+  trigger under `base_select`); the Blitz assertions on `select#f-…` hold.
+- [x] `ui.rating(name, label).max(5).value(3)`: radios + CSS stars (Origin UI), `.readonly()`.
+  Done: `rating.rs`: a fieldset of radios, each in a 2rem star label (2.75rem on touch),
+  named "4 stars" (`Text::Stars`, plural), filled up to the checked one and the hovered
+  one with `:has()`. `.readonly()` is `role="img"` "4 out of 5" (`Text::RatingOf`) plus a
+  hidden input; `.required()`, `.disabled()`, help and error. Kept different: without
+  `:has()` (Blitz) only the checked star fills.
+- [x] `ui.tag_input(name, label)`: chips from `.tags(&[..])` with remove links and an add
   form, posting `tags[]`; Combobox `.multiple()` reuses its chip CSS.
-- [ ] DatePicker `.range()` (two names, one calendar), Calendar `.weeks()` numbers,
+  Done: `tag_input.rs`: chips with hidden `name[]` inputs and remove links (the page
+  without that tag), a borderless text box also named `name[]`, and an Add button with
+  `formmethod="get"`, `formaction` and `formnovalidate`. Combobox chips carry
+  `lui-tag-input-chip` and lost their own chip CSS. Kept different: the add "form" is the
+  surrounding form's GET round trip (a form cannot nest).
+- [x] DatePicker `.range()` (two names, one calendar), Calendar `.weeks()` numbers,
   `disabled_dates` takes `&'a dyn Fn(Date) -> bool` (captures allowed), `Date::today`
   takes `Ui::today()` which the app may set (`Ui::with_today(date)`), UTC default.
-- [ ] Form: adders `radio`, `checkboxes`, `search`, `url`, `tel`, `color`, `range`,
+  Done: `Calendar::range(end)` makes the days links: the first click sets the first day,
+  a later one the last, the days between get `lui-calendar-between`. `DatePicker::range(end)`
+  lays that calendar in the page (a popover would close on each page load) with both days
+  as hidden inputs and a "Start date / End date" line. `.weeks()` adds a row-header column
+  of `Date::iso_week()`. `disabled_dates(&'a dyn Fn(Date) -> bool)` (an `Off` wrapper keeps
+  `Debug`); the deprecated `.disabled(fn)` aliases are gone. `Ui::today()` /
+  `Ui::with_today(date)`; Calendar's own `.today(..)` still wins.
+- [x] Form: adders `radio`, `checkboxes`, `search`, `url`, `tel`, `color`, `range`,
   `number`; `.action_secondary("Cancel", href)`, `.method_override("delete")`
   (hidden `_method`, Loco/Axum reads it via a small layer in `loco.rs`), per-field
   `.autocomplete()`, `.disabled()`, `.readonly()`, `.width(Size)`.
+  Done: every adder listed, `range(min, max)` and `number(min, max)` taking numbers;
+  `action_secondary` is a ghost link button beside submit; `method_override` writes
+  `<input type=hidden name=_method>` and `loco::method_override(router)` reads a urlencoded
+  POST's `_method` (put, patch, delete) and re-dispatches (test in `loco.rs`). `/form` has a
+  Contact group with the new adders and a Cancel link.
 
 **M40d · Feedback and overlays** (demo groups `feedback.rs`, `overlays.rs`)
 - [x] `ui.banner(text)`: full-width top bar, `.tone()`, `.link(..)`, `.dismiss()` via a

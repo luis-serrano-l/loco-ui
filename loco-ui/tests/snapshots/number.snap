@@ -1,0 +1,44 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-field">
+<label for="f-qty">Quantity</label>
+<div class="lui-input-group">
+<span class="lui-input-steppers" data-lui="steppers">
+<button type="submit" class="lui-button lui-button-ghost lui-button-icon" data-tone="neutral" data-variant="ghost" name="qty" value="3" aria-label="increment" formnovalidate>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-up">
+<path d="m18 15-6-6-6 6"/>
+</svg>
+</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-icon" data-tone="neutral" data-variant="ghost" name="qty" value="1" aria-label="decrement" formnovalidate>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</button>
+</span>
+<input id="f-qty" class="lui-number" name="qty" type="number" value="2" min="1" max="10" aria-describedby="f-qty-suffix">
+<span id="f-qty-suffix" class="lui-input-group-suffix">kg</span>
+</div>
+</div>
+
+caps: none
+<div class="lui-field">
+<label for="f-qty">Quantity</label>
+<div class="lui-input-group">
+<span class="lui-input-steppers" data-lui="steppers">
+<button type="submit" class="lui-button lui-button-ghost lui-button-icon" data-tone="neutral" data-variant="ghost" name="qty" value="3" aria-label="increment" formnovalidate>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-up">
+<path d="m18 15-6-6-6 6"/>
+</svg>
+</button>
+<button type="submit" class="lui-button lui-button-ghost lui-button-icon" data-tone="neutral" data-variant="ghost" name="qty" value="1" aria-label="decrement" formnovalidate>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</button>
+</span>
+<input id="f-qty" class="lui-number" name="qty" type="number" value="2" min="1" max="10" aria-describedby="f-qty-suffix">
+<span id="f-qty-suffix" class="lui-input-group-suffix">kg</span>
+</div>
+</div>

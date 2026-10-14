@@ -118,31 +118,56 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::{Strings, Text};
-use crate::input::{Choice, Field, FieldKind};
+use crate::input::{Bound, Choice, Field, FieldKind, Pick};
 use crate::props::{Prop, PropKind};
+use crate::select::SelectOption;
+use crate::variant::Size;
 use crate::{Caps, Ui, enhance};
+
+/// What a [`Form`] added last, which its modifiers check: `.required()` after a group is a
+/// mistake, loud in a debug build.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Last {
+    /// Nothing yet.
+    Nothing,
+    /// A field a person sees.
+    Field,
+    /// A hidden field.
+    Hidden,
+    /// Markup from `.body(..)`.
+    Body,
+    /// A group's legend.
+    Group,
+}
 
 /// A POST form of fields, made by [`Ui::form`], or the fields alone, made by [`Ui::fields`].
 /// Fields are added in order; `required`, `help`, `maxlength`, `value`, `error`,
-/// `placeholder`, `multiple` and `checked` apply to the field added last, and `description` to the group. A stacked form
-/// with a "Submit" button unless told otherwise.
+/// `placeholder`, `multiple`, `checked`, `autocomplete`, `disabled`, `readonly`, `optional`
+/// and `width` apply to the field added last, and `description` to the group. A stacked
+/// form with a "Submit" button unless told otherwise.
 ///
 /// **Setters.** Values and items: `.values(..)`, `.errors(..)`, `.group(..)`, `.description(..)`, `.text(..)`, `.password(..)`,
 /// `.email(..)`, `.number(..)`, `.pattern(..)`, `.textarea(..)`, `.file(..)`, `.date(..)`,
-/// `.time(..)`, `.datetime(..)`, `.select(..)`, `.checkbox(..)`, `.switch(..)`, `.hidden(..)`,
+/// `.time(..)`, `.datetime(..)`, `.select(..)`, `.radio(..)`, `.checkboxes(..)`, `.search(..)`,
+/// `.url(..)`, `.tel(..)`, `.color(..)`, `.range(..)`, `.checkbox(..)`, `.switch(..)`, `.hidden(..)`,
 /// `.body(..)`, `.help(..)`, `.maxlength(..)`,
-/// `.value(..)`, `.error(..)`, `.placeholder(..)`, `.submit(..)`, `.id(..)`; switches:
-/// `.required()`, `.multiple()`, `.inline()`, `.get()`; from a condition: `.checked(bool)`.
+/// `.value(..)`, `.error(..)`, `.placeholder(..)`, `.autocomplete(..)`, `.width(..)`, `.submit(..)`,
+/// `.action_secondary(..)`, `.method_override(..)`, `.id(..)`; switches:
+/// `.required()`, `.optional()`, `.disabled()`, `.readonly()`, `.multiple()`, `.inline()`, `.get()`; from a condition: `.checked(bool)`.
 #[derive(Clone, Debug)]
 pub struct Form<'a> {
     action: Option<&'a str>,
     get: bool,
     groups: Vec<Group<'a>>,
     submit: &'a str,
+    secondary: Option<(&'a str, &'a str)>,
+    method: Option<&'a str>,
     inline: bool,
     values: &'a [(String, String)],
     errors: &'a [(&'a str, &'a str)],
     id: Option<&'a str>,
+    last: Last,
+    caps: Caps,
     strings: &'static Strings,
 }
 
@@ -155,13 +180,17 @@ pub(crate) struct Group<'a> {
     pub(crate) fields: Vec<Field<'a>>,
 }
 
+/// What every field modifier applies to.
+const FIELD: &[&str] = &["field"];
+
 impl Form<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("group", PropKind::Item, "legend: &'a str")
             .doc("A `<fieldset>` with this `<legend>` around the fields added after it."),
-        Prop::new("description", PropKind::Value, "text: &'a str")
+        Prop::new("description", PropKind::Modifier, "text: &'a str")
+            .applies_to(&["group"])
             .doc("A line under the legend of the group added last."),
         Prop::new("text", PropKind::Item, "name: &'a str, label: &'a str")
             .doc("Single-line text."),
@@ -169,8 +198,8 @@ impl Form<'_> {
             .doc("`type=\"password\"`."),
         Prop::new("email", PropKind::Item, "name: &'a str, label: &'a str")
             .doc("`type=\"email\"`."),
-        Prop::new("number", PropKind::Item, "name: &'a str, label: &'a str, min: i64, max: i64")
-            .doc("A whole number from `min` to `max`, inclusive."),
+        Prop::new("number", PropKind::Item, "name: &'a str, label: &'a str, min: impl Into<Bound>, max: impl Into<Bound>")
+            .doc("A number from `min` to `max`, inclusive."),
         Prop::new("pattern", PropKind::Item, "name: &'a str, label: &'a str, pattern: &'a str, hint: &'a str")
             .doc("Text that must match `pattern` (the HTML `pattern` attribute)."),
         Prop::new("textarea", PropKind::Item, "name: &'a str, label: &'a str, rows: u8")
@@ -185,6 +214,20 @@ impl Form<'_> {
             .doc("`type=\"datetime-local\"`, bounds as `YYYY-MM-DDTHH:MM`."),
         Prop::new("select", PropKind::Item, "name: &'a str, label: &'a str, options: impl IntoIterator<Item = O>")
             .doc("A `<select>` of `options`: `&str`s, or `(value, label)` pairs."),
+        Prop::new("radio", PropKind::Item, "name: &'a str, label: &'a str, options: impl IntoIterator<Item = O>")
+            .doc("Radio buttons under a legend, one per option: `&str`s, or `(value, label)` pairs."),
+        Prop::new("checkboxes", PropKind::Item, "name: &'a str, label: &'a str, options: impl IntoIterator<Item = O>")
+            .doc("Checkboxes under a legend posting `<name>[]`, one per option."),
+        Prop::new("search", PropKind::Item, "name: &'a str, label: &'a str")
+            .doc("`type=\"search\"`."),
+        Prop::new("url", PropKind::Item, "name: &'a str, label: &'a str")
+            .doc("`type=\"url\"`."),
+        Prop::new("tel", PropKind::Item, "name: &'a str, label: &'a str")
+            .doc("`type=\"tel\"`."),
+        Prop::new("color", PropKind::Item, "name: &'a str, label: &'a str")
+            .doc("A colour picker with its swatch."),
+        Prop::new("range", PropKind::Item, "name: &'a str, label: &'a str, min: impl Into<f64>, max: impl Into<f64>")
+            .doc("A slider from `min` to `max`, its value beside it."),
         Prop::new("checkbox", PropKind::Item, "name: &'a str, label: &'a str")
             .doc("A checkbox posting `true` when ticked and nothing when not (so a `bool` with `#[serde(default)]` reads it)."),
         Prop::new("switch", PropKind::Item, "name: &'a str, label: &'a str")
@@ -193,24 +236,38 @@ impl Form<'_> {
             .doc("`type=\"hidden\"`."),
         Prop::new("body", PropKind::Item, "markup: Markup")
             .doc("Any markup at this point among the fields: a control built with its own setters."),
-        Prop::new("required", PropKind::Modifier, "")
+        Prop::new("required", PropKind::Modifier, "").applies_to(FIELD)
             .doc("The `required` attribute, and a `*` after the label; the form says what the star means."),
-        Prop::new("help", PropKind::Modifier, "help: &'a str")
+        Prop::new("optional", PropKind::Modifier, "").applies_to(FIELD)
+            .doc("\"(optional)\" after the label."),
+        Prop::new("disabled", PropKind::Modifier, "").applies_to(FIELD).attr("disabled")
+            .doc("`disabled` and `aria-disabled`: shown greyed and not posted."),
+        Prop::new("readonly", PropKind::Modifier, "").applies_to(FIELD)
+            .doc("Shown and posted, not editable; a posted value never replaces it."),
+        Prop::new("help", PropKind::Modifier, "help: &'a str").applies_to(FIELD)
             .doc("Help text under the field."),
-        Prop::new("maxlength", PropKind::Modifier, "max: usize")
+        Prop::new("maxlength", PropKind::Modifier, "max: usize").applies_to(FIELD)
             .doc("`maxlength`, counted in an `<output>` under the field."),
-        Prop::new("value", PropKind::Modifier, "value: &'a str").attr("value")
+        Prop::new("value", PropKind::Modifier, "value: &'a str").applies_to(&["field", "hidden"]).attr("value")
             .doc("The field's current value (ignored for files)."),
-        Prop::new("checked", PropKind::Modifier, "checked: bool")
+        Prop::new("checked", PropKind::Modifier, "checked: bool").applies_to(FIELD)
             .doc("Tick the checkbox."),
-        Prop::new("error", PropKind::Modifier, "message: &'a str")
+        Prop::new("error", PropKind::Modifier, "message: &'a str").applies_to(FIELD)
             .doc("A server message beside the field."),
-        Prop::new("placeholder", PropKind::Modifier, "placeholder: &'a str")
+        Prop::new("placeholder", PropKind::Modifier, "placeholder: &'a str").applies_to(FIELD)
             .doc("Placeholder text."),
-        Prop::new("multiple", PropKind::Modifier, "")
-            .doc("The file picker takes several files."),
+        Prop::new("multiple", PropKind::Modifier, "").applies_to(FIELD)
+            .doc("The file picker takes several files; a select, several options."),
+        Prop::new("autocomplete", PropKind::Modifier, "value: &'a str").applies_to(FIELD).attr("autocomplete")
+            .doc("`autocomplete` (`\"email\"`, `\"new-password\"`, `\"off\"`)."),
+        Prop::new("width", PropKind::Modifier, "width: impl Into<Size>").applies_to(FIELD)
+            .doc("A narrower control: 1 (8rem), 2 (16rem) or 3 (24rem)."),
         Prop::new("submit", PropKind::Value, "label: &'a str").default("Submit")
             .doc("Label of the submit button."),
+        Prop::new("action_secondary", PropKind::Value, "label: &'a str, href: &'a str")
+            .doc("A second action beside the submit button, a link (Cancel, Back)."),
+        Prop::new("method_override", PropKind::Value, "method: &'a str")
+            .doc("A hidden `_method` (`\"delete\"`, `\"put\"`) that `loco::method_override` turns into the request's method."),
         Prop::new("inline", PropKind::Switch, "")
             .doc("Labels beside the fields on screens wider than 40rem, above them on narrower ones."),
         Prop::new("get", PropKind::Switch, "")
@@ -241,24 +298,43 @@ impl Ui {
             get: false,
             groups: vec![Group::default()],
             submit: self.text(Text::Submit),
+            secondary: None,
+            method: None,
             strings: self.strings,
+            caps: self.caps,
             inline: false,
             values: &[],
             errors: &[],
             id: None,
+            last: Last::Nothing,
         }
     }
 }
 
 impl<'a> Form<'a> {
     fn add(mut self, name: &'a str, label: &'a str, kind: FieldKind<'a>) -> Self {
+        self.last = match kind {
+            FieldKind::Hidden => Last::Hidden,
+            FieldKind::Markup(_) => Last::Body,
+            _ => Last::Field,
+        };
+        let mut field = Field::new(name, label, kind);
+        field.caps = self.caps;
+        field.strings = self.strings;
         if let Some(group) = self.groups.last_mut() {
-            group.fields.push(Field::new(name, label, kind));
+            group.fields.push(field);
         }
         self
     }
 
-    fn last(mut self, change: impl FnOnce(&mut Field<'a>)) -> Self {
+    /// Change the field added last, which a modifier named `method` applies to; `hidden`
+    /// says whether a hidden field will do. Anything else fails a debug assertion.
+    fn last(mut self, method: &str, hidden: bool, change: impl FnOnce(&mut Field<'a>)) -> Self {
+        debug_assert!(
+            self.last == Last::Field || (hidden && self.last == Last::Hidden),
+            "Form::{method}() applies to a field, but the last item was {:?}",
+            self.last
+        );
         if let Some(f) = self.groups.last_mut().and_then(|g| g.fields.last_mut()) {
             change(f);
         }
@@ -271,12 +347,18 @@ impl<'a> Form<'a> {
             legend: Some(legend),
             ..Group::default()
         });
+        self.last = Last::Group;
         self
     }
 
     /// A line under the legend of the group added last, what the section is for; the
     /// fieldset is described by it. Call it right after `.group(..)`.
     pub fn description(mut self, text: &'a str) -> Self {
+        debug_assert!(
+            self.last == Last::Group,
+            "Form::description() applies to a group, but the last item was {:?}",
+            self.last
+        );
         if let Some(g) = self.groups.last_mut().filter(|g| g.legend.is_some()) {
             g.description = Some(text);
         }
@@ -298,16 +380,17 @@ impl<'a> Form<'a> {
         self.add(name, label, FieldKind::Email)
     }
 
-    /// A whole number from `min` to `max`, inclusive.
-    pub fn number(self, name: &'a str, label: &'a str, min: i64, max: i64) -> Self {
-        self.add(
-            name,
-            label,
-            FieldKind::Number {
-                min: Some(min),
-                max: Some(max),
-            },
-        )
+    /// A number from `min` to `max`, inclusive: any number (`13`, `0.5`), or `None::<f64>`
+    /// for no bound.
+    pub fn number(
+        self,
+        name: &'a str,
+        label: &'a str,
+        min: impl Into<Bound>,
+        max: impl Into<Bound>,
+    ) -> Self {
+        let (min, max) = (min.into().0, max.into().0);
+        self.add(name, label, FieldKind::Number { min, max })
     }
 
     /// Text that must match `pattern` (the HTML `pattern` attribute); `hint` explains the
@@ -324,14 +407,7 @@ impl<'a> Form<'a> {
     /// A file picker; `accept` lists MIME types or extensions (`image/*,.pdf`), empty for
     /// any. The form becomes `multipart/form-data`.
     pub fn file(self, name: &'a str, label: &'a str, accept: &'a str) -> Self {
-        self.add(
-            name,
-            label,
-            FieldKind::File {
-                accept,
-                multiple: false,
-            },
-        )
+        self.add(name, label, FieldKind::File { accept })
     }
 
     /// `type="date"`, bounds as `YYYY-MM-DD`; an empty bound is left out.
@@ -351,18 +427,73 @@ impl<'a> Form<'a> {
     }
 
     /// A `<select>` of `options`: each a `&str` that is its own value and text, or a
-    /// `(value, label)` pair (a row's id and its name).
+    /// `(value, label)` pair (a row's id and its name). Drawn by [`crate::select`], so it
+    /// takes the same look as `ui.select(..)`.
     pub fn select<O: Into<Choice<'a>>>(
         self,
         name: &'a str,
         label: &'a str,
         options: impl IntoIterator<Item = O>,
     ) -> Self {
-        self.add(
-            name,
-            label,
-            FieldKind::Select(options.into_iter().map(Into::into).collect()),
-        )
+        let options: Vec<SelectOption<'a>> = options.into_iter().map(|o| o.into().into()).collect();
+        self.add(name, label, FieldKind::Select(options))
+    }
+
+    /// Radio buttons named `name` under the legend `label`, one per option: `&str`s, or
+    /// `(value, label)` pairs. Drawn by `ui.radio_group(..)`.
+    pub fn radio<O: Into<Choice<'a>>>(
+        self,
+        name: &'a str,
+        label: &'a str,
+        options: impl IntoIterator<Item = O>,
+    ) -> Self {
+        let picks: Vec<Pick<'a>> = options.into_iter().map(|o| o.into().into()).collect();
+        self.add(name, label, FieldKind::Radio(picks))
+    }
+
+    /// Checkboxes posting `<name>[]` under the legend `label`, one per option; the form's
+    /// `.values(..)` ticks every `<name>[]` posted. Drawn by `ui.checkbox_group(..)`.
+    pub fn checkboxes<O: Into<Choice<'a>>>(
+        self,
+        name: &'a str,
+        label: &'a str,
+        options: impl IntoIterator<Item = O>,
+    ) -> Self {
+        let picks: Vec<Pick<'a>> = options.into_iter().map(|o| o.into().into()).collect();
+        self.add(name, label, FieldKind::Checkboxes(picks))
+    }
+
+    /// `type="search"`: a search field among the others, with the browser's clear button.
+    pub fn search(self, name: &'a str, label: &'a str) -> Self {
+        self.add(name, label, FieldKind::Search)
+    }
+
+    /// `type="url"`: the browser checks it is an absolute URL.
+    pub fn url(self, name: &'a str, label: &'a str) -> Self {
+        self.add(name, label, FieldKind::Url)
+    }
+
+    /// `type="tel"`: a phone number, the phone keypad on a touch screen.
+    pub fn tel(self, name: &'a str, label: &'a str) -> Self {
+        self.add(name, label, FieldKind::Tel)
+    }
+
+    /// A colour picker with its swatch, `#000000` until `.value(..)` or a posted value.
+    pub fn color(self, name: &'a str, label: &'a str) -> Self {
+        self.add(name, label, FieldKind::Color)
+    }
+
+    /// A slider from `min` to `max` in steps of 1, its value beside it; at the middle until
+    /// `.value(..)` or a posted value.
+    pub fn range(
+        self,
+        name: &'a str,
+        label: &'a str,
+        min: impl Into<f64>,
+        max: impl Into<f64>,
+    ) -> Self {
+        let (min, max) = (min.into(), max.into());
+        self.add(name, label, FieldKind::Range { min, max })
     }
 
     /// A checkbox posting `true` when ticked and nothing when not (so a `bool` with
@@ -392,52 +523,97 @@ impl<'a> Form<'a> {
     /// The `required` attribute, and a `*` after the label; a form with a required field
     /// says "* required" ([`Text::RequiredHint`]) above its button.
     pub fn required(self) -> Self {
-        self.last(|f| f.required = true)
+        self.last("required", false, |f| f.required = true)
+    }
+
+    /// "(optional)" after the label, for a form whose fields are mostly required.
+    pub fn optional(self) -> Self {
+        self.last("optional", false, |f| f.optional = true)
+    }
+
+    /// `disabled` and `aria-disabled`: shown greyed and not posted.
+    pub fn disabled(self) -> Self {
+        self.last("disabled", false, |f| f.disabled = true)
+    }
+
+    /// Shown and posted, not editable: `readonly` on a text field, a disabled control and a
+    /// hidden input where HTML has no `readonly`. A posted value never replaces its own, so a
+    /// tampered post shows the value the server set.
+    pub fn readonly(self) -> Self {
+        self.last("readonly", false, |f| f.readonly = true)
     }
 
     /// Help text under the field.
     pub fn help(self, help: &'a str) -> Self {
-        self.last(|f| f.help = Some(help))
+        self.last("help", false, |f| f.help = Some(help))
     }
 
     /// `maxlength`, counted in an `<output>` under the field.
     pub fn maxlength(self, max: usize) -> Self {
-        self.last(|f| f.maxlength = Some(max))
+        self.last("maxlength", false, |f| f.maxlength = Some(max))
     }
 
     /// The field's current value (ignored for files). A checkbox is ticked by `true`, `on`
     /// or `1`.
     pub fn value(self, value: &'a str) -> Self {
-        self.last(|f| f.value = value)
+        self.last("value", true, |f| f.value = value)
     }
 
     /// Tick the checkbox.
     pub fn checked(self, checked: bool) -> Self {
-        self.last(|f| f.value = if checked { "true" } else { "" })
+        self.last("checked", false, |f| {
+            f.value = if checked { "true" } else { "" };
+        })
     }
 
     /// A server message beside the field.
     pub fn error(self, message: &'a str) -> Self {
-        self.last(|f| f.error = (!message.is_empty()).then_some(message))
+        self.last("error", false, |f| {
+            f.error = (!message.is_empty()).then_some(message);
+        })
     }
 
     /// Placeholder text.
     pub fn placeholder(self, placeholder: &'a str) -> Self {
-        self.last(|f| f.placeholder = Some(placeholder))
+        self.last("placeholder", false, |f| f.placeholder = Some(placeholder))
     }
 
-    /// The file picker takes several files.
+    /// The file picker takes several files; a select, several options.
     pub fn multiple(self) -> Self {
-        self.last(|f| {
-            if let FieldKind::File { multiple, .. } = &mut f.kind {
-                *multiple = true;
-            }
+        self.last("multiple", false, |f| f.multiple = true)
+    }
+
+    /// `autocomplete` (`"email"`, `"new-password"`, `"off"`): what the browser may fill in.
+    pub fn autocomplete(self, value: &'a str) -> Self {
+        self.last("autocomplete", false, |f| {
+            f.extra.autocomplete = Some(value);
         })
+    }
+
+    /// A narrower control: 1 (8rem), 2 (16rem) or 3 (24rem), never wider than the form.
+    pub fn width(self, width: impl Into<Size>) -> Self {
+        let width = width.into();
+        self.last("width", false, |f| f.extra.width = Some(width))
     }
 
     /// Label of the submit button.
     pub fn submit(mut self, label: &'a str) -> Self {
         self.submit = label;
+        self
+    }
+
+    /// A second action beside the submit button: a link (`"Cancel"` back to the list), so it
+    /// leaves without posting.
+    pub fn action_secondary(mut self, label: &'a str, href: &'a str) -> Self {
+        self.secondary = Some((label, href));
+        self
+    }
+
+    /// A hidden `_method` field (`"delete"`, `"put"`, `"patch"`): an HTML form can only send
+    /// GET or POST, so the post carries the method it means and
+    /// `loco_ui::loco::method_override` (feature `axum`) rewrites the request before routing.
+    pub fn method_override(mut self, method: &'a str) -> Self {
+        self.method = Some(method);
         self
     }
 
@@ -456,7 +632,7 @@ impl<'a> Form<'a> {
     }
 
     /// Submitted values by field name, as a form post parses them: each field without its
-    /// own `value` shows the one named after it.
+    /// own `value` shows the one named after it (every `<name>[]` for checkboxes).
     pub fn values(mut self, values: &'a [(String, String)]) -> Self {
         self.values = values;
         self
@@ -476,21 +652,27 @@ impl<'a> Form<'a> {
         self
     }
 
-    /// Every field, with the values and errors filled in by name.
+    /// Every field, with the values and errors filled in by name. A read-only field keeps
+    /// its own value: a post cannot change what it shows.
     pub(crate) fn filled(&self) -> impl Iterator<Item = Group<'a>> + '_ {
         self.groups
             .iter()
             .filter(|g| g.legend.is_some() || !g.fields.is_empty())
             .map(|g| {
                 let fs = g.fields.iter().map(|f| {
-                    let value = if f.value.is_empty() {
-                        self.values
-                            .iter()
-                            .find(|(n, _)| n == f.name)
-                            .map_or("", |(_, v)| v.as_str())
-                    } else {
-                        f.value
+                    let key = match f.kind {
+                        FieldKind::Checkboxes(_) => format!("{}[]", f.name),
+                        _ => f.name.to_string(),
                     };
+                    let posted: Vec<&'a str> = if f.value.is_empty() && !f.readonly {
+                        (self.values.iter())
+                            .filter(|(n, _)| *n == key)
+                            .map(|(_, v)| v.as_str())
+                            .collect()
+                    } else {
+                        Vec::new()
+                    };
+                    let value = posted.first().copied().unwrap_or(f.value);
                     let error = f.error.or_else(|| {
                         self.errors
                             .iter()
@@ -499,6 +681,11 @@ impl<'a> Form<'a> {
                     });
                     Field {
                         value,
+                        values: if posted.is_empty() {
+                            f.values.clone()
+                        } else {
+                            posted
+                        },
                         error,
                         ..f.clone()
                     }
@@ -518,7 +705,15 @@ impl<'a> Form<'a> {
         let mut items: Vec<_> = fields
             .iter()
             .filter_map(|f| {
-                let id = f.id.map_or_else(|| format!("f-{}", f.name), str::to_string);
+                let id = match f.kind {
+                    // A group's first choice, which the summary's link focuses.
+                    FieldKind::Radio(_) => format!("f-{}-0", f.name),
+                    FieldKind::Checkboxes(_) => {
+                        f.id.map_or_else(|| format!("f-{}", crate::slug(f.name)), str::to_string)
+                            + "-0"
+                    }
+                    _ => f.control_id(),
+                };
                 Some((Some(id), Some(f.label), f.error?))
             })
             .collect();
@@ -579,17 +774,20 @@ impl Render for Form<'_> {
             form id=(enhance::swap_id("lui-form", self.id.unwrap_or(action))) data-lui="swap" class=(class)
                 method=(if self.get { "get" } else { "post" }) action=(action)
                 enctype=[multipart.then_some("multipart/form-data")] {
+                @if let Some(m) = self.method { input type="hidden" name="_method" value=(m); }
                 (self.summary())
                 (self.fields())
                 // The stars are hidden from screen readers (the `required` attribute speaks),
                 // so the line that explains them is too.
                 @if required { p class="lui-form-hint" aria-hidden="true" { (self.strings.get(Text::RequiredHint)) } }
-                div class="lui-form-actions" { (Button::new(Caps::NONE, self.submit).primary()) }
+                div class="lui-form-actions" {
+                    (Button::new(Caps::NONE, self.submit).primary())
+                    @if let Some((label, href)) = self.secondary { (Button::link(Caps::NONE, label, href)) }
+                }
             }
         }
     }
 }
-
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After the shadcn Forms examples and the Radix Themes settings layouts: a section is a
@@ -686,6 +884,85 @@ mod tests {
         assert!(m.contains(">Hi</textarea>"));
         let bare = html(fs(ui.fields()).values(&values));
         assert!(!bare.contains("<form") && bare.contains(r#"value="Ada""#));
+    }
+
+    #[test]
+    fn readonly_keeps_its_own_value_and_groups_read_their_pairs() {
+        let ui = Ui::default();
+        let values = [
+            ("plan".to_string(), "posted".to_string()),
+            ("size".to_string(), "l".to_string()),
+            ("days[]".to_string(), "mon".to_string()),
+            ("days[]".to_string(), "fri".to_string()),
+        ];
+        let m = html(
+            (ui.form("/p"))
+                .text("plan", "Plan")
+                .value("free")
+                .readonly()
+                .radio("size", "Size", [("m", "M"), ("l", "L")])
+                .checkboxes(
+                    "days",
+                    "Days",
+                    [("mon", "Mon"), ("tue", "Tue"), ("fri", "Fri")],
+                )
+                .values(&values),
+        );
+        assert!(
+            m.contains(r#"value="free""#) && !m.contains("posted"),
+            "{m}"
+        );
+        assert!(m.contains(r#"value="l" checked"#), "{m}");
+        assert!(
+            m.contains(r#"value="mon" checked"#)
+                && m.contains(r#"value="fri" checked"#)
+                && !m.contains(r#"value="tue" checked"#),
+            "{m}"
+        );
+        crate::input::assert_described_ids_exist(&m);
+    }
+
+    #[test]
+    fn secondary_action_and_method_override() {
+        let ui = Ui::default();
+        let m = html(
+            (ui.form("/notes/1"))
+                .text("t", "T")
+                .disabled()
+                .autocomplete("off")
+                .action_secondary("Cancel", "/notes")
+                .method_override("delete"),
+        );
+        assert!(
+            m.contains(r#"<input type="hidden" name="_method" value="delete">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"href="/notes">Cancel</a>"#), "{m}");
+        assert!(
+            m.contains(" disabled") && m.contains(r#"aria-disabled="true""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"autocomplete="off""#), "{m}");
+    }
+
+    #[test]
+    #[should_panic(expected = "Form::required() applies to a field, but the last item was Group")]
+    fn a_field_modifier_after_a_group_is_loud() {
+        let _ = Ui::default().form("/f").group("G").required();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Form::description() applies to a group, but the last item was Field"
+    )]
+    fn a_description_after_a_field_is_loud() {
+        let _ = Ui::default().form("/f").text("n", "N").description("D");
+    }
+
+    #[test]
+    #[should_panic(expected = "Form::help() applies to a field, but the last item was Nothing")]
+    fn a_modifier_before_any_item_is_loud() {
+        let _ = Ui::default().form("/f").help("H");
     }
 
     #[test]

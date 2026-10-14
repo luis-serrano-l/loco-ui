@@ -61,13 +61,13 @@ use crate::variant::{Radius, Size};
 
 /// Pressable options, made by [`Ui::toggle_group`].
 ///
-/// **Setters.** Values and items: `.option(..)`, `.icon(..)`, `.value(..)`, `.size(..)`,
-/// `.radius(..)`; switches: `.multiple()`.
+/// **Setters.** Values and items: `.option(..)`, `.icon(..)`, `.disabled()`, `.value(..)`,
+/// `.size(..)`, `.radius(..)`; switches: `.multiple()`.
 #[derive(Clone, Debug)]
 pub struct ToggleGroup<'a> {
     name: &'a str,
     label: &'a str,
-    items: Vec<(&'a str, &'a str, Option<Glyph<'a>>)>,
+    items: Vec<(&'a str, &'a str, Option<Glyph<'a>>, bool)>,
     picked: Vec<String>,
     multi: bool,
     size: Size,
@@ -83,6 +83,9 @@ impl ToggleGroup<'_> {
             .doc("An option posting `value`, shown as `text`."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
             .doc("The option added last shows this icon, its text becoming a hidden label."),
+        Prop::new("disabled", PropKind::Modifier, "")
+            .attr("disabled")
+            .doc("The option added last cannot be pressed."),
         Prop::new("value", PropKind::Value, "value: &'a str")
             .attr("checked")
             .doc("Press this option (again for more with `.multiple()`); the query's own values by default."),
@@ -117,7 +120,7 @@ impl Ui {
 impl<'a> ToggleGroup<'a> {
     /// An option posting `value`, shown as `text`.
     pub fn option(mut self, value: &'a str, text: &'a str) -> Self {
-        self.items.push((value, text, None));
+        self.items.push((value, text, None, false));
         self
     }
 
@@ -131,6 +134,18 @@ impl<'a> ToggleGroup<'a> {
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
         if let Some(last) = self.items.last_mut() {
             last.2 = Some(icon.into());
+        }
+        self
+    }
+
+    /// The option added last cannot be pressed: shown greyed, `disabled`, never posted.
+    pub fn disabled(mut self) -> Self {
+        debug_assert!(
+            !self.items.is_empty(),
+            "ToggleGroup::disabled() applies to an option, but there is none yet"
+        );
+        if let Some(last) = self.items.last_mut() {
+            last.3 = true;
         }
         self
     }
@@ -181,10 +196,10 @@ impl Render for ToggleGroup<'_> {
                 data-size=[(self.size != Size::S2).then(|| self.size.as_str())] data-radius=[self.radius.map(Radius::as_str)]
                 style={ "--lui-toggle-n: " (self.items.len().max(1)) } {
                 legend class="lui-sr" { (self.label) }
-                @for (value, text, icon) in &self.items {
+                @for (value, text, icon, off) in &self.items {
                     label class="lui-toggle-group-item" {
                         input class="lui-toggle-group-input" type=(kind) name=(self.name) value=(value)
-                            checked[self.picked.iter().any(|p| p == value)];
+                            checked[self.picked.iter().any(|p| p == value)] disabled[*off];
                         span class="lui-toggle-group-face" {
                             @if let Some(i) = icon { (i.hidden()) span class="lui-sr" { (text) } } @else { (text) }
                         }
@@ -226,6 +241,8 @@ pub const CSS: &str = r#"
 .lui-toggle-group[data-size="1"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-sm) - 4px); height: calc(var(--lui-control-h-sm) - 4px); padding: 0 0.5rem; font-size: 0.8125rem; }
 .lui-toggle-group[data-size="3"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-lg) - 4px); height: calc(var(--lui-control-h-lg) - 4px); padding: 0 1rem; font-size: 1rem; }
 .lui-toggle-group-face:hover { color: var(--lui-fg); }
+.lui-toggle-group-input:disabled + .lui-toggle-group-face { color: var(--lui-gray-8); cursor: not-allowed; }
+
 .lui-toggle-group-input:checked + .lui-toggle-group-face { color: var(--lui-fg); background: var(--lui-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lui-line) 70%, transparent), var(--lui-shadow-xs), var(--lui-highlight); }
 .lui-toggle-group-input:focus-visible + .lui-toggle-group-face { outline: 2px solid var(--lui-ring); outline-offset: -2px; }
 @supports selector(:has(*)) {

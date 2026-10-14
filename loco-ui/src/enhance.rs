@@ -62,7 +62,10 @@
 //! own move form with its new index. A table's "select all matching" box ticks the row
 //! boxes on the page as well. A code block's copy button (`data-lui="copy"`, rendered
 //! `hidden`) is shown where `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1) can
-//! write, and copies the block on a click.
+//! write, and copies the block on a click. A number field's steppers (`data-lui="steppers"`)
+//! call `stepUp()`/`stepDown()` in place instead of posting, and a password's reveal button
+//! (`data-lui="reveal"`, `hidden` without the script: the page carries `data-lui-js` on
+//! `<html>` once the script runs) switches the field between `password` and `text`.
 //!
 //! [`script_tag`] goes at the end of `<body>`; `router` (feature `axum`) serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
@@ -82,7 +85,10 @@ pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
-// Every request says it is the script's (the server may send less), wants HTML.
+// Shows what needs the script (a password's reveal).
+document.documentElement.setAttribute("data-lui-js", "");
+
+// Every request says it is the script's (the server may answer with less) and wants HTML.
 var init = function (priority) { return { credentials: "same-origin", priority: priority || "high", headers: { "Lui-Enhance": "1", Accept: "text/html" } }; };
 var load = function (url, req) {
   // fetch cannot report upload progress: a form with a <progress data-lui-progress> posts
@@ -359,6 +365,12 @@ document.addEventListener("click", function (e) {
   document.querySelectorAll("details.lui-popover-details[open]").forEach(function (d) {
     if (!d.contains(e.target)) d.removeAttribute("open");
   });
+  // A number's steppers step in place (the first is up); a password's reveal flips its type.
+  var s = e.target.closest("[data-lui=steppers] button,[data-lui=reveal] button"), f = s && s.closest(".lui-input-group").querySelector("input"), p = f && f.type == "password";
+  if (!f) return;
+  e.preventDefault();
+  if (f.type == "number") { s.previousElementSibling ? f.stepDown() : f.stepUp(); f.dispatchEvent(new Event("input", { bubbles: true })); }
+  else { s.setAttribute("aria-pressed", p); f.type = p ? "text" : "password"; }
 });
 
 // Sortable list: a drag starts only from the grip. The item follows the pointer through its
@@ -752,14 +764,15 @@ mod tests {
     #[test]
     // 13.5 KB from M40d: the menu items that submit on change (data-lui="autosubmit").
     fn script_is_small_and_plain() {
-        // 13 KB served and 16 KB of source until M41's select-all box.
+        // 13 KB served and 16 KB of source until M41's select-all box; +384 served (+640 source) for M40c's
+        // number steppers and password reveal.
         assert!(
-            served().len() < 15360, // 13 KB until M41's select-all, M40a's copy button and M40d's autosubmit
+            served().len() < 15872, // 13 KB until M41's select-all, M40a's copy button, M40d's autosubmit and M40c's steppers
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 18432, // 16 KB until M41 and M40a
+            JS.len() < 19456, // 16 KB until M41 and M40
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

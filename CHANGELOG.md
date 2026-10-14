@@ -82,7 +82,7 @@ Everything below also ships in 0.2.0, the first publish.
   `one:{} match|other:{} matches` holds one form per CLDR category (`Plural`), `other`
   standing in for a missing one. `Text::Matches` is written that way; `Text::OneMatch` is
   deprecated and no longer read.
-- `Strings::number(f64)` and `ui.number(..)` write `1,234.5`, `1.234,5`, `1234` / `12.345`
+- `Strings::number(f64)` and `ui.format_number(..)` (renamed from `ui.number` in M40c, which took the name for the number field) write `1,234.5`, `1.234,5`, `1234` / `12.345`
   (Spanish) or `1 234,5`. The paged table's range and page numbers, the pager, counter,
   meter and stat use them.
 - `Strings::date` and `Strings::date_long`. The calendar's column heads come from new texts
@@ -163,6 +163,23 @@ Everything below also ships in 0.2.0, the first publish.
 - Docs: `docs/api.md` gains Variants, State attributes, the new Ids rules and why text
   setters stay `&'a str` (a `Cow` spike on `Dialog::title` split `PROPS`);
   `docs/ergonomics.md` leads with the current API and keeps M17/M18 under History.
+- Controls (with M40c): `.disabled()` and `.readonly()` on Input, Form fields, Select,
+  Combobox, Range, Color, Counter, DatePicker, Number and Rating, and `.disabled()` on a
+  ToggleGroup, RadioGroup or CheckboxGroup option and a `SelectOption`. Disabled renders
+  `disabled` and `aria-disabled="true"`; readonly is `readonly` where HTML has it, else a
+  disabled control plus a hidden input, so the value still posts, and `Form::values` leaves
+  a readonly field's own value alone. New kinds `tel`, `url`, `month` and `week`; `.optional()`
+  writes "(optional)" (`Text::Optional`) after the label. **Breaking:** `Input::number(min,
+  max)` takes `impl Into<Bound>` (a number, or `None::<f64>` for no bound) and `step` takes
+  `impl Into<f64>`; Range, Meter and Counter hold `f64` (`2.0` prints as `2`), and
+  `Counter::apply` returns `f64`.
+- `Input::hide_label()` keeps help, count and error after the bare control, so every id in
+  `aria-describedby` exists (a test checks it on every field shape); `.multiple()` before
+  `.file()` keeps the flag; a textarea and a select honour `autocomplete`, `form`,
+  `inputmode`, `autofocus` and `class`.
+- Form modifiers misfire loudly: `.required()` after `.group(..)` fails a debug assertion
+  ("Form::required() applies to a field, but the last item was Group"), as does
+  `.description()` after a field; `Prop::applies_to` names what a modifier applies to.
 
 #### M43
 
@@ -223,6 +240,44 @@ Everything below also ships in 0.2.0, the first publish.
   `/projects/42` (the longest such link wins; `/` only matches itself). Breadcrumbs:
   `.max(n)` crumbs before the middle folds (4 by default) and `.separator(glyph)` in place
   of the chevron.
+#### M40c · Inputs
+
+- New components, each with a demo page, a playground entry and a spec row:
+  `ui.checkbox_group(name, legend)` (posts `name[]`, `.option(..).description(..).disabled()`,
+  `.cards()`, `.value(&[..])`; Form adder `.checkboxes(..)`), `ui.number(name, label)` (`f64`
+  `.min/.max/.step`, `.prefix("$")`, `.suffix("kg")`, `.steppers()`), `ui.search(name, label)`
+  (a `<search>` landmark with a GET form, a Clear link, `.keep(..)`, `.results_id(..)` for
+  `aria-controls`), `ui.rating(name, label)` (radios drawn as stars, `.max(n)`, `.value(n)`,
+  `.readonly()` as an image named "4 out of 5") and `ui.tag_input(name, label)` (chips with
+  remove links, an Add button that sends the form back with GET, posts `name[]`).
+- Every Input takes addons: `.prefix(..)`, `.suffix(..)` (text is read with the field) and
+  `.addon_button(Button)`, in one `.lui-input-group` row; `.width(Size)` narrows a control.
+  `Input::password().reveal()` adds a show-password button that is `hidden` until the
+  enhancement script runs (it marks `<html data-lui-js>` and flips the field's type).
+  Number steppers post the stepped value without script and call `stepUp()`/`stepDown()`
+  with it.
+- Select gains `.required()`, `.help(..)`, `.placeholder(..)`, `.disabled()`, `.readonly()`,
+  `.multiple()`, `.hide_label()` and disabled options; a Form's select renders through it
+  (one implementation).
+- Form adders `radio`, `checkboxes`, `search`, `url`, `tel`, `color`, `range` and `number`
+  (bounds `impl Into<Bound>`); modifiers `.autocomplete(..)`, `.disabled()`, `.readonly()`,
+  `.optional()` and `.width(..)`; `.action_secondary("Cancel", href)`; `.method_override(
+  "delete")` writes a hidden `_method`, which `loco::method_override(router)` (feature `loco`)
+  turns into a PUT, PATCH or DELETE before routing.
+- Calendar: `.range(end)` picks a first and a last day into two names (links; the days
+  between are shaded), `.weeks()` adds ISO 8601 week numbers (`Date::iso_week`), and
+  `.disabled_dates(..)` borrows a closure (`&'a dyn Fn(Date) -> bool`), so it may capture.
+  DatePicker gains `.range(end)`, `.disabled()` and `.readonly()`. Today is `Ui::today()`,
+  which an app sets with `Ui::with_today(date)` (UTC from the clock without).
+  **Breaking:** the deprecated `.disabled(fn)` aliases of `disabled_dates` are gone, and
+  `disabled_dates` takes `&|d| ..` instead of a `fn`.
+- Combobox gains `.disabled()` and `.readonly()`, and its chips are the tag input's
+  (`lui-tag-input-chip`). ToggleGroup options take `.disabled()`. Range and InputOtp take
+  `.id(..)`, so the props playground renders its copy under its own ids.
+- **Breaking:** `ui.number(f64)`, the number formatter, is `ui.format_number(f64)`; `ui.number`
+  is the number field.
+- New texts: `ShowPassword`, `Stars`, `RatingOf`, `Add`, `WeekShort`, `WeekNumber`,
+  `StartDate`, `EndDate`; icons `Eye` and `Star`.
 
 ## [0.2.0] - unreleased
 

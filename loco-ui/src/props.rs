@@ -82,6 +82,9 @@ pub struct Prop {
     /// For a modifier, the items it may follow, by the name of the setter that adds them
     /// (`["link", "action"]`); empty for every other kind. A modifier called after any
     /// other item (or before the first) panics in a debug build.
+    /// For a [`PropKind::Modifier`], the kinds of item it changes (`["field"]`); empty for
+    /// every other kind. A modifier called after an item it does not apply to fails a
+    /// `debug_assert!` naming the builder, the method and the item it found.
     pub applies_to: &'static [&'static str],
 }
 
@@ -327,7 +330,7 @@ pub(crate) const COMPONENTS: &[Component] = &[
     Component {
         module: "counter",
         builder: "Counter",
-        calls: &["ui.counter(action: &str, value: i64)"],
+        calls: &["ui.counter(action: &str, value: impl Into<f64>)"],
         props: crate::counter::Counter::PROPS,
         status: Status::Stable,
     },
@@ -436,7 +439,7 @@ pub(crate) const COMPONENTS: &[Component] = &[
     Component {
         module: "meter",
         builder: "Meter",
-        calls: &["ui.meter(value: i64, min: i64, max: i64)"],
+        calls: &["ui.meter(value: impl Into<f64>, min: impl Into<f64>, max: impl Into<f64>)"],
         props: crate::meter::Meter::PROPS,
         status: Status::Stable,
     },
@@ -847,6 +850,41 @@ pub(crate) const COMPONENTS: &[Component] = &[
         builder: "HoverCard",
         calls: &["ui.hover_card(trigger: &str, body: Markup)"],
         props: crate::hover_card::HoverCard::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "checkbox_group",
+        builder: "CheckboxGroup",
+        calls: &["ui.checkbox_group(name: &str, legend: &str)"],
+        props: crate::checkbox_group::CheckboxGroup::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "number",
+        builder: "Number",
+        calls: &["ui.number(name: &str, label: &str)"],
+        props: crate::number::Number::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "search",
+        builder: "Search",
+        calls: &["ui.search(name: &str, label: &str)"],
+        props: crate::search::Search::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "rating",
+        builder: "Rating",
+        calls: &["ui.rating(name: &str, label: &str)"],
+        props: crate::rating::Rating::PROPS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "tag_input",
+        builder: "TagInput",
+        calls: &["ui.tag_input(name: &str, label: &str)"],
+        props: crate::tag_input::TagInput::PROPS,
         status: Status::Beta,
     },
 ];
