@@ -362,6 +362,8 @@ pub enum Text {
     DeleteConfirm,
     /// "This cannot be undone.": record page: the delete dialog's text.
     CannotUndo,
+    /// "Skip to content": the skip link every page starts with.
+    SkipToContent,
     /// "(opens in a new tab)": link: an external link's hint for screen readers.
     OpensInNewTab,
     /// "Code": code block: the region's name when it has no title.
@@ -380,7 +382,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 153] = [
+    pub const ALL: [Text; 154] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -529,6 +531,7 @@ impl Text {
         Text::Deleted,
         Text::DeleteConfirm,
         Text::CannotUndo,
+        Text::SkipToContent,
         Text::OpensInNewTab,
         Text::Code,
         Text::Copy,
@@ -715,6 +718,7 @@ const ENGLISH: [&str; N] = [
     "Deleted.",
     "Delete {}?",
     "This cannot be undone.",
+    "Skip to content",
     "(opens in a new tab)",
     "Code",
     "Copy",

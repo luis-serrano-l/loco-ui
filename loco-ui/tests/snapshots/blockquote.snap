@@ -1,0 +1,18 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<figure class="lui-blockquote">
+<blockquote cite="https://example.com/kay">Simple things should be simple.</blockquote>
+<figcaption>
+<cite>Alan Kay</cite>
+</figcaption>
+</figure>
+
+caps: none
+<figure class="lui-blockquote">
+<blockquote cite="https://example.com/kay">Simple things should be simple.</blockquote>
+<figcaption>
+<cite>Alan Kay</cite>
+</figcaption>
+</figure>

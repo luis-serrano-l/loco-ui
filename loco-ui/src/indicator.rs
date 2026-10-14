@@ -158,14 +158,14 @@ impl Render for Indicator<'_> {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After Origin UI's notification badges: a solid pill min 1.25rem across, 0.375rem padding,
-   text-xs, centred on the top end corner by translate(50%, -50%), a 2px ring of the page
+   --lui-text-1, centred on the top end corner by translate(50%, -50%), a 2px ring of the page
    colour; the dot is 0.625rem. */
 .lui-indicator { position: relative; display: inline-flex; vertical-align: middle; max-width: 100%; }
 .lui-indicator-badge, .lui-indicator-dot { position: absolute; top: 0; inset-inline-end: 0; z-index: 1; translate: 50% -50%; pointer-events: none; }
 [dir=rtl] .lui-indicator-badge, [dir=rtl] .lui-indicator-dot { translate: -50% -50%; }
 .lui-indicator-badge > .lui-badge {
   min-width: 1.25rem; height: 1.25rem; padding: 0 0.375rem; justify-content: center;
-  font-size: 0.6875rem; line-height: 1; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--lui-bg);
+  font-size: var(--lui-text-1); line-height: 1; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--lui-bg);
 }
 .lui-indicator-dot { --lui-indicator-tone: var(--lui-danger); width: 0.625rem; height: 0.625rem; border-radius: 9999px; background: var(--lui-indicator-tone); box-shadow: 0 0 0 2px var(--lui-bg); translate: 25% -25%; }
 .lui-indicator-dot:is([data-tone=brand], [data-tone=info]) { --lui-indicator-tone: var(--lui-primary); }

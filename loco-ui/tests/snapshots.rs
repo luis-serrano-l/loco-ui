@@ -533,6 +533,98 @@ const EXAMPLES: &[Example] = &[
             .value("bold")
             .render()
     }),
+    example("Heading", |ui| {
+        ui.heading("Members")
+            .size(3)
+            .as_h(2)
+            .weight(Weight::Medium)
+            .trim()
+            .render()
+    }),
+    example("Text", |ui| {
+        ui.text("No invoices yet.").as_p().size(2).muted().render()
+    }),
+    example("Link", |ui| {
+        ui.link("Radix", "https://www.radix-ui.com")
+            .external()
+            .muted()
+            .underline(Underline::Hover)
+            .render()
+    }),
+    example("Kbd", |ui| ui.kbd("Esc").size(3).render()),
+    example("Code", |ui| {
+        ui.code("Ok(())")
+            .tone(Tone::Brand)
+            .variant(Variant::Outline)
+            .render()
+    }),
+    example("CodeBlock", |ui| {
+        ui.code_block("[dependencies]\nloco-ui = \"0.2\"")
+            .lang("toml")
+            .title("Cargo.toml")
+            .copy()
+            .render()
+    }),
+    example("Blockquote", |ui| {
+        ui.blockquote()
+            .cite("Alan Kay")
+            .href("https://example.com/kay")
+            .body(html! { "Simple things should be simple." })
+            .render()
+    }),
+    example("Prose", |ui| {
+        ui.prose()
+            .body(html! { h2 { "Install" } p { "Add the crate." } })
+            .render()
+    }),
+    example("Container", |ui| {
+        ui.container()
+            .size(1)
+            .body(html! { p { "Narrow" } })
+            .render()
+    }),
+    example("Section", |ui| {
+        ui.section()
+            .size(4)
+            .label("Pricing")
+            .body(html! { h2 { "Pricing" } })
+            .render()
+    }),
+    example("Inset", |ui| {
+        ui.inset()
+            .top()
+            .body(html! { img src="/cover.jpg" alt=""; })
+            .render()
+    }),
+    example("AspectRatio", |ui| {
+        ui.aspect_ratio()
+            .ratio(16, 9)
+            .body(html! { img src="/a.jpg" alt="A lake"; })
+            .render()
+    }),
+    example("ScrollArea", |ui| {
+        ui.scroll_area("Log")
+            .height("12rem")
+            .body(html! { p { "…" } })
+            .render()
+    }),
+    example("Center", |ui| {
+        ui.center()
+            .min_height("12rem")
+            .text_center()
+            .body(html! { p { "Nothing here yet" } })
+            .render()
+    }),
+    example("Spacer", |ui| ui.spacer().min("2rem").render()),
+    example("Spinner", |ui| {
+        ui.spinner().size(3).label("Loading results").render()
+    }),
+    example("Indicator", |ui| {
+        ui.indicator(120)
+            .max(99)
+            .body(html! { (ui.button("Mail")) })
+            .render()
+    }),
 ];
 
 /// One tag per line, so a snapshot diff points at the element that changed.

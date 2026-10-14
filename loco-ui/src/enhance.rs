@@ -49,11 +49,16 @@
 //! arrow keys, searches a combobox as you type and walks its results with the arrow keys.
 //! After a swap, an element marked `autofocus` in the new markup takes the focus (a form sent
 //! back with an error summary starts there, as it would on a page load); otherwise the
-//! element that had the focus gets it back.
+//! element that had the focus gets it back, and when that element is gone the focus moves to
+//! the new root's `h1`, or the root itself (`tabindex="-1"`), instead of falling to `<body>`.
+//! A swap that changed the URL or the title says the new `document.title` through a
+//! `role="status"` region the script adds to the page, as a screen reader hears a page load.
 //! A tab title opens its panel and slides the underline on the click itself; the server's
 //! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
-//! own move form with its new index.
+//! own move form with its new index. A code block's copy button (`data-lui="copy"`, rendered
+//! `hidden`) is shown where `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1) can
+//! write, and copies the block on a click.
 //!
 //! [`script_tag`] goes at the end of `<body>`; `router` (feature `axum`) serves the file with a content
 //! hash in the URL so it caches forever. It is compatible with `script-src 'self'`.
@@ -69,7 +74,7 @@ use maud::{Markup, html};
 /// Path the script is served from. [`script_url`] appends a content hash.
 pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 
-/// The whole enhancement script. Plain ES2020, no build step, about 12 KB as [`served`].
+/// The whole enhancement script. Plain ES2020, no build step, about 14 KB as [`served`].
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
@@ -129,10 +134,27 @@ function swapped(el, url, mode) {
 // hist: "push" adds a history entry, "replace" rewrites the current one, "none" keeps the URL.
 // fast: the answer came within 150 ms, so it lands at once instead of in a view transition
 // (whose old-state capture costs a frame); a root marked data-lui-morph always morphs.
+// A role=status region the script owns: after a swap that moved to another URL or title, it
+// says the new title, as a page load would.
+var said;
+function announce(text) {
+  if (!said) { said = document.createElement("div"); said.setAttribute("role", "status"); said.className = "lui-sr"; document.body.append(said); }
+  said.textContent = "";
+  setTimeout(function () { said.textContent = text; }, 50);
+}
+// Focus that was inside the replaced markup lands on the new root's h1, else the root.
+function settle(anchor) {
+  var a = document.activeElement;
+  if (a && a !== document.body && a.isConnected) return;
+  var to = anchor.querySelector("h1") || anchor;
+  if (to.tabIndex < 0) to.tabIndex = -1; // a heading or div becomes focusable by script only
+  to.focus({ preventScroll: true });
+}
+
 function apply(doc, id, url, hist, mode, quiet, fast) {
   var root = document.getElementById(id), fresh = doc.getElementById(id);
   if (!root || !fresh) { if (url !== location.href) location.href = url; else location.reload(); return; }
-  var f = focusState();
+  var f = focusState(), from = location.href, title = document.title;
   var swap = function () {
     doc.querySelectorAll("[data-lui-oob]").forEach(function (el) {
       var here = el.id && el !== fresh && document.getElementById(el.id), how = el.getAttribute("data-lui-oob");
@@ -148,7 +170,8 @@ function apply(doc, id, url, hist, mode, quiet, fast) {
     var theme = doc.documentElement.getAttribute("data-theme");
     if (theme) document.documentElement.setAttribute("data-theme", theme);
     var af = anchor.querySelector("[autofocus]"); // as on a load
-    af ? af.focus() : restoreFocus(f);
+    if (af) af.focus(); else { restoreFocus(f); settle(anchor); }
+    if (document.title !== title || url !== from) announce(document.title);
     swapped(anchor, url, mode);
   };
   if (hist !== "none" && url !== location.href) {
@@ -358,6 +381,21 @@ document.addEventListener("dragend", function () {
   f.append(b); f.requestSubmit(b); b.remove();
 });
 
+// Copy buttons (a code block's .copy()): rendered hidden, shown when the clipboard can be
+// written; a click copies the block its commandfor names and says "Copied" for 2s.
+var copies = function () { if (navigator.clipboard) document.querySelectorAll("[data-lui=copy][hidden]").forEach(function (s) { s.hidden = false; }); };
+copies(); document.addEventListener("lui:swap", copies);
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest("[data-lui=copy] [commandfor]"), pre = b && document.getElementById(b.getAttribute("commandfor"));
+  if (!pre) return;
+  e.preventDefault();
+  navigator.clipboard.writeText(pre.textContent).then(function () {
+    var was = b.getAttribute("aria-label");
+    b.setAttribute("aria-label", b.closest("[data-lui=copy]").getAttribute("data-lui-copied")); b.setAttribute("data-lui-done", "");
+    setTimeout(function () { b.setAttribute("aria-label", was); b.removeAttribute("data-lui-done"); }, 2000);
+  });
+});
+
 // Back and Forward: the entry's stored copy of each root when there is one, else a fetch.
 addEventListener("popstate", function (e) {
   var lui = e.state && e.state.lui;
@@ -378,7 +416,7 @@ addEventListener("popstate", function (e) {
 "##;
 
 /// [`JS`] as served: comment lines and indentation dropped, nothing else touched. The budget
-/// (13 KB) applies to this; the source keeps its comments for the reader.
+/// (14.5 KB) applies to this; the source keeps its comments for the reader.
 pub fn served() -> &'static str {
     static SERVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     SERVED.get_or_init(|| {
@@ -403,6 +441,122 @@ pub const CSP_NO_SCRIPT: &str = "default-src 'self'; script-src 'none'; style-sr
 /// The response extension `Page::without_script` leaves for `csp` (feature `axum`).
 #[derive(Clone, Copy, Debug)]
 pub struct NoScript;
+
+/// The response extension a `Page::linked_stylesheet` page leaves for [`csp`]: the
+/// `'sha256-…'` sources of the `<style>` elements it still inlines, space-separated.
+#[derive(Clone, Debug)]
+pub struct StyleHashes(pub String);
+
+/// [`CSP`] for a page whose stylesheet is linked: `<style>` elements only by `hashes`
+/// (from [`csp_hash`]), `style` attributes still allowed (`style-src-attr`, Chrome 75,
+/// Firefox 108, Safari 15.4), since a few per-element custom properties travel in them.
+pub fn csp_linked(hashes: &str, script: bool) -> String {
+    let script = if script { "'self'" } else { "'none'" };
+    let space = if hashes.is_empty() { "" } else { " " };
+    format!(
+        "default-src 'self'; script-src {script}; style-src 'self'{space}{hashes}; style-src-attr 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+    )
+}
+
+/// `'sha256-<base64>'` of `text`, a CSP source that allows a `<style>` (or `<script>`)
+/// element with exactly that content. For an inline page, `csp_hash(loco_ui::stylesheet())`
+/// plus the hashes of `Page::style_hashes` replace `'unsafe-inline'` in a policy of your own.
+///
+/// ```rust
+/// assert_eq!(loco_ui::enhance::csp_hash(""), "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='");
+/// ```
+pub fn csp_hash(text: &str) -> String {
+    format!("'sha256-{}'", base64(&sha256(text.as_bytes())))
+}
+
+/// SHA-256 (FIPS 180-4), for [`csp_hash`]: the crate takes no dependency for one hash.
+fn sha256(data: &[u8]) -> [u8; 32] {
+    const K: [u32; 64] = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4,
+        0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
+        0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f,
+        0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
+        0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
+        0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116,
+        0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
+        0xc67178f2,
+    ];
+    let mut h: [u32; 8] = [
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
+        0x5be0cd19,
+    ];
+    let mut message = data.to_vec();
+    message.push(0x80);
+    while message.len() % 64 != 56 {
+        message.push(0);
+    }
+    message.extend_from_slice(&((data.len() as u64).wrapping_mul(8)).to_be_bytes());
+    for block in message.chunks_exact(64) {
+        let mut w = [0u32; 64];
+        for (i, word) in block.chunks_exact(4).enumerate() {
+            w[i] = u32::from_be_bytes([word[0], word[1], word[2], word[3]]);
+        }
+        for i in 16..64 {
+            let s0 = w[i - 15].rotate_right(7) ^ w[i - 15].rotate_right(18) ^ (w[i - 15] >> 3);
+            let s1 = w[i - 2].rotate_right(17) ^ w[i - 2].rotate_right(19) ^ (w[i - 2] >> 10);
+            w[i] = w[i - 16]
+                .wrapping_add(s0)
+                .wrapping_add(w[i - 7])
+                .wrapping_add(s1);
+        }
+        let [mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut hh] = h;
+        for i in 0..64 {
+            let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
+            let ch = (e & f) ^ (!e & g);
+            let t1 = hh
+                .wrapping_add(s1)
+                .wrapping_add(ch)
+                .wrapping_add(K[i])
+                .wrapping_add(w[i]);
+            let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
+            let maj = (a & b) ^ (a & c) ^ (b & c);
+            let t2 = s0.wrapping_add(maj);
+            hh = g;
+            g = f;
+            f = e;
+            e = d.wrapping_add(t1);
+            d = c;
+            c = b;
+            b = a;
+            a = t1.wrapping_add(t2);
+        }
+        for (state, add) in h.iter_mut().zip([a, b, c, d, e, f, g, hh]) {
+            *state = state.wrapping_add(add);
+        }
+    }
+    let mut out = [0u8; 32];
+    for (i, word) in h.iter().enumerate() {
+        out[i * 4..i * 4 + 4].copy_from_slice(&word.to_be_bytes());
+    }
+    out
+}
+
+/// Standard base64 with padding.
+fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let n = chunk
+            .iter()
+            .enumerate()
+            .fold(0u32, |n, (i, b)| n | u32::from(*b) << (16 - 8 * i));
+        for i in 0..4 {
+            if i <= chunk.len() {
+                out.push(char::from(ALPHABET[(n >> (18 - 6 * i) & 63) as usize]));
+            } else {
+                out.push('=');
+            }
+        }
+    }
+    out
+}
 
 /// FNV-1a hash of [`JS`]: the cache-busting version in [`script_url`].
 fn version() -> String {
@@ -513,33 +667,64 @@ mod axum_glue {
                 .headers()
                 .contains_key(header::CONTENT_SECURITY_POLICY)
         {
-            let policy = if response.extensions().get::<super::NoScript>().is_some() {
-                super::CSP_NO_SCRIPT
-            } else {
-                super::CSP
+            let script = response.extensions().get::<super::NoScript>().is_none();
+            let policy = match response.extensions().get::<super::StyleHashes>() {
+                Some(hashes) => HeaderValue::from_str(&super::csp_linked(&hashes.0, script)).ok(),
+                None if script => Some(HeaderValue::from_static(super::CSP)),
+                None => Some(HeaderValue::from_static(super::CSP_NO_SCRIPT)),
             };
-            response.headers_mut().insert(
-                header::CONTENT_SECURITY_POLICY,
-                HeaderValue::from_static(policy),
-            );
+            if let Some(policy) = policy {
+                response
+                    .headers_mut()
+                    .insert(header::CONTENT_SECURITY_POLICY, policy);
+            }
         }
         response
     }
 
-    /// Serves [`served`] at [`SCRIPT_PATH`], immutable for a year (the URL carries a hash).
+    /// Serves [`served`] at [`SCRIPT_PATH`] and [`crate::stylesheet`] at
+    /// [`crate::layout::STYLESHEET_PATH`], each immutable for a year (their URLs carry a
+    /// hash); the stylesheet also answers `If-None-Match` with `304`.
     pub fn router() -> Router {
-        Router::new().route(
-            SCRIPT_PATH,
-            get(|| async {
-                (
-                    [
-                        (header::CONTENT_TYPE, "text/javascript; charset=utf-8"),
-                        (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
-                    ],
-                    served(),
-                )
-            }),
-        )
+        Router::new()
+            .route(
+                SCRIPT_PATH,
+                get(|| async {
+                    (
+                        [
+                            (header::CONTENT_TYPE, "text/javascript; charset=utf-8"),
+                            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+                        ],
+                        served(),
+                    )
+                }),
+            )
+            .route(
+                crate::layout::STYLESHEET_PATH,
+                get(|headers: axum::http::HeaderMap| async move {
+                    let etag = format!("\"{}\"", crate::layout::stylesheet_etag());
+                    let fresh = (headers.get(header::IF_NONE_MATCH))
+                        .is_some_and(|v| v.as_bytes() == etag.as_bytes());
+                    let status = if fresh {
+                        axum::http::StatusCode::NOT_MODIFIED
+                    } else {
+                        axum::http::StatusCode::OK
+                    };
+                    let body = if fresh { "" } else { crate::stylesheet() };
+                    (
+                        status,
+                        [
+                            (header::CONTENT_TYPE, "text/css; charset=utf-8".to_string()),
+                            (
+                                header::CACHE_CONTROL,
+                                "public, max-age=31536000, immutable".to_string(),
+                            ),
+                            (header::ETAG, etag),
+                        ],
+                        body,
+                    )
+                }),
+            )
     }
 }
 #[cfg(feature = "axum")]
@@ -552,12 +737,12 @@ mod tests {
     #[test]
     fn script_is_small_and_plain() {
         assert!(
-            served().len() < 13312,
+            served().len() < 14848, // 13 KB until M40a added the code block's copy button
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 16384,
+            JS.len() < 17920, // 16 KB until M40a
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

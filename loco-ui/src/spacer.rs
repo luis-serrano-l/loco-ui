@@ -67,9 +67,7 @@ impl<'a> Spacer<'a> {
 
 impl Render for Spacer<'_> {
     fn render(&self) -> Markup {
-        let style = self
-            .min
-            .map(|m| format!("min-width: {m}; min-height: {m}"));
+        let style = self.min.map(|m| format!("min-width: {m}; min-height: {m}"));
         html! { div class="lui-spacer" aria-hidden="true" style=[style] {} }
     }
 }

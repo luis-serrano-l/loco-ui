@@ -18,7 +18,7 @@ use tower_http::compression::{
 };
 
 /// Every demo path the no-script test and the screenshot test visit.
-pub const PATHS: [&str; 51] = [
+pub const PATHS: [&str; 58] = [
     "/",
     "/caps",
     "/button?loading=1",
@@ -70,6 +70,13 @@ pub const PATHS: [&str; 51] = [
     "/dashboard?orders=none",
     "/palette?q=ta",
     "/marquee",
+    "/modes?forced=1",
+    "/typography",
+    "/code-block",
+    "/prose",
+    "/container",
+    "/scroll-area",
+    "/spinner",
 ];
 
 /// The whole demo app.
@@ -95,6 +102,7 @@ pub fn router() -> Router {
         .merge(loco_ui::caps::router())
         .merge(loco_ui::enhance::router())
         .fallback(loco_ui::blocks::not_found)
+        .layer(site::LOOK.layer())
         .layer(axum::middleware::from_fn(loco_ui::enhance::slim))
         .layer(axum::middleware::from_fn(loco_ui::enhance::csp))
         .layer(CompressionLayer::new().compress_when(DefaultPredicate::new().and(WholeBody)))

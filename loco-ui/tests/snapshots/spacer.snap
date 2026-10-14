@@ -1,0 +1,10 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-spacer" aria-hidden="true" style="min-width: 2rem; min-height: 2rem">
+</div>
+
+caps: none
+<div class="lui-spacer" aria-hidden="true" style="min-width: 2rem; min-height: 2rem">
+</div>

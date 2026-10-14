@@ -309,12 +309,15 @@ component gives the HTML to another template engine.
 
 ## What a page weighs
 
-Measured on the demo (M34), gzip at level 9; every page inlines the whole stylesheet, so
-there is no second request for CSS, and no script is required.
+Measured on the demo (M34; the stylesheet rows at M39), gzip at level 9. By default every page
+inlines the whole stylesheet, so there is no second request for CSS, and no script is required;
+`Page::linked_stylesheet()` links `/lui.css` instead (cached, ETag) and `Page::subset(..)`
+inlines only the components a page lists.
 
 | | raw | gzip |
 |---|---|---|
-| The whole stylesheet, every component and block (`stylesheet()`) | 116.9 KB | 20.0 KB |
+| The whole stylesheet, every component and block (`stylesheet()`) | 111.4 KB | 19.5 KB |
+| The base subset: layout, primitives and modes (`stylesheet_for(Component::BASE)`) | 32.3 KB | 7.0 KB |
 | A demo page, stylesheet, sidebar and props tables included (`/nav` … `/calendar`) | 136–160 KB | 22.9–26.0 KB |
 | `/stream` with declarative shadow DOM (the stylesheet twice: once for the shadow root) | 249 KB | 41.8 KB |
 | The index, every component live on it | 292 KB | 47.1 KB |
@@ -323,8 +326,8 @@ there is no second request for CSS, and no script is required.
 
 For comparison, `maud-ui` 0.20.3 (the same stack, in shadcn's look) ships 313 KB of CSS (44 KB gzipped)
 and needs an 89 KB script (24 KB gzipped) plus htmx. Two tests keep these numbers honest: the
-stylesheet stays under 128 KB (88 KB until M34), and every demo page's markup, the inlined stylesheet not
-counted, under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
+stylesheet stays under 112 KB (128 KB until M39, 88 KB until M34), and every demo page's markup, the inlined stylesheet not
+counted (nor the demo's own CSS, its `Look` since M39), under 48 KB (184 KB for the index with every component live on it, 176 before `/table/minimal` joined it and 160 until the M34 table listed hidden columns under each row) in `cargo test`.
 Until M34 the second test counted whole pages (128, 180 and 224 KB), so every stylesheet change
 moved it too. M30's look
 (the 12-step scales, depth and gradient tokens, motion and the opt-in effects) grew the
@@ -454,7 +457,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Component | Look after | Responsive by | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |
 |---|---|---|---|---|---|---|
 | Enhancement script | - | - | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent`, `HTML drag and drop` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6; 4 / 3.5 / 3.1 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
-| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | viewport | `@view-transition`, `prefers-color-scheme`, `custom properties` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1 | plain navigations (root never cross-fades); colours still switch by media query and data-theme | No |
+| Layout | Radix Themes scales and depth, a Linear / Magic UI finish | content | `@view-transition`, `prefers-color-scheme`, `custom properties`, `@layer`, `light-dark()`, `forced-colors` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1; 99 / 97 / 15.4; 123 / 120 / 17.5; 89 / 89 / 16 | plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white | No |
 | Capability beacons | - | - | `@supports`, `selector()`, `background images`, `cookies` | 28 / 22 / 9; 83 / 69 / 14.1; 1 / 1 / 1; 1 / 1 / 1 | unknown browser gets every fallback; the first view always does | No |
 | Button | Radix Themes Button | content | `invoker commands`, `popovertarget`, `aria-busy`, `prefers-reduced-motion`, `translate` | 135 / 144 / 26.2; 114 / 125 / 17; 1 / 1 / 1; 74 / 63 / 10.1; 104 / 72 / 14.1 | a popover command becomes popovertarget; other commands need the component's own fallback; a shimmer button is at rest without translate | No |
 | Input, checkbox, switch, radio group | Radix Themes TextField, Checkbox, Switch, RadioGroup and RadioCards | container | `constraint validation`, `type=date`, `:user-invalid`, `role="switch"`, `appearance: none`, `<fieldset>`, `linear-gradient(in oklch` | 10 / 4 / 10.1; 20 / 57 / 14.1; 119 / 88 / 16.5; 1 / 1 / 1; 84 / 80 / 15.4; 1 / 1 / 1; 111 / 127 / 16.2 | none needed: native controls; the switch stays a checkbox without appearance: none; a gradient border is a plain one without in oklch gradients | Partly: a live character count while typing needs the enhancement script |
@@ -510,6 +513,22 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Drawer | shadcn Sheet and Drawer | viewport | `<dialog>`, `command="show-modal"`, `closedby`, `@starting-style`, `transition-behavior: allow-discrete`, `@media` | 37 / 98 / 15.4; 135 / 144 / 26.2; 134 / 141 / 26; 117 / 129 / 17.5; 117 / 129 / 17.4; 1 / 1 / 1 | link to #id and a :target rule; open from the server | No |
 | Command palette | shadcn Command | viewport | `popover`, `<datalist>`, `<search>`, `accesskey` | 114 / 125 / 17; 20 / 4 / 12.1; 118 / 118 / 17; 1 / 1 / 1 | a <details> disclosure with the same form | Partly: arrow keys through live results and a global Ctrl+K need script |
 | Marquee | Magic UI Marquee | content | `inert`, `translate`, `animation-play-state`, `mask-image` | 102 / 112 / 15.5; 104 / 72 / 14.1; 43 / 16 / 9; 120 / 53 / 15.4 | at rest: the items wrap and the copy is hidden, without translate or under reduced motion | No |
+| Heading | Radix Themes Heading | - | `<h1>`, `text-wrap: balance`, `text-box` | 1 / 1 / 1; 114 / 121 / 17.5; 133 / no / 18.2 | untrimmed line box without text-box; greedy line breaks without balance | No |
+| Text | Radix Themes Text | - | `text-overflow: ellipsis` | 1 / 7 / 1.3 | none needed | No |
+| Link | Radix Themes Link | - | `<a href>`, `text-underline-offset`, `target="_blank"` | 1 / 1 / 1; 87 / 70 / 12.1; 1 / 1 / 1 | none needed | No |
+| Kbd | Radix Themes Kbd | - | `<kbd>`, `box-shadow` | 1 / 1 / 1; 10 / 4 / 5.1 | none needed | No |
+| Code | Radix Themes Code, shadcn/ui docs code block | content | `<pre>`, `overflow-x: auto`, `tab-size`, `navigator.clipboard` | 1 / 1 / 1; 1 / 1 / 1; 21 / 91 / 7; 66 / 63 / 13.1 | select the text: the copy button is hidden until the script shows it | Partly: the copy button needs script; without it the code is selected by hand |
+| Blockquote | Radix Themes Blockquote | - | `<figure>`, `border-inline-start` | 1 / 1 / 1; 87 / 66 / 14.1 | none needed | No |
+| Prose | shadcn/ui Typography | content | `:where()`, `text-wrap: pretty` | 88 / 78 / 14; 117 / no / 26 | greedy line breaks without text-wrap: pretty | No |
+| Container | Radix Themes Container | content | `max-width`, `min()` | 1 / 1 / 1; 79 / 75 / 11.1 | none needed | No |
+| Section | Radix Themes Section | - | `<section>`, `padding-block` | 1 / 1 / 1; 87 / 66 / 14.1 | none needed | No |
+| Inset | Radix Themes Inset | - | `overflow: clip` | 90 / 81 / 16 | overflow: hidden cuts the same corners | No |
+| Aspect ratio | Radix Themes AspectRatio | content | `aspect-ratio`, `object-fit: cover` | 88 / 89 / 15; 32 / 36 / 10 | the box takes its content's height | No |
+| Scroll area | Radix Themes ScrollArea | container | `scrollbar-gutter: stable`, `scrollbar-width`, `scroll-state()` | 94 / 97 / 18.2; 121 / 64 / 26; 133 / no / no | no edge shadows without scroll-state(): the scrollbar alone shows there is more | No |
+| Center | Radix Themes Flex align=center justify=center | content | `place-items: center` | 59 / 45 / 11 | none needed | No |
+| Spacer | Radix Themes Box flexGrow=1 | content | `flex: 1 1 auto` | 29 / 28 / 9 | an empty block outside a flex container | No |
+| Spinner | Radix Themes Spinner | - | `@keyframes`, `prefers-reduced-motion` | 1 / 1 / 1; 74 / 63 / 10.1 | none needed | No |
+| Indicator | Origin UI notification badge | - | `inset-inline-end`, `translate` | 87 / 63 / 14.1; 104 / 72 / 14.1 | none needed | No |
 <!-- matrix:end -->
 
 ## Findings

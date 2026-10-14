@@ -107,14 +107,14 @@ impl Render for Blockquote<'_> {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After Radix Themes Blockquote: a bar max(0.25rem, 0.25em) wide in brand step 6 on the start
-   edge, the text min(1.25rem, max(0.75rem, 0.5em)) past it; the caption muted at text-sm. */
+   edge, the text min(1.25rem, max(0.75rem, 0.5em)) past it; the caption muted at --lui-text-2. */
 .lui-blockquote { margin: 0; }
 .lui-blockquote > blockquote {
   margin: 0; padding-inline-start: min(1.25rem, max(0.75rem, 0.5em));
   border-inline-start: max(0.25rem, 0.25em) solid var(--lui-brand-6); color: var(--lui-fg); overflow-wrap: break-word;
 }
 .lui-blockquote > blockquote > :last-child { margin-bottom: 0; }
-.lui-blockquote > figcaption { margin-top: 0.5rem; padding-inline-start: calc(min(1.25rem, max(0.75rem, 0.5em)) + max(0.25rem, 0.25em)); color: var(--lui-muted); font-size: 0.875rem; }
+.lui-blockquote > figcaption { margin-top: 0.5rem; padding-inline-start: calc(min(1.25rem, max(0.75rem, 0.5em)) + max(0.25rem, 0.25em)); color: var(--lui-muted); font-size: var(--lui-text-2); }
 .lui-blockquote > figcaption::before { content: "— "; }
 .lui-blockquote cite { font-style: normal; }
 "#;

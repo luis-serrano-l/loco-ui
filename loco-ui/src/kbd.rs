@@ -56,7 +56,7 @@ impl Kbd<'_> {
         "size: impl Into<Size>",
     )
     .default("2")
-    .doc("Size 1 at 0.6875rem, 2 at 0.75rem (the default), 3 at 0.875rem.")];
+    .doc("Size 1 at 0.7em of the text around it, 2 at 0.75rem (the default), 3 at 0.875rem.")];
 }
 
 impl Ui {
@@ -70,7 +70,7 @@ impl Ui {
 }
 
 impl<'a> Kbd<'a> {
-    /// Size 1 at 0.6875rem, 2 at 0.75rem (the default), 3 at 0.875rem.
+    /// Size 1 at 0.7em of the text around it, 2 at 0.75rem (the default), 3 at 0.875rem.
     pub fn size(mut self, size: impl Into<Size>) -> Self {
         self.size = size.into();
         self
@@ -87,15 +87,15 @@ impl Render for Kbd<'_> {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After Radix Themes Kbd: 1.75em tall, at least as wide, 0.5em padding, radius 0.35em, the
-   system font at 0.75rem, a --lui-gray-1 fill with an inset edge in gray steps 7 and 3. */
+   system font at --lui-text-1, a --lui-gray-1 fill with an inset edge of --lui-gray-7 and -3. */
 .lui-kbd {
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   height: 1.75em; min-width: 1.75em; padding: 0 0.5em; vertical-align: text-top;
-  font-family: var(--lui-font-sans); font-size: 0.75rem; font-weight: 400; line-height: 1; letter-spacing: 0.02em;
+  font-family: var(--lui-font-sans); font-size: var(--lui-text-1); font-weight: 400; line-height: 1; letter-spacing: 0.02em;
   white-space: nowrap; user-select: none; color: var(--lui-gray-12); background: var(--lui-gray-1);
   border-radius: 0.35em;
   box-shadow: inset 0 -0.05em 0.5px 0.5px var(--lui-gray-7), inset 0 0.05em 0 0.5px var(--lui-gray-3), 0 0.05em 0.1em var(--lui-gray-4);
 }
-.lui-kbd[data-size="1"] { font-size: 0.6875rem; }
-.lui-kbd[data-size="3"] { font-size: 0.875rem; }
+.lui-kbd[data-size="1"] { font-size: 0.7em; }
+.lui-kbd[data-size="3"] { font-size: var(--lui-text-2); }
 "#;

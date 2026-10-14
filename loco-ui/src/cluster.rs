@@ -71,12 +71,20 @@ impl Cluster {
             .doc("Children packed at the end of the row (a dialog's or card's actions)."),
         Prop::new("gap", PropKind::Number, "n: u8")
             .doc("The gap as a step of the `--lui-space-*` scale."),
-        Prop::new("align", PropKind::Choice { of: Align::NAMES }, "align: Align")
-            .default("center")
-            .doc("Where the children sit across the row (`align-items`)."),
-        Prop::new("justify", PropKind::Choice { of: Justify::NAMES }, "justify: Justify")
-            .default("start")
-            .doc("How the children share the row (`justify-content`)."),
+        Prop::new(
+            "align",
+            PropKind::Choice { of: Align::NAMES },
+            "align: Align",
+        )
+        .default("center")
+        .doc("Where the children sit across the row (`align-items`)."),
+        Prop::new(
+            "justify",
+            PropKind::Choice { of: Justify::NAMES },
+            "justify: Justify",
+        )
+        .default("start")
+        .doc("How the children share the row (`justify-content`)."),
         Prop::new("padding", PropKind::Number, "n: u8")
             .doc("Padding on every side as a step of the `--lui-space-*` scale."),
         Prop::new("nowrap", PropKind::Switch, "")

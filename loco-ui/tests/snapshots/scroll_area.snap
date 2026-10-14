@@ -1,0 +1,24 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-scroll-area" role="region" aria-label="Log" tabindex="0" style="--lui-scroll-area-height: 12rem">
+<span class="lui-scroll-area-edge lui-scroll-area-top" aria-hidden="true">
+</span>
+<div class="lui-scroll-area-content">
+<p>…</p>
+</div>
+<span class="lui-scroll-area-edge lui-scroll-area-bottom" aria-hidden="true">
+</span>
+</div>
+
+caps: none
+<div class="lui-scroll-area" role="region" aria-label="Log" tabindex="0" style="--lui-scroll-area-height: 12rem">
+<span class="lui-scroll-area-edge lui-scroll-area-top" aria-hidden="true">
+</span>
+<div class="lui-scroll-area-content">
+<p>…</p>
+</div>
+<span class="lui-scroll-area-edge lui-scroll-area-bottom" aria-hidden="true">
+</span>
+</div>

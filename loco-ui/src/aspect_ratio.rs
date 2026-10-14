@@ -84,9 +84,7 @@ impl AspectRatio {
 
 impl Render for AspectRatio {
     fn render(&self) -> Markup {
-        let style = self
-            .ratio
-            .map(|(w, h)| format!("aspect-ratio: {w} / {h}"));
+        let style = self.ratio.map(|(w, h)| format!("aspect-ratio: {w} / {h}"));
         html! { div class="lui-aspect-ratio" style=[style] { (self.content) } }
     }
 }

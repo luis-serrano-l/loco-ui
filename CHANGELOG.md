@@ -140,6 +140,46 @@ by milestone, newest first, rather than against 0.1.0.
 ### `loco-ui`
 
 #### After M36: input hardening, `lui!` templates, sign-in redirects
+#### M39 · CSS that an app can own
+
+- **Breaking.** The stylesheet is five cascade layers, `lui.reset, lui.tokens,
+  lui.components, lui.blocks, lui.modes`; `Look::css` and `Page::css` come unlayered after
+  it, so an app's rule wins without `!important`. `LAYERS` and `layout::RESET` / `MODES`
+  are public.
+- **Breaking.** Every colour token is one `light-dark(light, dark)` declaration on `:root`
+  with `color-scheme: light dark`; `data-theme` sets only `color-scheme`. Chrome before 123
+  shows the page unthemed. `layout::DEPTH_LIGHT`, `DEPTH_DARK`, `EFFECTS_LIGHT`,
+  `EFFECTS_DARK`, `Palette::declarations` and `DerivedScale::css` are gone (`EFFECTS`,
+  `Tokens::declarations` replace them). The stylesheet went from 117.2 to 111.4 KB
+  (20.0 to 19.5 KB gzipped).
+- **Breaking.** `Tokens` values are `Cow<'static, str>` (a palette from a database is a
+  value) and it gains `font: Fonts`, `type_scale: TypeScale` (`--lui-text-1..9`,
+  `--lui-leading-1..9`), `size: Sizes` (`--lui-size-1..3`), `radius: Radius` (a ramp
+  `--lui-radius-{none,1,2,3,full}` with `--lui-radius-factor`; build one with
+  `Radius::new("0.5rem")`), `shadow: Depth`, `motion: Motion`, `z: ZIndex` (`--lui-z-*`)
+  and `density: Density` (`Compact` scales spacing and control heights by 0.85). `Palette`
+  gains `info` and `on_info`. `Scale::new(light, dark)` builds a scale in a `const`;
+  `DerivedScale` converts into a `Scale`.
+- **Breaking.** No default header: `layout::header()` is gone and `Look::header: None`
+  shows nothing above `<main>`. The demo's header and every demo-only rule (`.lui-site*`,
+  `.lui-props*`, `.lui-index*`, `.lui-snippet`, `.lui-hl-*`, the theme builder) moved to
+  the demo's own `Look` in `demo/src/site.rs`.
+- `Ui::tokens(Tokens)` themes every page of one request (a tenant's palette).
+- `Page::linked_stylesheet()` links `/lui.css` (served by `enhance::router()` with an ETag,
+  `immutable` and 304s); `enhance::csp` then drops `'unsafe-inline'` for `<style>` and
+  allows the page's other inline styles by hash. `enhance::csp_hash`, `Page::style_hashes`.
+- `stylesheet_for(&[Component])` and `Page::subset(&[Component])`: only the listed
+  components' CSS plus `Component::BASE` (32.3 KB raw for the base).
+- Forced colours, more contrast and print rules (`layout::MODES`), with `.lui-forced` and
+  `.lui-contrast` emulation classes; the demo's `/modes` page shows them.
+- A skip link (`Text::SkipToContent`) first in `<body>` and `<main id="main" tabindex="-1">`.
+  The enhancement script moves a lost focus into the swapped root and announces the new
+  title through a `role=status` region.
+- Two lint tests: `no_literal_font_size_or_z_outside_tokens` and
+  `no_physical_property_in_component_css`, with the files still to sweep listed in them.
+
+#### Earlier
+
 
 - Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
   (`?x=%aé`) no longer panics while it is decoded. A redirect whose target holds a control

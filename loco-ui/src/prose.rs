@@ -81,17 +81,17 @@ impl Render for Prose {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 /* After shadcn/ui Typography, the element styles layout.rs used to set on the whole page,
-   scoped to .lui-prose and kept at one element of weight (:where(.lui-prose) :is(..)). h1 text-4xl
-   extrabold tracking-tight, h2 text-3xl semibold with a rule under it, h3 text-2xl, h4
-   text-xl; p leading-7 with 1.5rem between; lists ml-6 with 0.5rem between items. */
+   scoped to .lui-prose and kept at one element of weight (:where(.lui-prose) :is(..)). On the
+   --lui-text ramp: h1 step 8 extrabold and tight, h2 step 7 semibold with a rule under it,
+   h3 step 6, h4 step 5; p leading-7 with 1.5rem between; lists ml-6, 0.5rem between items. */
 .lui-prose { max-width: 44rem; color: var(--lui-fg); line-height: 1.75rem; overflow-wrap: break-word; }
 .lui-prose > :first-child { margin-top: 0; }
 .lui-prose > :last-child { margin-bottom: 0; }
 :where(.lui-prose) :is(h1, h2, h3, h4) { color: var(--lui-fg); text-wrap: balance; scroll-margin-top: 5rem; }
-:where(.lui-prose) :is(h1) { font-size: 2.25rem; line-height: 2.5rem; font-weight: 800; letter-spacing: -0.025em; margin: 0 0 1.5rem; }
-:where(.lui-prose) :is(h2) { font-size: 1.875rem; line-height: 2.25rem; font-weight: 600; letter-spacing: -0.025em; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--lui-line); }
-:where(.lui-prose) :is(h3) { font-size: 1.5rem; line-height: 2rem; font-weight: 600; letter-spacing: -0.025em; margin: 2rem 0 0.75rem; }
-:where(.lui-prose) :is(h4) { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; letter-spacing: -0.025em; margin: 1.5rem 0 0.5rem; }
+:where(.lui-prose) :is(h1) { font-size: var(--lui-text-8); line-height: var(--lui-leading-8); font-weight: 800; letter-spacing: -0.025em; margin: 0 0 1.5rem; }
+:where(.lui-prose) :is(h2) { font-size: var(--lui-text-7); line-height: var(--lui-leading-7); font-weight: 600; letter-spacing: -0.025em; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--lui-line); }
+:where(.lui-prose) :is(h3) { font-size: var(--lui-text-6); line-height: var(--lui-leading-6); font-weight: 600; letter-spacing: -0.025em; margin: 2rem 0 0.75rem; }
+:where(.lui-prose) :is(h4) { font-size: var(--lui-text-5); line-height: var(--lui-leading-5); font-weight: 600; letter-spacing: -0.025em; margin: 1.5rem 0 0.5rem; }
 :where(.lui-prose) :is(p) { margin: 0 0 1.5rem; text-wrap: pretty; }
 :where(.lui-prose) :is(a) { color: var(--lui-link); font-weight: 500; text-decoration-line: underline; text-underline-offset: 0.25em; text-decoration-thickness: 1px; }
 :where(.lui-prose) :is(strong) { font-weight: 600; }
@@ -109,11 +109,11 @@ pub const CSS: &str = r#"
 }
 :where(.lui-prose) :is(pre) {
   margin: 0 0 1.5rem; padding: 1rem; overflow-x: auto; border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg);
-  background: var(--lui-gray-2); font-size: 0.875rem; line-height: 1.5rem;
+  background: var(--lui-gray-2); font-size: var(--lui-text-2); line-height: var(--lui-leading-3);
 }
 :where(.lui-prose) :is(pre code) { background: none; padding: 0; font-weight: 400; font-size: inherit; }
 :where(.lui-prose) :is(kbd) { font-family: var(--lui-font-sans); font-size: 0.75em; padding: 0.1em 0.4em; border-radius: 0.35em; background: var(--lui-gray-1); box-shadow: inset 0 -0.05em 0.5px 0.5px var(--lui-gray-7); }
-:where(.lui-prose) :is(table) { display: block; max-width: 100%; overflow-x: auto; margin: 0 0 1.5rem; border-collapse: collapse; font-size: 0.875rem; line-height: 1.25rem; }
+:where(.lui-prose) :is(table) { display: block; max-width: 100%; overflow-x: auto; margin: 0 0 1.5rem; border-collapse: collapse; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
 :where(.lui-prose) :is(th, td) { padding: 0.5rem 1rem; border: 1px solid var(--lui-line); text-align: start; }
 :where(.lui-prose) :is(th) { font-weight: 600; }
 :where(.lui-prose) :where(tr:nth-child(even)) { background: var(--lui-gray-2); }

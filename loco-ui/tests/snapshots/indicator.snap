@@ -1,0 +1,20 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<span class="lui-indicator">
+<button type="submit" class="lui-button">Mail</button>
+<span class="lui-indicator-badge" aria-hidden="true">
+<span class="lui-badge lui-badge-danger lui-badge-solid" data-tone="danger" data-variant="solid" data-radius="full">99+</span>
+</span>
+<span class="lui-sr">120 new</span>
+</span>
+
+caps: none
+<span class="lui-indicator">
+<button type="submit" class="lui-button">Mail</button>
+<span class="lui-indicator-badge" aria-hidden="true">
+<span class="lui-badge lui-badge-danger lui-badge-solid" data-tone="danger" data-variant="solid" data-radius="full">99+</span>
+</span>
+<span class="lui-sr">120 new</span>
+</span>

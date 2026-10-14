@@ -1,0 +1,8 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<h2 class="lui-heading lui-heading-trim" data-size="3" data-weight="medium">Members</h2>
+
+caps: none
+<h2 class="lui-heading lui-heading-trim" data-size="3" data-weight="medium">Members</h2>

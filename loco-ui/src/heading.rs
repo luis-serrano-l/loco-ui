@@ -62,9 +62,13 @@ impl Heading<'_> {
         Prop::new("as_h", PropKind::Number, "level: u8")
             .default("1")
             .doc("The element, `<h1>` to `<h6>`: the level in the page's outline."),
-        Prop::new("weight", PropKind::Choice { of: Weight::NAMES }, "weight: Weight")
-            .default("bold")
-            .doc("How heavy the letters are."),
+        Prop::new(
+            "weight",
+            PropKind::Choice { of: Weight::NAMES },
+            "weight: Weight",
+        )
+        .default("bold")
+        .doc("How heavy the letters are."),
         Prop::new("trim", PropKind::Switch, "")
             .doc("Trim the space above the capitals and below the baseline."),
     ];
@@ -136,22 +140,10 @@ impl Render for Heading<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* After Radix Themes Heading: the type scale 1–9 (font size / line height in px: 12/16,
-   14/20, 16/24, 18/26, 20/28, 24/30, 28/36, 35/40, 60/60), bold, letter spacing from 0 at
-   the small sizes to -0.025em at 9. */
+/* After Radix Themes Heading: bold, balanced lines; the type scale 1–9 (--lui-text-n over
+   --lui-leading-n, letter spacing from 0 to -0.025em) and the weights are text.rs's rules,
+   which select .lui-heading too. */
 .lui-heading { margin: 0; font-weight: 700; color: var(--lui-fg); text-wrap: balance; overflow-wrap: break-word; }
-.lui-heading[data-size="1"] { font-size: 0.75rem; line-height: 1rem; letter-spacing: 0.0025em; }
-.lui-heading[data-size="2"] { font-size: 0.875rem; line-height: 1.25rem; letter-spacing: 0; }
-.lui-heading[data-size="3"] { font-size: 1rem; line-height: 1.5rem; letter-spacing: 0; }
-.lui-heading[data-size="4"] { font-size: 1.125rem; line-height: 1.625rem; letter-spacing: -0.0025em; }
-.lui-heading[data-size="5"] { font-size: 1.25rem; line-height: 1.75rem; letter-spacing: -0.005em; }
-.lui-heading[data-size="6"] { font-size: 1.5rem; line-height: 1.875rem; letter-spacing: -0.00625em; }
-.lui-heading[data-size="7"] { font-size: 1.75rem; line-height: 2.25rem; letter-spacing: -0.0075em; }
-.lui-heading[data-size="8"] { font-size: 2.1875rem; line-height: 2.5rem; letter-spacing: -0.01em; }
-.lui-heading[data-size="9"] { font-size: 3.75rem; line-height: 3.75rem; letter-spacing: -0.025em; }
-.lui-heading[data-weight=light] { font-weight: 300; }
-.lui-heading[data-weight=regular] { font-weight: 400; }
-.lui-heading[data-weight=medium] { font-weight: 500; }
 @supports (text-box: trim-both cap alphabetic) {
   .lui-heading-trim { text-box: trim-both cap alphabetic; }
 }

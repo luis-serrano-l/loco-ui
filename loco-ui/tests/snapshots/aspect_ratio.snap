@@ -1,0 +1,12 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-aspect-ratio" style="aspect-ratio: 16 / 9">
+<img src="/a.jpg" alt="A lake">
+</div>
+
+caps: none
+<div class="lui-aspect-ratio" style="aspect-ratio: 16 / 9">
+<img src="/a.jpg" alt="A lake">
+</div>

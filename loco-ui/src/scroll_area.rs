@@ -104,7 +104,7 @@ impl Render for ScrollArea<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* After Radix Themes ScrollArea: a thin bar in gray step 8 on a clear track, the content
+/* After Radix Themes ScrollArea: a thin bar in --lui-gray-8 on a clear track, the content
    steady when it appears; an edge shadow where there is more to scroll to. */
 .lui-scroll-area {
   position: relative; height: var(--lui-scroll-area-height, 16rem); max-width: 100%; overflow: auto; overscroll-behavior: contain;

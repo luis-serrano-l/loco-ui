@@ -19,13 +19,16 @@
       "name": "Layout",
       "module": "layout",
       "look": "Radix Themes scales and depth, a Linear / Magic UI finish",
-      "responsive": "viewport",
+      "responsive": "content",
       "features": [
         { "name": "@view-transition", "baseline": { "chrome": "126", "firefox": "no", "safari": "18.2" } },
         { "name": "prefers-color-scheme", "baseline": { "chrome": "76", "firefox": "67", "safari": "12.1" } },
-        { "name": "custom properties", "baseline": { "chrome": "49", "firefox": "31", "safari": "9.1" } }
+        { "name": "custom properties", "baseline": { "chrome": "49", "firefox": "31", "safari": "9.1" } },
+        { "name": "@layer", "baseline": { "chrome": "99", "firefox": "97", "safari": "15.4" } },
+        { "name": "light-dark()", "baseline": { "chrome": "123", "firefox": "120", "safari": "17.5" } },
+        { "name": "forced-colors", "baseline": { "chrome": "89", "firefox": "89", "safari": "16" } }
       ],
-      "fallback": "plain navigations (root never cross-fades); colours still switch by media query and data-theme",
+      "fallback": "plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white",
       "needs_js": "no"
     },
     {
@@ -340,7 +343,10 @@
           "calls": ["ui.stack()"],
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What is stacked: each top-level element under the one before." },
-            { "name": "gap", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "The gap as a step of the `--lui-space-*` scale." }
+            { "name": "gap", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "The gap as a step of the `--lui-space-*` scale." },
+            { "name": "align", "kind": "choice", "choices": ["start", "center", "end", "baseline", "stretch"], "args": "align: Align", "default": "stretch", "attr": "", "doc": "Where the children sit across the column (`align-items`)." },
+            { "name": "justify", "kind": "choice", "choices": ["start", "center", "end", "between"], "args": "justify: Justify", "default": "start", "attr": "", "doc": "How the children share the column's height (`justify-content`)." },
+            { "name": "padding", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "Padding on every side as a step of the `--lui-space-*` scale." }
           ]
         }
       ]
@@ -366,7 +372,11 @@
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What goes in the row: each top-level element beside the one before." },
             { "name": "between", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "First child at the start, last at the end, the rest spread between." },
             { "name": "end", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Children packed at the end of the row (a dialog's or card's actions)." },
-            { "name": "gap", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "The gap as a step of the `--lui-space-*` scale." }
+            { "name": "gap", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "The gap as a step of the `--lui-space-*` scale." },
+            { "name": "align", "kind": "choice", "choices": ["start", "center", "end", "baseline", "stretch"], "args": "align: Align", "default": "center", "attr": "", "doc": "Where the children sit across the row (`align-items`)." },
+            { "name": "justify", "kind": "choice", "choices": ["start", "center", "end", "between"], "args": "justify: Justify", "default": "start", "attr": "", "doc": "How the children share the row (`justify-content`)." },
+            { "name": "padding", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "Padding on every side as a step of the `--lui-space-*` scale." },
+            { "name": "nowrap", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Keep the children on one line; they shrink instead of wrapping." }
           ]
         }
       ]
@@ -1719,6 +1729,416 @@
             { "name": "item", "kind": "item", "args": "markup: Markup", "default": "", "attr": "", "doc": "One item of markup: a logo, a quote, a card." },
             { "name": "reverse", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Scroll towards the end of the line instead of the start." },
             { "name": "duration", "kind": "number", "args": "seconds: u32", "default": "40", "attr": "style", "doc": "Seconds for one full loop (`--lui-marquee-duration`)." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Heading",
+      "module": "heading",
+      "look": "Radix Themes Heading",
+      "responsive": "-",
+      "features": [
+        { "name": "<h1>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "text-wrap: balance", "baseline": { "chrome": "114", "firefox": "121", "safari": "17.5" } },
+        { "name": "text-box", "baseline": { "chrome": "133", "firefox": "no", "safari": "18.2" } }
+      ],
+      "fallback": "untrimmed line box without text-box; greedy line breaks without balance",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Heading",
+          "lui": "Heading",
+          "status": "beta",
+          "calls": ["ui.heading(text: &str)"],
+          "props": [
+            { "name": "size", "kind": "value", "args": "size: u8", "default": "6", "attr": "", "doc": "Radix's sizes 1–9: 12, 14, 16, 18, 20, 24, 28, 35 or 60px." },
+            { "name": "as_h", "kind": "number", "args": "level: u8", "default": "1", "attr": "", "doc": "The element, `<h1>` to `<h6>`: the level in the page's outline." },
+            { "name": "weight", "kind": "choice", "choices": ["light", "regular", "medium", "bold"], "args": "weight: Weight", "default": "bold", "attr": "", "doc": "How heavy the letters are." },
+            { "name": "trim", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Trim the space above the capitals and below the baseline." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Text",
+      "module": "text",
+      "look": "Radix Themes Text",
+      "responsive": "-",
+      "features": [
+        { "name": "text-overflow: ellipsis", "baseline": { "chrome": "1", "firefox": "7", "safari": "1.3" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Text",
+          "lui": "Text",
+          "status": "beta",
+          "calls": ["ui.text(text: &str)"],
+          "props": [
+            { "name": "size", "kind": "value", "args": "size: u8", "default": "inherit", "attr": "", "doc": "Radix's sizes 1–9: 12, 14, 16, 18, 20, 24, 28, 35 or 60px." },
+            { "name": "weight", "kind": "choice", "choices": ["light", "regular", "medium", "bold"], "args": "weight: Weight", "default": "inherit", "attr": "", "doc": "How heavy the letters are." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "inherit", "attr": "", "doc": "The colour: step 11 of the tone's scale." },
+            { "name": "as_p", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A `<p>`: a paragraph of its own." },
+            { "name": "as_div", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A `<div>`: a block that is not a paragraph (a caption, a cell's second line)." },
+            { "name": "muted", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The muted gray of hints and secondary lines." },
+            { "name": "truncate", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "One line, cut with an ellipsis where it overflows." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Link",
+      "module": "link",
+      "look": "Radix Themes Link",
+      "responsive": "-",
+      "features": [
+        { "name": "<a href>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "text-underline-offset", "baseline": { "chrome": "87", "firefox": "70", "safari": "12.1" } },
+        { "name": "target=\"_blank\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Link",
+          "lui": "Link",
+          "status": "beta",
+          "calls": ["ui.link(text: &str, href: &str)"],
+          "props": [
+            { "name": "underline", "kind": "choice", "choices": ["always", "hover", "none"], "args": "underline: Underline", "default": "always", "attr": "", "doc": "When the underline shows: always, on hover, or never." },
+            { "name": "external", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Opens in a new tab, with an arrow and a hint for screen readers." },
+            { "name": "muted", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The muted gray, the text colour on hover: a footer's or a caption's links." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kbd",
+      "module": "kbd",
+      "look": "Radix Themes Kbd",
+      "responsive": "-",
+      "features": [
+        { "name": "<kbd>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "box-shadow", "baseline": { "chrome": "10", "firefox": "4", "safari": "5.1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Kbd",
+          "lui": "Kbd",
+          "status": "beta",
+          "calls": ["ui.kbd(keys: &str)"],
+          "props": [
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "Size 1 at 0.7em of the text around it, 2 at 0.75rem (the default), 3 at 0.875rem." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Code",
+      "module": "code",
+      "look": "Radix Themes Code, shadcn/ui docs code block",
+      "responsive": "content",
+      "features": [
+        { "name": "<pre>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "overflow-x: auto", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "tab-size", "baseline": { "chrome": "21", "firefox": "91", "safari": "7" } },
+        { "name": "navigator.clipboard", "baseline": { "chrome": "66", "firefox": "63", "safari": "13.1" } }
+      ],
+      "fallback": "select the text: the copy button is hidden until the script shows it",
+      "needs_js": "partial",
+      "needs_js_note": "the copy button needs script; without it the code is selected by hand",
+      "builders": [
+        {
+          "builder": "Code",
+          "lui": "Code",
+          "status": "beta",
+          "calls": ["ui.code(text: &str)"],
+          "props": [
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "neutral", "attr": "", "doc": "The colour of the tint and the text." },
+            { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "A tint (soft), a fill (solid), a tint in a border (surface), a border (outline) or the text alone (ghost)." }
+          ]
+        },
+        {
+          "builder": "CodeBlock",
+          "lui": "CodeBlock",
+          "status": "beta",
+          "calls": ["ui.code_block(text: &str)"],
+          "props": [
+            { "name": "lang", "kind": "value", "args": "lang: &'a str", "default": "", "attr": "", "doc": "The language, written as `class=\"language-…\"` for a highlighter." },
+            { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A file name or caption above the code; it names the region too." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "Replace the id derived from the title (or the code)." },
+            { "name": "copy", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A copy button in the corner, shown and wired by the enhancement script only." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Blockquote",
+      "module": "blockquote",
+      "look": "Radix Themes Blockquote",
+      "responsive": "-",
+      "features": [
+        { "name": "<figure>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "border-inline-start", "baseline": { "chrome": "87", "firefox": "66", "safari": "14.1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Blockquote",
+          "lui": "Blockquote",
+          "status": "beta",
+          "calls": ["ui.blockquote()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "The quotation." },
+            { "name": "cite", "kind": "value", "args": "source: &'a str", "default": "", "attr": "", "doc": "Who said it, or the work it is from, in a `<cite>` under the quotation." },
+            { "name": "href", "kind": "value", "args": "url: &'a str", "default": "", "attr": "", "doc": "The URL of the source, written as the blockquote's `cite` attribute." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Prose",
+      "module": "prose",
+      "look": "shadcn/ui Typography",
+      "responsive": "content",
+      "features": [
+        { "name": ":where()", "baseline": { "chrome": "88", "firefox": "78", "safari": "14" } },
+        { "name": "text-wrap: pretty", "baseline": { "chrome": "117", "firefox": "no", "safari": "26" } }
+      ],
+      "fallback": "greedy line breaks without text-wrap: pretty",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Prose",
+          "lui": "Prose",
+          "status": "beta",
+          "calls": ["ui.prose()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "The HTML to style: headings, paragraphs, lists, quotes, code, tables." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Container",
+      "module": "container",
+      "look": "Radix Themes Container",
+      "responsive": "content",
+      "features": [
+        { "name": "max-width", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "min()", "baseline": { "chrome": "79", "firefox": "75", "safari": "11.1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Container",
+          "lui": "Container",
+          "status": "beta",
+          "calls": ["ui.container()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What the column holds." },
+            { "name": "size", "kind": "value", "args": "size: u8", "default": "4", "attr": "", "doc": "Radix's sizes 1–4: at most 448, 688, 880 or 1136px wide." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Section",
+      "module": "section",
+      "look": "Radix Themes Section",
+      "responsive": "-",
+      "features": [
+        { "name": "<section>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "padding-block", "baseline": { "chrome": "87", "firefox": "66", "safari": "14.1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Section",
+          "lui": "Section",
+          "status": "beta",
+          "calls": ["ui.section()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What the band holds." },
+            { "name": "size", "kind": "value", "args": "size: u8", "default": "3", "attr": "", "doc": "Radix's sizes 1–4: 24, 40, 64 or 80px above and below." },
+            { "name": "label", "kind": "value", "args": "label: &'a str", "default": "", "attr": "", "doc": "A name (`aria-label`), which makes the section a region landmark." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inset",
+      "module": "inset",
+      "look": "Radix Themes Inset",
+      "responsive": "-",
+      "features": [
+        { "name": "overflow: clip", "baseline": { "chrome": "90", "firefox": "81", "safari": "16" } }
+      ],
+      "fallback": "overflow: hidden cuts the same corners",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Inset",
+          "lui": "Inset",
+          "status": "beta",
+          "calls": ["ui.inset()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What reaches the edges: a picture, a map, a table." },
+            { "name": "top", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Bleed through the card's top edge too (first in a card with no header)." },
+            { "name": "bottom", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Bleed through the card's bottom edge too (last in a card with no footer)." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Aspect ratio",
+      "module": "aspect_ratio",
+      "look": "Radix Themes AspectRatio",
+      "responsive": "content",
+      "features": [
+        { "name": "aspect-ratio", "baseline": { "chrome": "88", "firefox": "89", "safari": "15" } },
+        { "name": "object-fit: cover", "baseline": { "chrome": "32", "firefox": "36", "safari": "10" } }
+      ],
+      "fallback": "the box takes its content's height",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "AspectRatio",
+          "lui": "AspectRatio",
+          "status": "beta",
+          "calls": ["ui.aspect_ratio()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What fills the box: a picture, a video, a map." },
+            { "name": "ratio", "kind": "value", "args": "width: u32, height: u32", "default": "1 / 1", "attr": "", "doc": "Width to height: `(16, 9)`, `(4, 3)`." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Scroll area",
+      "module": "scroll_area",
+      "look": "Radix Themes ScrollArea",
+      "responsive": "container",
+      "features": [
+        { "name": "scrollbar-gutter: stable", "baseline": { "chrome": "94", "firefox": "97", "safari": "18.2" } },
+        { "name": "scrollbar-width", "baseline": { "chrome": "121", "firefox": "64", "safari": "26" } },
+        { "name": "scroll-state()", "baseline": { "chrome": "133", "firefox": "no", "safari": "no" } }
+      ],
+      "fallback": "no edge shadows without scroll-state(): the scrollbar alone shows there is more",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "ScrollArea",
+          "lui": "ScrollArea",
+          "status": "beta",
+          "calls": ["ui.scroll_area(label: &str)"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What scrolls." },
+            { "name": "height", "kind": "value", "args": "height: &'a str", "default": "16rem", "attr": "", "doc": "The box's height as a CSS length (`12rem`, `50vh`)." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Center",
+      "module": "center",
+      "look": "Radix Themes Flex align=center justify=center",
+      "responsive": "content",
+      "features": [
+        { "name": "place-items: center", "baseline": { "chrome": "59", "firefox": "45", "safari": "11" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Center",
+          "lui": "Center",
+          "status": "beta",
+          "calls": ["ui.center()"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What is centred." },
+            { "name": "min_height", "kind": "value", "args": "height: &'a str", "default": "", "attr": "", "doc": "At least this tall (a CSS length), so there is room to centre in." },
+            { "name": "text_center", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Centre the lines of text too." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Spacer",
+      "module": "spacer",
+      "look": "Radix Themes Box flexGrow=1",
+      "responsive": "content",
+      "features": [
+        { "name": "flex: 1 1 auto", "baseline": { "chrome": "29", "firefox": "28", "safari": "9" } }
+      ],
+      "fallback": "an empty block outside a flex container",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Spacer",
+          "lui": "Spacer",
+          "status": "beta",
+          "calls": ["ui.spacer()"],
+          "props": [
+            { "name": "min", "kind": "value", "args": "length: &'a str", "default": "", "attr": "", "doc": "The least room it keeps (a CSS length), even when the row is full." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Spinner",
+      "module": "spinner",
+      "look": "Radix Themes Spinner",
+      "responsive": "-",
+      "features": [
+        { "name": "@keyframes", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "prefers-reduced-motion", "baseline": { "chrome": "74", "firefox": "63", "safari": "10.1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Spinner",
+          "lui": "Spinner",
+          "status": "beta",
+          "calls": ["ui.spinner()"],
+          "props": [
+            { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "12px (size 1), 16px (2, the default) or 20px (3) across." },
+            { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Loading", "attr": "", "doc": "What a screen reader announces: what is loading." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Indicator",
+      "module": "indicator",
+      "look": "Origin UI notification badge",
+      "responsive": "-",
+      "features": [
+        { "name": "inset-inline-end", "baseline": { "chrome": "87", "firefox": "63", "safari": "14.1" } },
+        { "name": "translate", "baseline": { "chrome": "104", "firefox": "72", "safari": "14.1" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Indicator",
+          "lui": "Indicator",
+          "status": "beta",
+          "calls": ["ui.indicator(count: u64)"],
+          "props": [
+            { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What the badge sits on: a button, an avatar, a link." },
+            { "name": "max", "kind": "number", "args": "max: u64", "default": "", "attr": "", "doc": "Above this count, show `max+` (`99+`)." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "danger", "attr": "", "doc": "The badge's colour." },
+            { "name": "label", "kind": "value", "args": "label: &'a str", "default": "{n} new", "attr": "", "doc": "What a screen reader says instead of the count in words." },
+            { "name": "dot", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A dot instead of the number." }
           ]
         }
       ]

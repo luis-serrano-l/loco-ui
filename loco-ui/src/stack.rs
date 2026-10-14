@@ -62,12 +62,20 @@ impl Stack {
             .doc("What is stacked: each top-level element under the one before."),
         Prop::new("gap", PropKind::Number, "n: u8")
             .doc("The gap as a step of the `--lui-space-*` scale."),
-        Prop::new("align", PropKind::Choice { of: Align::NAMES }, "align: Align")
-            .default("stretch")
-            .doc("Where the children sit across the column (`align-items`)."),
-        Prop::new("justify", PropKind::Choice { of: Justify::NAMES }, "justify: Justify")
-            .default("start")
-            .doc("How the children share the column's height (`justify-content`)."),
+        Prop::new(
+            "align",
+            PropKind::Choice { of: Align::NAMES },
+            "align: Align",
+        )
+        .default("stretch")
+        .doc("Where the children sit across the column (`align-items`)."),
+        Prop::new(
+            "justify",
+            PropKind::Choice { of: Justify::NAMES },
+            "justify: Justify",
+        )
+        .default("start")
+        .doc("How the children share the column's height (`justify-content`)."),
         Prop::new("padding", PropKind::Number, "n: u8")
             .doc("Padding on every side as a step of the `--lui-space-*` scale."),
     ];

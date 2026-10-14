@@ -250,18 +250,18 @@ pub const CSS: &str = r#"
 .lui-code[data-variant=outline] { background: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lui-code-tone) 45%, transparent); }
 .lui-code[data-variant=ghost] { background: none; padding: 0; }
 /* After the shadcn/ui docs' code block: a --lui-gray-2 panel in a 1px border, radius
-   --lui-radius-lg, 1rem padding, text-sm mono; the file name sits in a strip above. */
+   --lui-radius-lg, 1rem padding, --lui-text-2 mono; the file name sits in a strip above. */
 .lui-code-block {
   position: relative; min-width: 0; max-width: 100%; margin: 0;
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); background: var(--lui-gray-2); overflow: hidden;
 }
 .lui-code-block-title {
   padding: 0.5rem 1rem; border-bottom: 1px solid var(--lui-line); color: var(--lui-muted);
-  font-family: var(--lui-font-mono); font-size: 0.8125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--lui-font-mono); font-size: var(--lui-text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .lui-code-block-pre {
   margin: 0; padding: 1rem; overflow-x: auto; tab-size: 4;
-  font-family: var(--lui-font-mono); font-size: 0.875rem; line-height: 1.5rem; color: var(--lui-fg);
+  font-family: var(--lui-font-mono); font-size: var(--lui-text-2); line-height: var(--lui-leading-3); color: var(--lui-fg);
   scrollbar-width: thin; scrollbar-color: var(--lui-line) transparent;
 }
 .lui-code-block-pre > code { font: inherit; background: none; border: 0; padding: 0; }

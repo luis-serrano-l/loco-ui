@@ -371,7 +371,8 @@ pub enum Weight {
 
 impl Weight {
     /// Every value, in the order of [`Self::NAMES`].
-    pub const ALL: &'static [Weight] = &[Weight::Light, Weight::Regular, Weight::Medium, Weight::Bold];
+    pub const ALL: &'static [Weight] =
+        &[Weight::Light, Weight::Regular, Weight::Medium, Weight::Bold];
     /// Every value as written in `data-weight` and in `lui!`.
     pub const NAMES: &'static [&'static str] = &["light", "regular", "medium", "bold"];
 
@@ -432,7 +433,13 @@ pub enum Align {
 
 impl Align {
     /// Every value, in the order of [`Self::NAMES`].
-    pub const ALL: &'static [Align] = &[Align::Start, Align::Center, Align::End, Align::Baseline, Align::Stretch];
+    pub const ALL: &'static [Align] = &[
+        Align::Start,
+        Align::Center,
+        Align::End,
+        Align::Baseline,
+        Align::Stretch,
+    ];
     /// Every value as written in `data-align` and in `lui!`.
     pub const NAMES: &'static [&'static str] = &["start", "center", "end", "baseline", "stretch"];
 
@@ -492,7 +499,12 @@ pub enum Justify {
 
 impl Justify {
     /// Every value, in the order of [`Self::NAMES`].
-    pub const ALL: &'static [Justify] = &[Justify::Start, Justify::Center, Justify::End, Justify::Between];
+    pub const ALL: &'static [Justify] = &[
+        Justify::Start,
+        Justify::Center,
+        Justify::End,
+        Justify::Between,
+    ];
     /// Every value as written in `data-justify` and in `lui!`.
     pub const NAMES: &'static [&'static str] = &["start", "center", "end", "between"];
 

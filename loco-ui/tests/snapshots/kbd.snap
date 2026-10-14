@@ -1,0 +1,8 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<kbd class="lui-kbd" data-size="3">Esc</kbd>
+
+caps: none
+<kbd class="lui-kbd" data-size="3">Esc</kbd>

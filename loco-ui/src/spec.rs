@@ -137,13 +137,16 @@ pub const SPECS: &[ComponentSpec] = &[
         name: "Layout",
         module: "layout",
         look: "Radix Themes scales and depth, a Linear / Magic UI finish",
-        responsive: Responsive::Viewport,
+        responsive: Responsive::Content,
         features: &[
             f("@view-transition", b("126", "no", "18.2")),
             PREFERS_COLOR_SCHEME,
             f("custom properties", b("49", "31", "9.1")),
+            f("@layer", b("99", "97", "15.4")),
+            f("light-dark()", b("123", "120", "17.5")),
+            f("forced-colors", b("89", "89", "16")),
         ],
-        fallback: "plain navigations (root never cross-fades); colours still switch by media query and data-theme",
+        fallback: "plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white",
         needs_js: NeedsJs::No,
     },
     ComponentSpec {
@@ -891,7 +894,8 @@ pub const SPECS: &[ComponentSpec] = &[
         ],
         fallback: "at rest: the items wrap and the copy is hidden, without translate or under reduced motion",
         needs_js: NeedsJs::No,
-    },    ComponentSpec {
+    },
+    ComponentSpec {
         name: "Heading",
         module: "heading",
         look: "Radix Themes Heading",
@@ -947,7 +951,9 @@ pub const SPECS: &[ComponentSpec] = &[
             f("navigator.clipboard", b("66", "63", "13.1")),
         ],
         fallback: "select the text: the copy button is hidden until the script shows it",
-        needs_js: NeedsJs::Partial("the copy button needs script; without it the code is selected by hand"),
+        needs_js: NeedsJs::Partial(
+            "the copy button needs script; without it the code is selected by hand",
+        ),
     },
     ComponentSpec {
         name: "Blockquote",
@@ -1063,10 +1069,7 @@ pub const SPECS: &[ComponentSpec] = &[
         module: "indicator",
         look: "Origin UI notification badge",
         responsive: Responsive::None,
-        features: &[
-            f("inset-inline-end", b("87", "63", "14.1")),
-            TRANSLATE,
-        ],
+        features: &[f("inset-inline-end", b("87", "63", "14.1")), TRANSLATE],
         fallback: "none needed",
         needs_js: NeedsJs::No,
     },

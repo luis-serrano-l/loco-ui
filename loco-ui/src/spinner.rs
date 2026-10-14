@@ -109,7 +109,7 @@ pub const CSS: &str = r#"
    side clear (Radix's eight leaves need eight elements), a turn every 0.6s. */
 .lui-spinner {
   display: inline-block; width: 1rem; height: 1rem; flex: none; box-sizing: border-box; vertical-align: middle;
-  border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; border: 2px solid currentColor; border-inline-end-color: transparent;
   animation: lui-spin 0.6s linear infinite;
 }
 .lui-spinner[data-size="1"] { width: 0.75rem; height: 0.75rem; border-width: 1.5px; }

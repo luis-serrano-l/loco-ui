@@ -106,9 +106,13 @@ impl Text<'_> {
         Prop::new("size", PropKind::Value, "size: u8")
             .default("inherit")
             .doc("Radix's sizes 1–9: 12, 14, 16, 18, 20, 24, 28, 35 or 60px."),
-        Prop::new("weight", PropKind::Choice { of: Weight::NAMES }, "weight: Weight")
-            .default("inherit")
-            .doc("How heavy the letters are."),
+        Prop::new(
+            "weight",
+            PropKind::Choice { of: Weight::NAMES },
+            "weight: Weight",
+        )
+        .default("inherit")
+        .doc("How heavy the letters are."),
         Prop::new("tone", PropKind::Choice { of: Tone::NAMES }, "tone: Tone")
             .default("inherit")
             .doc("The colour: step 11 of the tone's scale."),
@@ -193,22 +197,22 @@ impl Render for Text<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* After Radix Themes Text: the type scale of Heading (12/16 to 60/60 px), no margin of its
-   own, step 11 of a scale for a tone and --lui-muted for a hint. */
+/* After Radix Themes Text: the type scale 1–9 (--lui-text-n over --lui-leading-n), shared
+   with Heading, no margin of its own, step 11 of a scale for a tone, --lui-muted for a hint. */
 .lui-text { margin: 0; overflow-wrap: break-word; }
-.lui-text[data-size="1"] { font-size: 0.75rem; line-height: 1rem; letter-spacing: 0.0025em; }
-.lui-text[data-size="2"] { font-size: 0.875rem; line-height: 1.25rem; }
-.lui-text[data-size="3"] { font-size: 1rem; line-height: 1.5rem; }
-.lui-text[data-size="4"] { font-size: 1.125rem; line-height: 1.625rem; letter-spacing: -0.0025em; }
-.lui-text[data-size="5"] { font-size: 1.25rem; line-height: 1.75rem; letter-spacing: -0.005em; }
-.lui-text[data-size="6"] { font-size: 1.5rem; line-height: 1.875rem; letter-spacing: -0.00625em; }
-.lui-text[data-size="7"] { font-size: 1.75rem; line-height: 2.25rem; letter-spacing: -0.0075em; }
-.lui-text[data-size="8"] { font-size: 2.1875rem; line-height: 2.5rem; letter-spacing: -0.01em; }
-.lui-text[data-size="9"] { font-size: 3.75rem; line-height: 3.75rem; letter-spacing: -0.025em; }
-.lui-text[data-weight=light] { font-weight: 300; }
-.lui-text[data-weight=regular] { font-weight: 400; }
-.lui-text[data-weight=medium] { font-weight: 500; }
-.lui-text[data-weight=bold] { font-weight: 700; }
+:is(.lui-text, .lui-heading)[data-size="1"] { font-size: var(--lui-text-1); line-height: var(--lui-leading-1); letter-spacing: 0.0025em; }
+:is(.lui-text, .lui-heading)[data-size="2"] { font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
+:is(.lui-text, .lui-heading)[data-size="3"] { font-size: var(--lui-text-3); line-height: var(--lui-leading-3); }
+:is(.lui-text, .lui-heading)[data-size="4"] { font-size: var(--lui-text-4); line-height: var(--lui-leading-4); letter-spacing: -0.0025em; }
+:is(.lui-text, .lui-heading)[data-size="5"] { font-size: var(--lui-text-5); line-height: var(--lui-leading-5); letter-spacing: -0.005em; }
+:is(.lui-text, .lui-heading)[data-size="6"] { font-size: var(--lui-text-6); line-height: var(--lui-leading-6); letter-spacing: -0.00625em; }
+:is(.lui-text, .lui-heading)[data-size="7"] { font-size: var(--lui-text-7); line-height: var(--lui-leading-7); letter-spacing: -0.0075em; }
+:is(.lui-text, .lui-heading)[data-size="8"] { font-size: var(--lui-text-8); line-height: var(--lui-leading-8); letter-spacing: -0.01em; }
+:is(.lui-text, .lui-heading)[data-size="9"] { font-size: var(--lui-text-9); line-height: var(--lui-leading-9); letter-spacing: -0.025em; }
+:is(.lui-text, .lui-heading)[data-weight=light] { font-weight: 300; }
+:is(.lui-text, .lui-heading)[data-weight=regular] { font-weight: 400; }
+:is(.lui-text, .lui-heading)[data-weight=medium] { font-weight: 500; }
+:is(.lui-text, .lui-heading)[data-weight=bold] { font-weight: 700; }
 .lui-text-muted { color: var(--lui-muted); }
 .lui-text[data-tone=neutral] { color: var(--lui-gray-11); }
 .lui-text:is([data-tone=brand], [data-tone=info]) { color: var(--lui-brand-11); }

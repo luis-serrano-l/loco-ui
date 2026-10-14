@@ -7,7 +7,7 @@
 //!
 //! **Platform features:** `<a href>` (baseline 1995); `text-underline-offset` and
 //! `text-decoration-thickness` (Chrome 87, Firefox 70, Safari 12.1); `.external()` adds
-//! `target="_blank"` with `rel="noopener noreferrer"`.
+//! `target="_blank"` with `rel="noreferrer"` (which implies `noopener`).
 //!
 //! **Accessibility:** a real link, so it is in the tab order and listed as one. Underlined by
 //! default so it never relies on colour alone in a paragraph; an external link says "(opens
@@ -30,7 +30,7 @@
 //! // Out to another site, muted, underlined only under the pointer.
 //! let a = ui.link("Radix", "https://www.radix-ui.com").external().muted().underline(Underline::Hover);
 //! let a = a.render().into_string();
-//! assert!(a.starts_with(r#"<a class="lui-link lui-link-muted" data-underline="hover" href="https://www.radix-ui.com" target="_blank" rel="noopener noreferrer">Radix"#));
+//! assert!(a.starts_with(r#"<a class="lui-link lui-link-muted" data-underline="hover" href="https://www.radix-ui.com" target="_blank" rel="noreferrer">Radix"#));
 //! assert!(a.contains(r#"<span class="lui-sr"> (opens in a new tab)</span>"#));
 //! let same = lui! { Link("Radix", "https://www.radix-ui.com") external muted underline="hover"; };
 //! assert_eq!(same.into_string(), a);
@@ -98,7 +98,7 @@ impl<'a> Link<'a> {
         self
     }
 
-    /// Opens in a new tab (`target="_blank"`, `rel="noopener noreferrer"`), with an arrow
+    /// Opens in a new tab (`target="_blank"`, `rel="noreferrer"`), with an arrow
     /// after the text and "(opens in a new tab)" for screen readers.
     pub fn external(mut self) -> Self {
         self.external = true;
@@ -125,7 +125,7 @@ impl Render for Link<'_> {
             .map(Underline::as_str);
         html! {
             a class=(class) data-underline=[underline] href=(self.href)
-                target=[self.external.then_some("_blank")] rel=[self.external.then_some("noopener noreferrer")] {
+                target=[self.external.then_some("_blank")] rel=[self.external.then_some("noreferrer")] {
                 (self.text)
                 @if self.external {
                     span class="lui-sr" { " " (self.new_tab) }
