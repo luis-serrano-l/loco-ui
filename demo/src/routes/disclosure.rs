@@ -63,8 +63,8 @@ fn accordion(ui: &Ui) -> Markup {
                     p { "No. Turn it off and reload: every control still works through links and form posts. The one script on the page only swaps the answer in place instead of reloading." }
                 }
                 item "Does it animate?" icon="\u{1F3AC}"
-                    description="Height animates to auto in Chrome; elsewhere it snaps." {
-                    p { "Yes, via ::details-content transitions where supported." }
+                    description="The marker turns; the body opens at once." {
+                    p { "Only the chevron. With the script on, the answer swaps in place; without it, the page reloads at the same item." }
                 }
                 item "Can several be open?" icon="\u{1F4DA}"
                     description="Lists, links and a nested accordion." {

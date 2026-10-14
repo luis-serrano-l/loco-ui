@@ -394,32 +394,32 @@ async fn popover_variants() {
         "closed popover is hidden"
     );
     assert_eq!(
-        modern.count("#account [role=menuitem]"),
+        modern.count("#lui-menu-account [role=menuitem]"),
         7,
         "links, submenu button, action and the disabled link"
     );
     assert!(
-        modern.exists("#account .lui-popover-heading")
-            && modern.count("#account .lui-popover-sep") == 2
+        modern.exists("#lui-menu-account .lui-popover-heading")
+            && modern.count("#lui-menu-account .lui-popover-sep") == 2
     );
     assert!(
-        modern.exists("#account a[aria-disabled=true]:not([href])"),
+        modern.exists("#lui-menu-account a[aria-disabled=true]:not([href])"),
         "disabled link has no href"
     );
     assert!(
         modern.exists(
-            "#account form[method=post][action='/popover/signout'] button.lui-popover-danger"
+            "#lui-menu-account form[method=post][action='/popover/signout'] button.lui-popover-danger"
         ),
         "action is a post form"
     );
     assert!(
-        modern.exists("#account nav#account-theme[popover]")
-            && modern.exists("#account button[popovertarget=account-theme]"),
+        modern.exists("#lui-menu-account nav#lui-menu-account-theme[popover]")
+            && modern.exists("#lui-menu-account button[popovertarget=lui-menu-account-theme]"),
         "submenu is a nested popover"
     );
-    assert!(modern.exists("#account kbd.lui-popover-kbd"));
+    assert!(modern.exists("#lui-menu-account kbd.lui-popover-kbd"));
     assert!(
-        modern.exists(".lui-popover-end nav#more[popover]"),
+        modern.exists(".lui-popover-end nav#lui-menu-more[popover]"),
         "placement class"
     );
     let old = Page::render(demo::router(), "/popover", OLD).await;
@@ -429,7 +429,7 @@ async fn popover_variants() {
         "closed details hides the menu"
     );
     assert!(
-        old.exists("details#account details#account-theme"),
+        old.exists("details#lui-menu-account details#lui-menu-account-theme"),
         "submenu is a nested details"
     );
 }
@@ -1091,8 +1091,8 @@ async fn buttons_badges_and_icons() {
     );
     assert_eq!(
         page.count(".lui-stage svg.lui-icon"),
-        32,
-        "every icon in Icon::ALL"
+        34,
+        "every icon in Icon::ALL, and two leading or trailing a button"
     );
 }
 

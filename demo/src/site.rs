@@ -159,14 +159,14 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
         "/tabs",
         "Tabs",
         "Disclosure",
-        "<details name>, ::details-content, view-transition-name, grid",
+        "links, hidden, view-transition-name, grid",
         "Several panels in one place, one open at a time.",
     ),
     (
         "/accordion",
         "Accordion",
         "Disclosure",
-        "<details name>, ::details-content, interpolate-size",
+        "links, hidden, aria-expanded",
         "Questions that open to their answers.",
     ),
     (
