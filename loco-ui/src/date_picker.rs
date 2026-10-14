@@ -326,5 +326,4 @@ pub const CSS: &str = r#"
 .lui-date-picker-panel { margin: 0; margin-top: var(--lui-space-1); padding: 0; border: 0; background: none; overflow: visible; }
 .lui-date-picker-panel > .lui-calendar { width: 17.5rem; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
 .lui-date-picker-range { display: flex; flex-wrap: wrap; gap: var(--lui-space-1) var(--lui-space-4); margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
-
 "#;

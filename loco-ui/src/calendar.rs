@@ -117,7 +117,6 @@ impl Date {
     }
 
     /// 0 for Monday up to 6 for Sunday.
-
     pub fn weekday(self) -> u8 {
         // 1970-01-01 was a Thursday (3).
         (self.days() + 3).rem_euclid(7) as u8

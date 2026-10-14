@@ -3315,7 +3315,6 @@ mod tests {
     ];
 
     /// Whether some tag in `html` carries the attribute `name`.
-
     fn has_attribute(html: &str, name: &str) -> bool {
         let needle = format!(" {name}");
         html.split('<').skip(1).any(|tag| {

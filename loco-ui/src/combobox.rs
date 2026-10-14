@@ -355,7 +355,6 @@ pub const CSS: &str = r#"
 .lui-combobox-chips { display: contents; }
 /* Picked values are the tag input's chips (.lui-tag-input-chip in tag_input.rs): soft
    badges with a remove link. */
-
 /* Results take the Select picker's look (Radix Themes Select content): a raised panel of
    2rem rows, a check in the left gutter on the picked one, the primary colour on hover and
    focus, and an empty row when nothing matches. */

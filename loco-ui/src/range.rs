@@ -307,7 +307,6 @@ impl Render for Range<'_> {
             }
             (lo, Some(hi)) => {
                 let (lo_id, hi_id) = (format!("{base}_min"), format!("{base}_max"));
-
                 html! {
                     div class="lui-range lui-range-pair" {
                         div class="lui-range-main" {

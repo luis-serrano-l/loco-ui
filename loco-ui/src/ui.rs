@@ -185,7 +185,6 @@ impl Ui {
     }
 
     /// The look this request renders under, if any.
-
     #[cfg(feature = "http")]
     pub(crate) fn current_look(&self) -> Option<&'static Look> {
         self.look
@@ -285,7 +284,6 @@ impl Ui {
     }
 
     /// Every value of the query parameter `key`, in order, for a key built on the spot
-
     /// (`tags[]`): [`Ui::params`] with the key borrowed only while it runs.
     pub(crate) fn param_values(&self, key: &str) -> Vec<&str> {
         (self.params.iter())
@@ -295,7 +293,6 @@ impl Ui {
     }
 
     /// This page's URL with the query parameter `key` set to `value` (added last when absent)
-
     /// and every other parameter kept in order: a link that changes one thing, the way the
     /// calendar's month links and the table's "Edit" links are built.
     ///

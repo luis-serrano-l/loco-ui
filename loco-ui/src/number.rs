@@ -22,7 +22,8 @@
 //! **What it does not do without script:** step in place. Without the script a stepper
 //! submits the form around it with the stepped value as the first `name` posted (the buttons
 //! come before the field in the markup and show after it), which [`crate::Posted::get`] and
-//! [`Ui::param`] read; the page answers with the new value. With the enhancement script a
+//! [`Ui::param`] read (a derived serde struct rejects the repeated name); the page answers
+//! with the new value. With the enhancement script a
 //! stepper calls `stepUp()`/`stepDown()` on the field and nothing is sent. A stepper is a
 //! submit button, so in a form with several fields put the number after the field Enter is
 //! pressed in, or give the form its own submit button first (the browser's Enter presses

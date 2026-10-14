@@ -221,7 +221,6 @@ pub const CSS: &str = r#"
 .lui-tag-input-chips { display: contents; list-style: none; }
 .lui-tag-input-box > .lui-tag-input-field { flex: 1 1 8rem; width: auto; min-width: 0; min-height: calc(var(--lui-control-h) - 0.5rem); padding-block: 0; border: 0; background: transparent; }
 .lui-tag-input-box > .lui-tag-input-field:focus-visible { outline: none; }
-
 .lui-tag-input-chip {
   display: inline-flex; align-items: center; gap: 0.25rem; max-width: 100%; padding-block: 0.125rem; padding-inline: 0.5rem 0.25rem;
   border-radius: var(--lui-radius-sm); background: var(--lui-brand-3); color: var(--lui-brand-11);

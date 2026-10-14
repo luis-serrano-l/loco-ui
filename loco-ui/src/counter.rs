@@ -216,7 +216,6 @@ impl Render for Counter<'_> {
                             _ => {},
                         }
                         @if step != 1.0 { (self.strings.fill(Text::InStepsOf, &[&self.strings.digits(step)])) }
-
                     }
                 }
             }

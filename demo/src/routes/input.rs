@@ -528,7 +528,6 @@ fn tag_input(ui: &Ui) -> Markup {
 }
 
 /// A one-time code: one field the phone offers to fill from the message.
-
 fn otp(ui: &Ui) -> Markup {
     lui! {
         Form("/otp") get submit="Verify" {

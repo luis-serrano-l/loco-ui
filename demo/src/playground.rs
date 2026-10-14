@@ -457,7 +457,6 @@ pub(crate) const ENTRIES: &[Entry] = &[
     Entry {
         builder: "ErrorPage",
         call: "ErrorPage(404)",
-
         props: &["title", "description", "home"],
         rest: ";",
         build: |query| {

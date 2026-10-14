@@ -1616,8 +1616,13 @@ async fn number_rating_tags_and_reveal() {
         "the steppers come after the field"
     );
     assert!(
-        page.html.matches(r#"name="qty" value="4" aria-label="increment""#).count() == 1
-            && page.html.contains(r#"name="qty" value="2" aria-label="decrement""#),
+        page.html
+            .matches(r#"name="qty" value="4" aria-label="increment""#)
+            .count()
+            == 1
+            && page
+                .html
+                .contains(r#"name="qty" value="2" aria-label="decrement""#),
         "the steppers post the value one step up and down"
     );
     let (prefix, price) = (
