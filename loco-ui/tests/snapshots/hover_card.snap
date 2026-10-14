@@ -1,0 +1,21 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<span class="lui-hover-card">
+<a class="lui-hover-card-link" href="/changelog" interestfor="notes">Release notes</a>
+<span id="notes" popover="hint" class="lui-hover-card-content">What changed in 0.2.</span>
+</span>
+
+caps: none
+<span class="lui-hover-card">
+<a class="lui-hover-card-link" href="/changelog">Release notes</a>
+<details>
+<summary class="lui-button lui-button-ghost lui-button-small lui-button-icon" aria-label="More about Release notes">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
+<path d="m6 9 6 6 6-6"/>
+</svg>
+</summary>
+<span id="notes" class="lui-hover-card-content">What changed in 0.2.</span>
+</details>
+</span>

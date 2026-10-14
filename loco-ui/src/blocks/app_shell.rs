@@ -42,6 +42,10 @@
 //! let m = ui.app_shell("Acme").banner(ui.banner("Maintenance at 22:00.").render()).render().into_string();
 //! assert!(m.starts_with(r#"<div class="lui-app-shell"><aside class="lui-banner""#));
 //! assert_eq!(lui! { AppShell("Acme") banner=(ui.banner("Maintenance at 22:00.").render()); }.into_string(), m);
+//! // On `/p/apollo/settings` the link to `/p/apollo` is current.
+//! let ui = Ui::from_request("/p/apollo/settings", "", "");
+//! let m = ui.app_shell("Acme").current_prefix().link("Apollo", "/p/apollo").render().into_string();
+//! assert!(m.contains(r#"<a href="/p/apollo" aria-current="page">"#));
 //! ```
 
 use std::fmt::Display;
@@ -58,6 +62,7 @@ use crate::sidebar::Sidebar;
 ///
 /// **Setters.** Values and items: `.group(..)`, `.link(..)`, `.icon(..)`, `.badge(..)`,
 /// `.user(..)`, `.body(..)`, `.banner(..)`.
+/// `.user(..)`, `.body(..)`; switches: `.current_prefix()`.
 #[derive(Clone, Debug)]
 pub struct AppShell<'a> {
     ui: &'a Ui,
@@ -84,6 +89,9 @@ impl AppShell<'_> {
         Prop::new("body", PropKind::Value, "body: Markup").doc("The page's content."),
         Prop::new("banner", PropKind::Value, "banner: Markup")
             .doc("A bar across the top, above the sidebar and the content (a `ui.banner(..)`)."),
+        Prop::new("current_prefix", PropKind::Switch, "").doc(
+            "Mark a link current also when the path is under it (`/projects` on `/projects/42`).",
+        ),
     ];
 }
 
@@ -142,6 +150,13 @@ impl<'a> AppShell<'a> {
     /// rendered (`ui.banner("..").dismiss().render()`).
     pub fn banner(mut self, banner: Markup) -> Self {
         self.banner = Some(banner);
+        self
+    }
+
+    /// Mark a link current also when the path is under it: `/projects` on `/projects/42`
+    /// (see [`Sidebar::current_prefix`]).
+    pub fn current_prefix(mut self) -> Self {
+        self.nav = self.nav.current_prefix();
         self
     }
 }

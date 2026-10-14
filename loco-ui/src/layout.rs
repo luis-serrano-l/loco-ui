@@ -937,6 +937,8 @@ pub(crate) struct Doc<'a> {
     pub(crate) theme: Theme,
     pub(crate) tokens: Option<&'a Tokens>,
     pub(crate) css: &'a [&'static str],
+    /// `<link rel href>` pairs ([`crate::Page::link_rel`]).
+    pub(crate) links: &'a [crate::ui::LinkRel],
     pub(crate) header: Option<&'a Markup>,
     pub(crate) script: bool,
     pub(crate) sheet: Sheet,
@@ -952,6 +954,7 @@ impl<'a> Doc<'a> {
             theme,
             tokens: None,
             css: &[],
+            links: &[],
             header: None,
             script: true,
             sheet: Sheet::Inline,
@@ -989,6 +992,7 @@ impl<'a> Doc<'a> {
                 // Hold a cross-document view transition until `#main` is parsed. Streamed
                 // pages must not: their parse ends only when the last slot has filled.
                 @if self.caps.has(crate::Cap::ViewTransitions) { link rel="expect" href="#main" blocking="render"; }
+                @for (rel, href) in self.links { link rel=(rel) href=(href); }
                 @if self.sheet == Sheet::Linked { link rel="stylesheet" href=(stylesheet_url()); }
                 @for (class, text) in self.styles() { style class=[class] { (PreEscaped(text)) } }
             }

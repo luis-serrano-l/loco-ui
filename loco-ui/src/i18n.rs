@@ -414,6 +414,10 @@ pub enum Text {
     SlideOf,
     /// "slide": carousel: a slide's role description.
     Slide,
+    /// "completed": steps: read after a done step's title.
+    Completed,
+    /// "More about {}": hover card: the button that opens the card by click.
+    MoreAbout,
 }
 
 /// How many texts there are.
@@ -422,7 +426,7 @@ const N: usize = Text::ALL.len();
 #[allow(deprecated)]
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 174] = [
+    pub const ALL: [Text; 176] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -597,6 +601,8 @@ impl Text {
         Text::NextSlide,
         Text::SlideOf,
         Text::Slide,
+        Text::Completed,
+        Text::MoreAbout,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -804,6 +810,8 @@ const ENGLISH: [&str; N] = [
     "Next slide",
     "Slide {} of {}",
     "slide",
+    "completed",
+    "More about {}",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

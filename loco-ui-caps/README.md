@@ -64,6 +64,7 @@ anything else.
 | `light_dark` | `light-dark()` | Chrome 123, Firefox 120, Safari 17.5 |
 | `streaming_dsd` | `<template shadowrootmode>` (proxy) | Chrome 111, Firefox 123, Safari 16.4 |
 | `base_select` | `appearance: base-select`, `<selectedcontent>` | Chrome 135, Safari 27 |
+| `interest_invokers` | `interestfor` (its `:interest-source` pseudo-class) | Chrome 142 |
 
 CSS cannot test HTML attributes, so `invokers` and `streaming_dsd` test CSS features that
 shipped in the same release or later; they never claim a feature the browser lacks.

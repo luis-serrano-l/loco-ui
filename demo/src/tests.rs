@@ -182,8 +182,7 @@ async fn pages_ship_only_the_enhancement_script() {
             // sidebar links on every page).
             // M40d the banner, popover and carousel previews.
             let budget = match path {
-                "/" => 240, // 228 KB with M40a and M40d together
-
+                "/" => 256, // 228 KB with M40a and M40d, then M40b's six navigation previews
                 // M39's theme builder: density, radius, fonts and the colour-role table.
                 p if p.starts_with("/theme") => 64,
                 // M40d: six components, with the props tables of their new setters.

@@ -187,7 +187,9 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::PreviousSlide, "Diapositiva anterior")
     .with(Text::NextSlide, "Diapositiva siguiente")
     .with(Text::SlideOf, "Diapositiva {} de {}")
-    .with(Text::Slide, "diapositiva");
+    .with(Text::Slide, "diapositiva")
+    .with(Text::Completed, "completado")
+    .with(Text::MoreAbout, "Más sobre {}");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

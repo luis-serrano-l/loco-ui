@@ -102,6 +102,7 @@
             { "name": "formnovalidate", "kind": "switch", "args": "", "default": "off", "attr": "formnovalidate", "doc": "`formnovalidate`." },
             { "name": "rel", "kind": "value", "args": "rel: &'a str", "default": "", "attr": "rel", "doc": "`rel` of a link (`\"prev\"`, `\"next\"`)." },
             { "name": "current", "kind": "condition", "args": "on: bool", "default": "off", "attr": "aria-current", "doc": "`aria-current=\"page\"`." },
+            { "name": "interestfor", "kind": "value", "args": "id: &'a str", "default": "", "attr": "interestfor", "doc": "Show the popover with this id while the button or link has the pointer or focus (`interestfor`)." },
             { "name": "shimmer", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A light sweeps across the button, over its own background." }
           ]
         }
@@ -1385,7 +1386,9 @@
           "calls": ["ui.breadcrumbs()"],
           "props": [
             { "name": "link", "kind": "item", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "One step from the root towards this page." },
-            { "name": "here", "kind": "item", "args": "label: &'a str", "default": "", "attr": "", "doc": "The current page, last in the trail and not a link." }
+            { "name": "here", "kind": "item", "args": "label: &'a str", "default": "", "attr": "", "doc": "The current page, last in the trail and not a link." },
+            { "name": "max", "kind": "number", "args": "n: usize", "default": "4", "attr": "", "doc": "The most crumbs shown, the current page included, before the middle folds into a menu." },
+            { "name": "separator", "kind": "value", "args": "glyph: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "A glyph or an icon between the crumbs instead of the chevron." }
           ]
         }
       ]
@@ -1530,7 +1533,8 @@
             { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the link added last." },
             { "name": "badge", "kind": "modifier", "args": "text: impl Display", "default": "", "attr": "", "doc": "A count after the link added last." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the group headings' ids instead of `lui-sidebar-<label>`." },
-            { "name": "collapsible", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A toggle that folds it to an icon rail, the labels shown as tooltips." }
+            { "name": "collapsible", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A toggle that folds it to an icon rail, the labels shown as tooltips." },
+            { "name": "current_prefix", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Mark a link current also when the path is under it (`/projects` on `/projects/42`)." }
           ]
         }
       ]
@@ -1556,7 +1560,8 @@
           "props": [
             { "name": "link", "kind": "item", "args": "text: &'a str, href: &'a str", "default": "", "attr": "href", "doc": "A link in the row; the one to the current path is marked current." },
             { "name": "panel", "kind": "item", "args": "text: &'a str, items: impl IntoIterator<Item = I>", "default": "", "attr": "", "doc": "A button that opens a panel of `items` (`MenuItem`s or `(text, href)` links)." },
-            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the panels' ids instead of `nav-<label>`." }
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the panels' ids instead of `nav-<label>`." },
+            { "name": "current_prefix", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Mark a link current also when the path is under it (`/projects` on `/projects/42`)." }
           ]
         }
       ]
@@ -2258,6 +2263,180 @@
           "props": [
             { "name": "item", "kind": "item", "args": "markup: Markup", "default": "", "attr": "", "doc": "A slide." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The prefix of the slides' ids (`<id>-<n>`) instead of the label's slug." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pagination",
+      "module": "pagination",
+      "look": "shadcn/ui Pagination",
+      "responsive": "container",
+      "features": [
+        { "name": "<nav>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "aria-current=\"page\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "rel=\"prev\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "<link rel>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "@container", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } }
+      ],
+      "fallback": "none needed: every page is a link",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Pagination",
+          "lui": "Pagination",
+          "status": "beta",
+          "calls": ["ui.pagination(href: &str)"],
+          "props": [
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "Read and write `?page.<id>=` instead of `?page=`, so two lists on one page page on their own." },
+            { "name": "page", "kind": "number", "args": "page: usize", "default": "", "attr": "", "doc": "Show page `page` (1-based) whatever the request says." },
+            { "name": "total", "kind": "number", "args": "total: usize", "default": "0", "attr": "", "doc": "How many items the list holds." },
+            { "name": "per_page", "kind": "number", "args": "per_page: usize", "default": "10", "attr": "", "doc": "Items a page." },
+            { "name": "window", "kind": "number", "args": "neighbours: usize", "default": "1", "attr": "", "doc": "How many pages to number on each side of the current one." },
+            { "name": "param", "kind": "item", "args": "key: &'a str, value: &'a str", "default": "", "attr": "", "doc": "A query pair every link carries (a filter, a sort)." },
+            { "name": "first_last", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "\"First\" and \"Last\" links outside Previous and Next." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Steps",
+      "module": "steps",
+      "look": "Origin UI Stepper",
+      "responsive": "container",
+      "features": [
+        { "name": "<ol>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "aria-current=\"step\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "@container", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } }
+      ],
+      "fallback": "none needed: a list of links",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Steps",
+          "lui": "Steps",
+          "status": "beta",
+          "calls": ["ui.steps()"],
+          "props": [
+            { "name": "step", "kind": "item", "args": "title: &'a str", "default": "", "attr": "", "doc": "A step titled `title`." },
+            { "name": "done", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last is done: a check in its dot, the connector after it filled." },
+            { "name": "current", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last is the one the visitor is on (`aria-current=\"step\"`)." },
+            { "name": "invalid", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last needs attention: a \"!\" in a danger dot." },
+            { "name": "optional", "kind": "modifier", "args": "", "default": "", "attr": "", "doc": "The step added last can be skipped: \"Optional\" beside its title." },
+            { "name": "href", "kind": "modifier", "args": "href: &'a str", "default": "", "attr": "href", "doc": "The title of the step added last links here." },
+            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the step added last." },
+            { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A column at every width instead of a row from 30rem." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Timeline",
+      "module": "timeline",
+      "look": "Flowbite Timeline",
+      "responsive": "container",
+      "features": [
+        { "name": "<ol>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "<time datetime>", "baseline": { "chrome": "62", "firefox": "22", "safari": "7" } },
+        { "name": "@container", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } }
+      ],
+      "fallback": "none needed",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Timeline",
+          "lui": "Timeline",
+          "status": "beta",
+          "calls": ["ui.timeline()"],
+          "props": [
+            { "name": "event", "kind": "item", "args": "title: &'a str", "default": "", "attr": "", "doc": "An event titled `title`." },
+            { "name": "when", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "When the event added last happened, as the reader should see it." },
+            { "name": "datetime", "kind": "modifier", "args": "iso: &'a str", "default": "", "attr": "datetime", "doc": "The same date for machines (`2026-10-12`): the date becomes a `<time datetime>`." },
+            { "name": "description", "kind": "modifier", "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the event added last." },
+            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon in a ring on the line instead of the dot, for the event added last." },
+            { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "", "attr": "", "doc": "The colour of the event added last's dot or icon (neutral by default)." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tree",
+      "module": "tree",
+      "look": "Origin UI Tree",
+      "responsive": "content",
+      "features": [
+        { "name": "<details>", "baseline": { "chrome": "12", "firefox": "49", "safari": "6" } },
+        { "name": "aria-current=\"page\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "--lui-tree-depth", "baseline": { "chrome": "49", "firefox": "31", "safari": "9.1" } }
+      ],
+      "fallback": "none needed: <details> works everywhere",
+      "needs_js": "partial",
+      "needs_js_note": "arrow keys between nodes (the WAI-ARIA tree pattern) need script",
+      "builders": [
+        {
+          "builder": "Tree",
+          "lui": "Tree",
+          "status": "beta",
+          "calls": ["ui.tree(label: &str)"],
+          "props": [
+            { "name": "node", "kind": "item", "args": "label: &'a str", "default": "", "attr": "", "doc": "A node reading `label`." },
+            { "name": "link", "kind": "modifier", "args": "href: &'a str", "default": "", "attr": "", "doc": "The node added last is a link; the one to the current path is marked current." },
+            { "name": "icon", "kind": "modifier", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the label of the node added last." },
+            { "name": "children", "kind": "modifier", "args": "nodes: impl FnOnce(Tree<'a>) -> Tree<'a>", "default": "", "attr": "", "doc": "The nodes under the node added last, which makes it a folder." },
+            { "name": "open", "kind": "modifier", "args": "open: bool", "default": "", "attr": "open", "doc": "The folder added last starts open while `open` holds." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The key in `?open.<id>=` instead of the label's slug." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Collapsible",
+      "module": "collapsible",
+      "look": "shadcn/ui Collapsible",
+      "responsive": "-",
+      "features": [
+        { "name": "<details>", "baseline": { "chrome": "12", "firefox": "49", "safari": "6" } },
+        { "name": "<details name", "baseline": { "chrome": "120", "firefox": "130", "safari": "17.2" } },
+        { "name": "::details-content", "baseline": { "chrome": "131", "firefox": "143", "safari": "18.4" } }
+      ],
+      "fallback": "opens and closes at once without ::details-content",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "Collapsible",
+          "lui": "Collapsible",
+          "status": "beta",
+          "calls": ["ui.collapsible(trigger: &str, body: Markup)"],
+          "props": [
+            { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open." },
+            { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The ghost button look instead of the outline one." },
+            { "name": "name", "kind": "value", "args": "group: &'a str", "default": "", "attr": "name", "doc": "Collapsibles with the same `name` are exclusive: opening one closes the others." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hover card",
+      "module": "hover_card",
+      "look": "Radix Themes HoverCard",
+      "responsive": "-",
+      "features": [
+        { "name": "interestfor", "baseline": { "chrome": "142", "firefox": "no", "safari": "no" } },
+        { "name": "popover=\"hint\"", "baseline": { "chrome": "133", "firefox": "no", "safari": "no" } },
+        { "name": "popovertarget", "baseline": { "chrome": "114", "firefox": "125", "safari": "17" } },
+        { "name": "position-area", "baseline": { "chrome": "125", "firefox": "147", "safari": "26" } }
+      ],
+      "fallback": "without interestfor a click opens the card (popovertarget); without popover a <details>",
+      "needs_js": "no",
+      "builders": [
+        {
+          "builder": "HoverCard",
+          "lui": "HoverCard",
+          "status": "beta",
+          "calls": ["ui.hover_card(trigger: &str, body: Markup)"],
+          "props": [
+            { "name": "href", "kind": "value", "args": "href: &'a str", "default": "", "attr": "href", "doc": "The trigger is a link to `href` instead of a button." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The card's id, `lui-hover-card-<slug of the trigger>` by default." }
           ]
         }
       ]

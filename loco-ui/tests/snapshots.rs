@@ -646,6 +646,72 @@ const EXAMPLES: &[Example] = &[
             .item(html! { "Two" })
             .render()
     }),
+    on("Pagination", ("/posts", "page.posts=3&q=rust", ""), |ui| {
+        ui.pagination("/posts")
+            .id("posts")
+            .total(400)
+            .per_page(25)
+            .window(2)
+            .first_last()
+            .param("q", "rust")
+            .render()
+    }),
+    example("Steps", |ui| {
+        ui.steps()
+            .step("Account")
+            .done()
+            .href("/signup?step=0")
+            .step("Profile")
+            .current()
+            .optional()
+            .description("A photo and a bio.")
+            .step("Review")
+            .vertical()
+            .render()
+    }),
+    example("Timeline", |ui| {
+        ui.timeline()
+            .event("Deployed")
+            .when("12 October")
+            .datetime("2026-10-12")
+            .icon(Icon::Check)
+            .tone(Tone::Ok)
+            .description("Version 0.2 is live.")
+            .event("Rolled back")
+            .when("13 October")
+            .tone(Tone::Danger)
+            .render()
+    }),
+    on("Tree", ("/files", "open.files=1", ""), |ui| {
+        ui.tree("Files")
+            .node("src")
+            .icon(Icon::Folder)
+            .link("/files/src")
+            .children(|t| {
+                t.node("lib.rs")
+                    .icon(Icon::File)
+                    .link("/files/src/lib.rs")
+                    .node("bin")
+                    .icon(Icon::Folder)
+                    .children(|t| t.node("main.rs").icon(Icon::File))
+            })
+            .node("README.md")
+            .icon(Icon::File)
+            .render()
+    }),
+    example("Collapsible", |ui| {
+        ui.collapsible("Advanced", html! { p { "Options." } })
+            .open(true)
+            .ghost()
+            .name("settings")
+            .render()
+    }),
+    example("HoverCard", |ui| {
+        ui.hover_card("Release notes", html! { "What changed in 0.2." })
+            .href("/changelog")
+            .id("notes")
+            .render()
+    }),
 ];
 
 /// One tag per line, so a snapshot diff points at the element that changed.

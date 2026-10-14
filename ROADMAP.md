@@ -2624,24 +2624,55 @@ Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` 
   `ui.badge` solid and full, with no z-index for Blitz), demo page `/spinner`.
 
 **M40b · Navigation** (demo group `navigation.rs`)
-- [ ] `ui.pagination(href)`: numbered pages with ellipsis, prev/next, `.page()` read from
+- [x] `ui.pagination(href)`: numbered pages with ellipsis, prev/next, `.page()` read from
   `?page=` (or `<id>.page`), `.total(n)`, `.per_page()`, `.window(2)`, `aria-current`;
   `Table.paged` and `paged_table.rs` reuse it (delete their own numbering). `rel=prev/next`
   links in `<head>` via `Page::link_rel`.
-- [ ] `ui.steps(..)`: standalone stepper (`.step(label)`, `.done()`, `.current()`,
+  Done: `loco-ui/src/pagination.rs`, shadcn/ui Pagination. Setters `.id()` (reads
+  `?page.<id>=`), `.page()`, `.total()`, `.per_page()` (10), `.window()` (1, not 2: the
+  table's numbering uses 1 and the two should agree), `.param(key, value)` for pairs the
+  links carry, `.first_last()`; `current()`, `pages()`, `range()`, `link(n)` and
+  `link_rels(page)` (through the new `Page::link_rel`). Under 30rem only first, current and
+  last stay numbered. `Table.paged` and `paged_table.rs` are untouched: M41 owns those files
+  and replaces their `window()` and `ul.lui-paged-table-pages` with `ui.pagination`
+  (`pagination::slots` equals `window()` at 1). Demo `/pagination`; stylesheet budget
+  124 KB to 132 KB, index markup budget 200 KB to 216 KB.
+- [x] `ui.steps(..)`: standalone stepper (`.step(label)`, `.done()`, `.current()`,
   `.optional()`, `.vertical()`); Wizard renders its progress through it.
-- [ ] `ui.timeline()`: `.event(title).when(..).description(..).icon(..).tone(..)`,
+  Done: `loco-ui/src/steps.rs`, Origin UI Stepper. `.step(title)` with `.done()`,
+  `.current()`, `.invalid()` (not `.error()`: a setter named after a state, as Input has),
+  `.optional()`, `.href()`, `.description()`; `.vertical()`. Its own container: a column
+  narrow, a row from 30rem. The wizard's step list is now `ui.steps()` (classes
+  `lui-steps-*`). Demo `/steps`.
+- [x] `ui.timeline()`: `.event(title).when(..).description(..).icon(..).tone(..)`,
   `<ol>`, line via `::before`, container query to two-column from 30rem (Flowbite Timeline).
-- [ ] `ui.tree()`: nested `<details>`/`<summary>` with `.node(label).link(href)` adders and
+  Done: `loco-ui/src/timeline.rs`, Flowbite Timeline. Also `.datetime(iso)` for a `<time
+  datetime>`; `.tone()` colours the dot or the icon's ring. The dates move into an 8rem
+  column from 30rem. Demo `/timeline`.
+- [x] `ui.tree()`: nested `<details>`/`<summary>` with `.node(label).link(href)` adders and
   nesting via a closure or `lui!` block; `?open=` state through `UiState` like accordion;
   current node `aria-current`; indentation via `--lui-tree-depth`.
-- [ ] `ui.collapsible(trigger, body)`: single `<details>` with the button look and
+  Done: `loco-ui/src/tree.rs`, Origin UI Tree. Nesting through `.children(|t| ..)`
+  (`children=(|t| ..)` in `lui!`, since a `lui!` block cannot hold items of a builder);
+  `.icon()`, `.open(bool)`, `.id()` for the `?open.<id>=` key. Folders numbered in
+  pre-order; the current page's folders open by themselves. A folder that is a link keeps
+  the link beside its summary (no `<a>` in `<summary>`). New `Icon::Folder`. Demo `/tree`.
+- [x] `ui.collapsible(trigger, body)`: single `<details>` with the button look and
   `::details-content` animation under `@supports`; `ui.hover_card(trigger, body)`:
   `interestfor` + `popover=hint` behind a new `Cap::InterestInvokers` beacon
   (`loco-ui-caps`: `@supports selector(:interest-source)`), fallback: the same popover
   opened by click via `popovertarget`. Doc the fallback.
-- [ ] Sidebar/NavMenu/AppShell: `.current_prefix()` so `/projects/42` marks `/projects`
+  Done: `loco-ui/src/collapsible.rs` (shadcn/ui Collapsible: `.open()`, `.ghost()`,
+  `.name()`) and `loco-ui/src/hover_card.rs` (Radix Themes HoverCard: `.href()`, `.id()`);
+  `Cap::InterestInvokers` in `loco-ui-caps`, `Button::interestfor`, `Text::MoreAbout`.
+  Without interest invokers a link trigger gets a chevron button beside it (a link cannot
+  target a popover); without popover the card is a `<details>`. FINDINGS M40b. Demo
+  `/collapsible`, `/hover-card`.
+- [x] Sidebar/NavMenu/AppShell: `.current_prefix()` so `/projects/42` marks `/projects`
   (`sidebar.rs:114`, `nav_menu.rs:143`); Breadcrumbs `.max(n)` and `.separator(Glyph)`.
+  Done: `sidebar::current_href` (exact first, else the longest link the path is under at a
+  `/`; `/` and links with a query match only exactly), used by all three. Breadcrumbs
+  `.max(n)` (4) and `.separator(glyph)`. Demo `/sidebar/work/notes`, `/nav`.
 
 **M40c · Inputs** (demo group `input.rs`)
 - [ ] `ui.checkbox_group(name, legend)`: `.option(value, label).description().disabled()`,

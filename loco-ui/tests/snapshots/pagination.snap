@@ -1,0 +1,110 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<nav class="lui-pagination" aria-label="Pages">
+<ul>
+<li class="lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=1">First</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=2" rel="prev">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+<span class="lui-pagination-label">Previous</span>
+</a>
+</li>
+<li class="lui-pagination-num">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=1">1</a>
+</li>
+<li class="lui-pagination-gap lui-pagination-narrow" aria-hidden="true">…</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=2">2</a>
+</li>
+<li class="lui-pagination-num">
+<a class="lui-button lui-pagination-link" href="/posts?q=rust&amp;page.posts=3" aria-current="page">3</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=4">4</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=5">5</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=6">6</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=7">7</a>
+</li>
+<li class="lui-pagination-gap" aria-hidden="true">…</li>
+<li class="lui-pagination-num">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=16">16</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=4" rel="next">
+<span class="lui-pagination-label">Next</span>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</li>
+<li class="lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=16">Last</a>
+</li>
+</ul>
+</nav>
+
+caps: none
+<nav class="lui-pagination" aria-label="Pages">
+<ul>
+<li class="lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=1">First</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=2" rel="prev">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+<span class="lui-pagination-label">Previous</span>
+</a>
+</li>
+<li class="lui-pagination-num">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=1">1</a>
+</li>
+<li class="lui-pagination-gap lui-pagination-narrow" aria-hidden="true">…</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=2">2</a>
+</li>
+<li class="lui-pagination-num">
+<a class="lui-button lui-pagination-link" href="/posts?q=rust&amp;page.posts=3" aria-current="page">3</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=4">4</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=5">5</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=6">6</a>
+</li>
+<li class="lui-pagination-num lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=7">7</a>
+</li>
+<li class="lui-pagination-gap" aria-hidden="true">…</li>
+<li class="lui-pagination-num">
+<a class="lui-button lui-button-ghost lui-pagination-link" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=16">16</a>
+</li>
+<li>
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=4" rel="next">
+<span class="lui-pagination-label">Next</span>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</li>
+<li class="lui-pagination-wide">
+<a class="lui-button lui-button-ghost lui-pagination-link lui-pagination-step" data-tone="neutral" data-variant="ghost" href="/posts?q=rust&amp;page.posts=16">Last</a>
+</li>
+</ul>
+</nav>

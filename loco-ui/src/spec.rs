@@ -1113,6 +1113,89 @@ pub const SPECS: &[ComponentSpec] = &[
         fallback: "fragment links to each slide's id stand in for the scroll buttons and markers",
         needs_js: NeedsJs::No,
     },
+    ComponentSpec {
+        name: "Pagination",
+        module: "pagination",
+        look: "shadcn/ui Pagination",
+        responsive: Responsive::Container,
+        features: &[
+            f("<nav>", ALWAYS),
+            f("aria-current=\"page\"", ALWAYS),
+            f("rel=\"prev\"", ALWAYS),
+            f("<link rel>", ALWAYS),
+            f("@container", b("105", "110", "16")),
+        ],
+        fallback: "none needed: every page is a link",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Steps",
+        module: "steps",
+        look: "Origin UI Stepper",
+        responsive: Responsive::Container,
+        features: &[
+            f("<ol>", ALWAYS),
+            f("aria-current=\"step\"", ALWAYS),
+            f("@container", b("105", "110", "16")),
+        ],
+        fallback: "none needed: a list of links",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Timeline",
+        module: "timeline",
+        look: "Flowbite Timeline",
+        responsive: Responsive::Container,
+        features: &[
+            f("<ol>", ALWAYS),
+            f("<time datetime>", b("62", "22", "7")),
+            f("@container", b("105", "110", "16")),
+        ],
+        fallback: "none needed",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Tree",
+        module: "tree",
+        look: "Origin UI Tree",
+        responsive: Responsive::Content,
+        features: &[
+            f("<details>", b("12", "49", "6")),
+            f("aria-current=\"page\"", ALWAYS),
+            f("--lui-tree-depth", b("49", "31", "9.1")),
+        ],
+        fallback: "none needed: <details> works everywhere",
+        needs_js: NeedsJs::Partial(
+            "arrow keys between nodes (the WAI-ARIA tree pattern) need script",
+        ),
+    },
+    ComponentSpec {
+        name: "Collapsible",
+        module: "collapsible",
+        look: "shadcn/ui Collapsible",
+        responsive: Responsive::None,
+        features: &[
+            f("<details>", b("12", "49", "6")),
+            DETAILS_NAME,
+            DETAILS_CONTENT,
+        ],
+        fallback: "opens and closes at once without ::details-content",
+        needs_js: NeedsJs::No,
+    },
+    ComponentSpec {
+        name: "Hover card",
+        module: "hover_card",
+        look: "Radix Themes HoverCard",
+        responsive: Responsive::None,
+        features: &[
+            f("interestfor", b("142", "no", "no")),
+            f("popover=\"hint\"", b("133", "no", "no")),
+            f("popovertarget", b("114", "125", "17")),
+            f("position-area", b("125", "147", "26")),
+        ],
+        fallback: "without interestfor a click opens the card (popovertarget); without popover a <details>",
+        needs_js: NeedsJs::No,
+    },
 ];
 
 fn json_str(s: &str) -> String {
@@ -1330,6 +1413,12 @@ mod tests {
         ("banner", include_str!("banner.rs")),
         ("popover_card", include_str!("popover_card.rs")),
         ("carousel", include_str!("carousel.rs")),
+        ("pagination", include_str!("pagination.rs")),
+        ("steps", include_str!("steps.rs")),
+        ("timeline", include_str!("timeline.rs")),
+        ("tree", include_str!("tree.rs")),
+        ("collapsible", include_str!("collapsible.rs")),
+        ("hover_card", include_str!("hover_card.rs")),
     ];
 
     fn header(source: &str) -> String {

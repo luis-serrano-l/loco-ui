@@ -13,9 +13,10 @@
 //! or critical violation).
 //!
 //! The look follows shadcn Breadcrumb: muted links, chevron separators, the current page in
-//! the text colour. A trail of more than four folds its middle into a `…` disclosure menu; a
-//! shorter one with a middle crumb folds it only when the breadcrumbs are under 30rem wide
-//! (both are rendered; a container query shows one).
+//! the text colour. A trail of more than four (or `.max(n)`) folds its middle into a `…`
+//! disclosure menu; a shorter one with a middle crumb folds it only when the breadcrumbs are
+//! under 30rem wide (both are rendered; a container query shows one). `.separator(..)` puts
+//! a glyph or an icon between the crumbs instead of the chevron, `aria-hidden`.
 //!
 //! **What it does not do without script:** measure the text to fold exactly what does not fit;
 //! the fold is decided by item count and the container's width.
@@ -39,22 +40,30 @@
 //!     link "Home" "/"; link "Projects" "/projects"; here "loco-ui";
 //! } };
 //! assert_eq!(same.into_string(), m);
+//! // At most three crumbs before the middle folds, a slash between them.
+//! let short = ui.breadcrumbs().max(3).separator("/").link("Home", "/").link("A", "/a").link("B", "/a/b").here("Here");
+//! let short = short.render().into_string();
+//! assert!(short.contains("<details") && short.contains(r#"<span class="lui-breadcrumbs-sep" aria-hidden="true">/</span>"#));
+//! assert_eq!(lui! { Breadcrumbs max=3 separator="/" { link "Home" "/"; link "A" "/a"; link "B" "/a/b"; here "Here"; } }.into_string(), short);
 //! ```
 
 use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::i18n::{Strings, Text};
+use crate::icon::Glyph;
 use crate::props::{Prop, PropKind};
 
 /// A trail of links ending in the current page, made by [`Ui::breadcrumbs`].
 ///
-/// **Setters.** Values and items: `.link(..)`, `.here(..)`.
+/// **Setters.** Values and items: `.link(..)`, `.here(..)`, `.max(..)`, `.separator(..)`.
 #[derive(Clone, Debug, Default)]
 pub struct Breadcrumbs<'a> {
     trail: Vec<(&'a str, &'a str)>,
     here: &'a str,
     strings: &'static Strings,
+    max: usize,
+    separator: Option<Glyph<'a>>,
 }
 
 impl Breadcrumbs<'_> {
@@ -65,6 +74,11 @@ impl Breadcrumbs<'_> {
             .doc("One step from the root towards this page."),
         Prop::new("here", PropKind::Item, "label: &'a str")
             .doc("The current page, last in the trail and not a link."),
+        Prop::new("max", PropKind::Number, "n: usize")
+            .default("4")
+            .doc("The most crumbs shown, the current page included, before the middle folds into a menu."),
+        Prop::new("separator", PropKind::Value, "glyph: impl Into<Glyph<'a>>")
+            .doc("A glyph or an icon between the crumbs instead of the chevron."),
     ];
 }
 
@@ -74,6 +88,7 @@ impl Ui {
     pub fn breadcrumbs(&self) -> Breadcrumbs<'_> {
         Breadcrumbs {
             strings: self.strings,
+            max: 4,
             ..Breadcrumbs::default()
         }
     }
@@ -91,15 +106,29 @@ impl<'a> Breadcrumbs<'a> {
         self.here = label;
         self
     }
+
+    /// The most crumbs shown, the current page included, before the middle folds into a
+    /// menu (the first and the last link always stay).
+    pub fn max(mut self, n: usize) -> Self {
+        self.max = n;
+        self
+    }
+
+    /// A glyph or an icon between the crumbs instead of the chevron (`"/"`, `Icon::ChevronRight`),
+    /// hidden from assistive tech.
+    pub fn separator(mut self, glyph: impl Into<Glyph<'a>>) -> Self {
+        self.separator = Some(glyph.into());
+        self
+    }
 }
 
 impl Render for Breadcrumbs<'_> {
     fn render(&self) -> Markup {
         let before = &self.trail[..];
-        let fold = before.len() > 3;
+        let fold = before.len() >= 3 && before.len() >= self.max;
         // A trail with a middle that fits a wide box also carries its fold, shown only when
         // the breadcrumbs are narrow (a container query swaps the two).
-        let narrow_fold = !fold && before.len() == 3;
+        let narrow_fold = !fold && before.len() >= 3;
         let (head, middle, tail) = if fold || narrow_fold {
             (
                 &before[..1],
@@ -109,23 +138,27 @@ impl Render for Breadcrumbs<'_> {
         } else {
             (before, &before[..0], &before[..0])
         };
+        // A separator of the caller's own goes before every crumb but the first; the chevron
+        // is CSS and needs none.
+        let sep = html! { @if let Some(g) = self.separator { span class="lui-breadcrumbs-sep" aria-hidden="true" { (g) } } };
         html! {
-            nav class="lui-breadcrumbs" aria-label=(self.strings.get(Text::Breadcrumb)) {
+            nav class={ "lui-breadcrumbs" @if self.separator.is_some() { " lui-breadcrumbs-custom" } } aria-label=(self.strings.get(Text::Breadcrumb)) {
                 ol {
-                    @for (label, href) in head { li { a href=(href) { (label) } } }
+                    @for (i, (label, href)) in head.iter().enumerate() { li { @if i > 0 { (sep) } a href=(href) { (label) } } }
                     @if narrow_fold {
-                        @for (label, href) in middle { li class="lui-breadcrumbs-mid" { a href=(href) { (label) } } }
+                        @for (label, href) in middle { li class="lui-breadcrumbs-mid" { (sep) a href=(href) { (label) } } }
                     }
                     @if fold || narrow_fold {
                         li class={ "lui-breadcrumbs-fold" @if narrow_fold { " lui-breadcrumbs-fold-narrow" } } {
+                            (sep)
                             details {
                                 summary aria-label=(self.strings.fill(Text::ShowMore, &[&middle.len()])) { "\u{2026}" }
                                 ol { @for (label, href) in middle { li { a href=(href) { (label) } } } }
                             }
                         }
                     }
-                    @for (label, href) in tail { li { a href=(href) { (label) } } }
-                    li { span aria-current="page" { (self.here) } }
+                    @for (label, href) in tail { li { (sep) a href=(href) { (label) } } }
+                    li { @if !before.is_empty() { (sep) } span aria-current="page" { (self.here) } }
                 }
             }
         }
@@ -144,6 +177,9 @@ pub const CSS: &str = r#"
   content: ""; flex: none; width: 0.3125rem; height: 0.3125rem; margin-inline: 0.5rem 0.625rem;
   border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; rotate: -45deg; opacity: 0.8;
 }
+.lui-breadcrumbs-custom > ol > li + li::before { content: none; }
+.lui-breadcrumbs-sep { display: inline-flex; margin-inline: 0.5rem; opacity: 0.8; }
+.lui-breadcrumbs-sep > .lui-icon { width: 0.875rem; height: 0.875rem; }
 .lui-breadcrumbs a { color: var(--lui-muted); text-decoration: none; transition: color var(--lui-duration-fast); }
 .lui-breadcrumbs a:hover { color: var(--lui-fg); }
 .lui-breadcrumbs [aria-current] { color: var(--lui-fg); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

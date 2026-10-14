@@ -312,9 +312,10 @@ impl Ui {
             header: None,
             linked: false,
             subset: None,
+            links: None,
             body,
             cookies: self.state.set_cookies().into(),
-            css: Vec::new(),
+            css: Box::default(),
             script: true,
             status: 200,
         };
@@ -381,13 +382,21 @@ pub struct Page {
     header: Option<Box<Markup>>,
     body: Markup,
     cookies: Box<[String]>,
-    css: Vec<&'static str>,
+    // A boxed slice, not a `Vec`: 8 bytes fewer, for the limit above.
+    css: Box<[&'static str]>,
     script: bool,
     status: u16,
     // The sheet as two small fields, not a `Sheet`, to stay under the 128 bytes above.
     linked: bool,
     subset: Option<&'static &'static str>,
+    /// `<link rel href>` pairs for the head ([`Page::link_rel`]), boxed for the same reason.
+    // One pointer when unset; a `Vec` or a boxed slice would cost 16 to 24 bytes on every page.
+    #[allow(clippy::box_collection)]
+    links: Option<Box<Vec<LinkRel>>>,
 }
+
+/// One `<link rel href>` in the head: the `rel`, then the `href`.
+pub(crate) type LinkRel = (Box<str>, Box<str>);
 
 impl Page {
     /// Answer `422 Unprocessable Content`: the form comes back with its messages, so a POST
@@ -429,7 +438,9 @@ impl Page {
     /// each is minified and inlined once.
     pub fn css(mut self, css: &'static str) -> Self {
         if !self.css.contains(&css) {
-            self.css.push(css);
+            let mut list = std::mem::take(&mut self.css).into_vec();
+            list.push(css);
+            self.css = list.into_boxed_slice();
         }
         self
     }
@@ -501,6 +512,7 @@ impl Page {
             theme: self.theme,
             tokens: self.tokens.as_deref(),
             css: &self.css,
+            links: self.links.as_deref().map_or(&[], Vec::as_slice),
             header: self.header.as_deref(),
             script: self.script,
             sheet: match (self.linked, self.subset) {
@@ -509,6 +521,22 @@ impl Page {
                 (false, None) => Sheet::Inline,
             },
         }
+    }
+
+    /// A `<link rel=.. href=..>` in this page's `<head>`: `rel="prev"` and `rel="next"` for a
+    /// paged list (see [`crate::pagination::Pagination::link_rels`]), `canonical`, `alternate`.
+    ///
+    /// ```rust
+    /// use loco_ui::prelude::*;
+    /// let ui = Ui::default();
+    /// let html = ui.page("Page 2", html! {}).link_rel("prev", "/list?page=1").into_string();
+    /// assert!(html.contains(r#"<link rel="prev" href="/list?page=1">"#));
+    /// ```
+    pub fn link_rel(mut self, rel: &str, href: &str) -> Self {
+        self.links
+            .get_or_insert_with(Box::default)
+            .push((rel.into(), href.into()));
+        self
     }
 
     /// The `Set-Cookie` values this page sends: changed UI state, and the shown flash cleared.

@@ -1,4 +1,5 @@
-//! Navigation: command palette, drawer and breadcrumbs.
+//! Navigation: command palette, drawer, breadcrumbs, sidebar, pagination, steps, timeline,
+//! tree, collapsible and hover card.
 
 use crate::site::{COMPONENTS, page};
 use axum::{
@@ -6,10 +7,14 @@ use axum::{
     response::{IntoResponse, Response},
     routing::get,
 };
+use loco_ui::pagination::Pagination;
 use loco_ui::prelude::*;
 
 pub(crate) fn routes() -> Router {
-    super::pages(PAGES).route("/palette", get(palette_page))
+    super::pages(PAGES)
+        .route("/palette", get(palette_page))
+        .route("/pagination", get(pagination_page))
+        .route("/sidebar/{*rest}", get(sidebar_under))
 }
 
 /// The pages that are their component and a note (`super::pages`).
@@ -25,10 +30,38 @@ pub(crate) const PAGES: &[super::Simple] = &[
         nav_menu,
         "A panel opens on click and closes on a click outside or Escape; the link to this page is marked current.",
     ),
+    (
+        "/steps",
+        steps,
+        "The row turns into a column under 30rem; `vertical` keeps the column. The [wizard](/wizard?step.signup=1) shows its progress with it.",
+    ),
+    (
+        "/timeline",
+        timeline,
+        "From 30rem the dates move into a column of their own.",
+    ),
+    (
+        "/tree",
+        tree,
+        "The folder holding this page is open; `?open.files=0,2` opens others. A folder that is a link keeps its link beside the summary, never in it.",
+    ),
+    (
+        "/collapsible",
+        collapsible,
+        "The two with `name` share a group: opening one closes the other.",
+    ),
+    (
+        "/hover-card",
+        hover_card,
+        "Where the browser has interest invokers the cards open on hover and focus; elsewhere a click opens them. See [/caps](/caps).",
+    ),
 ];
 
 /// The other pages' live components, which the index shows too (`site::preview`).
-pub(crate) const PREVIEWS: &[super::Preview] = &[("/palette", |ui| palette(ui).render())];
+pub(crate) const PREVIEWS: &[super::Preview] = &[
+    ("/palette", |ui| palette(ui).render()),
+    ("/pagination", |ui| pagination(ui).render()),
+];
 
 /// Every demo page as a command, plus a few deep links.
 fn palette(ui: &Ui) -> loco_ui::palette::Palette<'_> {
@@ -83,6 +116,10 @@ fn drawer(ui: &Ui) -> Markup {
                         link "Home" "/"; link "Projects" "/nav"; link "loco-ui" "/nav";
                         link "Components" "/"; link "Navigation" "/nav"; here "Breadcrumbs";
                     }
+                    p { "At most three before the fold, a slash between:" }
+                    Breadcrumbs max=3 separator="/" {
+                        link "Home" "/"; link "Projects" "/nav"; link "loco-ui" "/nav"; here "Docs";
+                    }
             // end code
                     p class="lui-note" { "Server-opened: " a href="/nav?dialog=site" { "?dialog=site" } }
                 }
@@ -94,13 +131,13 @@ fn sidebar(ui: &Ui) -> Markup {
     lui! {
         div style="max-width: 16rem" {
             // code: /sidebar
-            Sidebar("Mail") collapsible {
+            Sidebar("Mail") collapsible current_prefix {
                 group "Mail";
                 link "Inbox" "/sidebar" icon=(Icon::Mail) badge="12";
                 link "Drafts" "/sidebar?box=drafts" icon=(Icon::Pencil);
                 link "Sent" "/sidebar?box=sent" icon=(Icon::ArrowRight);
                 group "Labels";
-                link "Work" "/nav"; link "Personal" "/nav";
+                link "Work" "/sidebar/work"; link "Personal" "/sidebar/personal";
             }
             // end code
         }
@@ -121,6 +158,119 @@ fn nav_menu(ui: &Ui) -> Markup {
             link "Pricing" "/pricing";
             link "Navigation menu" "/nav-menu";
         }
+        // end code
+    }
+}
+
+/// A page under a label of the sidebar (`/sidebar/work/notes`): `current_prefix` marks
+/// the label's link.
+async fn sidebar_under(ui: Ui) -> Page {
+    page(&ui, crate::site::title("/sidebar"), sidebar(&ui))
+}
+
+/// How many posts the paged list holds.
+const POSTS: usize = 240;
+
+/// Page links for the posts: `?page.posts=n`, ten a page.
+fn pagination(ui: &Ui) -> Pagination<'_> {
+    // code: /pagination
+    ui.pagination("/pagination")
+        .id("posts")
+        .total(POSTS)
+        .first_last()
+    // end code
+}
+
+/// The posts of this page, the links under them, and `rel=prev/next` in the head.
+async fn pagination_page(ui: Ui) -> Page {
+    let pages = pagination(&ui);
+    let shown = pages.range();
+    // code: /pagination
+    let body = lui! { Stack gap=4 {
+        ol class="lui-pager-list" start=(shown.start + 1) {
+            @for i in shown { li { "Post " (i + 1) } }
+        }
+        (pages)
+        // end code
+        p class="lui-note" { "Under 30rem only the first, the current and the last page stay numbered. The page's head links the pages before and after it with " code { "rel=prev" } " and " code { "rel=next" } "." }
+    } };
+    // code: /pagination
+    pages.link_rels(page(&ui, "Pagination", body))
+    // end code
+}
+
+/// A checkout's steps as a row, and the same as a column.
+fn steps(ui: &Ui) -> Markup {
+    lui! {
+        // code: /steps
+        Steps {
+            step "Cart" done href="/steps";
+            step "Address" done href="/steps";
+            step "Payment" current description="Card or bank transfer.";
+            step "Review" optional;
+        }
+        Steps vertical {
+            step "Account" done href="/steps";
+            step "Profile" current invalid description="The name is missing.";
+            step "Done";
+        }
+        // end code
+    }
+}
+
+/// A release history: dates, icons and tones.
+fn timeline(ui: &Ui) -> Markup {
+    lui! {
+        // code: /timeline
+        Timeline {
+            event "Version 0.2 released" when="14 October 2026" datetime="2026-10-14" icon=(Icon::Check) tone="ok"
+                description="Typed variants, a layered stylesheet and eight new components.";
+            event "Release candidate" when="2 October 2026" datetime="2026-10-02" tone="brand"
+                description="Feature freeze; only fixes from here.";
+            event "Rolled back the beta" when="20 September 2026" datetime="2026-09-20" icon=(Icon::TriangleAlert) tone="danger";
+            event "Project started" when="March 2026";
+        }
+        // end code
+    }
+}
+
+/// A source tree whose current file is this page.
+fn tree(ui: &Ui) -> Markup {
+    lui! {
+        div style="max-width: 20rem" {
+            // code: /tree
+            Tree("Files") {
+                node "src" icon=(Icon::Folder) link="/tree?f=src" children=(|t| t
+                    .node("lib.rs").icon(Icon::File).link("/tree?f=lib.rs")
+                    .node("components").icon(Icon::Folder).children(|t| t
+                        .node("tree.rs").icon(Icon::File).link("/tree")
+                        .node("steps.rs").icon(Icon::File).link("/tree?f=steps.rs")));
+                node "tests" icon=(Icon::Folder) children=(|t| t.node("demo.rs").icon(Icon::File).link("/tree?f=demo.rs"));
+                node "README.md" icon=(Icon::File) link="/tree?f=readme";
+            }
+            // end code
+        }
+    }
+}
+
+/// One collapsible on its own and two that share a group.
+fn collapsible(ui: &Ui) -> Markup {
+    lui! {
+        // code: /collapsible
+        Collapsible("Show 3 more", html! { ul { li { "Cascade layers" } li { "Container queries" } li { "Anchor positioning" } } });
+        Collapsible("Shipping", html! { p { "Two to four working days." } }) ghost name="faq";
+        Collapsible("Returns", html! { p { "Thirty days, no questions." } }) ghost name="faq";
+        // end code
+    }
+}
+
+/// A profile card on a button and a preview card on a link.
+fn hover_card(ui: &Ui) -> Markup {
+    lui! {
+        p { "Written by" }
+        // code: /hover-card
+        HoverCard("@ada", html! { strong { "Ada Lovelace" } br; "Wrote the first program, for an engine that was never built." });
+        HoverCard("Release notes", html! { strong { "Version 0.2" } br; "Typed variants, a layered stylesheet, eight new components." }) href="/timeline";
         // end code
     }
 }

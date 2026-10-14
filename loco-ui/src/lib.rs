@@ -69,6 +69,7 @@ pub mod center;
 pub mod chart;
 pub mod cluster;
 pub mod code;
+pub mod collapsible;
 pub mod color;
 pub mod combobox;
 pub mod container;
@@ -86,6 +87,7 @@ pub mod flash;
 pub mod form;
 pub mod grid;
 pub mod heading;
+pub mod hover_card;
 pub mod i18n;
 pub mod icon;
 pub mod indicator;
@@ -104,6 +106,7 @@ pub mod nav_menu;
 mod oklch;
 pub mod paged_table;
 pub mod pager;
+pub mod pagination;
 pub mod palette;
 pub mod popover;
 pub mod popover_card;
@@ -128,15 +131,18 @@ pub mod split;
 pub mod stack;
 pub mod stat;
 pub mod state;
+pub mod steps;
 #[cfg(feature = "http")]
 pub mod stream;
 pub mod table;
 pub mod tabs;
 pub mod text;
 pub mod theme;
+pub mod timeline;
 pub mod toast;
 pub mod toggle_group;
 pub mod tooltip;
+pub mod tree;
 pub mod ui;
 pub mod upload;
 pub mod variant;
@@ -419,6 +425,12 @@ pub enum Component {
     Banner,
     PopoverCard,
     Carousel,
+    Pagination,
+    Steps,
+    Timeline,
+    Tree,
+    Collapsible,
+    HoverCard,
     Blocks,
 }
 
@@ -499,6 +511,12 @@ impl Component {
         Component::Banner,
         Component::PopoverCard,
         Component::Carousel,
+        Component::Pagination,
+        Component::Steps,
+        Component::Timeline,
+        Component::Tree,
+        Component::Collapsible,
+        Component::HoverCard,
         Component::Blocks,
     ];
 
@@ -599,6 +617,12 @@ impl Component {
             Component::Banner => banner::CSS,
             Component::PopoverCard => popover_card::CSS,
             Component::Carousel => carousel::CSS,
+            Component::Pagination => pagination::CSS,
+            Component::Steps => steps::CSS,
+            Component::Timeline => timeline::CSS,
+            Component::Tree => tree::CSS,
+            Component::Collapsible => collapsible::CSS,
+            Component::HoverCard => hover_card::CSS,
             Component::Blocks => "",
         }
     }
@@ -652,8 +676,10 @@ pub fn minify_css(css: &str) -> String {
                     out.push(' ');
                 }
                 space = false;
-                if c == '}' && out.ends_with(';') {
-                    out.pop();
+                if c == '}' {
+                    while out.ends_with(';') {
+                        out.pop();
+                    }
                 }
                 out.push(c);
             }
@@ -740,6 +766,12 @@ pub const COMPONENT_CSS: &[&str] = &[
     banner::CSS,
     popover_card::CSS,
     carousel::CSS,
+    pagination::CSS,
+    steps::CSS,
+    timeline::CSS,
+    tree::CSS,
+    collapsible::CSS,
+    hover_card::CSS,
 ];
 
 #[cfg(test)]
@@ -1397,6 +1429,10 @@ mod tests {
     /// Names two or more builders use for setters of a different shape, each with the reason.
     const SAME_NAME_OTHER_SHAPE: &[(&str, &str)] = &[
         (
+            "total",
+            "Pagination takes the row count; Table adds a totals cell under a column",
+        ),
+        (
             "footer",
             "Card's footer is markup; Table adds a `<tfoot>` row of cells, like its rows",
         ),
@@ -1512,6 +1548,18 @@ mod tests {
         (
             "underline",
             "Tabs' switch draws the underline style; Link's choice says when a link is underlined",
+        ),
+        (
+            "current",
+            "Button marks the link to this page from a condition; Steps marks the step added last",
+        ),
+        (
+            "event",
+            "Calendar adds an event on a date (date, title); Timeline an event by its title, its date a modifier",
+        ),
+        (
+            "separator",
+            "the menus add a rule between items; Breadcrumbs sets the glyph between crumbs",
         ),
     ];
 
@@ -1728,6 +1776,7 @@ mod tests {
         "class",
         "closedby",
         "command",
+        "datetime",
         "disabled",
         "form",
         "formaction",
@@ -1737,6 +1786,7 @@ mod tests {
         "href",
         "id",
         "inputmode",
+        "interestfor",
         "list",
         "low",
         "max",
@@ -2163,8 +2213,10 @@ mod tests {
         // minified: 133 620 bytes in all).
         // 136 KB from M40d: a banner, a popover, a carousel and the new setters of the
         // feedback components.
+        // 132 KB once M40b's six navigation components joined; 168 KB with M40a, M40b and
+        // M40d together, until M39's sweep trims the literals.
         assert!(
-            stylesheet().len() < 160 * 1024, // 150 KB with M40a and M40d together; M39's sweep trims
+            stylesheet().len() < 168 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2298,6 +2350,12 @@ mod tests {
             ("banner", banner::CSS),
             ("popover_card", popover_card::CSS),
             ("carousel", carousel::CSS),
+            ("pagination", pagination::CSS),
+            ("steps", steps::CSS),
+            ("timeline", timeline::CSS),
+            ("tree", tree::CSS),
+            ("collapsible", collapsible::CSS),
+            ("hover_card", hover_card::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),
@@ -2383,6 +2441,10 @@ mod tests {
                 "color",
                 "a row of picker, value chip and presets that wraps",
             ),
+            (
+                "tree",
+                "one column of rows; the depth is an indent, not a width",
+            ),
         ];
         // Pinned to the viewport in the top layer, so the viewport is the right question, for
         // their layout as for their media queries.
@@ -2457,6 +2519,62 @@ mod tests {
     type AttrExample = (&'static str, &'static str, fn(&Ui) -> [Markup; 2]);
 
     const ATTR_EXAMPLES: &[AttrExample] = &[
+        ("Button", "interestfor", |ui| {
+            [
+                ui.button("Go").render(),
+                ui.button("Go").interestfor("card").render(),
+            ]
+        }),
+        ("Steps", "href", |ui| {
+            [
+                ui.steps().step("A").render(),
+                ui.steps().step("A").href("/a").render(),
+            ]
+        }),
+        ("Timeline", "datetime", |ui| {
+            [
+                ui.timeline().event("A").when("May").render(),
+                ui.timeline()
+                    .event("A")
+                    .when("May")
+                    .datetime("2026-05")
+                    .render(),
+            ]
+        }),
+        ("Tree", "open", |ui| {
+            [
+                ui.tree("T").node("A").children(|t| t.node("B")).render(),
+                ui.tree("T")
+                    .node("A")
+                    .children(|t| t.node("B"))
+                    .open(true)
+                    .render(),
+            ]
+        }),
+        ("Collapsible", "open", |ui| {
+            [
+                ui.collapsible("More", maud::html! {}).render(),
+                ui.collapsible("More", maud::html! {}).open(true).render(),
+            ]
+        }),
+        ("Collapsible", "name", |ui| {
+            [
+                ui.collapsible("More", maud::html! {}).render(),
+                ui.collapsible("More", maud::html! {}).name("g").render(),
+            ]
+        }),
+        ("HoverCard", "href", |ui| {
+            [
+                ui.hover_card("Ada", maud::html! {}).render(),
+                ui.hover_card("Ada", maud::html! {}).href("/ada").render(),
+            ]
+        }),
+        ("HoverCard", "id", |ui| {
+            [
+                ui.hover_card("Ada", maud::html! {}).render(),
+                ui.hover_card("Ada", maud::html! {}).id("card").render(),
+            ]
+        }),
         ("Avatar", "src", |ui| {
             [
                 ui.avatar("Ada").render(),

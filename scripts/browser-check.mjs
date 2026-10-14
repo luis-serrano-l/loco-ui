@@ -172,20 +172,20 @@ try {
   await type("input[name=email]", "ada@example.com");
   await click(".lui-wizard button.lui-button-primary");
   await until(async () => (await js("return document.querySelector('#f-email-error')?.textContent || ''")).includes("example.com"), "server message beside the field");
-  assert(await js("return document.querySelector('.lui-wizard-steps li[aria-current=step]').classList.contains('lui-wizard-error')"), "wizard: the step is marked in error");
+  assert(await js("return document.querySelector('.lui-steps li[aria-current=step]').classList.contains('lui-steps-error')"), "wizard: the step is marked in error");
   await js("const e = document.querySelector('input[name=email]'); e.value = ''");
   await type("input[name=email]", "ada@example.org");
   await click(".lui-wizard button.lui-button-primary");
-  await until(async () => (await text(".lui-wizard li[aria-current=step] .lui-wizard-label")) === "Newsletter (optional)", "wizard step 2");
+  await until(async () => (await text(".lui-wizard li[aria-current=step] .lui-steps-label")) === "Newsletter (optional)", "wizard step 2");
   assert(await navigations() === 1, "wizard: advanced without a reload");
   await click(".lui-wizard-back");
   await until(async () => (await js("return document.querySelector('input[name=name]')?.value")) === "Ada", "wizard back keeps the name");
   await click(".lui-wizard button.lui-button-primary");
-  await until(async () => (await text(".lui-wizard li[aria-current=step] .lui-wizard-label")) === "Newsletter (optional)", "wizard step 2 again");
+  await until(async () => (await text(".lui-wizard li[aria-current=step] .lui-steps-label")) === "Newsletter (optional)", "wizard step 2 again");
   await click(".lui-wizard button[name=skip]");
   await until(async () => (await js("return document.querySelector('.lui-wizard-review')?.textContent || ''")).includes("(skipped)"), "skipped straight to the review");
   await go("/wizard");
-  assert(await js("return !!document.querySelector('.lui-wizard-resume')") && await text(".lui-wizard li[aria-current=step] .lui-wizard-label") === "Review", "wizard: a new visit resumes at the review");
+  assert(await js("return !!document.querySelector('.lui-wizard-resume')") && await text(".lui-wizard li[aria-current=step] .lui-steps-label") === "Review", "wizard: a new visit resumes at the review");
 
   // Form: the counter follows typing; a multipart post with a file lands as a flash in place.
   await go("/form");
@@ -454,7 +454,7 @@ try {
   assert(await js("const [l, i] = ['label[for=f-name]', '#f-name'].map((s) => document.querySelector(s).getBoundingClientRect()); return i.left >= l.right - 1 && Math.abs(i.top - l.top) < 20"), "form: inline labels beside the fields in a wide form");
   assert(await js("const b = document.querySelector('.lui-form-actions > .lui-button').getBoundingClientRect(), f = document.querySelector('.lui-form').getBoundingClientRect(); return Math.abs(b.right - f.right) < 1 && b.width < f.width / 2"), "form: the submit button sits at the end of a wide form");
   await go("/wizard?step.signup=1");
-  assert(await js("const [a, b] = ['.lui-wizard-steps li:nth-child(1)', '.lui-wizard-steps li:nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(a.top - b.top) < 1 && b.left > a.right - 1"), "wizard: the steps lie in a row in a wide container");
+  assert(await js("const [a, b] = ['.lui-steps li:nth-child(1)', '.lui-steps li:nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(a.top - b.top) < 1 && b.left > a.right - 1"), "wizard: the steps lie in a row in a wide container");
 
   // The description list is its own container (M36): from 30rem every term sits in one shared
   // column (subgrid) with its detail's top on the same line, even when the detail is a badge,
@@ -489,7 +489,7 @@ try {
   const lib = readFileSync(new URL("../demo/src/lib.rs", import.meta.url), "utf8");
   const paths = [...lib.slice(lib.indexOf("pub const PATHS")).split("];")[0].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
   const caps = {
-    modern: "lui-cap-probed=1; lui-cap-invokers=1; lui-cap-anchor=1; lui-cap-details_content=1; lui-cap-view_transitions=1; lui-cap-popover=1; lui-cap-light_dark=1; lui-cap-streaming_dsd=1; lui-cap-base_select=1",
+    modern: "lui-cap-probed=1; lui-cap-invokers=1; lui-cap-anchor=1; lui-cap-details_content=1; lui-cap-view_transitions=1; lui-cap-popover=1; lui-cap-light_dark=1; lui-cap-streaming_dsd=1; lui-cap-base_select=1; lui-cap-interest_invokers=1",
     old: "lui-cap-probed=1",
   };
   const setCookies = async (pairs) => {

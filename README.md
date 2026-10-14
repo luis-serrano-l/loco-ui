@@ -532,6 +532,12 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Banner | Origin UI Banner | container | `<aside>`, `cookie`, `<form method="post">` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
 | Popover | Radix Themes Popover | content | `popover`, `anchor-name`, `position-try-fallbacks`, `@starting-style` | 114 / 125 / 17; 125 / 147 / 26; 128 / 147 / 26; 117 / 129 / 17.5 | centred in the viewport without anchor positioning; a <details> disclosure without popover | No |
 | Carousel | shadcn/ui Carousel | container | `scroll-snap-type`, `::scroll-button()`, `::scroll-marker` | 69 / 68 / 11; 135 / no / no; 135 / no / no | fragment links to each slide's id stand in for the scroll buttons and markers | No |
+| Pagination | shadcn/ui Pagination | container | `<nav>`, `aria-current="page"`, `rel="prev"`, `<link rel>`, `@container` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 105 / 110 / 16 | none needed: every page is a link | No |
+| Steps | Origin UI Stepper | container | `<ol>`, `aria-current="step"`, `@container` | 1 / 1 / 1; 1 / 1 / 1; 105 / 110 / 16 | none needed: a list of links | No |
+| Timeline | Flowbite Timeline | container | `<ol>`, `<time datetime>`, `@container` | 1 / 1 / 1; 62 / 22 / 7; 105 / 110 / 16 | none needed | No |
+| Tree | Origin UI Tree | content | `<details>`, `aria-current="page"`, `--lui-tree-depth` | 12 / 49 / 6; 1 / 1 / 1; 49 / 31 / 9.1 | none needed: <details> works everywhere | Partly: arrow keys between nodes (the WAI-ARIA tree pattern) need script |
+| Collapsible | shadcn/ui Collapsible | - | `<details>`, `<details name`, `::details-content` | 12 / 49 / 6; 120 / 130 / 17.2; 131 / 143 / 18.4 | opens and closes at once without ::details-content | No |
+| Hover card | Radix Themes HoverCard | - | `interestfor`, `popover="hint"`, `popovertarget`, `position-area` | 142 / no / no; 133 / no / no; 114 / 125 / 17; 125 / 147 / 26 | without interestfor a click opens the card (popovertarget); without popover a <details> | No |
 <!-- matrix:end -->
 
 ## Findings

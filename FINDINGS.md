@@ -1063,3 +1063,30 @@ is not drawn only because it sits behind the motion query.
   that the closed panels are not drawn and the slides sit side by side. No upstream issue
   yet (https://github.com/DioxusLabs/blitz/issues); the owner files it.
 
+
+### M40b · Navigation
+
+- **`interestfor` is Chromium-only.** Interest invokers shipped in Chrome 142 with
+  `popover="hint"` (Chrome 133); Firefox and Safari have neither yet
+  (https://open-ui.org/components/interest-invokers.explainer/,
+  https://caniuse.com/?search=interestfor). `Cap::InterestInvokers` tests
+  `selector(:interest-source)`, the pseudo-class that shipped with the attribute, so it is a
+  real test rather than a proxy. Without it the hover card is `popover="auto"` opened by
+  click through `popovertarget`: on a link trigger a small chevron button follows the link,
+  since a link cannot target a popover.
+- **The hover card is phrasing content.** Its root and card are `<span>`s so it can sit in a
+  sentence; a body with block elements (`<p>`, `<div>`) inside a `<p>` would end the
+  paragraph. The `<details>` fallback (no `popover`) is flow content and should not sit in a
+  `<p>` either.
+- **Blitz places an absolutely positioned `<summary>` at its static position.** The tree's
+  folder that is also a link puts its chevron summary over the start of the link's row
+  (`position: absolute; top: 0` against the `<li>`); Firefox and Chrome draw it there, Blitz
+  one row lower, so `tests/shots/tree-*` show the chevron beside the first child (no
+  upstream issue yet, the owner files it at https://github.com/DioxusLabs/blitz/issues).
+- **The tree's indent is a `style` attribute** (`--lui-tree-depth`). A page that links its
+  stylesheet under a hashed CSP keeps it only where `style-src-attr` is supported (see M39);
+  elsewhere every level sits flush.
+- **A folder opened by hand is not remembered without script.** A `<summary>` toggles on the
+  client; the server only learns `?open.<id>=` from links. Putting a link in the summary
+  (as the accordion does) is invalid HTML (`<a>` inside `<summary>`), so the tree leaves the
+  toggle native and opens the current page's folders itself.
