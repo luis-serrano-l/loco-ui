@@ -197,7 +197,7 @@ impl Render for Accordion<'_> {
                 @for (i, item) in items.iter().enumerate() {
                     @let is_open = open.contains(&i);
                     @let item_state = if is_open { "open" } else { "closed" };
-                    @let body_id = format!("lui-accordion-{group}-{i}");
+                    @let body_id = format!("lui-accordion-{group}-panel-{i}");
                     div class="lui-accordion-item" data-state=(item_state) {
                         a class="lui-accordion-trigger" href=(state.link(&key, &toggled(i)))
                             data-state=(item_state) aria-expanded=(is_open) aria-controls=(body_id) {
