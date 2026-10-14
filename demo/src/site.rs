@@ -21,7 +21,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 49] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 54] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -336,6 +336,41 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 49] = [
         "Input",
         "autocomplete=one-time-code, inputmode=numeric, pattern",
         "The box for a code from a text message, which the phone offers to fill.",
+    ),
+    (
+        "/checkbox-group",
+        "Checkbox group",
+        "Input",
+        "<fieldset>, name[], :has(:checked)",
+        "Several choices under one legend, as a list or as cards.",
+    ),
+    (
+        "/number",
+        "Number",
+        "Input",
+        "type=number, min/max/step, formnovalidate steppers",
+        "A quantity or a price with its unit and buttons that step it.",
+    ),
+    (
+        "/search",
+        "Search",
+        "Input",
+        "<search>, a GET form, aria-controls",
+        "A search box whose answer is a page you can bookmark.",
+    ),
+    (
+        "/rating",
+        "Rating",
+        "Input",
+        "radios drawn as stars, :has()",
+        "Stars to pick a score with, or to show one.",
+    ),
+    (
+        "/tag-input",
+        "Tag input",
+        "Input",
+        "name[] chips, formmethod=get, remove links",
+        "Labels collected as removable chips, posted with the form.",
     ),
     (
         "/context-menu",

@@ -1090,7 +1090,8 @@
             { "name": "step", "kind": "number", "args": "step: impl Into<f64>", "default": "1", "attr": "step", "doc": "Distance between allowed values (above 0)." },
             { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "`disabled` and `aria-disabled`: shown greyed and not posted." },
             { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Shown and posted, not movable: a disabled slider and a hidden input with its value." },
-            { "name": "ticks", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The lowest, middle and highest values marked under the track." }
+            { "name": "ticks", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The lowest, middle and highest values marked under the track." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The slider's id, `f-<name>` by default." }
           ]
         }
       ]
@@ -1688,7 +1689,8 @@
           "calls": ["ui.input_otp(name: &str, label: &str)"],
           "props": [
             { "name": "length", "kind": "number", "args": "digits: u8", "default": "6", "attr": "maxlength", "doc": "How many digits the code has." },
-            { "name": "group", "kind": "number", "args": "size: u8", "default": "", "attr": "", "doc": "A stronger divider after every `size` cells (3 for a 123 456 code)." }
+            { "name": "group", "kind": "number", "args": "size: u8", "default": "", "attr": "", "doc": "A stronger divider after every `size` cells (3 for a 123 456 code)." },
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The field's id, `f-<name>` by default." }
           ]
         }
       ]

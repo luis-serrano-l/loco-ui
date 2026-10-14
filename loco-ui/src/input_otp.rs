@@ -53,7 +53,7 @@ use crate::props::{Prop, PropKind};
 
 /// A one-time code field, made by [`Ui::input_otp`].
 ///
-/// **Setters.** Values and items: `.length(..)`, `.group(..)`.
+/// **Setters.** Values and items: `.length(..)`, `.group(..)`, `.id(..)`.
 #[derive(Clone, Debug)]
 pub struct InputOtp<'a> {
     ui: &'a Ui,
@@ -61,6 +61,7 @@ pub struct InputOtp<'a> {
     label: &'a str,
     length: u8,
     group: Option<u8>,
+    id: Option<&'a str>,
 }
 
 impl InputOtp<'_> {
@@ -73,6 +74,9 @@ impl InputOtp<'_> {
             .doc("How many digits the code has."),
         Prop::new("group", PropKind::Number, "size: u8")
             .doc("A stronger divider after every `size` cells (3 for a 123 456 code)."),
+        Prop::new("id", PropKind::Value, "id: &'a str")
+            .attr("id")
+            .doc("The field's id, `f-<name>` by default."),
     ];
 }
 
@@ -85,11 +89,18 @@ impl Ui {
             label,
             length: 6,
             group: None,
+            id: None,
         }
     }
 }
 
-impl InputOtp<'_> {
+impl<'a> InputOtp<'a> {
+    /// The field's id, `f-<name>` by default; its help and count ids follow it.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
+        self
+    }
+
     /// How many digits the code has.
     pub fn length(mut self, digits: u8) -> Self {
         self.length = digits.max(1);
@@ -114,8 +125,11 @@ impl Render for InputOtp<'_> {
             div class={ "lui-otp" @if self.group.is_some() { " lui-otp-grouped" } }
                 style={ "--lui-otp-cells: " (n) "; --lui-otp-at: " (value.chars().count().min(usize::from(n) - 1))
                     @if let Some(g) = self.group { "; --lui-otp-group: " (g) } } {
-                (self.ui.input(self.name, self.label)
+                @let field = self.ui.input(self.name, self.label);
+                @let field = match self.id { Some(id) => field.id(id), None => field };
+                (field
                     .value(value)
+
                     .pattern(&pattern, &hint)
                     .maxlength(usize::from(n))
                     .inputmode("numeric")

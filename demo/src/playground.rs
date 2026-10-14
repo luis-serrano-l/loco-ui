@@ -310,7 +310,7 @@ pub(crate) const ENTRIES: &[Entry] = &[
         rest: ";",
         build: |query| {
             with(
-                query.ui.input_otp("code", "Code"),
+                query.ui.input_otp("code", "Code").id("pg-code"),
                 query.num("length"),
                 |b, v| b.length(v),
             )
@@ -333,7 +333,7 @@ pub(crate) const ENTRIES: &[Entry] = &[
         ],
         rest: ";",
         build: |query| {
-            let builder = query.ui.input("name", "Name");
+            let builder = query.ui.input("name", "Name").id("pg-name");
             let builder = switch(builder, query.on("gradient_border"), |b| {
                 b.gradient_border()
             });
@@ -366,7 +366,7 @@ pub(crate) const ENTRIES: &[Entry] = &[
         rest: ";",
         build: |query| {
             let builder = with(
-                query.ui.range("volume", "Volume"),
+                query.ui.range("volume", "Volume").id("pg-volume"),
                 query.num::<f64>("value"),
                 |b, v| b.value(v),
             );

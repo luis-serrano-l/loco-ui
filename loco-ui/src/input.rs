@@ -965,6 +965,7 @@ impl Field<'_> {
             }
             FieldKind::Range { min, max } => {
                 let mut r = crate::range::Range::bare(self.strings, self.name, self.label)
+                    .id_from(self.id)
                     .min(*min)
                     .max(*max);
                 if let Some(step) = self.extra.step {
@@ -1151,7 +1152,7 @@ impl Render for Field<'_> {
                     @if let Some(b) = &extra.addon { span class="lui-input-group-button" { (b) } }
                     @if reveal {
                         span class="lui-input-reveal" data-lui="reveal" hidden {
-                            (Button::new(self.caps, "").ghost().icon_only().aria_label(self.strings.get(Text::ShowPassword)).body(html! { (Icon::Eye) }))
+                            (Button::new(self.caps, "").ghost().icon_only().aria_label(self.strings.get(Text::ShowPassword)).pressed(false).body(html! { (Icon::Eye) }))
                         }
                     }
                 }
@@ -1591,6 +1592,7 @@ input.lui-switch:disabled { background: var(--lui-gray-4); }
 .lui-input-steppers .lui-icon { width: 0.75rem; height: 0.75rem; }
 .lui-input-reveal { order: 6; display: flex; flex: none; }
 .lui-input-reveal[hidden] { display: none; }
+[data-lui-js] .lui-input-reveal[hidden] { display: flex; }
 .lui-input-reveal > .lui-button { min-height: 100%; border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
 /* Touch: a whole row (label and control) is at least 44px tall. */
 @media (pointer: coarse) {

@@ -41,6 +41,11 @@ upload|/upload|$origin/file-upload
 calendar|/calendar?month.day=2026-09&day=2026-09-17|$shadcn/calendar
 wizard|/wizard?step.signup=1|$origin/stepper
 toggle-group|/toggle-group?align=center&style=bold|$radix/segmented-control
+checkbox-group|/checkbox-group?topics%5B%5D=rust|$radix/checkbox-group
+number|/number?qty=3|$origin/number-field
+search|/search?find=rust|$radix/text-field
+rating|/rating?stars=4|$origin/rating
+tag-input|/tag-input?tags%5B%5D=rust&tags%5B%5D=web|$origin/tag-input
 settings|/settings|$radix/switch
 dialog|/dialog?dialog=confirm|$radix/dialog
 popover|/popover|$radix/dropdown-menu

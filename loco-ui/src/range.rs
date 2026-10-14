@@ -65,9 +65,10 @@ use crate::props::{Prop, PropKind};
 /// otherwise.
 ///
 /// **Setters.** Values and items: `.value(..)`, `.values(..)`, `.min(..)`, `.max(..)`,
-/// `.step(..)`; switches: `.ticks()`, `.disabled()`, `.readonly()`.
+/// `.step(..)`, `.id(..)`; switches: `.ticks()`, `.disabled()`, `.readonly()`.
 #[derive(Clone, Debug)]
 pub struct Range<'a> {
+    pub(crate) id: Option<&'a str>,
     name: &'a str,
     label: &'a str,
     /// The value, or a pair's low one, when known.
@@ -116,6 +117,9 @@ impl Range<'_> {
         ),
         Prop::new("ticks", PropKind::Switch, "")
             .doc("The lowest, middle and highest values marked under the track."),
+        Prop::new("id", PropKind::Value, "id: &'a str")
+            .attr("id")
+            .doc("The slider's id, `f-<name>` by default."),
     ];
 }
 
@@ -153,6 +157,7 @@ impl<'a> Range<'a> {
             strings,
             name,
             label,
+            id: None,
             value: None,
             high: None,
             min: 0.0,
@@ -167,6 +172,19 @@ impl<'a> Range<'a> {
     /// `disabled` and `aria-disabled`: shown greyed and not posted.
     pub fn disabled(mut self) -> Self {
         self.disabled = true;
+        self
+    }
+
+    /// The slider's id when a field gives one.
+    pub(crate) fn id_from(mut self, id: Option<&'a str>) -> Self {
+        self.id = id;
+        self
+    }
+
+    /// The slider's id, `f-<name>` by default (a pair's two are `<id>_min` and `<id>_max`);
+    /// its ticks list is `<id>-ticks` then.
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id = Some(id);
         self
     }
 
@@ -234,6 +252,7 @@ fn percent(value: f64, min: f64, max: f64) -> String {
 impl Render for Range<'_> {
     fn render(&self) -> Markup {
         let Range {
+            id: own,
             strings: _,
             disabled,
             readonly,
@@ -264,9 +283,11 @@ impl Render for Range<'_> {
                 (lo, Some(hi))
             }
         };
+        let base = own.map_or_else(|| format!("f-{name}"), str::to_string);
         let control = match value {
             (value, None) => {
-                let (list, id) = (format!("{name}-ticks"), format!("f-{name}"));
+                let list = own.map_or_else(|| format!("{name}-ticks"), |i| format!("{i}-ticks"));
+                let id = base.clone();
                 html! {
                     div class="lui-range" {
                         div class="lui-range-main" {
@@ -285,7 +306,8 @@ impl Render for Range<'_> {
                 }
             }
             (lo, Some(hi)) => {
-                let (lo_id, hi_id) = (format!("f-{name}_min"), format!("f-{name}_max"));
+                let (lo_id, hi_id) = (format!("{base}_min"), format!("{base}_max"));
+
                 html! {
                     div class="lui-range lui-range-pair" {
                         div class="lui-range-main" {
@@ -306,9 +328,9 @@ impl Render for Range<'_> {
         };
         // A pair's label names the group; it points at the low thumb.
         let id = if value.1.is_some() {
-            format!("f-{name}_min")
+            format!("{base}_min")
         } else {
-            format!("f-{name}")
+            base
         };
         crate::labelled(Some(label), &id, control)
     }

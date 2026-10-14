@@ -3138,6 +3138,18 @@ mod tests {
                     .render(),
             ]
         }),
+        ("Range", "id", |ui| {
+            [
+                ui.range("v", "V").render(),
+                ui.range("v", "V").id("x").render(),
+            ]
+        }),
+        ("InputOtp", "id", |ui| {
+            [
+                ui.input_otp("c", "C").render(),
+                ui.input_otp("c", "C").id("x").render(),
+            ]
+        }),
         ("Combobox", "disabled", |ui| {
             [
                 ui.combobox("q", "/s").render(),

@@ -56,7 +56,10 @@
 //! A tab title opens its panel and slides the underline on the click itself; the server's
 //! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
-//! own move form with its new index. A table's "select all matching" box ticks the row
+//! own move form with its new index. A number field's steppers (`data-lui="steppers"`)
+//! call `stepUp()`/`stepDown()` in place instead of posting, and a password's reveal button
+//! (`data-lui="reveal"`, `hidden` without the script: the page carries `data-lui-js` on
+//! `<html>` once the script runs) switches the field between `password` and `text`. A table's "select all matching" box ticks the row
 //! boxes on the page as well.
 //!
 //! [`script_tag`] goes at the end of `<body>`; `router` (feature `axum`) serves the file with a content
@@ -77,6 +80,9 @@ pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
+// Shows what needs the script (a password's reveal).
+document.documentElement.setAttribute("data-lui-js", "");
+
 // Every request says it is the script's (the server may answer with less) and wants HTML.
 var init = function (priority) { return { credentials: "same-origin", priority: priority || "high", headers: { "Lui-Enhance": "1", Accept: "text/html" } }; };
 var load = function (url, req) {
@@ -350,6 +356,12 @@ document.addEventListener("click", function (e) {
   document.querySelectorAll("details.lui-popover-details[open]").forEach(function (d) {
     if (!d.contains(e.target)) d.removeAttribute("open");
   });
+  // A number's steppers step in place (the first is up); a password's reveal flips its type.
+  var s = e.target.closest("[data-lui=steppers] button,[data-lui=reveal] button"), f = s && s.closest(".lui-input-group").querySelector("input"), p = f && f.type == "password";
+  if (!f) return;
+  e.preventDefault();
+  if (f.type == "number") { s.previousElementSibling ? f.stepDown() : f.stepUp(); f.dispatchEvent(new Event("input", { bubbles: true })); }
+  else { s.setAttribute("aria-pressed", p); f.type = p ? "text" : "password"; }
 });
 
 // Sortable list: a drag starts only from the grip. The item follows the pointer through its
@@ -722,14 +734,15 @@ mod tests {
 
     #[test]
     fn script_is_small_and_plain() {
-        // 13 KB served and 16 KB of source until M41's select-all box.
+        // 13 KB served and 16 KB of source until M41's select-all box; +384 served (+640 source) for M40c's
+        // number steppers and password reveal.
         assert!(
-            served().len() < 13568,
+            served().len() < 13952,
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 16640,
+            JS.len() < 17280,
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );
