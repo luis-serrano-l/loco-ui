@@ -1,0 +1,50 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<section class="lui-carousel" aria-roledescription="carousel" aria-label="Photos">
+<div class="lui-carousel-viewport" tabindex="0" data-prev="Previous slide" data-next="Next slide">
+<div id="photos-1" class="lui-carousel-item" role="group" aria-roledescription="slide" aria-label="Slide 1 of 2">One<a class="lui-button lui-button-icon lui-carousel-next" href="#photos-2" aria-label="Next slide">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</div>
+<div id="photos-2" class="lui-carousel-item" role="group" aria-roledescription="slide" aria-label="Slide 2 of 2">Two<a class="lui-button lui-button-icon lui-carousel-prev" href="#photos-1" aria-label="Previous slide">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+</a>
+</div>
+</div>
+<nav class="lui-carousel-dots" aria-label="Photos">
+<a class="lui-carousel-dot" href="#photos-1" aria-label="Slide 1 of 2">
+</a>
+<a class="lui-carousel-dot" href="#photos-2" aria-label="Slide 2 of 2">
+</a>
+</nav>
+</section>
+
+caps: none
+<section class="lui-carousel" aria-roledescription="carousel" aria-label="Photos">
+<div class="lui-carousel-viewport" tabindex="0" data-prev="Previous slide" data-next="Next slide">
+<div id="photos-1" class="lui-carousel-item" role="group" aria-roledescription="slide" aria-label="Slide 1 of 2">One<a class="lui-button lui-button-icon lui-carousel-next" href="#photos-2" aria-label="Next slide">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</div>
+<div id="photos-2" class="lui-carousel-item" role="group" aria-roledescription="slide" aria-label="Slide 2 of 2">Two<a class="lui-button lui-button-icon lui-carousel-prev" href="#photos-1" aria-label="Previous slide">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+</a>
+</div>
+</div>
+<nav class="lui-carousel-dots" aria-label="Photos">
+<a class="lui-carousel-dot" href="#photos-1" aria-label="Slide 1 of 2">
+</a>
+<a class="lui-carousel-dot" href="#photos-2" aria-label="Slide 2 of 2">
+</a>
+</nav>
+</section>

@@ -8,7 +8,7 @@ caps: all
 </div>
 <div class="lui-popover lui-popover-anchored lui-popover-end" style="anchor-name: --ctx-report-pdf">
 <button type="button" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" popovertarget="ctx-report-pdf" aria-label="More actions: report.pdf" aria-haspopup="menu">⋯</button>
-<nav id="ctx-report-pdf" popover style="position-anchor: --ctx-report-pdf; position-area: bottom span-left">
+<nav id="ctx-report-pdf" popover style="position-anchor: --ctx-report-pdf; position-area: block-end span-inline-start">
 <ul role="menu">
 <li role="none">
 <a class="lui-popover-item" role="menuitem" href="/files/1">

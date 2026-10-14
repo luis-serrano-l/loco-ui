@@ -1,4 +1,4 @@
-//! Feedback: alerts, progress and tooltips, toasts, stats and empty states.
+//! Feedback: alerts, progress and tooltips, toasts, banners, stats and empty states.
 
 use crate::site::page;
 use axum::{Form, Router, routing::get};
@@ -8,6 +8,7 @@ use serde::Deserialize;
 pub(crate) fn routes() -> Router {
     super::pages(PAGES)
         .route("/toast", axum::routing::post(toast_submit))
+        .route("/banner", get(banner_page).post(banner_reset))
         .route("/dashboard", get(dashboard_page))
 }
 
@@ -32,7 +33,7 @@ pub(crate) const PAGES: &[super::Simple] = &[
 ];
 
 /// The other pages' live components, which the index shows too (`site::preview`).
-pub(crate) const PREVIEWS: &[super::Preview] = &[("/dashboard", stats)];
+pub(crate) const PREVIEWS: &[super::Preview] = &[("/dashboard", stats), ("/banner", banners)];
 
 fn feedback(ui: &Ui) -> Markup {
     lui! {
@@ -43,13 +44,17 @@ fn feedback(ui: &Ui) -> Markup {
             Alert("Backups are complete") ok surface;
             Alert("Storage is 90% full") warn outline description="Old builds are removed after 30 days.";
             Alert("Draft saved") tone="neutral" variant="surface" size=1;
-            Progress(62, 100) label="Uploading photos";
-            Progress(0, 0) label="Waiting for the server";
+            Alert("Your trial ends on Friday") info description="Pick a plan to keep your projects."
+                action=(ui.link_button("See plans", "/pricing").small()) dismiss;
+            Progress(62, 100) label="Uploading photos" show_value;
+            Progress(0, 100) label="Waiting for the server" indeterminate;
+            Skeleton(2) circle avatar_lines=1;
             Meter(83, 0, 100) label="Disk used" low=60 high=80 optimum=0;
             Cluster {
                 Tooltip("Copy the link", lui! { Button("") icon_only aria_label="Copy" body={ (Icon::Copy) }; });
                 Separator vertical;
                 Tooltip("Opens in a new tab", lui! { LinkButton("Docs", "/"); }) below;
+                Tooltip("Shows after half a second", lui! { Button("Slow"); }) side=(Side::End) delay=500;
             }
             Separator label="or";
             // end code
@@ -67,8 +72,25 @@ fn toasts(ui: &Ui) -> Markup {
             Button("Sync now") name="kind" value="danger";
             Button("All three") name="kind" value="all";
         }
-        Toasts dismiss;
+        Toasts dismiss max=3 duration=6000 position=(position(ui)) action=("View", "/toast");
         // end code
+        p class="lui-note" { "Stack them at: "
+            @for at in ["top-start", "top-center", "top-end", "bottom-start", "bottom-center", "bottom-end"] {
+                a href={ "/toast?at=" (at) } { (at) } " "
+            }
+        }
+    }
+}
+
+/// Where `?at=` puts the toasts; bottom-end without it.
+fn position(ui: &Ui) -> Position {
+    match ui.param("at") {
+        Some("top-start") => Position::TopStart,
+        Some("top-center") => Position::TopCenter,
+        Some("top-end") => Position::TopEnd,
+        Some("bottom-start") => Position::BottomStart,
+        Some("bottom-center") => Position::BottomCenter,
+        _ => Position::BottomEnd,
     }
 }
 
@@ -121,7 +143,9 @@ async fn dashboard_page(ui: Ui) -> Page {
             // code: /dashboard
             EmptyState("No orders yet") icon="\u{1f4e6}" {
                 body { "Orders show up here as soon as a customer checks out." }
+                action "Import orders" "/dashboard";
                 link "Show sample orders" "/dashboard";
+                link "Read the guide" "/";
             }
             // end code
         } @else {
@@ -172,4 +196,38 @@ fn description_list(ui: &Ui) -> Markup {
         }
         // end code
     }
+}
+
+/// A banner that stays closed once closed (the `lui-dismiss-<id>` cookie), and a form that
+/// brings it back.
+async fn banner_page(ui: Ui) -> Page {
+    let body = lui! {
+        (banners(&ui))
+        Flash title="Banner restored" action=("Close it again", "/banner");
+        form method="post" action="/banner" { Button("Bring the first banner back") submit; }
+    };
+    page(&ui, "Banner", body)
+}
+
+/// The banners: one that can be closed for good, two toned ones.
+fn banners(ui: &Ui) -> Markup {
+    lui! {
+        Stack gap=3 {
+            // code: /banner
+            Banner("Version 0.2 is out: typed variants and a CLI.") id="v0-2" link=("Read the changes", "/") dismiss;
+            Banner("Maintenance tonight from 22:00 to 22:30 UTC.") tone="warn";
+            Banner("Your card was declined.") tone="danger" link=("Update billing", "/blocks/settings");
+            // end code
+        }
+    }
+}
+
+/// Clears the first banner's dismiss cookie: back to the page with a note.
+async fn banner_reset(ui: Ui) -> Redirect {
+    let clear = loco_ui::cookie::SetCookie::clear("lui-dismiss-v0-2")
+        .secure(ui.is_secure())
+        .to_string();
+    ui.redirect("/banner")
+        .ok("It shows again until you close it.")
+        .cookie(clear)
 }

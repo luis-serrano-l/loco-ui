@@ -18,7 +18,7 @@ use tower_http::compression::{
 };
 
 /// Every demo path the no-script test and the screenshot test visit.
-pub const PATHS: [&str; 52] = [
+pub const PATHS: [&str; 55] = [
     "/",
     "/caps",
     "/button?loading=1",
@@ -71,6 +71,9 @@ pub const PATHS: [&str; 52] = [
     "/palette?q=ta",
     "/marquee",
     "/modes?forced=1",
+    "/banner",
+    "/popover-card",
+    "/carousel",
 ];
 
 /// The whole demo app.

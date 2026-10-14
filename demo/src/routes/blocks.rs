@@ -88,8 +88,11 @@ fn dashboard(ui: &Ui) -> Markup {
 fn error(ui: &Ui) -> Markup {
     lui! {
         // code: /blocks/error
-        ErrorPage(404) home="/";
+        ErrorPage(ui.param("status").and_then(|s| s.parse().ok()).unwrap_or(404)) home="/";
         // end code
+        p class="lui-note" { "Also: "
+            @for status in ["401", "403", "422", "500", "503"] { a href={ "/blocks/error?status=" (status) } { (status) } " " }
+        }
     }
 }
 

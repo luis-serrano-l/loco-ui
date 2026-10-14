@@ -68,6 +68,9 @@ blocks-shell|/blocks/shell|$shadcn/sidebar
 blocks-auth|/blocks/auth|
 blocks-record|/blocks/record|
 blocks-error|/no-such-page|
+banner|/banner|$origin/banner
+popover-card|/popover-card|$radix/popover
+carousel|/carousel|$shadcn/carousel
 "
 if [ -n "$only" ] && ! echo "$pages" | grep -q "^$only|"; then
   echo "no page named $only in scripts/look.sh" >&2; exit 2

@@ -533,6 +533,27 @@ const EXAMPLES: &[Example] = &[
             .value("bold")
             .render()
     }),
+    on("Banner", ("/pricing", "", ""), |ui| {
+        ui.banner("Version 2 is out.")
+            .tone(Tone::Brand)
+            .link("Read the notes", "/changelog")
+            .dismiss()
+            .render()
+    }),
+    example("Popover", |ui| {
+        ui.popover("Share", html! { p { "Copied." } })
+            .side(Side::Top)
+            .align(Align::End)
+            .arrow()
+            .id("share-2")
+            .render()
+    }),
+    example("Carousel", |ui| {
+        ui.carousel("Photos")
+            .item(html! { "One" })
+            .item(html! { "Two" })
+            .render()
+    }),
 ];
 
 /// One tag per line, so a snapshot diff points at the element that changed.

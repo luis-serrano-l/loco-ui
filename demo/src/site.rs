@@ -21,7 +21,7 @@ pub(crate) fn routes() -> Router {
 
 /// Every component in the index: path, title (what each route passes to `page`), group, the
 /// platform features it is built on, and what it is for in plain words.
-pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
+pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 51] = [
     (
         "/feedback",
         "Alerts, progress and tooltips",
@@ -357,6 +357,27 @@ pub(crate) const COMPONENTS: [(&str, &str, &str, &str, &str); 48] = [
         "Primitives",
         "@media (forced-colors: active), (prefers-contrast: more), print",
         "The controls drawn in CSS under forced colours and more contrast, emulated by a class.",
+    ),
+    (
+        "/banner",
+        "Banner",
+        "Feedback",
+        "<aside>, a cookie set by a POST form",
+        "News for the whole site across the top, closed for good by its close button.",
+    ),
+    (
+        "/popover-card",
+        "Popover",
+        "Overlays",
+        "popover, anchor positioning, position-try-fallbacks",
+        "A panel of anything, a short form or some help, that opens beside its button.",
+    ),
+    (
+        "/carousel",
+        "Carousel",
+        "Overlays",
+        "scroll-snap, ::scroll-button(), ::scroll-marker",
+        "Slides in a row that snaps, with buttons and dots.",
     ),
 ];
 
