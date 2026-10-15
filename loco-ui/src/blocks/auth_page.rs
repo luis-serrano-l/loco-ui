@@ -108,8 +108,8 @@ pub const CSS: &str = r#"
   padding: calc(var(--lui-space) * 3); background: var(--lui-card); border: 1px solid var(--lui-line);
   border-radius: var(--lui-radius-lg); box-shadow: var(--lui-shadow-xs);
 }
-.lui-auth-title { margin: 0; font-size: 1.5rem; line-height: 2rem; font-weight: 600; }
-.lui-auth-description { margin: -0.5rem 0 0; color: var(--lui-muted); font-size: 0.875rem; }
+.lui-auth-title { margin: 0; font-size: var(--lui-text-6); line-height: 2rem; font-weight: 600; }
+.lui-auth-description { margin: -0.5rem 0 0; color: var(--lui-muted); font-size: var(--lui-text-2); }
 .lui-auth-card .lui-form { max-width: none; }
-.lui-auth-footer { font-size: 0.875rem; color: var(--lui-muted); text-align: center; }
+.lui-auth-footer { font-size: var(--lui-text-2); color: var(--lui-muted); text-align: center; }
 "#;

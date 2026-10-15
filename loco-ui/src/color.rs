@@ -215,15 +215,15 @@ pub const CSS: &str = r#"
   display: inline-flex; align-items: center; gap: var(--lui-space-2); height: var(--lui-control-h); box-sizing: border-box;
   padding: 0 0.75rem 0 0.5rem; border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
 }
-.lui-color-value code { font-family: var(--lui-font-mono); font-size: 0.8125rem; background: none; border: 0; padding: 0; }
+.lui-color-value code { font-family: var(--lui-font-mono); font-size: var(--lui-text-2); background: none; border: 0; padding: 0; }
 .lui-color-swatch {
   width: 1.25rem; height: 1.25rem; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lui-fg) 15%, transparent);
   background: linear-gradient(color-mix(in srgb, var(--lui-color-value) var(--lui-color-alpha, 100%), transparent) 0 0),
     repeating-conic-gradient(var(--lui-line) 0 25%, var(--lui-surface) 0 50%) 0 0 / 0.5rem 0.5rem;
 }
-.lui-color-alpha { display: inline-flex; align-items: center; gap: var(--lui-space-2); font-weight: 400; font-size: 0.875rem; }
+.lui-color-alpha { display: inline-flex; align-items: center; gap: var(--lui-space-2); font-weight: 400; font-size: var(--lui-text-2); }
 .lui-color-alpha-range { width: 8rem; }
-.lui-color-alpha output { min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+.lui-color-alpha output { min-width: 3ch; text-align: end; font-variant-numeric: tabular-nums; }
 .lui-color-presets { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: var(--lui-space-2); }
 /* A preset is a button drawn as a round swatch of its colour, ringed when it is the value. */
 .lui-color-presets .lui-button {

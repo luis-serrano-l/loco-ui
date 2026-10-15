@@ -157,6 +157,6 @@ pub const CSS: &str = r#"
 .lui-error-page { display: grid; justify-items: center; gap: var(--lui-space); padding-block: calc(var(--lui-space) * 8); text-align: center; }
 .lui-error-page h1 { margin: 0; }
 .lui-error-page p { margin: 0; color: var(--lui-muted); max-width: 32rem; }
-.lui-error-page .lui-error-page-status { font-size: 3rem; line-height: 1; font-weight: 700; color: var(--lui-fg); letter-spacing: -0.02em; }
+.lui-error-page .lui-error-page-status { font-size: var(--lui-text-9); line-height: 1; font-weight: 700; color: var(--lui-fg); letter-spacing: -0.02em; }
 .lui-error-page .lui-button { margin-top: calc(var(--lui-space) * 2); }
 "#;

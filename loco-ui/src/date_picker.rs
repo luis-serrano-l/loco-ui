@@ -314,14 +314,14 @@ pub const CSS: &str = r#"
    no shadow, --lui-control-h tall, a calendar icon, the date or a muted prompt, a chevron at
    the end. The popover holds the calendar, raised. */
 .lui-date-picker-anchor { position: relative; }
-.lui-date-picker-label { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; }
+.lui-date-picker-label { font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500; }
 .lui-date-picker > .lui-calendar { justify-self: start; }
 .lui-date-picker-trigger.lui-button {
   width: min(15rem, 100%); justify-content: flex-start; gap: var(--lui-space-2); padding-inline: 0.75rem;
   font-weight: 400; background: transparent; border-color: var(--lui-input); box-shadow: none;
 }
 .lui-date-picker-trigger > .lui-icon:first-child { color: var(--lui-muted); }
-.lui-date-picker-chevron { display: inline-flex; margin-left: auto; color: var(--lui-muted); }
+.lui-date-picker-chevron { display: inline-flex; margin-inline-start: auto; color: var(--lui-muted); }
 .lui-date-picker-empty { color: var(--lui-muted); }
 .lui-date-picker-panel { margin: 0; margin-top: var(--lui-space-1); padding: 0; border: 0; background: none; overflow: visible; }
 .lui-date-picker-panel > .lui-calendar { width: 17.5rem; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }

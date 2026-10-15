@@ -381,10 +381,10 @@ pub const CSS: &str = r#"
 .lui-chart { margin: 0; }
 figure.lui-chart { container: lui-chart / inline-size; margin-block: var(--lui-space-6); }
 .lui-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.lui-chart-legend { display: flex; align-items: center; gap: var(--lui-space-2); margin-bottom: var(--lui-space-2); font-size: 0.8125rem; color: var(--lui-muted); }
+.lui-chart-legend { display: flex; align-items: center; gap: var(--lui-space-2); margin-bottom: var(--lui-space-2); font-size: var(--lui-text-2); color: var(--lui-muted); }
 .lui-chart-swatch { width: 0.625rem; height: 0.625rem; border-radius: 2px; background: var(--lui-primary); }
 .lui-chart-grid { stroke: var(--lui-gray-5); stroke-opacity: 1; stroke-width: 1; stroke-dasharray: 3 3; }
-.lui-chart-tick, .lui-chart-label { fill: var(--lui-muted); font-size: 12px; font-family: inherit; }
+.lui-chart-tick, .lui-chart-label { fill: var(--lui-muted); font-size: var(--lui-text-1); font-family: inherit; }
 .lui-chart-bar { fill: var(--lui-primary); transition: fill var(--lui-duration-fast); }
 .lui-chart-path { fill: none; stroke: var(--lui-primary); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .lui-chart-dot { fill: var(--lui-bg); stroke: var(--lui-primary); stroke-width: 2; }
@@ -398,7 +398,7 @@ figure.lui-chart { container: lui-chart / inline-size; margin-block: var(--lui-s
 .lui-chart-mark:is(:hover, :focus-visible) .lui-chart-tip { opacity: 1; }
 @container lui-chart (width < 30rem) {
   .lui-chart-label-odd { display: none; }
-  .lui-chart-tick, .lui-chart-label { font-size: 20px; }
+  .lui-chart-tick, .lui-chart-label { font-size: var(--lui-text-5); }
 }
 .lui-chart-sparkline { display: inline-block; width: 7.5rem; vertical-align: middle; }
 .lui-chart-sparkline svg { height: 2rem; }

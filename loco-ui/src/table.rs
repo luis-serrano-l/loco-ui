@@ -1468,13 +1468,13 @@ pub const CSS: &str = r#"
 .lui-table-filter { flex: 1; min-width: min(14rem, 100%); }
 .lui-table-filter form { display: flex; flex-wrap: wrap; gap: var(--lui-space); align-items: center; }
 .lui-table-filter-input { flex: 1; min-width: 8rem; max-width: 24rem; }
-.lui-table-clear { color: var(--lui-muted); font-size: 0.875rem; }
+.lui-table-clear { color: var(--lui-muted); font-size: var(--lui-text-2); }
 .lui-table-clear:hover { color: var(--lui-fg); }
-.lui-table-cols { position: relative; font-size: 0.875rem; }
+.lui-table-cols { position: relative; font-size: var(--lui-text-2); }
 .lui-table-cols summary { list-style: none; }
 .lui-table-cols summary::-webkit-details-marker { display: none; }
 .lui-table-cols ul {
-  position: absolute; right: 0; z-index: 2; margin: 0.25rem 0 0; padding: 0.25rem; list-style: none; min-width: 10rem;
+  position: absolute; inset-inline-end: 0; z-index: 2; margin: 0.25rem 0 0; padding: 0.25rem; list-style: none; min-width: 10rem;
   background: var(--lui-popover); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
 .lui-table-cols li { max-width: none; }
@@ -1497,27 +1497,27 @@ pub const CSS: &str = r#"
 .lui-table-scroll thead th:is(:first-child, :nth-child(2)) { background: var(--lui-gray-2); }
 .lui-table table { table-layout: auto; border-collapse: separate; border-spacing: 0; }
 .lui-table tbody tr:last-child > * { border-bottom: 0; }
-.lui-table thead th { background: var(--lui-gray-2); color: var(--lui-muted); font-size: 0.8125rem; font-weight: 500; white-space: nowrap; }
+.lui-table thead th { background: var(--lui-gray-2); color: var(--lui-muted); font-size: var(--lui-text-2); font-weight: 500; white-space: nowrap; }
 .lui-table tbody tr > td { transition: background-color var(--lui-duration-fast); }
 .lui-table tbody tr:hover > td { background: var(--lui-gray-2); }
 .lui-table tbody tr:has(.lui-table-check:checked) > td { background: var(--lui-brand-3); }
 .lui-table th a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
 .lui-table th a:hover { color: var(--lui-fg); }
 .lui-table th.lui-table-sorted { color: var(--lui-fg); }
-.lui-table-arrow { font-size: 0.75em; margin-left: 0.25em; }
+.lui-table-arrow { font-size: 0.75em; margin-inline-start: 0.25em; }
 /* Code in a cell is plain monospace text, so a long path wraps without a broken box. */
 .lui-table td code { background: none; border: 0; padding: 0; }
-.lui-table-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lui-table-num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .lui-table-select { width: 2.5rem; text-align: center; }
 .lui-table-menu { width: 3.5rem; text-align: center; text-wrap: nowrap; }
 .lui-table-edit-col { width: 10rem; }
-.lui-table-edit { white-space: nowrap; text-align: right; }
-.lui-table-edit .lui-button + .lui-button { margin-left: 0.25rem; }
+.lui-table-edit { white-space: nowrap; text-align: end; }
+.lui-table-edit .lui-button + .lui-button { margin-inline-start: 0.25rem; }
 .lui-table-edit-input { width: 100%; box-sizing: border-box; min-height: 2rem; padding-block: 0.25rem; }
 .lui-table-empty { color: var(--lui-muted); text-align: center; padding: var(--lui-space-6); height: 6rem; }
 .lui-table tbody tr:hover > .lui-table-empty { background: none; }
 /* Priorities: the cells hide, and the matching lines under the first cell appear. */
-.lui-table-more { display: none; margin: var(--lui-space-1) 0 0; font-size: 0.8125rem; color: var(--lui-muted); }
+.lui-table-more { display: none; margin: var(--lui-space-1) 0 0; font-size: var(--lui-text-2); color: var(--lui-muted); }
 .lui-table-more > div { display: none; gap: 0.375rem; }
 .lui-table-more dt::after { content: ":"; }
 .lui-table-more dd { margin: 0; color: var(--lui-fg); }
@@ -1534,28 +1534,28 @@ pub const CSS: &str = r#"
 }
 .lui-table-detail summary { cursor: pointer; list-style: none; font-weight: 400; }
 .lui-table-detail summary::-webkit-details-marker { display: none; }
-.lui-table-detail summary::before { content: "\25B8"; color: var(--lui-muted); margin-right: 0.4em; }
+.lui-table-detail summary::before { content: "\25B8"; color: var(--lui-muted); margin-inline-end: 0.4em; }
 .lui-table-detail[open] summary::before { content: "\25BE"; }
-.lui-table-detail-body { margin: 0.5rem 0 0.25rem 1.2em; font-size: 0.875rem; color: var(--lui-muted); }
+.lui-table-detail-body { margin: 0.5rem 0 0.25rem 1.2em; font-size: var(--lui-text-2); color: var(--lui-muted); }
 .lui-table-detail-body > :last-child { margin-bottom: 0; }
-.lui-table-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); margin-top: calc(var(--lui-space) * 2); font-size: 0.875rem; color: var(--lui-muted); }
+.lui-table-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); margin-top: calc(var(--lui-space) * 2); font-size: var(--lui-text-2); color: var(--lui-muted); }
 .lui-table-skeleton td span { display: block; height: 1rem; margin: 0.125rem 0; border-radius: var(--lui-radius-sm); background: var(--lui-accent); animation: lui-table-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 @keyframes lui-table-pulse { 50% { opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { .lui-table-skeleton td span { animation: none; } }
 /* M41: multi-sort, the filters panel, select-all, footer, stripes, density, groups, row
    links and tones. */
-.lui-table-sort-index { min-width: 1rem; padding: 0 0.25rem; border-radius: 999px; background: var(--lui-gray-4); color: var(--lui-fg); font-size: 0.6875rem; line-height: 1rem; text-align: center; }
+.lui-table-sort-index { min-width: 1rem; padding: 0 0.25rem; border-radius: 999px; background: var(--lui-gray-4); color: var(--lui-fg); font-size: var(--lui-text-1); line-height: 1rem; text-align: center; }
 .lui-table th .lui-table-then { margin-inline-start: 0.25rem; padding: 0 0.3rem; border-radius: var(--lui-radius-sm); color: var(--lui-muted); opacity: 0; }
 .lui-table th:hover .lui-table-then, .lui-table th .lui-table-then:focus-visible { opacity: 1; }
 .lui-table th .lui-table-then:hover { background: var(--lui-gray-4); color: var(--lui-fg); }
 @media (pointer: coarse) { .lui-table th .lui-table-then { opacity: 1; } }
 /* The "Filters" panel opens as a row of its own under the search, after the buttons, so an
    active filter (the panel stays open) never covers the table. */
-.lui-table-filters { font-size: 0.875rem; }
+.lui-table-filters { font-size: var(--lui-text-2); }
 .lui-table-filters[open] { flex-basis: 100%; order: 1; }
 .lui-table-filters summary { list-style: none; width: fit-content; }
 .lui-table-filters summary::-webkit-details-marker { display: none; }
-.lui-table-filters-count { min-width: 1.25rem; padding: 0 0.375rem; border-radius: 999px; background: var(--lui-primary); color: var(--lui-on-primary); font-size: 0.75rem; line-height: 1.25rem; text-align: center; }
+.lui-table-filters-count { min-width: 1.25rem; padding: 0 0.375rem; border-radius: 999px; background: var(--lui-primary); color: var(--lui-on-primary); font-size: var(--lui-text-1); line-height: 1.25rem; text-align: center; }
 .lui-table-filters-body {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr)); gap: var(--lui-space-2); margin-top: var(--lui-space-2); padding: var(--lui-space-3);
   background: var(--lui-gray-2); border: 1px solid var(--lui-line); border-radius: var(--lui-radius);
@@ -1564,9 +1564,9 @@ pub const CSS: &str = r#"
 .lui-table .lui-table-scroll tfoot td { background: var(--lui-gray-2); font-weight: 500; border-top: 1px solid var(--lui-line); border-bottom: 0; }
 .lui-table-striped tbody tr:nth-child(even) > td { background: var(--lui-gray-2); }
 .lui-table-striped tbody tr:hover > td { background: var(--lui-gray-3); }
-.lui-table-compact :is(th, td) { padding: var(--lui-space-1) var(--lui-space-2); font-size: 0.8125rem; }
+.lui-table-compact :is(th, td) { padding: var(--lui-space-1) var(--lui-space-2); font-size: var(--lui-text-2); }
 .lui-table-compact thead th { height: 2rem; }
-.lui-table tbody tr.lui-table-group > td { background: var(--lui-gray-2); color: var(--lui-muted); font-size: 0.8125rem; font-weight: 600; }
+.lui-table tbody tr.lui-table-group > td { background: var(--lui-gray-2); color: var(--lui-muted); font-size: var(--lui-text-2); font-weight: 600; }
 .lui-table tbody tr.lui-table-disabled > td { color: var(--lui-muted); }
 .lui-table-ok { --lui-table-tone: var(--lui-ok); }
 .lui-table-warn { --lui-table-tone: var(--lui-warn); }
@@ -1579,7 +1579,7 @@ pub const CSS: &str = r#"
 .lui-table-go { width: 2.5rem; text-align: center; }
 .lui-table tbody tr.lui-table-linked { position: relative; }
 .lui-table tbody tr.lui-table-linked:hover > td { cursor: pointer; }
-.lui-table-row-link { display: inline-block; color: var(--lui-muted); font-size: 1.25rem; line-height: 1; text-decoration: none; }
+.lui-table-row-link { display: inline-block; color: var(--lui-muted); font-size: var(--lui-text-5); line-height: 1; text-decoration: none; }
 .lui-table-row-link::after { content: ""; position: absolute; inset: 0; z-index: 1; }
 .lui-table-linked :is(.lui-table-check, .lui-button, summary, a:not(.lui-table-row-link)) { position: relative; z-index: 2; }
 .lui-table-linked > td:is(:first-child, .lui-table-select + td):has(.lui-table-check, .lui-button, summary, a:not(.lui-table-row-link)) { z-index: 2; }

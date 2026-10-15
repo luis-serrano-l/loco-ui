@@ -156,10 +156,10 @@ impl Render for ErrorSummary<'_> {
 /// shadcn's destructive alert, with the links underlined.
 pub const CSS: &str = r#"
 /* The callout look (alert.rs) in danger: icon, title, then the list of links. */
-.lui-error-summary-title { margin: 0; font-size: 0.875rem; font-weight: 600; line-height: 1.25rem; }
+.lui-error-summary-title { margin: 0; font-size: var(--lui-text-2); font-weight: 600; line-height: 1.25rem; }
 .lui-error-summary-title a { text-decoration: none; }
 .lui-error-summary-title a:focus-visible, .lui-error-summary-title:focus-visible { outline: 2px solid var(--lui-ring); outline-offset: 2px; border-radius: 2px; }
-.lui-error-summary-list { margin: 0; padding-left: 1.125rem; display: grid; gap: var(--lui-space-1); }
+.lui-error-summary-list { margin: 0; padding-inline-start: 1.125rem; display: grid; gap: var(--lui-space-1); }
 "#;
 
 #[cfg(test)]

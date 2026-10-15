@@ -213,7 +213,7 @@ pub const CSS: &str = r#"
 /* Tremor ProgressBar: the label and the value on one line over a rounded --lui-gray-4 track
    with the primary fill. */
 .lui-progress-field { display: grid; gap: var(--lui-space-2); }
-.lui-progress-field label { display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500; }
+.lui-progress-field label { display: flex; justify-content: space-between; font-size: var(--lui-text-2); font-weight: 500; }
 .lui-progress-value { color: var(--lui-muted); font-variant-numeric: tabular-nums; font-weight: 400; }
 .lui-progress {
   appearance: none; display: block; width: 100%; height: var(--lui-progress-h, 0.5rem); border: 0; border-radius: var(--lui-progress-radius, 9999px); overflow: hidden;

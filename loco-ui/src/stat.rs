@@ -265,19 +265,19 @@ pub const CSS: &str = r#"
 }
 .lui-stat p { margin: 0; max-width: none; }
 .lui-stat-link:hover { background: color-mix(in srgb, var(--lui-accent) 50%, var(--lui-card)); }
-.lui-stat-label { color: var(--lui-muted); font-size: 0.875rem; font-weight: 500; }
-.lui-stat-value { font-size: 1.875rem; font-weight: 600; line-height: 2.25rem; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.lui-stat-label { color: var(--lui-muted); font-size: var(--lui-text-2); font-weight: 500; }
+.lui-stat-value { font-size: var(--lui-text-7); font-weight: 600; line-height: 2.25rem; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .lui-stat-delta {
   --lui-stat-tone: var(--lui-muted);
   display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.375rem; border-radius: var(--lui-radius-sm);
-  font-size: 0.75rem; line-height: 1rem; font-weight: 500; font-variant-numeric: tabular-nums;
+  font-size: var(--lui-text-1); line-height: 1rem; font-weight: 500; font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--lui-stat-tone) 85%, var(--lui-fg)); background: color-mix(in srgb, var(--lui-stat-tone) 14%, var(--lui-bg));
 }
-.lui-stat-delta > [aria-hidden] { font-size: 0.625rem; }
+.lui-stat-delta > [aria-hidden] { font-size: var(--lui-text-1); }
 .lui-stat-good { --lui-stat-tone: var(--lui-ok); }
 .lui-stat-bad { --lui-stat-tone: var(--lui-danger); }
 .lui-stat-flat { --lui-stat-tone: var(--lui-muted); }
-.lui-stat-note { color: var(--lui-muted); font-size: 0.75rem; }
+.lui-stat-note { color: var(--lui-muted); font-size: var(--lui-text-1); }
 .lui-stat-progress { appearance: none; width: 100%; height: 0.375rem; margin-top: var(--lui-space-2); border: 0; border-radius: 9999px; background: var(--lui-gray-4); overflow: hidden; }
 .lui-stat-progress::-webkit-progress-bar { background: var(--lui-gray-4); border-radius: 9999px; }
 .lui-stat-progress::-webkit-progress-value { background: var(--lui-primary); border-radius: 9999px; }

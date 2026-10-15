@@ -161,10 +161,10 @@ pub const CSS: &str = r#"
      edge (the real right border sits in the clipped part, and still draws where the cell
      size cannot resolve). */
   box-sizing: content-box; width: calc(var(--lui-otp-cell) * (var(--lui-otp-cells) + 1)); height: var(--lui-otp-cell); padding: 0;
-  margin-right: calc(var(--lui-otp-cell) * -1);
+  margin-inline-end: calc(var(--lui-otp-cell) * -1);
   clip-path: inset(0 var(--lui-otp-cell) 0 0 round var(--lui-radius));
   border-radius: var(--lui-radius); caret-color: var(--lui-primary);
-  font-family: var(--lui-font-mono); font-size: min(1.25rem, var(--lui-otp-cell) / 2); font-variant-numeric: tabular-nums;
+  font-family: var(--lui-font-mono); font-size: var(--lui-text-5); font-variant-numeric: tabular-nums;
   letter-spacing: calc(var(--lui-otp-cell) - 1ch); text-indent: calc((var(--lui-otp-cell) - 1ch) / 2);
   background: var(--lui-otp-active), var(--lui-otp-sep),
     linear-gradient(to right, transparent calc(var(--lui-otp-cell) - 1px), var(--lui-input) 0) 0 0 / var(--lui-otp-cell) 100% repeat-x, var(--lui-bg);

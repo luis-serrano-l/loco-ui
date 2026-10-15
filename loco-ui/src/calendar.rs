@@ -564,10 +564,10 @@ pub const CSS: &str = r#"
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); box-shadow: var(--lui-shadow-xs);
 }
 .lui-calendar-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--lui-space-2); margin-bottom: var(--lui-space-4); }
-.lui-calendar-title { margin: 0; text-align: center; font-size: 0.875rem; font-weight: 500; }
+.lui-calendar-title { margin: 0; text-align: center; font-size: var(--lui-text-2); font-weight: 500; }
 .lui-calendar-head .lui-button[aria-disabled=true] { visibility: hidden; }
-.lui-calendar-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0 0.125rem; font-size: 0.875rem; margin: 0; }
-.lui-calendar-grid th { height: auto; padding: 0 0 var(--lui-space-2); text-align: center; font-size: 0.75rem; font-weight: 400; color: var(--lui-muted); border: 0; }
+.lui-calendar-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0 0.125rem; font-size: var(--lui-text-2); margin: 0; }
+.lui-calendar-grid th { height: auto; padding: 0 0 var(--lui-space-2); text-align: center; font-size: var(--lui-text-1); font-weight: 400; color: var(--lui-muted); border: 0; }
 .lui-calendar-grid td { padding: 0; border: 0; text-align: center; }
 .lui-calendar-grid tbody tr:hover { background: none; }
 .lui-calendar-day {

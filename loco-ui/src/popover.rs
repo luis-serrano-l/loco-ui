@@ -638,8 +638,8 @@ pub const CSS: &str = r#"
 .lui-popover form { margin: 0; }
 .lui-popover-item {
   display: flex; align-items: center; gap: var(--lui-space-2); width: 100%; min-height: 2rem; box-sizing: border-box;
-  padding: 0 0.5rem; color: inherit; text-decoration: none; text-align: left; font: inherit;
-  font-size: 0.875rem; line-height: 1.25rem; font-weight: 400;
+  padding: 0 0.5rem; color: inherit; text-decoration: none; text-align: start; font: inherit;
+  font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 400;
   background: none; border: 0; border-radius: var(--lui-radius-sm); box-shadow: none; cursor: pointer; justify-content: flex-start;
 }
 @media (pointer: coarse) { .lui-popover-item { min-height: var(--lui-hit); } }
@@ -648,25 +648,25 @@ pub const CSS: &str = r#"
 .lui-popover-item:hover .lui-popover-icon, .lui-popover-item:focus-visible .lui-popover-icon,
 .lui-popover-item:hover .lui-popover-kbd, .lui-popover-item:focus-visible .lui-popover-kbd { color: inherit; }
 .lui-popover-text { flex: 1; }
-.lui-popover-description { display: block; margin-top: 0.125rem; font-size: 0.8125rem; line-height: 1.125rem; color: var(--lui-muted); }
+.lui-popover-description { display: block; margin-top: 0.125rem; font-size: var(--lui-text-2); line-height: 1.125rem; color: var(--lui-muted); }
 .lui-popover-item:has(.lui-popover-description) { align-items: flex-start; padding-block: var(--lui-space-2); }
 .lui-popover-item:is(:hover, :focus-visible) .lui-popover-description { color: inherit; opacity: 0.85; }
-.lui-popover-kbd { font: inherit; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0 0 0 var(--lui-space-4); margin-left: auto; }
+.lui-popover-kbd { font: inherit; font-size: var(--lui-text-1); letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0 0 0 var(--lui-space-4); margin-inline-start: auto; }
 .lui-popover-danger { color: var(--lui-danger); }
 .lui-popover-danger:hover, .lui-popover-danger:focus-visible { color: var(--lui-danger); background: color-mix(in srgb, var(--lui-danger) 10%, transparent); }
 .lui-popover-danger .lui-popover-icon { color: inherit; }
 .lui-popover-item[data-disabled] { opacity: 0.5; cursor: default; }
 .lui-popover-item[data-disabled]:hover { background: none; color: inherit; }
-.lui-popover-heading { display: flex; align-items: center; min-height: 1.5rem; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
+.lui-popover-heading { display: flex; align-items: center; min-height: 1.5rem; padding: 0 0.5rem; font-size: var(--lui-text-1); font-weight: 500; color: var(--lui-muted); }
 .lui-popover-sep { margin: var(--lui-space-1) 0.5rem; border-top: 1px solid var(--lui-line); }
 .lui-popover-sub { position: relative; }
 /* <details> fallback: the summary is a .lui-button, the menu absolutely positioned by placement. */
 .lui-popover-details > summary { list-style: none; }
 .lui-popover-details > summary::-webkit-details-marker { display: none; }
-.lui-popover-details > nav { position: absolute; z-index: 10; }
-.lui-popover-start.lui-popover-details > nav { top: 100%; left: 0; margin-top: 4px; }
-.lui-popover-end.lui-popover-details > nav { top: 100%; right: 0; margin-top: 4px; }
-.lui-popover-right.lui-popover-details > nav { top: 0; left: 100%; margin-left: 4px; }
+.lui-popover-details > nav { position: absolute; z-index: var(--lui-z-popover); }
+.lui-popover-start.lui-popover-details > nav { top: 100%; inset-inline-start: 0; margin-top: 4px; }
+.lui-popover-end.lui-popover-details > nav { top: 100%; inset-inline-end: 0; margin-top: 4px; }
+.lui-popover-right.lui-popover-details > nav { top: 0; inset-inline-start: 100%; margin-inline-start: 4px; }
 .lui-popover-sub > .lui-popover-details > summary {
   display: flex; align-items: center; min-height: 2rem; padding: 0 0.5rem; font-weight: 400; border: 0; border-radius: var(--lui-radius-sm); background: none; box-shadow: none;
 }

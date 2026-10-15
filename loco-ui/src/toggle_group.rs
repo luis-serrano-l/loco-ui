@@ -235,11 +235,11 @@ pub const CSS: &str = r#"
 .lui-toggle-group-face {
   display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 0.375rem; white-space: nowrap;
   min-width: calc(var(--lui-control-h) - 4px); height: calc(var(--lui-control-h) - 4px); padding: 0 0.75rem; box-sizing: border-box;
-  border-radius: calc(var(--lui-toggle-radius, var(--lui-radius)) - 2px); font-size: 0.875rem; font-weight: 500; color: var(--lui-gray-11); cursor: pointer;
+  border-radius: calc(var(--lui-toggle-radius, var(--lui-radius)) - 2px); font-size: var(--lui-text-2); font-weight: 500; color: var(--lui-gray-11); cursor: pointer;
   transition: color var(--lui-duration-fast), background-color var(--lui-duration-fast);
 }
-.lui-toggle-group[data-size="1"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-sm) - 4px); height: calc(var(--lui-control-h-sm) - 4px); padding: 0 0.5rem; font-size: 0.8125rem; }
-.lui-toggle-group[data-size="3"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-lg) - 4px); height: calc(var(--lui-control-h-lg) - 4px); padding: 0 1rem; font-size: 1rem; }
+.lui-toggle-group[data-size="1"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-sm) - 4px); height: calc(var(--lui-control-h-sm) - 4px); padding: 0 0.5rem; font-size: var(--lui-text-2); }
+.lui-toggle-group[data-size="3"] .lui-toggle-group-face { min-width: calc(var(--lui-control-h-lg) - 4px); height: calc(var(--lui-control-h-lg) - 4px); padding: 0 1rem; font-size: var(--lui-text-3); }
 .lui-toggle-group-face:hover { color: var(--lui-fg); }
 .lui-toggle-group-input:disabled + .lui-toggle-group-face { color: var(--lui-gray-8); cursor: not-allowed; }
 
@@ -248,11 +248,12 @@ pub const CSS: &str = r#"
 @supports selector(:has(*)) {
   .lui-toggle-group-one .lui-toggle-group-input:checked + .lui-toggle-group-face { background: transparent; box-shadow: none; }
   .lui-toggle-group-one::before {
-    content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--lui-toggle-n, 1));
+    content: ""; position: absolute; top: 2px; bottom: 2px; inset-inline-start: 2px; width: calc((100% - 4px) / var(--lui-toggle-n, 1));
     translate: calc(100% * var(--lui-toggle-at, 0)) 0; border-radius: calc(var(--lui-toggle-radius, var(--lui-radius)) - 2px);
     background: var(--lui-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--lui-line) 70%, transparent), var(--lui-shadow-xs), var(--lui-highlight);
     transition: translate var(--lui-duration) var(--lui-ease-spring);
   }
+  .lui-toggle-group-one:dir(rtl)::before { translate: calc(-100% * var(--lui-toggle-at, 0)) 0; }
   .lui-toggle-group-one:not(:has(.lui-toggle-group-input:checked))::before { opacity: 0; }
   .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(2) > .lui-toggle-group-input:checked) { --lui-toggle-at: 1; }
   .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(3) > .lui-toggle-group-input:checked) { --lui-toggle-at: 2; }

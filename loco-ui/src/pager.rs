@@ -172,7 +172,7 @@ impl Render for Pager<'_> {
 }
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-.lui-pager-list { margin: 0; padding-left: 1.5rem; font-size: 0.875rem; }
+.lui-pager-list { margin: 0; padding-inline-start: 1.5rem; font-size: var(--lui-text-2); }
 .lui-pager-list li { padding: 0.5rem 0; border-bottom: 1px solid var(--lui-line); }
 .lui-pager-anchor { scroll-margin-top: 4rem; }
 /* "Load more" is the outline button, full width under the list. */

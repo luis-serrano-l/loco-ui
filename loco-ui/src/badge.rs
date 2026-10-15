@@ -248,7 +248,7 @@ pub const CSS: &str = r#"
 .lui-badge {
   --lui-badge-tone: var(--lui-primary); --lui-badge-on: var(--lui-on-primary);
   display: inline-flex; align-items: center; gap: 0.25rem; width: fit-content; white-space: nowrap;
-  padding: 0.125rem 0.5rem; font-size: 0.75rem; line-height: 1rem; font-weight: 500; text-decoration: none;
+  padding: 0.125rem 0.5rem; font-size: var(--lui-text-1); line-height: 1rem; font-weight: 500; text-decoration: none;
   border: 1px solid transparent; border-radius: var(--lui-radius-sm);
   background: color-mix(in srgb, var(--lui-badge-tone) 14%, transparent); color: color-mix(in srgb, var(--lui-badge-tone) 72%, var(--lui-fg));
   transition: background-color var(--lui-duration-fast);
@@ -268,7 +268,7 @@ a.lui-badge.lui-badge-solid:hover { background: color-mix(in srgb, var(--lui-bad
 .lui-badge:is([data-tone=brand], [data-tone=info]) { --lui-badge-tone: var(--lui-primary); --lui-badge-on: var(--lui-on-primary); }
 .lui-badge[data-variant=ghost] { background: transparent; }
 .lui-badge[data-size="2"] { padding: 0.25rem 0.5rem; }
-.lui-badge[data-size="3"] { padding: 0.25rem 0.625rem; font-size: 0.875rem; line-height: 1.25rem; }
+.lui-badge[data-size="3"] { padding: 0.25rem 0.625rem; font-size: var(--lui-text-2); line-height: 1.25rem; }
 .lui-badge .lui-icon { width: 0.75rem; height: 0.75rem; }
 /* .shimmer(): the button's sweep (@keyframes lui-shimmer in button.rs) over the badge's fill. */
 .lui-badge.lui-badge-shimmer { --lui-sweep: var(--lui-shimmer-surface); }

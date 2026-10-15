@@ -225,9 +225,9 @@ impl Render for Counter<'_> {
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
 .lui-counter { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space); }
-.lui-counter output { min-width: 3ch; text-align: center; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.lui-counter output { min-width: 3ch; text-align: center; font-size: var(--lui-text-6); font-weight: 600; font-variant-numeric: tabular-nums; }
 .lui-counter-input { width: 6em; }
-.lui-counter-bounds { flex-basis: 100%; color: var(--lui-muted); font-size: 0.875rem; }
+.lui-counter-bounds { flex-basis: 100%; color: var(--lui-muted); font-size: var(--lui-text-2); }
 "#;
 
 #[cfg(test)]
