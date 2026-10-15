@@ -48,7 +48,7 @@ async-trait = { version = "0.1", optional = true }
 serde_path_to_error = { version = "0.1", optional = true }
 chrono = { version = "0.4", optional = true, default-features = false, features = ["std"] }
 serde_json = { version = "1", optional = true }
-toml_edit = { version = "0.22", optional = true }
+toml_edit = { version = "0.25", optional = true }
 
 [dev-dependencies]
 serde.workspace = true
