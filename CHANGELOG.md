@@ -175,6 +175,8 @@ M16 entries are older still and describe options structs that M18 replaced.
 
 #### M42 · A docs site, not a demo
 
+- An examples gallery at `/examples`: ten pages of `examples/loco-app` as their Blitz
+  screenshots, each linked to the view file that renders it.
 - `props::Key` and a `KEYS` const on every builder: the keys it answers to, what they do,
   and whether only the script does it. `props()`, `spec/components.json`, each component
   page's new Keyboard section and the llms files list them; the llms `.md` files also gain

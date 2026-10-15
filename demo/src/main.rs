@@ -87,6 +87,10 @@ async fn write_snapshot(dir: &Path) {
     for page in &pages {
         std::fs::write(dir.join(&page.name), &page.html).unwrap();
     }
+    std::fs::create_dir_all(dir.join("examples")).unwrap();
+    for (name, png) in demo::examples::images() {
+        std::fs::write(dir.join(name), png).unwrap();
+    }
     // Pages would otherwise run Jekyll over the files.
     std::fs::write(dir.join(".nojekyll"), "").unwrap();
     println!("wrote {} pages to {}", pages.len(), dir.display());

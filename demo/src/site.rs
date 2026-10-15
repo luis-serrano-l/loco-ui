@@ -1128,6 +1128,7 @@ fn header_parts(search: Markup) -> Markup {
                 a href="/start" { "Get started" }
                 a href="/" { "Components" }
                 a href="/docs/theming" { "Theming" }
+                a href="/examples" { "Examples" }
                 a href="/changelog" { "Changelog" }
             }
             (search)
@@ -1182,6 +1183,7 @@ pub const CSS: &str = r#"
 .lui-doc-table th, .lui-doc-table td { text-align: left; vertical-align: top; padding: 0.375rem 0.75rem; border-bottom: 1px solid var(--lui-line); }
 .lui-doc-table th { color: var(--lui-muted); font-weight: 500; }
 .lui-doc-source { margin-top: var(--lui-space-8); }
+.lui-example-shot { display: block; width: 100%; height: auto; border: 1px solid var(--lui-line); border-radius: var(--lui-radius); }
 /* A code block (docs and snippets): the copy button the script shows sits in its corner. */
 .lui-doc-code { position: relative; margin: var(--lui-space-4) 0; max-width: none; border: 1px solid var(--lui-line); border-radius: var(--lui-radius); background: var(--lui-surface); }
 .lui-doc-code > div { overflow-x: auto; scrollbar-color: var(--lui-line) transparent; }

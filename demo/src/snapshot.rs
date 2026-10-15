@@ -113,6 +113,7 @@ fn finish(html: &str, names: &[String], other: Option<&str>, baseline: bool) -> 
     let html = html.replace(&loco_ui::enhance::script_tag().into_string(), "");
     let html = rewrite(&html, "href=\"", names);
     let html = rewrite(&html, "action=\"", names);
+    let html = rewrite(&html, "src=\"", names);
     let at = html
         .find("<main")
         .or_else(|| html.find("<body"))
@@ -126,7 +127,7 @@ fn finish(html: &str, names: &[String], other: Option<&str>, baseline: bool) -> 
     )
 }
 
-/// Point every root-relative URL that names an exported page at its file: the exact path and
+/// Point every root-relative URL that names an exported page (or a gallery shot) at its file: the exact path and
 /// query if [`PATHS`] has it, else the first export of that route. Anything else (POST
 /// targets, `/lui/*`, `/table.csv`) stays as it is and fails on a static host, as the banner
 /// says.
@@ -149,6 +150,10 @@ fn rewrite(html: &str, attr: &str, names: &[String]) -> String {
 fn target(url: &str, names: &[String]) -> Option<String> {
     if !url.starts_with('/') || url.starts_with("//") {
         return None;
+    }
+    // The gallery's shots, written beside the pages by `crate::examples::images`.
+    if url.starts_with("/examples/") && url.ends_with(".png") {
+        return Some(url[1..].to_string());
     }
     let url = url.replace("&amp;", "&");
     let (without_fragment, fragment) = match url.split_once('#') {

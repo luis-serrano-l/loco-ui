@@ -3139,13 +3139,19 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   Keyboard and anatomy added 2026-10-15: each `.md` has "Keyboard of `<Builder>`" (keys,
   what they do, whether the script is needed) and "Anatomy" (each class with the tokens it
   reads, from `reference::anatomy`).
-- [ ] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
+- [x] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
   `tests/pages.rs` writes, copied into `docs/examples/`), each linked to the source file.
-  Blocks gallery grows with M40's banner/steps/timeline and three new blocks
-  (pricing page from `demo/src/pricing.rs` promoted into `blocks/`, inbox/list-detail,
-  billing/invoice) — only if time allows, last box.
-  Not done: no `/examples` route and no `docs/examples/`; `blocks/` has no pricing, inbox or
-  billing page.
+  Done: `demo/src/examples.rs` shows ten pages of the notes app (landing, sign in, overview,
+  notes as cards and as a table, a note, the note form, a notebook, the task board, an
+  expired link), each a card with what it shows and a link to its view file on GitHub, in
+  the site header as "Examples". Kept different: the shots are not copied into
+  `docs/examples/`; the demo embeds the tracked `tests/shots/loco-*.png` and serves them at
+  `/examples/<name>.png`, so there is one copy and the gallery shows what the last test run
+  drew. The static snapshot writes them to `examples/` and rewrites `src`. They are Blitz
+  shots, so they show the narrow layout. A test checks every linked file exists.
+- [ ] Blocks gallery grows with M40's banner/steps/timeline and three new blocks (pricing
+  page from `demo/src/pricing.rs` promoted into `blocks/`, inbox/list-detail,
+  billing/invoice). Optional ("only if time allows"); split out of the gallery box above.
 
 Key files: `demo/src/site.rs`, new `demo/src/docs.rs`, `demo/src/main.rs` (spec write),
 `demo/src/snapshot.rs`, `ui.rs`/`layout.rs` (head setters: coordinate with M39, which

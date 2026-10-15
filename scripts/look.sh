@@ -93,6 +93,7 @@ start|/start|https://ui.shadcn.com/docs/installation
 docs|/docs/theming|https://ui.shadcn.com/docs/theming
 find|/find?q=sort|
 changelog|/changelog|
+examples|/examples|
 stage-both|/button?themes=both&stage=narrow|
 "
 if [ -n "$only" ] && ! echo "$pages" | grep -q "^$only|"; then

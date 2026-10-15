@@ -188,6 +188,8 @@ async fn pages_ship_only_the_enhancement_script() {
                 p if p.contains("themes=both") => 112,
                 // The whole CHANGELOG, which grows with every milestone.
                 "/changelog" => 160,
+                // The longest guide, the whole API reference.
+                "/docs/api" => 112,
                 _ => 96,
             } * 1024;
             assert!(

@@ -9,6 +9,7 @@ pub mod spanish;
 
 mod code;
 mod docs;
+pub mod examples;
 mod ids;
 mod reference;
 mod routes;
@@ -23,7 +24,7 @@ use tower_http::compression::{
 };
 
 /// Every demo path the no-script test and the screenshot test visit.
-pub const PATHS: [&str; 91] = [
+pub const PATHS: [&str; 92] = [
     "/",
     "/caps",
     "/button?loading=1",
@@ -113,6 +114,7 @@ pub const PATHS: [&str; 91] = [
     "/docs/comparison",
     "/docs/audiences",
     "/changelog",
+    "/examples",
     "/find?q=sort",
     "/button?themes=both&stage=narrow",
 ];
@@ -125,6 +127,7 @@ pub fn router() -> Router {
     Router::new()
         .merge(site::routes())
         .merge(docs::routes())
+        .merge(examples::routes())
         .merge(search::routes())
         .merge(routes::primitives::routes())
         .merge(routes::theme::routes())
