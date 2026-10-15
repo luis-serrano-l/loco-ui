@@ -78,7 +78,7 @@ impl TagInput<'_> {
         ),
         Key::new(
             "Enter",
-            "Adds the typed tag when the Add button is the first submit button in its form.",
+            "Adds the typed tag when the Add button is the first submit button in its form; inside a `Form`, Enter submits the form instead.",
         ),
         Key::new(
             "Enter / Space",

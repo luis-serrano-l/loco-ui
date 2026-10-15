@@ -130,7 +130,7 @@ impl Popover<'_> {
         ),
         Key::new(
             "Escape",
-            "Closes the panel and returns focus to its button. Without popover support it closes from its button instead.",
+            "Closes the panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does.",
         ),
     ];
 

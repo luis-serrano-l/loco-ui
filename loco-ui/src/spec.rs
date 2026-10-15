@@ -678,7 +678,7 @@ pub const SPECS: &[ComponentSpec] = &[
             f("@media (hover: none)", b("41", "64", "9")),
         ],
         fallback: "none needed",
-        needs_js: NeedsJs::Partial("a delay before opening and Escape to close need script"),
+        needs_js: NeedsJs::Partial("Escape to close needs script"),
     },
     ComponentSpec {
         name: "Separator",

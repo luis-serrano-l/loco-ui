@@ -22,6 +22,7 @@
 | `Tab / Shift+Tab` | Moves between the items' move buttons, top to bottom. | no |
 | `Enter / Space` | Moves the item one place up from its up button. | no |
 | `Enter / Space` | Moves the item one place down from its down button. | no |
+| `Enter / Space` | Keeps focus on the moved item's button after the list updates in place. | yes |
 
 ## Anatomy
 

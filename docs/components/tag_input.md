@@ -24,7 +24,7 @@
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Moves between the remove links, the text box and the Add button. | no |
-| `Enter` | Adds the typed tag when the Add button is the first submit button in its form. | no |
+| `Enter` | Adds the typed tag when the Add button is the first submit button in its form; inside a `Form`, Enter submits the form instead. | no |
 | `Enter / Space` | Adds the typed tag from the focused Add button. | no |
 | `Enter` | Removes the tag from its focused remove link. | no |
 

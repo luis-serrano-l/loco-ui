@@ -100,7 +100,7 @@ impl Combobox<'_> {
         Key::new("Escape", "Closes the suggestion list."),
         Key::new(
             "ArrowDown / ArrowUp",
-            "Moves focus between the search field and the result links.",
+            "Moves focus between the search field and the result links; with no results the arrows walk the suggestions as without the script.",
         )
         .script(),
     ];

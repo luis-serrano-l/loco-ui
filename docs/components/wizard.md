@@ -26,7 +26,7 @@
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Moves through the step's fields and buttons. | no |
-| `Enter` | Sends the step from a field through the form's first submit button, which is Skip on an optional step. | no |
+| `Enter` | Sends the step from a field, as Next (or Finish) does, also on an optional step. | no |
 | `Enter / Space` | Presses the focused Back, Skip or Next button. | no |
 
 ## Anatomy

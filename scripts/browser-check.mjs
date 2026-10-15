@@ -175,7 +175,7 @@ try {
   // Wizard: Next posts, PRG lands on step 2 in place, Back keeps the value.
   await go("/wizard?step.signup=0");
   await type("input[name=name]", "Ada");
-  await type("input[name=email]", "ada@example.com");
+  await type("input[name=email]", "ada@lovelace.dev");
   await click(".lui-wizard button.lui-button-primary");
   await until(async () => (await js("return document.querySelector('#f-email-error')?.textContent || ''")).includes("example.com"), "server message beside the field");
   assert(await js("return document.querySelector('.lui-steps li[aria-current=step]').classList.contains('lui-steps-error')"), "wizard: the step is marked in error");
@@ -408,7 +408,7 @@ try {
   // Error summary: a refused sign-in swaps the form in place and the summary takes the focus;
   // a full load of the same answer focuses it through autofocus.
   await go("/app/signin");
-  await type("#f-email", "ada@example.com");
+  await type("#f-email", "ada@lovelace.dev");
   await type("#f-password", "short");
   await click(".lui-form-actions button");
   await until(async () => await js("return !!document.querySelector('.lui-error-summary')"), "error summary shown");
@@ -613,6 +613,58 @@ try {
     await until(async () => !(await isOpen(panel)), `${name} closed by Escape`);
     assert(true, `keyboard: Escape closes the ${name}`);
   }
+
+  // Keyboard: without popover support the script closes the <details> fallback on Escape.
+  await go("/caps");
+  await setCookies(caps.old);
+  await go("/popover-card");
+  await click("main details.lui-popover-card-details > summary");
+  await until(() => js("return document.querySelector('main details.lui-popover-card-details').open"), "popover card fallback open");
+  await press("\ue00c");
+  await until(async () => !(await js("return document.querySelector('main details.lui-popover-card-details').open")), "fallback closed by Escape");
+  assert(await js("return document.activeElement.localName === 'summary'"), "keyboard: Escape closes a popover's <details> fallback and focuses its summary");
+  await go("/caps");
+  await setCookies(caps.modern);
+
+  // Keyboard: Enter in a field presses the form's main button, not a Skip or decrement
+  // that comes first in the markup (a hidden default button leads the form).
+  await go("/wizard");
+  if (!(await js("return !!document.querySelector('input[name=name]')"))) {
+    await click(".lui-wizard-resume a");
+    await until(() => js("return !!document.querySelector('input[name=name]')"), "wizard back at its first step");
+  }
+  await type("input[name=name]", "Ada");
+  await type("input[name=email]", "ada@lovelace.dev\ue007");
+  await until(() => js("return !!document.querySelector('input[name=topics]')"), "wizard on its optional step");
+  await type("input[name=topics]", "rust\ue007");
+  await until(() => js("return !!document.querySelector('.lui-wizard-review')"), "wizard on its review step");
+  assert((await text(".lui-wizard-review")).includes("rust"), "keyboard: Enter on an optional wizard step goes on with its answers, not Skip");
+  await go("/counter");
+  const was = await text(".lui-counter output"), want = was === "6" ? "8" : "6";
+  await js("document.querySelector('.lui-counter input[name=value]').value = ''");
+  await type(".lui-counter input[name=value]", want + "\ue007");
+  await until(async () => (await text(".lui-counter output")) === want, `counter set to ${want} by Enter`);
+  assert(true, "keyboard: Enter in a typed counter sets the value, not the decrement");
+
+  // Keyboard: focus stays with the moved card and lands on the first new row of a pager.
+  await go("/kanban");
+  const moved = await js("return document.querySelector('.lui-kanban-move button').id");
+  await click(".lui-kanban-move button");
+  await until(() => js("return document.activeElement.closest('.lui-kanban-card') && document.activeElement.id.startsWith(arguments[0].replace(/-\\w+$/, '-'))", moved), "kanban: focus on the moved card");
+  assert(true, "keyboard: after a Kanban move, focus stays on the moved card's button");
+  await go("/list");
+  await click(".lui-pager-more");
+  await until(() => js("return document.activeElement.id === 'more'"), "pager: focus on the first new row");
+  assert(true, "keyboard: Load more moves focus to the first new row");
+
+  // Keyboard: Escape hides a focused tooltip (WCAG 1.4.13), with the script.
+  await go("/feedback");
+  const tipShown = () => js("return getComputedStyle(document.querySelector('.lui-tooltip .lui-tooltip-text')).visibility === 'visible'");
+  await js("document.querySelector('.lui-tooltip button').focus()");
+  await until(tipShown, "tooltip shown on focus");
+  await press("\ue00c");
+  await until(async () => !(await tipShown()), "tooltip hidden by Escape");
+  assert(true, "keyboard: Escape hides a focused tooltip");
 
   // Keyboard (M46): without the script, Tab from the top of <main> reaches every control
   // in it on each component page, under both capability variants. A control is what the

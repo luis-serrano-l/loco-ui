@@ -23,7 +23,7 @@
 |---|---|---|
 | `Enter / Space` | Opens or closes the panel from its button. | no |
 | `Tab / Shift+Tab` | Moves from the button into the panel's controls and back out. | no |
-| `Escape` | Closes the panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 

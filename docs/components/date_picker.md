@@ -28,7 +28,7 @@
 |---|---|---|
 | `Tab / Shift+Tab` | Moves to the trigger button, or between the day, month and year parts of the native date field. | no |
 | `Enter / Space` | Opens the calendar from the trigger button. | no |
-| `Escape` | Closes the calendar popover. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the calendar popover. Without popover support the script closes it; without the script either, its button does. | no |
 | `ArrowRight / ArrowDown` | Picks the next day in the calendar. | no |
 | `ArrowLeft / ArrowUp` | Picks the previous day in the calendar. | no |
 

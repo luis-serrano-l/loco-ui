@@ -23,7 +23,7 @@ caps: all
 <input type="hidden" name="item" value="a">
 <span class="lui-sortable-slot">
 </span>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="1" aria-label="Move Write the docs down">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="1" aria-label="Move Write the docs down" id="lui-sortable--tasks-order-a-down">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
 <path d="m6 9 6 6 6-6"/>
 </svg>
@@ -46,7 +46,7 @@ caps: all
 </div>
 <form method="post" action="/tasks/order" class="lui-sortable-move">
 <input type="hidden" name="item" value="b">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="0" aria-label="Move Ship the release up">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="0" aria-label="Move Ship the release up" id="lui-sortable--tasks-order-b-up">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-up">
 <path d="m18 15-6-6-6 6"/>
 </svg>
@@ -80,7 +80,7 @@ caps: none
 <input type="hidden" name="item" value="a">
 <span class="lui-sortable-slot">
 </span>
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="1" aria-label="Move Write the docs down">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="1" aria-label="Move Write the docs down" id="lui-sortable--tasks-order-a-down">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-down">
 <path d="m6 9 6 6 6-6"/>
 </svg>
@@ -103,7 +103,7 @@ caps: none
 </div>
 <form method="post" action="/tasks/order" class="lui-sortable-move">
 <input type="hidden" name="item" value="b">
-<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="0" aria-label="Move Ship the release up">
+<button type="submit" class="lui-button lui-button-ghost lui-button-small lui-button-icon" data-size="1" data-tone="neutral" data-variant="ghost" name="to" value="0" aria-label="Move Ship the release up" id="lui-sortable--tasks-order-b-up">
 <svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-up">
 <path d="m18 15-6-6-6 6"/>
 </svg>

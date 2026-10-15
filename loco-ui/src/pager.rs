@@ -68,7 +68,7 @@ impl Pager<'_> {
     /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
     pub const KEYS: &'static [Key] = &[Key::new(
         "Enter",
-        "Loads the next page from the Load more link and scrolls to the first new item.",
+        "Loads the next page from the Load more link and moves focus to the first new item.",
     )];
 
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by

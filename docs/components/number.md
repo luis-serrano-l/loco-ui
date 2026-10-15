@@ -85,7 +85,9 @@ come before the field in the markup and show after it), which `crate::Posted::ge
 with the new value. With the enhancement script a
 stepper calls `stepUp()`/`stepDown()` on the field and nothing is sent. A stepper is a
 submit button, and Enter in any field presses a form's first submit button wherever the
-field is: give a stepped number a form of its own, or put a submit button before it.
+field is: inside a `crate::form::Form` (through `.body(..)`) the form puts a hidden copy
+of its own button first, so Enter submits the form; in a form of your own, give a stepped
+number a form of its own, or put a submit button before it.
 
 **Fallback:** none needed: a native number field. Without `:has()` the field keeps its
 own focus outline inside the row.

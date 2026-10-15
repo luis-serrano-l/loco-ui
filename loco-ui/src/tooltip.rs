@@ -16,8 +16,8 @@
 //! `.delay(ms)` waits before showing it on hover: a `transition-delay` on the way in, none
 //! on the way out.
 //!
-//! **What it does not do without script:** close on Escape while the pointer stays over it,
-//! or flip to fit the viewport. `popover="hint"` with hover triggers
+//! **What it does not do without script:** close on Escape (the script hides it until its
+//! trigger loses focus and the pointer leaves), or flip to fit the viewport. `popover="hint"` with hover triggers
 //! would do some of this, but it is Chromium-only and needs script to open on hover.
 //!
 //! **Fallback:** none needed.
@@ -68,10 +68,17 @@ pub struct Tooltip<'a> {
 
 impl Tooltip<'_> {
     /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
-    pub const KEYS: &'static [crate::props::Key] = &[Key::new(
-        "Tab / Shift+Tab",
-        "Shows the tooltip while its trigger has focus and hides it when focus leaves.",
-    )];
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Shows the tooltip while its trigger has focus and hides it when focus leaves.",
+        ),
+        Key::new(
+            "Escape",
+            "Hides the tooltip until its trigger loses focus and the pointer leaves.",
+        )
+        .script(),
+    ];
 
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
@@ -190,5 +197,7 @@ pub const CSS: &str = r#"
 /* .delay(ms): the hover waits; focus does not, and leaving hides at once. */
 .lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { transition-delay: var(--lui-tooltip-delay, 0s); }
 @media (hover: none) { .lui-tooltip:hover:not(:focus-within) .lui-tooltip-text { opacity: 0; visibility: hidden; display: none; } }
+/* Escape with the script: hidden until the trigger loses focus (WCAG 1.4.13). */
+.lui-tooltip[data-lui-dismissed] .lui-tooltip-text { opacity: 0; visibility: hidden; display: none; }
 @media (prefers-reduced-motion: reduce) { .lui-tooltip-text { transition: none; } }
 "#;

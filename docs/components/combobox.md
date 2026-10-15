@@ -31,7 +31,7 @@
 | `ArrowDown / ArrowUp` | Opens the suggestion list under the field and moves through it. | no |
 | `Enter` | Fills in the highlighted suggestion, or searches for the typed text when none is highlighted. | no |
 | `Escape` | Closes the suggestion list. | no |
-| `ArrowDown / ArrowUp` | Moves focus between the search field and the result links. | yes |
+| `ArrowDown / ArrowUp` | Moves focus between the search field and the result links; with no results the arrows walk the suggestions as without the script. | yes |
 
 ## Anatomy
 

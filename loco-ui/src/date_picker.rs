@@ -89,7 +89,7 @@ impl DatePicker<'_> {
         ),
         Key::new(
             "Escape",
-            "Closes the calendar popover. Without popover support it closes from its button instead.",
+            "Closes the calendar popover. Without popover support the script closes it; without the script either, its button does.",
         ),
         Key::new(
             "ArrowRight / ArrowDown",

@@ -552,7 +552,7 @@
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves to the trigger button, or between the day, month and year parts of the native date field.", "script": false },
             { "keys": "Enter / Space", "does": "Opens the calendar from the trigger button.", "script": false },
-            { "keys": "Escape", "does": "Closes the calendar popover. Without popover support it closes from its button instead.", "script": false },
+            { "keys": "Escape", "does": "Closes the calendar popover. Without popover support the script closes it; without the script either, its button does.", "script": false },
             { "keys": "ArrowRight / ArrowDown", "does": "Picks the next day in the calendar.", "script": false },
             { "keys": "ArrowLeft / ArrowUp", "does": "Picks the previous day in the calendar.", "script": false }
           ]
@@ -652,7 +652,7 @@
             { "keys": "ArrowDown / ArrowUp", "does": "Moves to the next or previous item, wrapping at the ends.", "script": true },
             { "keys": "Enter", "does": "Follows the focused link or sends the focused action.", "script": false },
             { "keys": "Space", "does": "Ticks the focused checkbox or radio item.", "script": false },
-            { "keys": "Escape", "does": "Closes the menu and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
+            { "keys": "Escape", "does": "Closes the menu and returns focus to its button. Without popover support the script closes it; without the script either, its button does.", "script": false }
           ]
         }
       ]
@@ -758,7 +758,7 @@
             { "keys": "ArrowDown / ArrowUp", "does": "Opens the suggestion list under the field and moves through it.", "script": false },
             { "keys": "Enter", "does": "Fills in the highlighted suggestion, or searches for the typed text when none is highlighted.", "script": false },
             { "keys": "Escape", "does": "Closes the suggestion list.", "script": false },
-            { "keys": "ArrowDown / ArrowUp", "does": "Moves focus between the search field and the result links.", "script": true }
+            { "keys": "ArrowDown / ArrowUp", "does": "Moves focus between the search field and the result links; with no results the arrows walk the suggestions as without the script.", "script": true }
           ]
         }
       ]
@@ -786,7 +786,7 @@
             { "name": "rows", "kind": "value", "args": "row: impl Fn(usize) -> Markup + 'a", "default": "", "attr": "", "doc": "Row `i` (0-based) of the list." }
           ],
           "keys": [
-            { "keys": "Enter", "does": "Loads the next page from the Load more link and scrolls to the first new item.", "script": false }
+            { "keys": "Enter", "does": "Loads the next page from the Load more link and moves focus to the first new item.", "script": false }
           ]
         }
       ]
@@ -919,7 +919,7 @@
           ],
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves through the step's fields and buttons.", "script": false },
-            { "keys": "Enter", "does": "Sends the step from a field through the form's first submit button, which is Skip on an optional step.", "script": false },
+            { "keys": "Enter", "does": "Sends the step from a field, as Next (or Finish) does, also on an optional step.", "script": false },
             { "keys": "Enter / Space", "does": "Presses the focused Back, Skip or Next button.", "script": false }
           ]
         }
@@ -997,7 +997,7 @@
           ],
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves through the fields in order, then to the submit button and the secondary link.", "script": false },
-            { "keys": "Enter", "does": "Submits the form from a single-line field through its first submit button.", "script": false },
+            { "keys": "Enter", "does": "Submits the form from a single-line field, as its submit button does, even when markup among the fields holds buttons of its own.", "script": false },
             { "keys": "Enter / Space", "does": "Presses the focused submit button.", "script": false },
             { "keys": "Enter", "does": "Moves focus to the field from a link in the error summary.", "script": false }
           ]
@@ -1063,7 +1063,8 @@
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves between the decrement, increment and reset buttons and the value field.", "script": false },
             { "keys": "Enter / Space", "does": "Presses the focused button, which posts the change.", "script": false },
-            { "keys": "ArrowUp / ArrowDown", "does": "Steps the typed value up or down by the step before it is set.", "script": false }
+            { "keys": "ArrowUp / ArrowDown", "does": "Steps the typed value up or down by the step before it is set.", "script": false },
+            { "keys": "Enter", "does": "Sets the typed value, as the Set button does.", "script": false }
           ]
         }
       ]
@@ -1351,7 +1352,8 @@
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves between the cards' move buttons, column by column.", "script": false },
             { "keys": "Enter / Space", "does": "Moves the card one column left from its left arrow button.", "script": false },
-            { "keys": "Enter / Space", "does": "Moves the card one column right from its right arrow button.", "script": false }
+            { "keys": "Enter / Space", "does": "Moves the card one column right from its right arrow button.", "script": false },
+            { "keys": "Enter / Space", "does": "Keeps focus on the moved card's button after the board updates in place.", "script": true }
           ]
         }
       ]
@@ -1382,7 +1384,8 @@
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves between the items' move buttons, top to bottom.", "script": false },
             { "keys": "Enter / Space", "does": "Moves the item one place up from its up button.", "script": false },
-            { "keys": "Enter / Space", "does": "Moves the item one place down from its down button.", "script": false }
+            { "keys": "Enter / Space", "does": "Moves the item one place down from its down button.", "script": false },
+            { "keys": "Enter / Space", "does": "Keeps focus on the moved item's button after the list updates in place.", "script": true }
           ]
         }
       ]
@@ -1497,7 +1500,7 @@
       ],
       "fallback": "none needed",
       "needs_js": "partial",
-      "needs_js_note": "a delay before opening and Escape to close need script",
+      "needs_js_note": "Escape to close needs script",
       "builders": [
         {
           "builder": "Tooltip",
@@ -1512,7 +1515,8 @@
             { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "A button builder as the trigger, in place of the markup: it gets `aria-describedby` as an attribute." }
           ],
           "keys": [
-            { "keys": "Tab / Shift+Tab", "does": "Shows the tooltip while its trigger has focus and hides it when focus leaves.", "script": false }
+            { "keys": "Tab / Shift+Tab", "does": "Shows the tooltip while its trigger has focus and hides it when focus leaves.", "script": false },
+            { "keys": "Escape", "does": "Hides the tooltip until its trigger loses focus and the pointer leaves.", "script": true }
           ]
         }
       ]
@@ -1792,7 +1796,7 @@
             { "keys": "Tab / Shift+Tab", "does": "Moves between the top-level links and panel buttons.", "script": false },
             { "keys": "Enter / Space", "does": "Opens the focused panel from its button.", "script": false },
             { "keys": "ArrowDown / ArrowUp", "does": "Moves to the next or previous link in the open panel.", "script": true },
-            { "keys": "Escape", "does": "Closes the open panel and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
+            { "keys": "Escape", "does": "Closes the open panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does.", "script": false }
           ]
         }
       ]
@@ -1896,7 +1900,7 @@
             { "keys": "ArrowDown / ArrowUp", "does": "Moves to the next or previous item, wrapping at the ends.", "script": true },
             { "keys": "Enter", "does": "Follows the focused link or sends the focused action.", "script": false },
             { "keys": "Space", "does": "Ticks the focused checkbox or radio item.", "script": false },
-            { "keys": "Escape", "does": "Closes the menu and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
+            { "keys": "Escape", "does": "Closes the menu and returns focus to its button. Without popover support the script closes it; without the script either, its button does.", "script": false }
           ]
         }
       ]
@@ -2012,7 +2016,7 @@
             { "keys": "Enter / Space", "does": "Opens the palette from its button and puts focus in the search field.", "script": false },
             { "keys": "ArrowDown / ArrowUp", "does": "Moves through the command names the browser suggests for the typed text.", "script": false },
             { "keys": "Enter", "does": "Searches for the typed command, or follows the focused command link.", "script": false },
-            { "keys": "Escape", "does": "Closes the suggestions, then the palette. Without popover support it closes from its button instead.", "script": false }
+            { "keys": "Escape", "does": "Closes the suggestions, then the palette. Without popover support the script closes it; without the script either, its button does.", "script": false }
           ]
         }
       ]
@@ -2544,7 +2548,7 @@
           "keys": [
             { "keys": "Enter / Space", "does": "Opens or closes the panel from its button.", "script": false },
             { "keys": "Tab / Shift+Tab", "does": "Moves from the button into the panel's controls and back out.", "script": false },
-            { "keys": "Escape", "does": "Closes the panel and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
+            { "keys": "Escape", "does": "Closes the panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does.", "script": false }
           ]
         }
       ]
@@ -2765,7 +2769,7 @@
             { "keys": "Tab / Shift+Tab", "does": "Shows the card while its trigger has focus, where the browser has interest invokers.", "script": false },
             { "keys": "Enter / Space", "does": "Opens or closes the card from its button where the browser has no interest invokers.", "script": false },
             { "keys": "Enter", "does": "Follows the trigger link when the card has one.", "script": false },
-            { "keys": "Escape", "does": "Closes the card. Without popover support it closes from its button instead.", "script": false }
+            { "keys": "Escape", "does": "Closes the card. Without popover support the script closes it; without the script either, its button does.", "script": false }
           ]
         }
       ]
@@ -2950,7 +2954,7 @@
           ],
           "keys": [
             { "keys": "Tab / Shift+Tab", "does": "Moves between the remove links, the text box and the Add button.", "script": false },
-            { "keys": "Enter", "does": "Adds the typed tag when the Add button is the first submit button in its form.", "script": false },
+            { "keys": "Enter", "does": "Adds the typed tag when the Add button is the first submit button in its form; inside a `Form`, Enter submits the form instead.", "script": false },
             { "keys": "Enter / Space", "does": "Adds the typed tag from the focused Add button.", "script": false },
             { "keys": "Enter", "does": "Removes the tag from its focused remove link.", "script": false }
           ]

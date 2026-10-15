@@ -19,7 +19,7 @@
 
 | Keys | What they do | Needs the script |
 |---|---|---|
-| `Enter` | Loads the next page from the Load more link and scrolls to the first new item. | no |
+| `Enter` | Loads the next page from the Load more link and moves focus to the first new item. | no |
 
 ## Anatomy
 

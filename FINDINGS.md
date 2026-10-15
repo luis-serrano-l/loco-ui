@@ -1151,29 +1151,34 @@ is not drawn only because it sits behind the motion query.
 
 ### Keyboard, 2026-10-15
 
-Writing `KEYS` for every builder meant reading what each one's markup does with keys. These
-are the gaps found, none fixed yet:
+Writing `KEYS` for every builder meant reading what each one's markup does with keys. The
+gaps found, and what came of them:
 
-- **Enter submits through the wrong button.** Implicit submission uses a form's first
-  submit button in tree order. The Wizard puts Skip before Next on an optional step, so
-  Enter in a field skips the step. A `.typed()` Counter's first submit is the decrement
-  button, so Enter in the value posts `op=dec` (and does nothing at the minimum). Number
-  steppers, the TagInput Add button (`formmethod=get`) and the Select filter button come
-  before a Form's own submit, so Enter in any field of such a form posts the stepper or
-  GETs through Add or Filter. Fix: the default action first in the source, moved with CSS
-  `order`, or a hidden default submit button at the top of the form.
-- **No Escape on the fallbacks.** Without popover support the menus, palette, hover card,
-  popover card and date picker fall back to `<details>`, which Escape does not close; without
-  invoker commands and without the script a dialog or drawer opens through `:target`, which
-  is not modal (no Escape, focus not kept inside). `KEYS` says so; `enhance.rs` could close
-  both on Escape.
-- **Tooltip cannot be dismissed** while its trigger keeps focus (WCAG 1.4.13 asks for
-  Escape); no no-script fix is obvious.
-- **Focus after a swap.** Kanban and Sortable move buttons share `name="to"` with no id, so
-  `restoreFocus` in `enhance.rs` focuses the first move button on the page, not the moved
-  card's; the Pager's Load more link has no id or name, so focus falls to `<body>`.
-- **Combobox with the script** prevents the default on ArrowDown/ArrowUp, so the native
-  datalist suggestions can no longer be walked with the arrows.
+- **Enter submitted through the wrong button; fixed.** Implicit submission presses a form's
+  first submit button in tree order
+  (https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission).
+  The Wizard put Skip before Next, a `.typed()` Counter its decrement before Set, and a
+  stepper, the TagInput Add button or the Select filter button in a `Form`'s `.body(..)`
+  came before the form's own button. Each of these forms now starts with a hidden copy of
+  its main button (`button::default_submit`: `.lui-sr`, `tabindex=-1`, `aria-hidden`), which
+  Firefox presses on Enter like any submit button (browser-check drives it). A number or tag
+  input in a form the app writes itself still needs the app's own button first.
+- **No Escape on the fallbacks; half fixed.** Without popover support the menus, palette,
+  hover card, popover card and date picker fall back to `<details>`, which Escape does not
+  close: the script now closes it and focuses its summary. Without invoker commands and
+  without the script a dialog or drawer opens through `:target`, which is not modal (no
+  Escape, focus not kept inside); nothing without script can change that, and `KEYS` says so.
+- **Tooltip could not be dismissed; fixed with the script.** WCAG 1.4.13 asks for Escape: the
+  script marks the tooltip `data-lui-dismissed` until its trigger loses focus and the pointer
+  leaves. Without script there is still no way.
+- **Focus after a swap; fixed.** The script disables a busy form's buttons, which drops
+  focus, so after any form post that swapped in place focus fell to the root: it now keeps
+  the focus it saw when the request started. Kanban and Sortable move buttons get an id per
+  card and side, so focus stays with the moved card (or its other button at the board's
+  edge). A response URL loses its fragment, so the Pager's `#more` is kept from the link and
+  focus lands on the first new row.
+- **Combobox with the script; fixed.** It prevented the default on ArrowDown/ArrowUp, so the
+  datalist suggestions could not be walked; with no result links it leaves the arrows alone.
 - **Smaller:** the OTP's highlighted cell follows the value's length, not the caret; a
   Chart makes every bar a tab stop (30 points, 30 presses); the Kanban board scrolls only
   when focus lands on a card's button, so an empty column is unreachable; the calendar's

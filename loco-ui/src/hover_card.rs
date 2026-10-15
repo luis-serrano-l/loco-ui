@@ -77,7 +77,7 @@ impl HoverCard<'_> {
         Key::new("Enter", "Follows the trigger link when the card has one."),
         Key::new(
             "Escape",
-            "Closes the card. Without popover support it closes from its button instead.",
+            "Closes the card. Without popover support the script closes it; without the script either, its button does.",
         ),
     ];
 

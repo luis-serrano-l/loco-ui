@@ -1503,7 +1503,7 @@ assert!(m.contains(r#"href="/stay?from=2026-09-10&amp;to=2026-09-14""#));
 |---|---|---|
 | `Tab / Shift+Tab` | Moves to the trigger button, or between the day, month and year parts of the native date field. | no |
 | `Enter / Space` | Opens the calendar from the trigger button. | no |
-| `Escape` | Closes the calendar popover. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the calendar popover. Without popover support the script closes it; without the script either, its button does. | no |
 | `ArrowRight / ArrowDown` | Picks the next day in the calendar. | no |
 | `ArrowLeft / ArrowUp` | Picks the previous day in the calendar. | no |
 
@@ -1803,7 +1803,7 @@ assert!(bare.starts_with(r#"<div class="lui-dialog"><dialog id="lui-dialog-terms
 | `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
 | `Enter` | Follows the focused link or sends the focused action. | no |
 | `Space` | Ticks the focused checkbox or radio item. | no |
-| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 
@@ -2201,7 +2201,7 @@ assert_eq!(same.into_string(), html);
 | `ArrowDown / ArrowUp` | Opens the suggestion list under the field and moves through it. | no |
 | `Enter` | Fills in the highlighted suggestion, or searches for the typed text when none is highlighted. | no |
 | `Escape` | Closes the suggestion list. | no |
-| `ArrowDown / ArrowUp` | Moves focus between the search field and the result links. | yes |
+| `ArrowDown / ArrowUp` | Moves focus between the search field and the result links; with no results the arrows walk the suggestions as without the script. | yes |
 
 ## Anatomy
 
@@ -2309,7 +2309,7 @@ assert_eq!(same.into_string(), html);
 
 | Keys | What they do | Needs the script |
 |---|---|---|
-| `Enter` | Loads the next page from the Load more link and scrolls to the first new item. | no |
+| `Enter` | Loads the next page from the Load more link and moves focus to the first new item. | no |
 
 ## Anatomy
 
@@ -2804,7 +2804,7 @@ assert!(html.contains("<select name=\"per.files\""));
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Moves through the step's fields and buttons. | no |
-| `Enter` | Sends the step from a field through the form's first submit button, which is Skip on an optional step. | no |
+| `Enter` | Sends the step from a field, as Next (or Finish) does, also on an optional step. | no |
 | `Enter / Space` | Presses the focused Back, Skip or Next button. | no |
 
 ## Anatomy
@@ -2967,7 +2967,7 @@ assert_eq!(same.into_string(), html);
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Moves through the fields in order, then to the submit button and the secondary link. | no |
-| `Enter` | Submits the form from a single-line field through its first submit button. | no |
+| `Enter` | Submits the form from a single-line field, as its submit button does, even when markup among the fields holds buttons of its own. | no |
 | `Enter / Space` | Presses the focused submit button. | no |
 | `Enter` | Moves focus to the field from a link in the error summary. | no |
 
@@ -3236,6 +3236,7 @@ assert_eq!(same.into_string(), m);
 | `Tab / Shift+Tab` | Moves between the decrement, increment and reset buttons and the value field. | no |
 | `Enter / Space` | Presses the focused button, which posts the change. | no |
 | `ArrowUp / ArrowDown` | Steps the typed value up or down by the step before it is set. | no |
+| `Enter` | Sets the typed value, as the Set button does. | no |
 
 ## Anatomy
 
@@ -4120,6 +4121,7 @@ assert_eq!(same.into_string(), m);
 | `Tab / Shift+Tab` | Moves between the cards' move buttons, column by column. | no |
 | `Enter / Space` | Moves the card one column left from its left arrow button. | no |
 | `Enter / Space` | Moves the card one column right from its right arrow button. | no |
+| `Enter / Space` | Keeps focus on the moved card's button after the board updates in place. | yes |
 
 ## Anatomy
 
@@ -4224,6 +4226,7 @@ assert_eq!(same.into_string(), m);
 | `Tab / Shift+Tab` | Moves between the items' move buttons, top to bottom. | no |
 | `Enter / Space` | Moves the item one place up from its up button. | no |
 | `Enter / Space` | Moves the item one place down from its down button. | no |
+| `Enter / Space` | Keeps focus on the moved item's button after the list updates in place. | yes |
 
 ## Anatomy
 
@@ -4585,6 +4588,7 @@ assert_eq!(same.into_string(), m);
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Shows the tooltip while its trigger has focus and hides it when focus leaves. | no |
+| `Escape` | Hides the tooltip until its trigger loses focus and the pointer leaves. | yes |
 
 ## Anatomy
 
@@ -4601,7 +4605,7 @@ assert_eq!(same.into_string(), m);
 | `@media (hover: none)` | 41 | 64 | 9 |
 
 - Fallback: none needed
-- Needs script: partly: a delay before opening and Escape to close need script
+- Needs script: partly: Escape to close needs script
 - Responsive by: content
 - Look after: Radix Themes Tooltip
 
@@ -4623,8 +4627,8 @@ both capability variants, light and dark (no serious or critical violation).
 `.delay(ms)` waits before showing it on hover: a `transition-delay` on the way in, none
 on the way out.
 
-**What it does not do without script:** close on Escape while the pointer stays over it,
-or flip to fit the viewport. `popover="hint"` with hover triggers
+**What it does not do without script:** close on Escape (the script hides it until its
+trigger loses focus and the pointer leaves), or flip to fit the viewport. `popover="hint"` with hover triggers
 would do some of this, but it is Chromium-only and needs script to open on hover.
 
 **Fallback:** none needed.
@@ -5447,7 +5451,7 @@ assert!(m.contains(r#"<a href="/projects" aria-current="page">"#) && !m.contains
 | `Tab / Shift+Tab` | Moves between the top-level links and panel buttons. | no |
 | `Enter / Space` | Opens the focused panel from its button. | no |
 | `ArrowDown / ArrowUp` | Moves to the next or previous link in the open panel. | yes |
-| `Escape` | Closes the open panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the open panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 
@@ -5733,7 +5737,7 @@ assert_eq!(same.into_string(), html);
 | `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
 | `Enter` | Follows the focused link or sends the focused action. | no |
 | `Space` | Ticks the focused checkbox or radio item. | no |
-| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 
@@ -6053,7 +6057,7 @@ assert_eq!(lui! { Drawer("Filters") side=(Side::End) size=3; }.into_string(), m)
 | `Enter / Space` | Opens the palette from its button and puts focus in the search field. | no |
 | `ArrowDown / ArrowUp` | Moves through the command names the browser suggests for the typed text. | no |
 | `Enter` | Searches for the typed command, or follows the focused command link. | no |
-| `Escape` | Closes the suggestions, then the palette. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the suggestions, then the palette. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 
@@ -7557,7 +7561,7 @@ assert_eq!(ui.banner("Version 2 is out.").dismiss().render().into_string(), "");
 |---|---|---|
 | `Enter / Space` | Opens or closes the panel from its button. | no |
 | `Tab / Shift+Tab` | Moves from the button into the panel's controls and back out. | no |
-| `Escape` | Closes the panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 
@@ -8205,7 +8209,7 @@ assert_eq!(same.into_string(), html);
 | `Tab / Shift+Tab` | Shows the card while its trigger has focus, where the browser has interest invokers. | no |
 | `Enter / Space` | Opens or closes the card from its button where the browser has no interest invokers. | no |
 | `Enter` | Follows the trigger link when the card has one. | no |
-| `Escape` | Closes the card. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the card. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 
@@ -8470,7 +8474,9 @@ come before the field in the markup and show after it), which `crate::Posted::ge
 with the new value. With the enhancement script a
 stepper calls `stepUp()`/`stepDown()` on the field and nothing is sent. A stepper is a
 submit button, and Enter in any field presses a form's first submit button wherever the
-field is: give a stepped number a form of its own, or put a submit button before it.
+field is: inside a `crate::form::Form` (through `.body(..)`) the form puts a hidden copy
+of its own button first, so Enter submits the form; in a form of your own, give a stepped
+number a form of its own, or put a submit button before it.
 
 **Fallback:** none needed: a native number field. Without `:has()` the field keeps its
 own focus outline inside the row.
@@ -8705,7 +8711,7 @@ assert_eq!(lui! { Rating("score", "Score") max=10 value=7 readonly; }.into_strin
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Moves between the remove links, the text box and the Add button. | no |
-| `Enter` | Adds the typed tag when the Add button is the first submit button in its form. | no |
+| `Enter` | Adds the typed tag when the Add button is the first submit button in its form; inside a `Form`, Enter submits the form instead. | no |
 | `Enter / Space` | Adds the typed tag from the focused Add button. | no |
 | `Enter` | Removes the tag from its focused remove link. | no |
 

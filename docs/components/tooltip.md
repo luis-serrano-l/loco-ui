@@ -23,6 +23,7 @@
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Shows the tooltip while its trigger has focus and hides it when focus leaves. | no |
+| `Escape` | Hides the tooltip until its trigger loses focus and the pointer leaves. | yes |
 
 ## Anatomy
 
@@ -39,7 +40,7 @@
 | `@media (hover: none)` | 41 | 64 | 9 |
 
 - Fallback: none needed
-- Needs script: partly: a delay before opening and Escape to close need script
+- Needs script: partly: Escape to close needs script
 - Responsive by: content
 - Look after: Radix Themes Tooltip
 
@@ -61,8 +62,8 @@ both capability variants, light and dark (no serious or critical violation).
 `.delay(ms)` waits before showing it on hover: a `transition-delay` on the way in, none
 on the way out.
 
-**What it does not do without script:** close on Escape while the pointer stays over it,
-or flip to fit the viewport. `popover="hint"` with hover triggers
+**What it does not do without script:** close on Escape (the script hides it until its
+trigger loses focus and the pointer leaves), or flip to fit the viewport. `popover="hint"` with hover triggers
 would do some of this, but it is Chromium-only and needs script to open on hover.
 
 **Fallback:** none needed.

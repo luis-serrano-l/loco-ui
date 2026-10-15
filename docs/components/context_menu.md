@@ -32,7 +32,7 @@
 | `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
 | `Enter` | Follows the focused link or sends the focused action. | no |
 | `Space` | Ticks the focused checkbox or radio item. | no |
-| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 

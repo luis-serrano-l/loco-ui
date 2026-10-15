@@ -83,6 +83,11 @@ impl Sortable<'_> {
             "Enter / Space",
             "Moves the item one place down from its down button.",
         ),
+        Key::new(
+            "Enter / Space",
+            "Keeps focus on the moved item's button after the list updates in place.",
+        )
+        .script(),
     ];
 
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
@@ -142,10 +147,14 @@ impl Render for Sortable<'_> {
         let last = self.items.len().saturating_sub(1);
         let arrow = |item: &Item, to: usize, text: Text, icon: Icon| {
             let label = self.ui.fill(text, &[&item.title]);
+            // An id per item and direction, so focus follows the item after a swap.
+            let side = if text == Text::MoveUp { "up" } else { "down" };
+            let id = format!("{root}-{}-{side}", slug(item.key));
             Button::new(caps, "")
                 .ghost()
                 .small()
                 .icon_only()
+                .id(&id)
                 .name("to")
                 .value(&to.to_string())
                 .aria_label(&label)

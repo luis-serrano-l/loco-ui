@@ -25,6 +25,7 @@
 | `Tab / Shift+Tab` | Moves between the cards' move buttons, column by column. | no |
 | `Enter / Space` | Moves the card one column left from its left arrow button. | no |
 | `Enter / Space` | Moves the card one column right from its right arrow button. | no |
+| `Enter / Space` | Keeps focus on the moved card's button after the board updates in place. | yes |
 
 ## Anatomy
 

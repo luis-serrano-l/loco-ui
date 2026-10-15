@@ -86,6 +86,7 @@ impl Counter<'_> {
             "ArrowUp / ArrowDown",
             "Steps the typed value up or down by the step before it is set.",
         ),
+        Key::new("Enter", "Sets the typed value, as the Set button does."),
     ];
 
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
@@ -214,6 +215,8 @@ impl Render for Counter<'_> {
         };
         html! {
             form id=(enhance::swap_id("lui-counter", action)) data-lui="swap" class="lui-counter" method="post" action=(action) {
+                // Enter in the typed value sets it, not the decrement button before it.
+                @if typed && !off { (crate::button::default_submit(Some(("op", "set")))) }
                 (op("dec", at_min).icon_only().aria_label(self.strings.get(Text::Decrement)).body(html! { (Icon::Minus) }))
                 output style=[vt] { (self.strings.digits(value)) }
                 (op("inc", at_max).icon_only().aria_label(self.strings.get(Text::Increment)).body(html! { (Icon::Plus) }))
@@ -250,6 +253,26 @@ pub const CSS: &str = r#"
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The attributes of the first submit button in `m`: what Enter in a field presses.
+    fn first_submit(m: &str) -> &str {
+        let at = m.find("<button type=\"submit\"").expect("a submit button");
+        &m[at..at + m[at..].find('>').unwrap()]
+    }
+
+    #[test]
+    fn enter_in_the_typed_value_sets_it() {
+        let ui = Ui::from(Caps::NONE);
+        let m = ui.counter("/c", 3).min(0).typed().render().into_string();
+        assert!(first_submit(&m).contains(r#"name="op" value="set""#), "{m}");
+        let off = ui
+            .counter("/c", 3)
+            .typed()
+            .disabled()
+            .render()
+            .into_string();
+        assert!(!off.contains(r#"class="lui-sr""#), "{off}");
+    }
 
     #[test]
     fn bounds_disable_and_clamp() {

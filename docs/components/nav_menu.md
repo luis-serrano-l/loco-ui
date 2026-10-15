@@ -24,7 +24,7 @@
 | `Tab / Shift+Tab` | Moves between the top-level links and panel buttons. | no |
 | `Enter / Space` | Opens the focused panel from its button. | no |
 | `ArrowDown / ArrowUp` | Moves to the next or previous link in the open panel. | yes |
-| `Escape` | Closes the open panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the open panel and returns focus to its button. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 

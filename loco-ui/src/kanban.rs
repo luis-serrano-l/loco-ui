@@ -100,6 +100,11 @@ impl Kanban<'_> {
             "Enter / Space",
             "Moves the card one column right from its right arrow button.",
         ),
+        Key::new(
+            "Enter / Space",
+            "Keeps focus on the moved card's button after the board updates in place.",
+        )
+        .script(),
     ];
 
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
@@ -235,11 +240,14 @@ impl Render for Kanban<'_> {
                                                     input type="hidden" name="card" value=(card.key);
                                                     @if let Some(prev) = i.checked_sub(1).and_then(|p| cols.get(p)) {
                                                         @let label = self.ui.fill(Text::MoveTo, &[&card.title, &prev.title]);
-                                                        (Button::new(caps, "").ghost().small().icon_only().name("to").value(prev.key).aria_label(&label).body(html! { (Icon::ArrowLeft) }))
+                                                        // An id per card and side, so focus follows the card after a swap.
+                                                        @let bid = format!("{root}-{}-prev", slug(card.key));
+                                                        (Button::new(caps, "").ghost().small().icon_only().id(&bid).name("to").value(prev.key).aria_label(&label).body(html! { (Icon::ArrowLeft) }))
                                                     }
                                                     @if let Some(next) = cols.get(i + 1) {
                                                         @let label = self.ui.fill(Text::MoveTo, &[&card.title, &next.title]);
-                                                        (Button::new(caps, "").ghost().small().icon_only().name("to").value(next.key).aria_label(&label).body(html! { (Icon::ArrowRight) }))
+                                                        @let bid = format!("{root}-{}-next", slug(card.key));
+                                                        (Button::new(caps, "").ghost().small().icon_only().id(&bid).name("to").value(next.key).aria_label(&label).body(html! { (Icon::ArrowRight) }))
                                                     }
                                                 }
                                             }

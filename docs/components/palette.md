@@ -30,7 +30,7 @@
 | `Enter / Space` | Opens the palette from its button and puts focus in the search field. | no |
 | `ArrowDown / ArrowUp` | Moves through the command names the browser suggests for the typed text. | no |
 | `Enter` | Searches for the typed command, or follows the focused command link. | no |
-| `Escape` | Closes the suggestions, then the palette. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the suggestions, then the palette. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 

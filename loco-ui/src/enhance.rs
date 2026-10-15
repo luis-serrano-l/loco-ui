@@ -118,6 +118,9 @@ function focusState() {
 }
 function restoreFocus(f) {
   var el = f && document.querySelector(f.key);
+  // A move button whose side is gone (a card now in the last column): the other side.
+  var other = { prev: "next", next: "prev", up: "down", down: "up" }, m = !el && f && /^#(.+)-(prev|next|up|down)$/.exec(f.key);
+  if (m) el = document.getElementById(m[1] + "-" + other[m[2]]);
   if (!el) return;
   el.focus({ preventScroll: true });
   if (f.pos != null && el.setSelectionRange) try { el.setSelectionRange(f.pos, f.pos); } catch (e) {}
@@ -154,20 +157,24 @@ function announce(text) {
   said.textContent = "";
   setTimeout(function () { said.textContent = text; }, 50);
 }
-// Focus that was inside the replaced markup lands on the new root's h1, else the root.
-function settle(anchor) {
+// Focus that was inside the replaced markup lands on the element the URL's fragment names
+// (a pager's first new row), else the new root's h1, else the root.
+function settle(anchor, url) {
   var a = document.activeElement;
   if (a && a !== document.body && a.isConnected) return;
-  var to = anchor.querySelector("h1") || anchor;
+  var hash = new URL(url, location.href).hash, at = null;
+  try { at = hash && document.getElementById(decodeURIComponent(hash.slice(1))); } catch (e) {}
+  var to = (at && anchor.contains(at) && at) || anchor.querySelector("h1") || anchor;
   // A heading or div becomes focusable by script only.
   if (to.tabIndex < 0) to.tabIndex = -1;
   to.focus({ preventScroll: true });
 }
 
-function apply(doc, id, url, hist, mode, quiet, fast) {
+function apply(doc, id, url, hist, mode, quiet, fast, was) {
   var root = document.getElementById(id), fresh = doc.getElementById(id);
   if (!root || !fresh) { if (url !== location.href) location.href = url; else location.reload(); return; }
-  var f = focusState(), from = location.href, title = document.title;
+  // A busy form's buttons are disabled, which drops focus: fall back to where it was.
+  var f = focusState() || was, from = location.href, title = document.title;
   var swap = function () {
     doc.querySelectorAll("[data-lui-oob]").forEach(function (el) {
       var here = el.id && el !== fresh && document.getElementById(el.id), how = el.getAttribute("data-lui-oob");
@@ -183,7 +190,7 @@ function apply(doc, id, url, hist, mode, quiet, fast) {
     var theme = doc.documentElement.getAttribute("data-theme");
     if (theme) document.documentElement.setAttribute("data-theme", theme);
     var af = anchor.querySelector("[autofocus]");
-    if (af) af.focus(); else { restoreFocus(f); settle(anchor); }
+    if (af) af.focus(); else { restoreFocus(f); settle(anchor, url); }
     if (document.title !== title || url !== from) announce(document.title);
     swapped(anchor, url, mode);
   };
@@ -227,13 +234,16 @@ function busy(t, src, on) {
 function request(t, src, url, req, fallback) {
   var id = t.id;
   pending[id] = (pending[id] || 0) + 1;
+  var was = focusState();
   busy(t, src, true);
   var run = function () {
     var hit = !req.method && cache[url], at = Date.now();
     delete cache[url];
     return (hit && Date.now() - hit.at < 5000 ? hit.got : load(url, req)).then(function (r) {
       var fast = Date.now() - at < 150;
-      return Promise.resolve(t.quiet).then(function () { apply(parse(r.html), id, r.url, t.hist, t.mode, t.quiet, fast); });
+      // A response URL has no fragment; keep the one the link asked for.
+      var h = new URL(url, location.href).hash, to = h && r.url.indexOf("#") < 0 ? r.url + h : r.url;
+      return Promise.resolve(t.quiet).then(function () { apply(parse(r.html), id, to, t.hist, t.mode, t.quiet, fast, was); });
     }).then(function () { done(); }, function () { done(); fallback(); });
   };
   var done = function () { pending[id]--; busy(t, src, false); if (pending[id]) busy(t, src, true); };
@@ -352,8 +362,11 @@ document.addEventListener("keydown", function (e) {
   var box = e.target.closest(".lui-popover"), menu = e.target.closest(".lui-popover nav"), items;
   if (!menu && box) menu = box.querySelector("nav:popover-open, details[open] > nav");
   var combo = e.target.closest(".lui-combobox");
-  if (combo) items = Array.prototype.slice.call(combo.querySelectorAll("input[type=search], .lui-combobox-list a[href]"));
-  else if (menu) items = Array.prototype.filter.call(menu.querySelectorAll("a[href],button:not(:disabled):not(.lui-popover-apply),summary,input[role]"), function (el) {
+  if (combo) {
+    items = Array.prototype.slice.call(combo.querySelectorAll("input[type=search], .lui-combobox-list a[href]"));
+    // With no results yet the arrows are the browser's: they walk the datalist suggestions.
+    if (items.length < 2) return;
+  } else if (menu) items = Array.prototype.filter.call(menu.querySelectorAll("a[href],button:not(:disabled):not(.lui-popover-apply),summary,input[role]"), function (el) {
     return el.closest("nav") === menu;
   });
   else return;
@@ -361,6 +374,22 @@ document.addEventListener("keydown", function (e) {
   e.preventDefault();
   var i = items.indexOf(e.target), n = items.length;
   items[i < 0 ? (e.key === "ArrowDown" ? 0 : n - 1) : (i + (e.key === "ArrowDown" ? 1 : n - 1)) % n].focus();
+});
+
+// Escape closes what a popover falls back to without popover support (a <details>) and
+// returns focus to its summary, and hides a tooltip until its trigger loses focus.
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Escape" || !e.target.closest) return;
+  var d = e.target.closest(".lui-popover-details[open],.lui-popover-card-details[open],.lui-palette-details[open],.lui-hover-card details[open]");
+  if (d) { d.removeAttribute("open"); d.querySelector("summary").focus(); return; }
+  var tip = e.target.closest(".lui-tooltip") || document.querySelector(".lui-tooltip:hover");
+  if (tip) tip.setAttribute("data-lui-dismissed", "");
+});
+["focusout", "pointerout"].forEach(function (on) {
+  document.addEventListener(on, function (e) {
+    var tip = e.target.closest && e.target.closest(".lui-tooltip[data-lui-dismissed]");
+    if (tip && !tip.contains(e.relatedTarget) && !tip.matches(on === "focusout" ? ":hover" : ":focus-within")) tip.removeAttribute("data-lui-dismissed");
+  });
 });
 
 document.addEventListener("click", function (e) {
@@ -769,12 +798,12 @@ mod tests {
         // 13 KB served and 16 KB of source until M41's select-all box; +384 served (+640 source) for M40c's
         // number steppers and password reveal.
         assert!(
-            served().len() < 15872, // 13 KB until M41's select-all, M40a's copy button, M40d's autosubmit and M40c's steppers
+            served().len() < 16384, // 15.5 KB until the keyboard fixes (Escape on fallbacks and tooltips, focus after a move)
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 19456, // 16 KB until M41 and M40
+            JS.len() < 20480, // 19 KB until the keyboard fixes
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

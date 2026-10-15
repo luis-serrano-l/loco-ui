@@ -60,6 +60,14 @@ M16 entries are older still and describe options structs that M18 replaced.
 
 #### M46 · Tests that would have caught the audit's bugs
 
+- Keyboard fixes from the `KEYS` audit. Enter in a field presses the form's main button:
+  the Wizard (not Skip), a `.typed()` Counter (Set, not decrement) and a `Form` whose
+  `.body(..)` holds buttons start their form with a hidden copy of it. With the script,
+  Escape closes the `<details>` fallback of the popovers and hides a tooltip; focus survives
+  a form post that updates in place (it was lost while the busy form's buttons were
+  disabled), stays with a moved Kanban or Sortable card (move buttons get ids) and lands on
+  the Pager's first new row; the Combobox leaves the arrows to the datalist when it has no
+  results. Browser checks for each.
 - Keyboard checks in `scripts/browser-check.mjs`: Escape closes the drawer, popover card,
   context menu, hover card and palette by a real key press, and without the script Tab
   reaches every control on every component page under both capability variants.

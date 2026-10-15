@@ -271,6 +271,19 @@ impl Ui {
     }
 }
 
+/// A hidden copy of a form's main submit button, put first in the form. Enter in a field
+/// presses the form's first submit button in tree order (implicit submission,
+/// <https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission>),
+/// so a component whose other submit buttons come earlier (Skip, a stepper, a decrement)
+/// starts its form with this one. It is out of the tab order and hidden from assistive tech;
+/// people still press the visible button.
+pub(crate) fn default_submit(pair: Option<(&str, &str)>) -> Markup {
+    html! {
+        button type="submit" class="lui-sr" tabindex="-1" aria-hidden="true"
+            name=[pair.map(|p| p.0)] value=[pair.map(|p| p.1)] {}
+    }
+}
+
 impl<'a> Button<'a> {
     /// A button for a component that holds only `caps` (they decide the popover fallback).
     pub(crate) fn new(caps: Caps, text: &'a str) -> Self {

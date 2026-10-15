@@ -22,7 +22,7 @@
 | `Tab / Shift+Tab` | Shows the card while its trigger has focus, where the browser has interest invokers. | no |
 | `Enter / Space` | Opens or closes the card from its button where the browser has no interest invokers. | no |
 | `Enter` | Follows the trigger link when the card has one. | no |
-| `Escape` | Closes the card. Without popover support it closes from its button instead. | no |
+| `Escape` | Closes the card. Without popover support the script closes it; without the script either, its button does. | no |
 
 ## Anatomy
 

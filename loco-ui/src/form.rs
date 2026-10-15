@@ -192,7 +192,7 @@ impl Form<'_> {
         ),
         Key::new(
             "Enter",
-            "Submits the form from a single-line field through its first submit button.",
+            "Submits the form from a single-line field, as its submit button does, even when markup among the fields holds buttons of its own.",
         ),
         Key::new("Enter / Space", "Presses the focused submit button."),
         Key::new(
@@ -782,6 +782,11 @@ impl Render for Form<'_> {
         let required = (self.groups.iter())
             .flat_map(|g| &g.fields)
             .any(|f| f.required);
+        // Markup among the fields may hold submit buttons of its own (a stepper, a tag
+        // input's Add); Enter in a field should still press the form's button.
+        let foreign = (self.groups.iter())
+            .flat_map(|g| &g.fields)
+            .any(|f| matches!(&f.kind, FieldKind::Markup(m) if m.0.contains("<button")));
         let class = if self.inline {
             "lui-form lui-form-inline"
         } else {
@@ -792,6 +797,7 @@ impl Render for Form<'_> {
                 method=(if self.get { "get" } else { "post" }) action=(action)
                 enctype=[multipart.then_some("multipart/form-data")] {
                 @if let Some(m) = self.method { input type="hidden" name="_method" value=(m); }
+                @if foreign { (crate::button::default_submit(None)) }
                 (self.summary())
                 (self.fields())
                 // The stars are hidden from screen readers (the `required` attribute speaks),
@@ -845,6 +851,26 @@ fieldset.lui-form-group ~ fieldset.lui-form-group { padding-top: var(--lui-space
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The attributes of the first submit button in `m`: what Enter in a field presses.
+    fn first_submit(m: &str) -> &str {
+        let at = m.find("<button type=\"submit\"").expect("a submit button");
+        &m[at..at + m[at..].find('>').unwrap()]
+    }
+
+    #[test]
+    fn enter_presses_the_forms_button_past_buttons_in_its_body() {
+        let ui = Ui::default();
+        let stepped = ui.number("qty", "Quantity").steppers().render();
+        let m = html(ui.form("/f").text("a", "A").body(stepped));
+        let first = first_submit(&m);
+        assert!(
+            first.contains(r#"class="lui-sr""#) && !first.contains("name="),
+            "{m}"
+        );
+        let plain = html(ui.form("/f").text("a", "A"));
+        assert!(!plain.contains(r#"class="lui-sr""#), "{plain}");
+    }
 
     fn html(f: Form) -> String {
         f.render().into_string()

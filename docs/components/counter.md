@@ -26,6 +26,7 @@
 | `Tab / Shift+Tab` | Moves between the decrement, increment and reset buttons and the value field. | no |
 | `Enter / Space` | Presses the focused button, which posts the change. | no |
 | `ArrowUp / ArrowDown` | Steps the typed value up or down by the step before it is set. | no |
+| `Enter` | Sets the typed value, as the Set button does. | no |
 
 ## Anatomy
 

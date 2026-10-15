@@ -64,7 +64,7 @@
 | Keys | What they do | Needs the script |
 |---|---|---|
 | `Tab / Shift+Tab` | Moves through the fields in order, then to the submit button and the secondary link. | no |
-| `Enter` | Submits the form from a single-line field through its first submit button. | no |
+| `Enter` | Submits the form from a single-line field, as its submit button does, even when markup among the fields holds buttons of its own. | no |
 | `Enter / Space` | Presses the focused submit button. | no |
 | `Enter` | Moves focus to the field from a link in the error summary. | no |
 

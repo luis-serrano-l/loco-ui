@@ -505,7 +505,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Alert | Radix Themes Callout | content | `role="alert"`, `role="status"` | 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
 | Progress | Tremor ProgressBar | content | `<progress>`, `appearance: none` | 6 / 6 / 6; 84 / 80 / 15.4 | without the pseudo-elements a browser draws its own bar | Partly: moving on its own needs a streamed page or the script |
 | Meter | Tremor CategoryBar colours | content | `<meter>` | 6 / 16 / 6 | without the pseudo-elements a browser draws its own meter | No |
-| Tooltip | Radix Themes Tooltip | content | `:focus-within`, `@media (hover: none)` | 60 / 52 / 10.1; 41 / 64 / 9 | none needed | Partly: a delay before opening and Escape to close need script |
+| Tooltip | Radix Themes Tooltip | content | `:focus-within`, `@media (hover: none)` | 60 / 52 / 10.1; 41 / 64 / 9 | none needed | Partly: Escape to close needs script |
 | Separator | Radix Themes Separator | content | `<hr>`, `aria-orientation` | 1 / 1 / 1; 1 / 1 / 1 | none needed | No |
 | Toast | shadcn Sonner | viewport | `position: fixed`, `role="status"`, `role="alert"`, `@keyframes`, `prefers-reduced-motion`, `@starting-style` | 1 / 1 / 1; 1 / 1 / 1; 1 / 1 / 1; 43 / 16 / 9; 74 / 63 / 10.1; 117 / 129 / 17.5 | without CSS animations toasts stay until the next page | No |
 | Breadcrumbs | shadcn Breadcrumb | container | `aria-current="page"`, `::before`, `<details>` | 1 / 1 / 1; 1 / 1 / 1; 12 / 49 / 6 | none needed | No |

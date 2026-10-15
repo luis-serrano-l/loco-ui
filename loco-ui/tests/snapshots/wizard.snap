@@ -40,6 +40,8 @@ caps: all
 <progress class="lui-wizard-progress" value="2" max="2" aria-label="Progress">2 of 2 steps done</progress>
 <form method="post" action="/wizard" class="lui-wizard-form">
 <input type="hidden" name="step" value="2">
+<button type="submit" class="lui-sr" tabindex="-1" aria-hidden="true">
+</button>
 <fieldset>
 <legend>Step 3 of 3: Review</legend>
 <dl class="lui-wizard-review">
@@ -98,6 +100,8 @@ caps: none
 <progress class="lui-wizard-progress" value="2" max="2" aria-label="Progress">2 of 2 steps done</progress>
 <form method="post" action="/wizard" class="lui-wizard-form">
 <input type="hidden" name="step" value="2">
+<button type="submit" class="lui-sr" tabindex="-1" aria-hidden="true">
+</button>
 <fieldset>
 <legend>Step 3 of 3: Review</legend>
 <dl class="lui-wizard-review">

@@ -133,7 +133,7 @@ impl Wizard<'_> {
         ),
         Key::new(
             "Enter",
-            "Sends the step from a field through the form's first submit button, which is Skip on an optional step.",
+            "Sends the step from a field, as Next (or Finish) does, also on an optional step.",
         ),
         Key::new(
             "Enter / Space",
@@ -360,6 +360,8 @@ impl Render for Wizard<'_> {
                 }
                 form method="post" action=(action) class="lui-wizard-form" {
                     input type="hidden" name="step" value=(current);
+                    // Enter in a field means Next (or Finish), not the Skip before it.
+                    (crate::button::default_submit(None))
                     fieldset aria-invalid=[failed(current).then_some("true")] {
                         legend { (ui.fill(Text::StepOf, &[&(current + 1), &steps.len()])) ": " (step.title) @if step.optional { " " (ui.text(Text::Optional)) } }
                         @match &step.body {
@@ -406,6 +408,20 @@ pub const CSS: &str = r#"
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The attributes of the first submit button in `m`: what Enter in a field presses.
+    fn first_submit(m: &str) -> &str {
+        let at = m.find("<button type=\"submit\"").expect("a submit button");
+        &m[at..at + m[at..].find('>').unwrap()]
+    }
+
+    #[test]
+    fn enter_on_an_optional_step_means_next() {
+        let ui = Ui::from_request("/w", "step.x=1", "");
+        let m = three(&ui).render().into_string();
+        assert!(m.contains(r#"name="skip""#), "{m}");
+        assert!(!first_submit(&m).contains("name="), "{m}");
+    }
 
     fn three<'a>(ui: &'a Ui) -> Wizard<'a> {
         ui.wizard("x", "/w")
