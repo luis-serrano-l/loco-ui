@@ -62,7 +62,7 @@ try {
   await until(async () => (await text(".lui-counter output")) === "10", "counter to reach 10 in steps of 2", 10000);
   assert(await navigations() === 1, "counter: 5 clicks counted in place, no reload");
   await js("document.querySelector('.lui-counter input[name=value]').value = 20");
-  await click(".lui-counter button[value=set]");
+  await click(".lui-counter button[value=set]:not(.lui-sr)");
   await until(async () => (await text(".lui-counter output")) === "20", "typed value set");
   assert(await js("return document.querySelector('.lui-counter button[value=inc]').disabled"), "counter: + switches off at the maximum");
 
@@ -175,7 +175,7 @@ try {
   // Wizard: Next posts, PRG lands on step 2 in place, Back keeps the value.
   await go("/wizard?step.signup=0");
   await type("input[name=name]", "Ada");
-  await type("input[name=email]", "ada@lovelace.dev");
+  await type("input[name=email]", "ada@example.com");
   await click(".lui-wizard button.lui-button-primary");
   await until(async () => (await js("return document.querySelector('#f-email-error')?.textContent || ''")).includes("example.com"), "server message beside the field");
   assert(await js("return document.querySelector('.lui-steps li[aria-current=step]').classList.contains('lui-steps-error')"), "wizard: the step is marked in error");
@@ -408,7 +408,7 @@ try {
   // Error summary: a refused sign-in swaps the form in place and the summary takes the focus;
   // a full load of the same answer focuses it through autofocus.
   await go("/app/signin");
-  await type("#f-email", "ada@lovelace.dev");
+  await type("#f-email", "ada@example.com");
   await type("#f-password", "short");
   await click(".lui-form-actions button");
   await until(async () => await js("return !!document.querySelector('.lui-error-summary')"), "error summary shown");
