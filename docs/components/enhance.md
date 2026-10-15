@@ -59,7 +59,9 @@ replace it); `data-lui-push="false"` keeps the URL as it is and `data-lui-replac
 replaces. Every swap stores a copy of the roots in the history entry, so Back and Forward
 restore them without a request. After every swap the root dispatches a bubbling `lui:swap`
 event with `{ id, url, mode }` in `detail`.
-Rapid actions on one root are queued, so a counter clicked five times counts five. The
+Rapid actions on one root are queued and answered in order (a link clicked while a form
+is in flight waits its turn); since the form's buttons are disabled meanwhile, a double
+click sends once. The
 script also mirrors `<input type=range>` and `type=color` values while they move, counts
 characters into the `<output for>` of a field with `maxlength`, sends multipart forms as
 `FormData` so files survive (through `XMLHttpRequest`, filling a `<progress data-lui-progress>`
