@@ -16,6 +16,19 @@
 | `ghost` | switch |  | `off` |  | The ghost button look instead of the outline one. |
 | `name` | value | `group: &'a str` |  | `name` | Collapsibles with the same `name` are exclusive: opening one closes the others. |
 
+## Keyboard of `Collapsible`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens or closes the panel, closing any other open one with the same name. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-collapsible` | `--lui-duration`, `--lui-ease-out`, `--lui-hit` |
+| `.lui-collapsible-body` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

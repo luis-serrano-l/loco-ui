@@ -14,6 +14,12 @@
 |---|---|---|---|---|---|
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | Size 1 at 0.7em of the text around it, 2 at 0.75rem (the default), 3 at 0.875rem. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-kbd` | `--lui-font-sans`, `--lui-text-1`, `--lui-gray-12`, `--lui-gray-1`, `--lui-gray-7`, `--lui-gray-3`, `--lui-gray-4`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

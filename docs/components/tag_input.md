@@ -19,6 +19,24 @@
 | `error` | value | `message: &'a str` |  |  | A server message under the box. |
 | `id` | value | `id: &'a str` |  | `id` | The text box's id, `f-<name>` by default. |
 
+## Keyboard of `TagInput`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the remove links, the text box and the Add button. | no |
+| `Enter` | Adds the typed tag when the Add button is the first submit button in its form. | no |
+| `Enter / Space` | Adds the typed tag from the focused Add button. | no |
+| `Enter` | Removes the tag from its focused remove link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tag-input-box` | `--lui-space-1`, `--lui-control-h`, `--lui-input`, `--lui-radius-sm`, `--lui-duration-fast`, `--lui-danger` |
+| `.lui-tag-input-field` | `--lui-ring`, `--lui-control-h` |
+| `.lui-tag-input-chips` |  |
+| `.lui-tag-input-chip` | `--lui-radius-sm`, `--lui-brand-3`, `--lui-brand-11`, `--lui-text-1`, `--lui-leading-1`, `--lui-brand-5`, `--lui-hit` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

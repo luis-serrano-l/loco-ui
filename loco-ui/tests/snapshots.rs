@@ -804,3 +804,87 @@ fn components_match_their_snapshots() {
         }
     });
 }
+
+/// Builders whose example holds controls only because it passes other builders in (a card
+/// with a button, a page block with a form): the keys are the parts' own.
+const HOLDS_OTHERS: &[&str] = &["Cluster", "Indicator", "AuthPage"];
+
+/// The names a key may have in `KEYS`, besides a single character (an `accesskey`).
+const KEY_NAMES: &[&str] = &[
+    "Tab",
+    "Shift",
+    "Enter",
+    "Space",
+    "Escape",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "Home",
+    "End",
+    "PageUp",
+    "PageDown",
+    "Alt",
+    "Ctrl",
+    "Backspace",
+    "Delete",
+];
+
+#[test]
+fn builders_with_controls_list_their_keys() {
+    // A control other than a plain link: links need no keys explained.
+    let controls = [
+        "<button",
+        "<select",
+        "<textarea",
+        "<summary",
+        "tabindex=\"0\"",
+        "<input",
+    ];
+    let mut wrong = Vec::new();
+    for example in EXAMPLES {
+        let c = loco_ui::props()
+            .iter()
+            .find(|c| c.builder == example.builder)
+            .expect("in props()");
+        let (path, query, cookie) = example.request;
+        let mut ui = Ui::from_request(path, query, cookie);
+        ui.caps = Caps::all();
+        let html = (example.render)(&ui).into_string();
+        let has = controls.iter().any(|t| {
+            html.match_indices(t).any(|(i, _)| {
+                *t != "<input"
+                    || !html[i..html[i..].find('>').map_or(html.len(), |e| i + e)]
+                        .contains("type=\"hidden\"")
+            })
+        });
+        let exempt = HOLDS_OTHERS.contains(&c.builder);
+        match (has && !exempt, c.keys.is_empty()) {
+            (true, true) => wrong.push(format!(
+                "{} renders a control but its KEYS is empty",
+                c.builder
+            )),
+            (false, false) if exempt => {
+                wrong.push(format!("{} has KEYS: take it off HOLDS_OTHERS", c.builder))
+            }
+            _ => {}
+        }
+        for k in c.keys {
+            for key in k.keys.split(" / ").flat_map(|a| a.split('+')) {
+                if key.chars().count() != 1 && !KEY_NAMES.contains(&key) {
+                    wrong.push(format!(
+                        "{}: `{key}` in `{}` is not a key name",
+                        c.builder, k.keys
+                    ));
+                }
+            }
+            if k.does.is_empty() || !k.does.ends_with('.') {
+                wrong.push(format!(
+                    "{}: `{}` needs a sentence ending in a full stop",
+                    c.builder, k.keys
+                ));
+            }
+        }
+    }
+    assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+}

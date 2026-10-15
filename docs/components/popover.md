@@ -29,6 +29,36 @@
 | `open_right` | switch |  | `off` |  | Open to the right of the button. |
 | `trigger` | value | `button: Button<'a>` |  |  | The opener as a styled button of the caller's; the menu sets its `popovertarget`. |
 
+## Keyboard of `Menu`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the menu from its button. | no |
+| `Tab / Shift+Tab` | Moves to the next or previous item in the open menu. | no |
+| `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
+| `Enter` | Follows the focused link or sends the focused action. | no |
+| `Space` | Ticks the focused checkbox or radio item. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-popover` | `--lui-space-1`, `--lui-popover`, `--lui-fg`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-duration-fast`, `--lui-ease-out`, `--lui-duration`, `--lui-ease-spring` |
+| `.lui-popover-anchored` |  |
+| `.lui-popover-details` | `--lui-z-popover`, `--lui-radius-sm` |
+| `.lui-popover-subnav` |  |
+| `.lui-popover-check` | `--lui-primary` |
+| `.lui-popover-apply` |  |
+| `.lui-popover-item` | `--lui-space-2`, `--lui-text-2`, `--lui-radius-sm`, `--lui-hit`, `--lui-primary`, `--lui-on-primary` |
+| `.lui-popover-icon` | `--lui-muted` |
+| `.lui-popover-kbd` | `--lui-text-1`, `--lui-muted`, `--lui-space-4` |
+| `.lui-popover-description` | `--lui-text-2`, `--lui-muted`, `--lui-space-2` |
+| `.lui-popover-danger` | `--lui-danger` |
+| `.lui-popover-heading` | `--lui-text-1`, `--lui-muted` |
+| `.lui-popover-sep` | `--lui-space-1`, `--lui-line` |
+| `.lui-popover-sub` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

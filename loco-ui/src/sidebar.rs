@@ -61,7 +61,7 @@ use std::fmt::Display;
 use maud::{Markup, Render, html};
 
 use crate::icon::Glyph;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Caps, Icon, Ui, slug};
 
 /// One link: its text, where it goes, an icon and a count.
@@ -91,6 +91,15 @@ pub struct Sidebar<'a> {
 }
 
 impl Sidebar<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new("Enter", "Follows the focused link."),
+        Key::new(
+            "Enter / Space",
+            "Folds the sidebar to its icon rail or unfolds it, when it is collapsible.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

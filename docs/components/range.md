@@ -23,6 +23,27 @@
 | `ticks` | switch |  | `off` |  | The lowest, middle and highest values marked under the track. |
 | `id` | value | `id: &'a str` |  | `id` | The slider's id, `f-<name>` by default. |
 
+## Keyboard of `Range`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the slider, or between the two thumbs of a pair. | no |
+| `ArrowRight / ArrowUp` | Raises the value by one step. | no |
+| `ArrowLeft / ArrowDown` | Lowers the value by one step. | no |
+| `Home / End` | Sets the value to the minimum or maximum. | no |
+| `PageUp / PageDown` | Raises or lowers the value by a larger amount the browser picks. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-range` | `--lui-space-3`, `--lui-text-2`, `--lui-hit` |
+| `.lui-range-main` | `--lui-space-1` |
+| `.lui-range-input` | `--lui-primary`, `--lui-range-fill`, `--lui-gray-4`, `--lui-on-primary`, `--lui-gray-7`, `--lui-shadow-xs`, `--lui-duration-fast`, `--lui-ring`, `--lui-gray-8`, `--lui-hit` |
+| `.lui-range-values` | `--lui-text-2`, `--lui-hit` |
+| `.lui-range-ticks` | `--lui-muted`, `--lui-text-1`, `--lui-gray-7` |
+| `.lui-range-track` | `--lui-gray-4`, `--lui-range-lo`, `--lui-primary`, `--lui-range-hi`, `--lui-hit` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

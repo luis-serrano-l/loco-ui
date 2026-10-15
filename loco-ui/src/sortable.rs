@@ -45,7 +45,7 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Icon, Ui, enhance, slug};
 
 /// An item: its key (what a move posts), title and small print.
@@ -69,6 +69,22 @@ pub struct Sortable<'a> {
 }
 
 impl Sortable<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the items' move buttons, top to bottom.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Moves the item one place up from its up button.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Moves the item one place down from its down button.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

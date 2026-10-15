@@ -16,6 +16,14 @@
 | `side_end` | switch |  | `off` |  | The side after the main part, in the markup and on screen. |
 | `gap` | number | `n: u8` |  |  | The gap as a step of the `--lui-space-*` scale. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-split` | `--lui-space-4` |
+| `.lui-split-side` | `--lui-split-side` |
+| `.lui-split-main` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

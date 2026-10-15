@@ -1349,6 +1349,19 @@ pub fn to_json() -> String {
                 if !b.props.is_empty() {
                     out.push_str("\n          ");
                 }
+                out.push_str("],\n          \"keys\": [");
+                for (k, key) in b.keys.iter().enumerate() {
+                    out.push_str(&format!(
+                        "\n            {{ \"keys\": {}, \"does\": {}, \"script\": {} }}{}",
+                        json_str(key.keys),
+                        json_str(key.does),
+                        key.script,
+                        if k + 1 < b.keys.len() { "," } else { "" }
+                    ));
+                }
+                if !b.keys.is_empty() {
+                    out.push_str("\n          ");
+                }
                 out.push_str(&format!(
                     "]\n        }}{}\n",
                     if j + 1 < builders.len() { "," } else { "" }

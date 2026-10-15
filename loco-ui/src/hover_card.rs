@@ -47,7 +47,7 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::{Strings, Text};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Caps, Icon, Ui, slug};
 
 /// A trigger with a card that opens on hover, made by [`Ui::hover_card`].
@@ -64,6 +64,23 @@ pub struct HoverCard<'a> {
 }
 
 impl HoverCard<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Shows the card while its trigger has focus, where the browser has interest invokers.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Opens or closes the card from its button where the browser has no interest invokers.",
+        ),
+        Key::new("Enter", "Follows the trigger link when the card has one."),
+        Key::new(
+            "Escape",
+            "Closes the card. Without popover support it closes from its button instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

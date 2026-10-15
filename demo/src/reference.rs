@@ -7,7 +7,7 @@
 //! them; until then it is left out.
 
 use crate::site::Entry;
-use loco_ui::props::Component;
+use loco_ui::props::{Component, Key};
 use loco_ui::spec::{NeedsJs, SPECS};
 use maud::{Markup, html};
 use std::collections::HashMap;
@@ -69,11 +69,26 @@ pub(crate) fn header_section(source: &str, label: &str) -> Option<String> {
     Some(first.to_uppercase().chain(chars).collect())
 }
 
-/// The keys a module answers to, as `(keys, what they do)`. Empty until each component
-/// carries its `KEYS` const and `props()` lists it (ROADMAP M42, the last commit before
-/// merge); the "Keyboard" section shows as soon as one has any.
-pub(crate) fn keys(_module: &str) -> &'static [(&'static str, &'static str)] {
-    &[]
+/// The keys a module's builders on this page answer to, each builder's `KEYS` in turn.
+pub(crate) fn keys(module: &str, builders: &[&Component]) -> Vec<Key> {
+    builders
+        .iter()
+        .filter(|b| b.module == module)
+        .flat_map(|b| b.keys.iter().copied())
+        .collect()
+}
+
+/// `Shift+Tab / Enter` as `<kbd>`s: one per key, `+` and ` / ` kept as text.
+fn keys_markup(keys: &str) -> Markup {
+    html! {
+        @for (i, alt) in keys.split(" / ").enumerate() {
+            @if i > 0 { " / " }
+            @for (j, k) in alt.split('+').enumerate() {
+                @if j > 0 { "+" }
+                kbd { (k) }
+            }
+        }
+    }
 }
 
 /// A module's `pub const CSS`, as written in its source.
@@ -238,7 +253,7 @@ pub(crate) fn sections(entry: &Entry, builders: &[&Component]) -> Markup {
         .collect();
     let keyboard: Vec<_> = modules
         .iter()
-        .map(|m| (name(m, builders), keys(m)))
+        .map(|m| (name(m, builders), keys(m, builders)))
         .filter(|(_, k)| !k.is_empty())
         .collect();
     let anatomy: Vec<_> = modules
@@ -293,7 +308,10 @@ pub(crate) fn sections(entry: &Entry, builders: &[&Component]) -> Markup {
                     @if several { h3 { (name) } }
                     table {
                         thead { tr { th { "Keys" } th { "What they do" } } }
-                        tbody { @for (k, what) in keys.iter() { tr { td { kbd { (k) } } td { (what) } } } }
+                        tbody { @for k in keys { tr {
+                            td { (keys_markup(k.keys)) }
+                            td { (crate::docs::inline(k.does)) @if k.script { " " span class="lui-badge" { "script" } } }
+                        } } }
                     }
                 }
             }

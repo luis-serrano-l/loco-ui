@@ -188,7 +188,7 @@ use maud::{Markup, Render, html};
 
 use crate::i18n::{Strings, Text};
 use crate::popover::MenuItem;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::state::decode;
 use crate::{Caps, Ui, enhance};
 
@@ -254,6 +254,9 @@ pub struct Row<'a> {
 }
 
 impl Row<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
@@ -989,6 +992,30 @@ pub struct Table<'a> {
 }
 
 impl Table<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Enter",
+            "Sorts by the focused column header, or reverses that sort when it is already first.",
+        ),
+        Key::new(
+            "Enter",
+            "Applies the filters from the search box or any filter field.",
+        ),
+        Key::new(
+            "Space",
+            "Ticks or clears the focused row checkbox for the bulk actions.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Opens or closes the Filters and Columns lists and a row's details.",
+        ),
+        Key::new(
+            "Enter",
+            "Saves the row being edited from any of its fields.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

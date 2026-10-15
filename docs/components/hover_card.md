@@ -15,6 +15,24 @@
 | `href` | value | `href: &'a str` |  | `href` | The trigger is a link to `href` instead of a button. |
 | `id` | value | `id: &'a str` |  | `id` | The card's id, `lui-hover-card-<slug of the trigger>` by default. |
 
+## Keyboard of `HoverCard`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Shows the card while its trigger has focus, where the browser has interest invokers. | no |
+| `Enter / Space` | Opens or closes the card from its button where the browser has no interest invokers. | no |
+| `Enter` | Follows the trigger link when the card has one. | no |
+| `Escape` | Closes the card. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-hover-card` | `--lui-space-1` |
+| `.lui-hover-card-trigger` | `--lui-link`, `--lui-space-1`, `--lui-hit` |
+| `.lui-hover-card-content` | `--lui-space-4`, `--lui-text-2`, `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-md`, `--lui-highlight`, `--lui-space-2` |
+| `.lui-hover-card-link` | `--lui-hit` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

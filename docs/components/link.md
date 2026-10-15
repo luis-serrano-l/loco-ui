@@ -16,6 +16,19 @@
 | `external` | switch |  | `off` |  | Opens in a new tab, with an arrow and a hint for screen readers. |
 | `muted` | switch |  | `off` |  | The muted gray, the text colour on hover: a footer's or a caption's links. |
 
+## Keyboard of `Link`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the link, in a new tab when it is external. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-link` | `--lui-brand-11`, `--lui-radius-sm` |
+| `.lui-link-muted` | `--lui-muted`, `--lui-fg` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

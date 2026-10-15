@@ -17,6 +17,12 @@
 | `weight` | choice: light, regular, medium, bold | `weight: Weight` | `bold` |  | How heavy the letters are. |
 | `trim` | switch |  | `off` |  | Trim the space above the capitals and below the baseline. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-heading-trim` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

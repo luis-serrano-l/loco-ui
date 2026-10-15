@@ -21,6 +21,26 @@
 | `finish` | value | `label: &'a str` | `Finish` |  | Label of the last step's submit button. |
 | `hide_progress` | switch |  | `off` |  | No `<progress>` element (the connectors still show progress on screen). |
 
+## Keyboard of `Wizard`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves through the step's fields and buttons. | no |
+| `Enter` | Sends the step from a field through the form's first submit button, which is Skip on an optional step. | no |
+| `Enter / Space` | Presses the focused Back, Skip or Next button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-wizard` |  |
+| `.lui-wizard-progress` |  |
+| `.lui-wizard-resume` | `--lui-text-2`, `--lui-line`, `--lui-radius`, `--lui-card` |
+| `.lui-wizard-form` | `--lui-line`, `--lui-radius-lg`, `--lui-space-4`, `--lui-space-6`, `--lui-danger`, `--lui-text-2` |
+| `.lui-wizard-actions` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-wizard-review` | `--lui-muted` |
+| `.lui-wizard-edit` | `--lui-space-2`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

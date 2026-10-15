@@ -15,6 +15,12 @@
 | `body` | value | `markup: Markup` |  |  | What the column holds. |
 | `size` | value | `size: u8` | `4` |  | Radix's sizes 1–4: at most 448, 688, 880 or 1136px wide. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-container` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -46,7 +46,7 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::{Strings, Text};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Caps, Ui, enhance};
 
 /// A load-more list, made by [`Ui::pager`]: pages 1 to `?page=` of the rows, 10 per page
@@ -65,6 +65,12 @@ pub struct Pager<'a> {
 }
 
 impl Pager<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new(
+        "Enter",
+        "Loads the next page from the Load more link and scrolls to the first new item.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

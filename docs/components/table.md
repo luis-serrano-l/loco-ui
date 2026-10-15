@@ -55,6 +55,66 @@
 | `density` | value | `density: Density` | `Density::Comfortable` |  | `Density::Compact` halves the cell padding. |
 | `group_by` | value | `key: &'a str` |  |  | A group header row wherever the column `key`'s cell changes (rows sorted by it). |
 
+## Keyboard of `Table`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Sorts by the focused column header, or reverses that sort when it is already first. | no |
+| `Enter` | Applies the filters from the search box or any filter field. | no |
+| `Space` | Ticks or clears the focused row checkbox for the bulk actions. | no |
+| `Enter / Space` | Opens or closes the Filters and Columns lists and a row's details. | no |
+| `Enter` | Saves the row being edited from any of its fields. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-table` | `--lui-gray-2`, `--lui-muted`, `--lui-text-2`, `--lui-duration-fast`, `--lui-fg` |
+| `.lui-table-toolbar` | `--lui-space` |
+| `.lui-table-filter` | `--lui-space` |
+| `.lui-table-filter-input` |  |
+| `.lui-table-clear` | `--lui-muted`, `--lui-text-2`, `--lui-fg` |
+| `.lui-table-cols` | `--lui-text-2`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-radius-sm`, `--lui-accent`, `--lui-on-accent` |
+| `.lui-table-cols-mark` | `--lui-fg` |
+| `.lui-table-scroll` | `--lui-line`, `--lui-radius-lg`, `--lui-bg`, `--lui-fg`, `--lui-gray-2` |
+| `.lui-table-has-select` | `--lui-bg` |
+| `.lui-table-check` | `--lui-brand-3` |
+| `.lui-table-sorted` | `--lui-fg` |
+| `.lui-table-arrow` |  |
+| `.lui-table-num` |  |
+| `.lui-table-select` |  |
+| `.lui-table-menu` |  |
+| `.lui-table-edit-col` |  |
+| `.lui-table-edit` |  |
+| `.lui-table-edit-input` |  |
+| `.lui-table-empty` | `--lui-muted`, `--lui-space-6` |
+| `.lui-table-more` | `--lui-space-1`, `--lui-text-2`, `--lui-muted`, `--lui-fg` |
+| `.lui-table-p3` |  |
+| `.lui-table-more-p3` |  |
+| `.lui-table-p2` |  |
+| `.lui-table-more-p2` |  |
+| `.lui-table-detail` | `--lui-muted` |
+| `.lui-table-detail-body` | `--lui-text-2`, `--lui-muted` |
+| `.lui-table-bulk` | `--lui-space`, `--lui-text-2`, `--lui-muted` |
+| `.lui-table-skeleton` | `--lui-radius-sm`, `--lui-accent` |
+| `.lui-table-sort-index` | `--lui-gray-4`, `--lui-fg`, `--lui-text-1` |
+| `.lui-table-then` | `--lui-radius-sm`, `--lui-muted`, `--lui-gray-4`, `--lui-fg` |
+| `.lui-table-filters` | `--lui-text-2` |
+| `.lui-table-filters-count` | `--lui-primary`, `--lui-on-primary`, `--lui-text-1` |
+| `.lui-table-filters-body` | `--lui-space-2`, `--lui-space-3`, `--lui-gray-2`, `--lui-line`, `--lui-radius` |
+| `.lui-table-all` |  |
+| `.lui-table-striped` | `--lui-gray-2`, `--lui-gray-3` |
+| `.lui-table-compact` | `--lui-space-1`, `--lui-space-2`, `--lui-text-2` |
+| `.lui-table-group` | `--lui-gray-2`, `--lui-muted`, `--lui-text-2` |
+| `.lui-table-disabled` | `--lui-muted` |
+| `.lui-table-ok` | `--lui-ok`, `--lui-table-tone`, `--lui-bg` |
+| `.lui-table-warn` | `--lui-warn`, `--lui-table-tone`, `--lui-bg` |
+| `.lui-table-danger` | `--lui-danger`, `--lui-table-tone`, `--lui-bg` |
+| `.lui-table-go-col` |  |
+| `.lui-table-go` |  |
+| `.lui-table-linked` |  |
+| `.lui-table-row-link` | `--lui-muted`, `--lui-text-5` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

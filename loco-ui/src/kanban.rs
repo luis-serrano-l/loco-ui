@@ -52,7 +52,7 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Icon, Ui, enhance, slug};
 
 /// A card: its key (what the move posts), title and small print.
@@ -86,6 +86,22 @@ pub struct Kanban<'a> {
 }
 
 impl Kanban<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the cards' move buttons, column by column.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Moves the card one column left from its left arrow button.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Moves the card one column right from its right arrow button.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

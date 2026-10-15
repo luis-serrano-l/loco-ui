@@ -98,7 +98,7 @@ use crate::button::Button;
 use crate::i18n::Text;
 use crate::icon::Glyph;
 use crate::popover_card::{Align, Side, area};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Caps, Icon, Ui, slug};
 
 /// Where the menu opens relative to its button.
@@ -255,6 +255,29 @@ pub struct Menu<'a> {
 pub(crate) const ITEMS: &[&str] = &["link", "action", "submenu", "checkbox", "radio"];
 
 impl Menu<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new("Enter / Space", "Opens the menu from its button."),
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves to the next or previous item in the open menu.",
+        ),
+        Key::new(
+            "ArrowDown / ArrowUp",
+            "Moves to the next or previous item, wrapping at the ends.",
+        )
+        .script(),
+        Key::new(
+            "Enter",
+            "Follows the focused link or sends the focused action.",
+        ),
+        Key::new("Space", "Ticks the focused checkbox or radio item."),
+        Key::new(
+            "Escape",
+            "Closes the menu and returns focus to its button. Without popover support it closes from its button instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

@@ -17,6 +17,24 @@
 | `max` | number | `n: usize` | `4` |  | The most crumbs shown, the current page included, before the middle folds into a menu. |
 | `separator` | value | `glyph: impl Into<Glyph<'a>>` |  |  | A glyph or an icon between the crumbs instead of the chevron. |
 
+## Keyboard of `Breadcrumbs`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Shows or hides the folded middle crumbs from the ellipsis button. | no |
+| `Enter` | Follows the focused crumb. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-breadcrumbs` | `--lui-text-2`, `--lui-muted`, `--lui-space-4`, `--lui-duration-fast`, `--lui-fg` |
+| `.lui-breadcrumbs-custom` |  |
+| `.lui-breadcrumbs-sep` |  |
+| `.lui-breadcrumbs-fold` | `--lui-radius-sm`, `--lui-accent`, `--lui-on-accent`, `--lui-z-popover`, `--lui-space-1`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-fg`, `--lui-hit` |
+| `.lui-breadcrumbs-fold-narrow` |  |
+| `.lui-breadcrumbs-mid` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -2,6 +2,13 @@
 
 `loco_ui::stream`
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-stream-pending` | `--lui-muted` |
+| `.lui-stream-section` | `--lui-line`, `--lui-radius-lg`, `--lui-space`, `--lui-card`, `--lui-shadow-sm`, `--lui-highlight` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

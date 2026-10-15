@@ -18,6 +18,28 @@
 | `disabled` | switch |  | `off` | `disabled` | `disabled` and `aria-disabled`: shown greyed and not posted. |
 | `readonly` | switch |  | `off` |  | Shown and posted, not changeable: disabled controls and hidden inputs with the values. |
 
+## Keyboard of `Color`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the colour well, the opacity slider and the presets. | no |
+| `Enter / Space` | Opens the system colour picker from the colour well. | no |
+| `ArrowRight / ArrowLeft` | Raises or lowers the opacity by one percent. | no |
+| `Home / End` | Sets the opacity to 0 or 100 percent. | no |
+| `Enter / Space` | Picks the focused preset, which posts the form. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-color` | `--lui-space-2` |
+| `.lui-color-input` | `--lui-control-h`, `--lui-radius-sm` |
+| `.lui-color-value` | `--lui-space-2`, `--lui-control-h`, `--lui-input`, `--lui-radius-sm`, `--lui-font-mono`, `--lui-text-2` |
+| `.lui-color-swatch` | `--lui-fg`, `--lui-color-value`, `--lui-color-alpha`, `--lui-line`, `--lui-surface` |
+| `.lui-color-alpha` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-color-alpha-range` |  |
+| `.lui-color-presets` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

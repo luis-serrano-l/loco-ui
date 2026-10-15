@@ -33,7 +33,7 @@
 
 use maud::{Markup, Render, html};
 
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Ui, slug};
 
 /// Sections of settings, made by [`Ui::settings_page`].
@@ -46,6 +46,12 @@ pub struct SettingsPage<'a> {
 }
 
 impl SettingsPage<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new(
+        "Enter",
+        "Jumps to the section the focused side link names.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[Prop::new(
         "section",

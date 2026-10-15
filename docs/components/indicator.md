@@ -18,6 +18,14 @@
 | `label` | value | `label: &'a str` | `{n} new` |  | What a screen reader says instead of the count in words. |
 | `dot` | switch |  | `off` |  | A dot instead of the number. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-indicator` |  |
+| `.lui-indicator-badge` |  |
+| `.lui-indicator-dot` | `--lui-danger`, `--lui-indicator-tone`, `--lui-bg`, `--lui-primary`, `--lui-ok`, `--lui-warn`, `--lui-gray-9` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

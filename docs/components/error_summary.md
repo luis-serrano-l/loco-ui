@@ -15,6 +15,19 @@
 | `title` | value | `text: &'a str` | `There is a problem` |  | The heading. |
 | `field` | item | `name: &'a str, label: &'a str` |  |  | The label of the field `name`, written before its message as a form's summary does. |
 
+## Keyboard of `ErrorSummary`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Scrolls to the field a message names, so the next Tab lands in it. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-error-summary-title` | `--lui-text-2`, `--lui-ring` |
+| `.lui-error-summary-list` | `--lui-space-1` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

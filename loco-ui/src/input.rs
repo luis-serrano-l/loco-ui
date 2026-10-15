@@ -89,7 +89,7 @@ use maud::{Markup, Render, html};
 use crate::button::Button;
 use crate::i18n::{Strings, Text};
 use crate::icon::{Glyph, Icon};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::select::SelectOption;
 use crate::variant::{Size, Variant};
 use crate::{Caps, Ui};
@@ -382,6 +382,9 @@ pub(crate) fn keep(name: &str, value: &str) -> Markup {
 pub struct Input<'a>(pub(crate) Field<'a>);
 
 impl Input<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new("Tab / Shift+Tab", "Moves focus into the field or out of it."), Key::new("Enter", "Submits the form from a single-line field, or starts a new line in a textarea."), Key::new("Space", "Toggles a checkbox or switch."), Key::new("ArrowUp / ArrowDown", "Steps a number field up or down by its step."), Key::new("Enter / Space", "Presses a focused stepper, which posts the field one step up or down."), Key::new("Enter / Space", "Steps the number in place from a stepper, or shows and hides the password from the reveal button.").script()];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
@@ -1249,6 +1252,23 @@ pub struct RadioGroup<'a> {
 }
 
 impl RadioGroup<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves focus into the group, onto the picked choice or the first one.",
+        ),
+        Key::new(
+            "ArrowDown / ArrowRight",
+            "Moves to the next choice and picks it, wrapping at the end.",
+        ),
+        Key::new(
+            "ArrowUp / ArrowLeft",
+            "Moves to the previous choice and picks it, wrapping at the start.",
+        ),
+        Key::new("Space", "Picks the focused choice when none is picked yet."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

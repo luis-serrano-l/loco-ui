@@ -17,6 +17,23 @@
 | `arrow` | switch |  | `off` |  | A small arrow pointing at the button. |
 | `id` | value | `id: &'a str` |  | `id` | The panel's id instead of the trigger's slug. |
 
+## Keyboard of `Popover`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens or closes the panel from its button. | no |
+| `Tab / Shift+Tab` | Moves from the button into the panel's controls and back out. | no |
+| `Escape` | Closes the panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-popover-card` |  |
+| `.lui-popover-card-panel` | `--lui-space-4`, `--lui-text-2`, `--lui-leading-2`, `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-popover-card-gap`, `--lui-z-popover`, `--lui-duration-fast`, `--lui-ease-out`, `--lui-duration`, `--lui-ease-spring` |
+| `.lui-popover-card-arrow` |  |
+| `.lui-popover-card-details` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

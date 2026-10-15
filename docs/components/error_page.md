@@ -16,6 +16,19 @@
 | `description` | value | `text: &'a str` |  |  | The sentence under it. |
 | `home` | value | `href: &'a str` | `/` | `href` | Where the button goes. |
 
+## Keyboard of `ErrorPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the Go home link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-error-page` | `--lui-space`, `--lui-muted` |
+| `.lui-error-page-status` | `--lui-text-9`, `--lui-fg` |
+
 ## Documentation
 
 The page for an HTTP error: the status, what happened in a sentence, and a way home, in

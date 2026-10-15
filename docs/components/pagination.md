@@ -20,6 +20,18 @@
 | `param` | item | `key: &'a str, value: &'a str` |  |  | A query pair every link carries (a filter, a sort). |
 | `first_last` | switch |  | `off` |  | "First" and "Last" links outside Previous and Next. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-pagination` |  |
+| `.lui-pagination-link` | `--lui-control-h`, `--lui-hit` |
+| `.lui-pagination-step` |  |
+| `.lui-pagination-gap` | `--lui-control-h`, `--lui-muted` |
+| `.lui-pagination-wide` |  |
+| `.lui-pagination-label` |  |
+| `.lui-pagination-narrow` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

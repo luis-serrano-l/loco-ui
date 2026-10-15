@@ -56,7 +56,7 @@ use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::icon::Glyph;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::variant::{Radius, Size};
 
 /// Pressable options, made by [`Ui::toggle_group`].
@@ -75,6 +75,26 @@ pub struct ToggleGroup<'a> {
 }
 
 impl ToggleGroup<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves into the group: onto the picked item with one pick, or through each item with several.",
+        ),
+        Key::new(
+            "ArrowRight / ArrowDown",
+            "Moves to the next item and picks it, with one pick.",
+        ),
+        Key::new(
+            "ArrowLeft / ArrowUp",
+            "Moves to the previous item and picks it, with one pick.",
+        ),
+        Key::new(
+            "Space",
+            "Picks the focused item, or toggles it with several picks.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

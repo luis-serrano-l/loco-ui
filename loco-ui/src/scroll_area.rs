@@ -38,7 +38,7 @@
 use maud::{Markup, Render, html};
 
 use crate::Ui;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A scrolling box, made by [`Ui::scroll_area`].
 ///
@@ -51,6 +51,23 @@ pub struct ScrollArea<'a> {
 }
 
 impl ScrollArea<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new("Tab / Shift+Tab", "Moves focus to the scrolling region."),
+        Key::new(
+            "ArrowDown / ArrowUp",
+            "Scrolls the focused region a little down or up.",
+        ),
+        Key::new(
+            "PageDown / PageUp / Space",
+            "Scrolls the focused region by about its height.",
+        ),
+        Key::new(
+            "Home / End",
+            "Scrolls the focused region to its start or end.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

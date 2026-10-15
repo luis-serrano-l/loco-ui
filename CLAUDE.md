@@ -142,7 +142,11 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
    Every builder with setters carries `pub const PROPS: &'static [Prop]` (name, `PropKind`,
    arguments as written, default, HTML attribute, first doc sentence) and an entry in
    `props::COMPONENTS`, so `loco_ui::props()`, the spec JSON and the demo's props tables
-   list it; the doc header's main doctest ends with the same call in `lui!` and an
+   list it. Beside it, `pub const KEYS: &'static [Key]` lists the keys it answers to
+   (`Key::new("Escape", "Closes the menu.")`, `.script()` when only enhance.rs does it);
+   the docs page's Keyboard section and the llms files show it, and
+   `builders_with_controls_list_their_keys` fails when a builder that renders a control
+   has none; the doc header's main doctest ends with the same call in `lui!` and an
    `assert_eq!` on the HTML. Tests fail when a setter is missing from `PROPS`, a builder or
    constructor from `props()`, or a header lacks its `lui!` twin. Demo snippets write the
    component's markup in `lui!`; the builder chain stays only where the route calls a

@@ -19,6 +19,17 @@
 | `icon` | modifier | `icon: impl Into<Glyph<'a>>` |  |  | An icon in a ring on the line instead of the dot, for the event added last. |
 | `tone` | choice: neutral, brand, ok, warn, danger, info | `tone: Tone` |  |  | The colour of the event added last's dot or icon (neutral by default). |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-timeline` | `--lui-primary`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-gray-9` |
+| `.lui-timeline-icon` | `--lui-timeline-tone`, `--lui-bg` |
+| `.lui-timeline-dot` | `--lui-timeline-tone` |
+| `.lui-timeline-when` | `--lui-space-1`, `--lui-text-1`, `--lui-muted` |
+| `.lui-timeline-title` | `--lui-text-2`, `--lui-fg` |
+| `.lui-timeline-description` | `--lui-text-2`, `--lui-muted` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -38,7 +38,10 @@ Report each as PASS, FAIL (with `file:line` and one line on what is wrong) or N/
 4. **PROPS.** Every public setter of the builder (outside `#[deprecated]`) has a `Prop` in
    `<Name>::PROPS` with the matching kind and arguments, and nothing else is listed. Run
    `cargo test -p loco-ui --lib props` and report the result of `every_setter_is_in_props`,
-   `props_lists_every_builder_and_constructor` and `props_follow_the_conventions`.
+   `props_lists_every_builder_and_constructor` and `props_follow_the_conventions`. `KEYS`
+   lists the keys its markup really answers to (read the elements it renders), with
+   `.script()` on keys only `enhance.rs` handles; run
+   `cargo test -p loco-ui --test snapshots builders_with_controls_list_their_keys`.
 5. **Classes.** The root carries one `lui-<kebab>` class; parts are `lui-<kebab>-<part>`. The
    output reads well through `curl` (no empty wrappers, text in order).
 6. **Primitives.** Buttons, inputs, badges, cards, icons and layouts come from `ui.button`,

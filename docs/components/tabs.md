@@ -20,6 +20,27 @@
 | `underline` | switch |  | `off` |  | Titles on a hairline, the open one marked by a 2px bar (Radix TabNav). |
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | The titles' text and padding: smaller at 1, larger at 3. |
 
+## Keyboard of `Tabs`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the tab links. | no |
+| `Enter` | Shows the focused tab's panel. | no |
+| `ArrowDown / ArrowUp` | Picks the next or previous tab in the narrow-screen select, sent with its Go button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tabs` |  |
+| `.lui-tabs-list` | `--lui-radius`, `--lui-secondary`, `--lui-line` |
+| `.lui-tabs-trigger` | `--lui-radius-sm`, `--lui-text-2`, `--lui-muted`, `--lui-fg`, `--lui-text-3` |
+| `.lui-tabs-label` |  |
+| `.lui-tabs-mark` | `--lui-radius-sm`, `--lui-bg`, `--lui-shadow-xs`, `--lui-duration-slow`, `--lui-ease-spring`, `--lui-fg`, `--lui-primary` |
+| `.lui-tabs-badge` | `--lui-text-1`, `--lui-line`, `--lui-fg`, `--lui-primary`, `--lui-on-primary` |
+| `.lui-tabs-panel` | `--lui-space` |
+| `.lui-tabs-select` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

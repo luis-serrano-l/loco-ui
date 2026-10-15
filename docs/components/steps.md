@@ -21,6 +21,18 @@
 | `description` | modifier | `text: &'a str` |  |  | A muted line under the title of the step added last. |
 | `vertical` | switch |  | `off` |  | A column at every width instead of a row from 30rem. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-steps` | `--lui-steps-dot`, `--lui-space-3`, `--lui-space-6`, `--lui-muted`, `--lui-text-2`, `--lui-space-1`, `--lui-gray-6` |
+| `.lui-steps-dot` | `--lui-steps-dot`, `--lui-gray-3`, `--lui-gray-11`, `--lui-text-1`, `--lui-primary`, `--lui-on-primary`, `--lui-danger`, `--lui-on-danger` |
+| `.lui-steps-label` | `--lui-steps-dot`, `--lui-space-2` |
+| `.lui-steps-title` | `--lui-text-1`, `--lui-muted`, `--lui-fg`, `--lui-danger`, `--lui-hit` |
+| `.lui-steps-description` | `--lui-text-1`, `--lui-muted` |
+| `.lui-steps-done` | `--lui-primary` |
+| `.lui-steps-vertical` | `--lui-space-2`, `--lui-steps-dot` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

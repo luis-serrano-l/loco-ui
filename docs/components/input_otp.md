@@ -16,6 +16,22 @@
 | `group` | number | `size: u8` |  |  | A stronger divider after every `size` cells (3 for a 123 456 code). |
 | `id` | value | `id: &'a str` |  | `id` | The field's id, `f-<name>` by default. |
 
+## Keyboard of `InputOtp`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the code field. | no |
+| `Backspace` | Deletes the last digit. | no |
+| `ArrowLeft / ArrowRight` | Moves the caret between digits. | no |
+| `Enter` | Submits the form. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-otp` |  |
+| `.lui-otp-input` | `--lui-otp-cells`, `--lui-otp-none`, `--lui-otp-cell`, `--lui-radius`, `--lui-primary`, `--lui-font-mono`, `--lui-text-5`, `--lui-otp-active`, `--lui-otp-sep`, `--lui-input`, `--lui-bg`, `--lui-gray-8`, `--lui-otp-group`, `--lui-ring`, `--lui-otp-at` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

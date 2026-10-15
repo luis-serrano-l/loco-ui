@@ -15,6 +15,27 @@
 | `item` | item | `key: &'a str, title: &'a str` |  |  | An item, after the ones added before it. |
 | `description` | modifier | `text: &'a str` |  |  | Small print under the item added last. |
 
+## Keyboard of `Sortable`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the items' move buttons, top to bottom. | no |
+| `Enter / Space` | Moves the item one place up from its up button. | no |
+| `Enter / Space` | Moves the item one place down from its down button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-sortable-list` |  |
+| `.lui-sortable-item` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-sortable-grip` | `--lui-muted` |
+| `.lui-sortable-text` |  |
+| `.lui-sortable-title` | `--lui-text-2` |
+| `.lui-sortable-note` | `--lui-text-1`, `--lui-muted` |
+| `.lui-sortable-move` |  |
+| `.lui-sortable-slot` | `--lui-control-h-sm` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

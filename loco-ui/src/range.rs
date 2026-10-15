@@ -58,7 +58,7 @@ use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::i18n::{Strings, Text};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A slider with the server's current value beside it, made by [`Ui::range`] or, as a
 /// low/high pair over one track, by [`Ui::range_pair`]. 0 to 100 in steps of 1 unless told
@@ -85,6 +85,21 @@ pub struct Range<'a> {
 }
 
 impl Range<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves focus to the slider, or between the two thumbs of a pair.",
+        ),
+        Key::new("ArrowRight / ArrowUp", "Raises the value by one step."),
+        Key::new("ArrowLeft / ArrowDown", "Lowers the value by one step."),
+        Key::new("Home / End", "Sets the value to the minimum or maximum."),
+        Key::new(
+            "PageUp / PageDown",
+            "Raises or lowers the value by a larger amount the browser picks.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

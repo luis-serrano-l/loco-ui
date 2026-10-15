@@ -15,6 +15,13 @@
 | `item` | item | `term: &'a str, detail: impl Render` |  |  | A term and its detail (text, or markup such as a badge). |
 | `stacked` | switch |  | `off` |  | Each term above its detail instead of beside it. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-description-list` | `--lui-space-4`, `--lui-text-2`, `--lui-muted` |
+| `.lui-description-list-item` | `--lui-space-1`, `--lui-space-3`, `--lui-line`, `--lui-space-4` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

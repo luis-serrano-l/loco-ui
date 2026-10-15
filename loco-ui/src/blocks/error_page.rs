@@ -35,7 +35,7 @@
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Page, Ui};
 
 /// An error page for an HTTP status, made by [`Ui::error_page`].
@@ -51,6 +51,9 @@ pub struct ErrorPage<'a> {
 }
 
 impl ErrorPage<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new("Enter", "Follows the Go home link.")];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("title", PropKind::Value, "text: &'a str")

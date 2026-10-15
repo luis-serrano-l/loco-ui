@@ -34,7 +34,7 @@ use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A record's show page, made by [`Ui::record_page`].
 ///
@@ -50,6 +50,19 @@ pub struct RecordPage<'a> {
 }
 
 impl RecordPage<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new("Enter", "Follows the Back or Edit link."),
+        Key::new(
+            "Enter / Space",
+            "Opens the delete confirmation from the Delete button.",
+        ),
+        Key::new(
+            "Escape",
+            "Closes the delete confirmation without deleting. Without invoker commands or the script, its Close link closes it instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[
         Prop::new(

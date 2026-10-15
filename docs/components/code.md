@@ -25,6 +25,25 @@
 | `id` | value | `id: &'a str` |  | `id` | Replace the id derived from the title (or the code). |
 | `copy` | switch |  | `off` |  | A copy button in the corner, shown and wired by the enhancement script only. |
 
+## Keyboard of `CodeBlock`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab` | Focuses the code block, then its copy button when the script shows one. | no |
+| `ArrowLeft / ArrowRight` | Scrolls a long line sideways while the block has focus. | no |
+| `Enter / Space` | Copies the code from the copy button. | yes |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-code` | `--lui-gray-11`, `--lui-font-mono`, `--lui-radius-sm`, `--lui-code-tone`, `--lui-fg`, `--lui-brand-11`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-gray-1` |
+| `.lui-code-block` | `--lui-line`, `--lui-radius-lg`, `--lui-gray-2` |
+| `.lui-code-block-title` | `--lui-line`, `--lui-muted`, `--lui-font-mono`, `--lui-text-1` |
+| `.lui-code-block-pre` | `--lui-font-mono`, `--lui-text-2`, `--lui-leading-3`, `--lui-fg`, `--lui-line` |
+| `.lui-code-block-code` |  |
+| `.lui-code-block-copy` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

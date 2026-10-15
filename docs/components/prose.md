@@ -14,6 +14,12 @@
 |---|---|---|---|---|---|
 | `body` | value | `markup: Markup` |  |  | The HTML to style: headings, paragraphs, lists, quotes, code, tables. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-prose` | `--lui-fg`, `--lui-text-8`, `--lui-leading-8`, `--lui-text-7`, `--lui-leading-7`, `--lui-line`, `--lui-text-6`, `--lui-leading-6`, `--lui-text-5`, `--lui-leading-5`, `--lui-link`, `--lui-radius-lg`, `--lui-font-mono`, `--lui-gray-3`, `--lui-radius-sm`, `--lui-gray-2`, `--lui-text-2`, `--lui-leading-3`, `--lui-font-sans`, `--lui-gray-1`, `--lui-gray-7`, `--lui-leading-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

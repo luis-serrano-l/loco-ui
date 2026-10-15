@@ -55,7 +55,7 @@ use maud::{Markup, Render, html};
 use crate::Ui;
 use crate::i18n::Text;
 use crate::icon::Glyph;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::sidebar::Sidebar;
 
 /// A sidebar and content, made by [`Ui::app_shell`].
@@ -74,6 +74,22 @@ pub struct AppShell<'a> {
 }
 
 impl AppShell<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Enter / Space",
+            "Opens the navigation from the menu button on a narrow screen.",
+        ),
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves through the navigation links and the sign-out button.",
+        ),
+        Key::new(
+            "Escape",
+            "Closes the open navigation and returns focus to the menu button. Without invoker commands or the script, its Close link closes it instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("group", PropKind::Item, "heading: &'a str")

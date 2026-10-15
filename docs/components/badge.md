@@ -26,6 +26,20 @@
 | `variant` | choice: solid, soft, surface, outline, ghost | `variant: Variant` | `soft` |  | How the tone is painted; ghost is the tone's text with no fill or border. |
 | `radius` | choice: none, small, medium, large, full | `radius: Radius` | `small` |  | The corners, from square to a pill. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-badge` | `--lui-primary`, `--lui-on-primary`, `--lui-text-1`, `--lui-radius-sm`, `--lui-badge-tone`, `--lui-fg`, `--lui-duration-fast`, `--lui-text-2` |
+| `.lui-badge-outline` | `--lui-gray-11`, `--lui-badge-tone` |
+| `.lui-badge-secondary` | `--lui-gray-11` |
+| `.lui-badge-danger` | `--lui-danger`, `--lui-gray-1` |
+| `.lui-badge-ok` | `--lui-ok`, `--lui-gray-1` |
+| `.lui-badge-warn` | `--lui-warn`, `--lui-gray-1` |
+| `.lui-badge-solid` | `--lui-badge-tone`, `--lui-badge-on`, `--lui-fg`, `--lui-shimmer` |
+| `.lui-badge-surface` | `--lui-badge-tone` |
+| `.lui-badge-shimmer` | `--lui-shimmer-surface`, `--lui-sweep`, `--lui-shimmer-duration` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

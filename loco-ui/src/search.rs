@@ -47,7 +47,7 @@ use maud::{Markup, Render, html};
 use crate::i18n::Text;
 use crate::icon::Icon;
 use crate::input::Input;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Ui, button::Button};
 
 /// A search form, made by [`Ui::search`]. It answers on this page unless told otherwise.
@@ -67,6 +67,15 @@ pub struct Search<'a> {
 }
 
 impl Search<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the search field, the Search button and the Clear link.",
+        ),
+        Key::new("Enter", "Runs the search."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

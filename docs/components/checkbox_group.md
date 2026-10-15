@@ -21,6 +21,24 @@
 | `error` | value | `message: &'a str` |  |  | A server message under the choices. |
 | `id` | value | `id: &'a str` |  | `id` | What the checkboxes' ids start from, `f-<name>` by default. |
 
+## Keyboard of `CheckboxGroup`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the next or previous box. | no |
+| `Space` | Ticks or clears the focused box. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-checkbox-group` | `--lui-text-2`, `--lui-danger` |
+| `.lui-checkbox-group-options` | `--lui-space-3` |
+| `.lui-checkbox-group-option` | `--lui-text-2`, `--lui-leading-2`, `--lui-space-3`, `--lui-space-4`, `--lui-input`, `--lui-radius`, `--lui-bg`, `--lui-duration-fast`, `--lui-gray-8`, `--lui-hit` |
+| `.lui-checkbox-group-input` | `--lui-gray-11`, `--lui-primary`, `--lui-ring`, `--lui-gray-2` |
+| `.lui-checkbox-group-text` |  |
+| `.lui-checkbox-group-description` | `--lui-muted`, `--lui-text-2`, `--lui-leading-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

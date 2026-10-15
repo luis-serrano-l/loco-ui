@@ -74,6 +74,51 @@
 | `help` | value | `help: &'a str` |  |  | Help text under the choices. |
 | `error` | value | `message: &'a str` |  |  | A server message under the choices. |
 
+## Keyboard of `Input`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the field or out of it. | no |
+| `Enter` | Submits the form from a single-line field, or starts a new line in a textarea. | no |
+| `Space` | Toggles a checkbox or switch. | no |
+| `ArrowUp / ArrowDown` | Steps a number field up or down by its step. | no |
+| `Enter / Space` | Presses a focused stepper, which posts the field one step up or down. | no |
+| `Enter / Space` | Steps the number in place from a stepper, or shows and hides the password from the reveal button. | yes |
+
+## Keyboard of `RadioGroup`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the group, onto the picked choice or the first one. | no |
+| `ArrowDown / ArrowRight` | Moves to the next choice and picks it, wrapping at the end. | no |
+| `ArrowUp / ArrowLeft` | Moves to the previous choice and picks it, wrapping at the start. | no |
+| `Space` | Picks the focused choice when none is picked yet. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-switch` | `--lui-on-primary`, `--lui-duration-fast`, `--lui-ease-spring`, `--lui-gray-5`, `--lui-gray-6`, `--lui-shadow-xs`, `--lui-duration`, `--lui-primary`, `--lui-gray-4` |
+| `.lui-field` | `--lui-text-2`, `--lui-danger`, `--lui-control-h-sm`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-brand-3` |
+| `.lui-radio-group-option` | `--lui-space-3`, `--lui-space-4`, `--lui-input`, `--lui-radius`, `--lui-bg`, `--lui-duration-fast`, `--lui-gray-8`, `--lui-primary`, `--lui-ring`, `--lui-gray-2`, `--lui-gray-11`, `--lui-hit` |
+| `.lui-field-count` | `--lui-muted`, `--lui-text-1` |
+| `.lui-error` | `--lui-danger`, `--lui-text-2` |
+| `.lui-input-slots` | `--lui-space-2`, `--lui-control-h`, `--lui-muted`, `--lui-text-2`, `--lui-input`, `--lui-radius-sm`, `--lui-duration-fast`, `--lui-fg`, `--lui-ring`, `--lui-danger`, `--lui-gray-2`, `--lui-gray-6`, `--lui-control-h-sm`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-brand-3` |
+| `.lui-input-leading` |  |
+| `.lui-input-trailing` |  |
+| `.lui-input-gradient-border` | `--lui-bg`, `--lui-gradient-ring` |
+| `.lui-radio-group` | `--lui-text-2`, `--lui-danger` |
+| `.lui-radio-group-options` | `--lui-space-3` |
+| `.lui-radio-group-description` | `--lui-muted`, `--lui-text-2` |
+| `.lui-radio-group-text` |  |
+| `.lui-field-optional` | `--lui-muted` |
+| `.lui-input-group` | `--lui-control-h`, `--lui-input`, `--lui-radius-sm`, `--lui-text-2`, `--lui-duration-fast`, `--lui-ring`, `--lui-danger`, `--lui-gray-2`, `--lui-gray-6`, `--lui-hit` |
+| `.lui-input-group-prefix` | `--lui-muted`, `--lui-gray-2`, `--lui-input`, `--lui-radius-sm` |
+| `.lui-input-group-suffix` | `--lui-muted`, `--lui-gray-2`, `--lui-input`, `--lui-radius-sm` |
+| `.lui-input-group-button` | `--lui-input` |
+| `.lui-input-steppers` | `--lui-input` |
+| `.lui-input-reveal` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

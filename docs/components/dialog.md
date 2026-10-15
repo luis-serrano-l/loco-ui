@@ -31,6 +31,33 @@
 | `trigger` | value | `button: Button<'a>` |  |  | The opener as a styled button of the caller's (`ui.button(..).danger()`); its command or link is the dialog's. |
 | `no_trigger` | switch |  | `off` |  | No opener: a link to `?dialog=<id>` or a button elsewhere opens it. |
 
+## Keyboard of `Dialog`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the dialog from its button. | no |
+| `Tab / Shift+Tab` | Moves between the dialog's controls while the page behind it is inert. | no |
+| `Enter` | Presses the focused button, or sends the confirm form from a field in it. | no |
+| `Escape` | Closes the dialog and returns focus to its button, unless `closedby` is "none". Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-dialog` | `--lui-space-2`, `--lui-space-6`, `--lui-popover`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-dialog-pad`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-overlay`, `--lui-z-dialog`, `--lui-duration`, `--lui-ease-out`, `--lui-duration-slow`, `--lui-ease-spring` |
+| `.lui-dialog-form` |  |
+| `.lui-dialog-sm` | `--lui-space-4` |
+| `.lui-dialog-md` |  |
+| `.lui-dialog-lg` |  |
+| `.lui-dialog-xl` | `--lui-space-8` |
+| `.lui-dialog-title` | `--lui-text-5`, `--lui-space-2` |
+| `.lui-dialog-body` | `--lui-text-2`, `--lui-muted`, `--lui-fg` |
+| `.lui-dialog-actions` | `--lui-space-3`, `--lui-space-6` |
+| `.lui-dialog-close` | `--lui-space-3` |
+| `.lui-dialog-description` | `--lui-space-3`, `--lui-text-2`, `--lui-leading-2`, `--lui-muted` |
+| `.lui-dialog-footer` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-dialog-full` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

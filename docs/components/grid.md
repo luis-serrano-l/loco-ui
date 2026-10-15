@@ -15,6 +15,12 @@
 | `body` | value | `markup: Markup` |  |  | What is laid out: each top-level element is a cell. |
 | `gap` | number | `n: u8` |  |  | The gap as a step of the `--lui-space-*` scale. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-grid` | `--lui-grid-min`, `--lui-space-4` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

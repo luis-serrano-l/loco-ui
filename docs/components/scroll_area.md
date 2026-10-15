@@ -15,6 +15,25 @@
 | `body` | value | `markup: Markup` |  |  | What scrolls. |
 | `height` | value | `height: &'a str` | `16rem` |  | The box's height as a CSS length (`12rem`, `50vh`). |
 
+## Keyboard of `ScrollArea`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the scrolling region. | no |
+| `ArrowDown / ArrowUp` | Scrolls the focused region a little down or up. | no |
+| `PageDown / PageUp / Space` | Scrolls the focused region by about its height. | no |
+| `Home / End` | Scrolls the focused region to its start or end. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-scroll-area` | `--lui-scroll-area-height`, `--lui-gray-8`, `--lui-radius` |
+| `.lui-scroll-area-content` |  |
+| `.lui-scroll-area-edge` | `--lui-duration-fast` |
+| `.lui-scroll-area-top` | `--lui-fg` |
+| `.lui-scroll-area-bottom` | `--lui-fg` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

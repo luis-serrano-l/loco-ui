@@ -108,6 +108,12 @@
             { "name": "current", "kind": "condition", "args": "on: bool", "default": "off", "attr": "aria-current", "doc": "`aria-current=\"page\"`." },
             { "name": "interestfor", "kind": "value", "args": "id: &'a str", "default": "", "attr": "interestfor", "doc": "Show the popover with this id while the button or link has the pointer or focus (`interestfor`)." },
             { "name": "shimmer", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A light sweeps across the button, over its own background." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus to the button or past it.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses the button: submits its form, runs its command or opens its popover.", "script": false },
+            { "keys": "Enter", "does": "Follows the link when the button is drawn as a link.", "script": false },
+            { "keys": "Alt / Alt+Shift", "does": "Presses the button when held with its `.accesskey()` character; the modifier depends on the browser and system.", "script": false }
           ]
         }
       ]
@@ -181,6 +187,14 @@
             { "name": "width", "kind": "choice", "choices": ["1", "2", "3"], "args": "width: impl Into<Size>", "default": "", "attr": "", "doc": "A narrower control: 1 (8rem), 2 (16rem) or 3 (24rem); the container's width by default." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "A text field's height and text: Radix's sizes 1 to 3." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "A text field's look: surface (a border), soft (a tint) or ghost (neither)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus into the field or out of it.", "script": false },
+            { "keys": "Enter", "does": "Submits the form from a single-line field, or starts a new line in a textarea.", "script": false },
+            { "keys": "Space", "does": "Toggles a checkbox or switch.", "script": false },
+            { "keys": "ArrowUp / ArrowDown", "does": "Steps a number field up or down by its step.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses a focused stepper, which posts the field one step up or down.", "script": false },
+            { "keys": "Enter / Space", "does": "Steps the number in place from a stepper, or shows and hides the password from the reveal button.", "script": true }
           ]
         },
         {
@@ -197,6 +211,12 @@
             { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "One choice must be picked before the form submits." },
             { "name": "help", "kind": "value", "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the choices." },
             { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the choices." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus into the group, onto the picked choice or the first one.", "script": false },
+            { "keys": "ArrowDown / ArrowRight", "does": "Moves to the next choice and picks it, wrapping at the end.", "script": false },
+            { "keys": "ArrowUp / ArrowLeft", "does": "Moves to the previous choice and picks it, wrapping at the start.", "script": false },
+            { "keys": "Space", "does": "Picks the focused choice when none is picked yet.", "script": false }
           ]
         }
       ]
@@ -232,7 +252,8 @@
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "brand", "attr": "", "doc": "The colour." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "How the tone is painted; ghost is the tone's text with no fill or border." },
             { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "small", "attr": "", "doc": "The corners, from square to a pill." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -273,7 +294,8 @@
             { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No frame, fill or shadow: only the card's spacing." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The padding and gaps: 1rem, 1.5rem (the default) or 2rem." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "Surface or ghost, as in Radix; the others draw as surface." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -296,7 +318,8 @@
           "calls": ["ui.icon(icon: Icon)"],
           "props": [
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "", "attr": "", "doc": "The name a screen reader says, for an icon that carries meaning on its own." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -327,7 +350,8 @@
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "brand", "attr": "", "doc": "The colour of the initials' tile." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Soft (a tint) or solid (filled); Radix has no other, so the rest draw as soft." },
             { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "full", "attr": "", "doc": "The corners, from square to the circle." }
-          ]
+          ],
+          "keys": []
         },
         {
           "builder": "Avatars",
@@ -339,7 +363,8 @@
             { "name": "src", "kind": "modifier", "applies_to": ["avatar"], "args": "src: &'a str", "default": "", "attr": "", "doc": "The picture of the person added last." },
             { "name": "max", "kind": "number", "args": "max: usize", "default": "", "attr": "", "doc": "Show this many, then a `+n` count of the rest." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "2", "attr": "", "doc": "Radix's sizes 1–5 for every avatar in the row." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -365,7 +390,8 @@
             { "name": "align", "kind": "choice", "choices": ["start", "center", "end", "baseline", "stretch"], "args": "align: Align", "default": "stretch", "attr": "", "doc": "Where the children sit across the column (`align-items`)." },
             { "name": "justify", "kind": "choice", "choices": ["start", "center", "end", "between"], "args": "justify: Justify", "default": "start", "attr": "", "doc": "How the children share the column's height (`justify-content`)." },
             { "name": "padding", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "Padding on every side as a step of the `--lui-space-*` scale." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -395,7 +421,8 @@
             { "name": "justify", "kind": "choice", "choices": ["start", "center", "end", "between"], "args": "justify: Justify", "default": "start", "attr": "", "doc": "How the children share the row (`justify-content`)." },
             { "name": "padding", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "Padding on every side as a step of the `--lui-space-*` scale." },
             { "name": "nowrap", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Keep the children on one line; they shrink instead of wrapping." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -419,7 +446,8 @@
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What is laid out: each top-level element is a cell." },
             { "name": "gap", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "The gap as a step of the `--lui-space-*` scale." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -444,7 +472,8 @@
             { "name": "side_width", "kind": "value", "args": "width: &'a str", "default": "", "attr": "", "doc": "The side's width, any CSS length." },
             { "name": "side_end", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The side after the main part, in the markup and on screen." },
             { "name": "gap", "kind": "number", "args": "n: u8", "default": "", "attr": "", "doc": "The gap as a step of the `--lui-space-*` scale." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -480,6 +509,12 @@
             { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "In radio mode, a day must be picked before the form submits." },
             { "name": "range", "kind": "value", "args": "end: &'a str", "default": "", "attr": "", "doc": "Pick a first and a last day: the first in the calendar's name, the last in `end`." },
             { "name": "weeks", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A column of ISO 8601 week numbers before the days." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves to the month links, then into the days.", "script": false },
+            { "keys": "ArrowRight / ArrowDown", "does": "Picks the next day when the calendar is a radio group.", "script": false },
+            { "keys": "ArrowLeft / ArrowUp", "does": "Picks the previous day when the calendar is a radio group.", "script": false },
+            { "keys": "Enter", "does": "Follows the focused day or month link.", "script": false }
           ]
         }
       ]
@@ -513,6 +548,13 @@
             { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Shown and posted, not changeable." },
             { "name": "required", "kind": "switch", "args": "", "default": "off", "attr": "required", "doc": "A day must be picked before the form submits." },
             { "name": "native", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The browser's own `<input type=\"date\">` instead of the calendar." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves to the trigger button, or between the day, month and year parts of the native date field.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens the calendar from the trigger button.", "script": false },
+            { "keys": "Escape", "does": "Closes the calendar popover. Without popover support it closes from its button instead.", "script": false },
+            { "keys": "ArrowRight / ArrowDown", "does": "Picks the next day in the calendar.", "script": false },
+            { "keys": "ArrowLeft / ArrowUp", "does": "Picks the previous day in the calendar.", "script": false }
           ]
         }
       ]
@@ -557,6 +599,12 @@
             { "name": "closedby", "kind": "value", "args": "closedby: &'a str", "default": "any", "attr": "closedby", "doc": "The `closedby` attribute." },
             { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "The opener as a styled button of the caller's (`ui.button(..).danger()`); its command or link is the dialog's." },
             { "name": "no_trigger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No opener: a link to `?dialog=<id>` or a button elsewhere opens it." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Opens the dialog from its button.", "script": false },
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the dialog's controls while the page behind it is inert.", "script": false },
+            { "keys": "Enter", "does": "Presses the focused button, or sends the confirm form from a field in it.", "script": false },
+            { "keys": "Escape", "does": "Closes the dialog and returns focus to its button, unless `closedby` is \"none\". Without invoker commands or the script, its Close link closes it instead.", "script": false }
           ]
         }
       ]
@@ -597,6 +645,14 @@
             { "name": "align_end", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open below the button with right edges aligned, for a button at the end of a row." },
             { "name": "open_right", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Open to the right of the button." },
             { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "The opener as a styled button of the caller's; the menu sets its `popovertarget`." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Opens the menu from its button.", "script": false },
+            { "keys": "Tab / Shift+Tab", "does": "Moves to the next or previous item in the open menu.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Moves to the next or previous item, wrapping at the ends.", "script": true },
+            { "keys": "Enter", "does": "Follows the focused link or sends the focused action.", "script": false },
+            { "keys": "Space", "does": "Ticks the focused checkbox or radio item.", "script": false },
+            { "keys": "Escape", "does": "Closes the menu and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
           ]
         }
       ]
@@ -626,6 +682,11 @@
             { "name": "select_below", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Under 30rem of its own width the titles give way to a `<select>`." },
             { "name": "underline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Titles on a hairline, the open one marked by a 2px bar (Radix TabNav)." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The titles' text and padding: smaller at 1, larger at 3." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the tab links.", "script": false },
+            { "keys": "Enter", "does": "Shows the focused tab's panel.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Picks the next or previous tab in the narrow-screen select, sent with its Go button.", "script": false }
           ]
         }
       ]
@@ -652,6 +713,10 @@
             { "name": "description", "kind": "modifier", "applies_to": ["item"], "args": "summary: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the section added last, visible while it is closed." },
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Several sections may be open at once (`?open.<group>=0,2`)." },
             { "name": "controls", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "\"Expand all\" and \"Collapse all\" links above the sections (with `multiple`)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the section headers.", "script": false },
+            { "keys": "Enter", "does": "Opens or closes the focused section.", "script": false }
           ]
         }
       ]
@@ -687,6 +752,13 @@
             { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page (`view`) carried, with the request's value, by the search form, every result and every chip's remove link." },
             { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "The box and its button disabled, the chips without remove links, no results." },
             { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The box `readonly`, the chips without remove links, no results." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the search field, the Search button, the result links and the remove links.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Opens the suggestion list under the field and moves through it.", "script": false },
+            { "keys": "Enter", "does": "Fills in the highlighted suggestion, or searches for the typed text when none is highlighted.", "script": false },
+            { "keys": "Escape", "does": "Closes the suggestion list.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Moves focus between the search field and the result links.", "script": true }
           ]
         }
       ]
@@ -712,6 +784,9 @@
           "props": [
             { "name": "per_page", "kind": "number", "args": "per_page: usize", "default": "10", "attr": "", "doc": "Rows per page." },
             { "name": "rows", "kind": "value", "args": "row: impl Fn(usize) -> Markup + 'a", "default": "", "attr": "", "doc": "Row `i` (0-based) of the list." }
+          ],
+          "keys": [
+            { "keys": "Enter", "does": "Loads the next page from the Load more link and scrolls to the first new item.", "script": false }
           ]
         }
       ]
@@ -751,7 +826,8 @@
             { "name": "ok", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row tinted with the `--lui-ok` tone." },
             { "name": "warn", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row tinted with the `--lui-warn` tone." },
             { "name": "danger", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The row tinted with the `--lui-danger` tone." }
-          ]
+          ],
+          "keys": []
         },
         {
           "builder": "Table",
@@ -786,6 +862,13 @@
             { "name": "striped", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Every other row on a gray band." },
             { "name": "density", "kind": "value", "args": "density: Density", "default": "Density::Comfortable", "attr": "", "doc": "`Density::Compact` halves the cell padding." },
             { "name": "group_by", "kind": "value", "args": "key: &'a str", "default": "", "attr": "", "doc": "A group header row wherever the column `key`'s cell changes (rows sorted by it)." }
+          ],
+          "keys": [
+            { "keys": "Enter", "does": "Sorts by the focused column header, or reverses that sort when it is already first.", "script": false },
+            { "keys": "Enter", "does": "Applies the filters from the search box or any filter field.", "script": false },
+            { "keys": "Space", "does": "Ticks or clears the focused row checkbox for the bulk actions.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens or closes the Filters and Columns lists and a row's details.", "script": false },
+            { "keys": "Enter", "does": "Saves the row being edited from any of its fields.", "script": false }
           ]
         }
       ]
@@ -833,6 +916,11 @@
             { "name": "errors", "kind": "value", "args": "errors: &'a [(&'a str, &'a str)]", "default": "", "attr": "", "doc": "Server messages `(field name, message)` for the posted step." },
             { "name": "finish", "kind": "value", "args": "label: &'a str", "default": "Finish", "attr": "", "doc": "Label of the last step's submit button." },
             { "name": "hide_progress", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No `<progress>` element (the connectors still show progress on screen)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves through the step's fields and buttons.", "script": false },
+            { "keys": "Enter", "does": "Sends the step from a field through the form's first submit button, which is Skip on an optional step.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses the focused Back, Skip or Next button.", "script": false }
           ]
         }
       ]
@@ -906,6 +994,12 @@
             { "name": "values", "kind": "value", "args": "values: &'a [(String, String)]", "default": "", "attr": "", "doc": "Submitted values by field name, as a form post parses them." },
             { "name": "errors", "kind": "value", "args": "errors: &'a [(&'a str, &'a str)]", "default": "", "attr": "", "doc": "Server messages `(field name, message)`." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "What the swap root's id is built from, when two forms on a page post to the same action (one per tab, say)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves through the fields in order, then to the submit button and the secondary link.", "script": false },
+            { "keys": "Enter", "does": "Submits the form from a single-line field through its first submit button.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses the focused submit button.", "script": false },
+            { "keys": "Enter", "does": "Moves focus to the field from a link in the error summary.", "script": false }
           ]
         }
       ]
@@ -932,6 +1026,9 @@
           "props": [
             { "name": "title", "kind": "value", "args": "text: &'a str", "default": "There is a problem", "attr": "", "doc": "The heading." },
             { "name": "field", "kind": "item", "args": "name: &'a str, label: &'a str", "default": "", "attr": "", "doc": "The label of the field `name`, written before its message as a form's summary does." }
+          ],
+          "keys": [
+            { "keys": "Enter", "does": "Scrolls to the field a message names, so the next Tab lands in it.", "script": false }
           ]
         }
       ]
@@ -962,6 +1059,11 @@
             { "name": "typed", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A number field and a Set button posting `op=set&value=n`." },
             { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "Every button and the number field disabled." },
             { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The value shown, its buttons off and the number field `readonly`." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the decrement, increment and reset buttons and the value field.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses the focused button, which posts the change.", "script": false },
+            { "keys": "ArrowUp / ArrowDown", "does": "Steps the typed value up or down by the step before it is set.", "script": false }
           ]
         }
       ]
@@ -984,7 +1086,11 @@
           "lui": "ThemeToggle",
           "status": "stable",
           "calls": ["ui.theme_toggle(action: &str)"],
-          "props": []
+          "props": [],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the Auto, Light and Dark buttons.", "script": false },
+            { "keys": "Enter / Space", "does": "Switches to the focused theme.", "script": false }
+          ]
         }
       ]
     },
@@ -1014,7 +1120,8 @@
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "Each message's callout: soft, surface or outline, as on an alert." },
             { "name": "title", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A bold line over each message." },
             { "name": "action", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link button under each message (\"Undo\", \"View\")." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1067,6 +1174,14 @@
             { "name": "hide_label", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Only the select, the label kept as its `aria-label`." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The trigger's height and text: Radix's sizes 1 to 3." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "surface", "attr": "", "doc": "The trigger's look: surface (a border), soft (a tint) or ghost (neither)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus to the select or past it.", "script": false },
+            { "keys": "Space / Alt+ArrowDown", "does": "Opens the list of options.", "script": false },
+            { "keys": "ArrowUp / ArrowDown", "does": "Moves to the previous or next option.", "script": false },
+            { "keys": "Home / End", "does": "Moves to the first or last option.", "script": false },
+            { "keys": "Enter", "does": "Picks the highlighted option and closes the list.", "script": false },
+            { "keys": "Escape", "does": "Closes the list without changing the choice.", "script": false }
           ]
         },
         {
@@ -1078,7 +1193,8 @@
             { "name": "icon", "kind": "value", "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon before the label." },
             { "name": "body", "kind": "value", "args": "content: Markup", "default": "", "attr": "", "doc": "Rich markup instead of the text (with `Caps::BaseSelect` only)." },
             { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "Shown, but cannot be picked." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1111,6 +1227,13 @@
             { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Shown and posted, not movable: a disabled slider and a hidden input with its value." },
             { "name": "ticks", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The lowest, middle and highest values marked under the track." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The slider's id, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus to the slider, or between the two thumbs of a pair.", "script": false },
+            { "keys": "ArrowRight / ArrowUp", "does": "Raises the value by one step.", "script": false },
+            { "keys": "ArrowLeft / ArrowDown", "does": "Lowers the value by one step.", "script": false },
+            { "keys": "Home / End", "does": "Sets the value to the minimum or maximum.", "script": false },
+            { "keys": "PageUp / PageDown", "does": "Raises or lowers the value by a larger amount the browser picks.", "script": false }
           ]
         }
       ]
@@ -1138,6 +1261,13 @@
             { "name": "alpha", "kind": "number", "args": "percent: u8", "default": "", "attr": "", "doc": "An opacity slider (`<name>-alpha`) at `percent`, clamped to 100." },
             { "name": "disabled", "kind": "switch", "args": "", "default": "off", "attr": "disabled", "doc": "`disabled` and `aria-disabled`: shown greyed and not posted." },
             { "name": "readonly", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Shown and posted, not changeable: disabled controls and hidden inputs with the values." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the colour well, the opacity slider and the presets.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens the system colour picker from the colour well.", "script": false },
+            { "keys": "ArrowRight / ArrowLeft", "does": "Raises or lowers the opacity by one percent.", "script": false },
+            { "keys": "Home / End", "does": "Sets the opacity to 0 or 100 percent.", "script": false },
+            { "keys": "Enter / Space", "does": "Picks the focused preset, which posts the form.", "script": false }
           ]
         }
       ]
@@ -1182,6 +1312,11 @@
             { "name": "preview", "kind": "modifier", "applies_to": ["file"], "args": "src: &'a str", "default": "", "attr": "", "doc": "A thumbnail for the file added last (an image URL)." },
             { "name": "href", "kind": "modifier", "applies_to": ["file"], "args": "href: &'a str", "default": "", "attr": "href", "doc": "A link to the file added last, on its name." },
             { "name": "remove", "kind": "value", "args": "action: &'a str", "default": "", "attr": "", "doc": "A Remove button per file, posting `<name>=<file name>` to `action`." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the file picker, the Upload button and each file's remove button.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens the file chooser from the focused drop zone.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses the focused Upload or remove button, which posts the form.", "script": false }
           ]
         }
       ]
@@ -1212,6 +1347,11 @@
             { "name": "card", "kind": "modifier", "applies_to": ["column", "card"], "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A card in the column added last." },
             { "name": "description", "kind": "modifier", "applies_to": ["card"], "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the card added last." },
             { "name": "badge", "kind": "modifier", "applies_to": ["card"], "args": "text: impl Display", "default": "", "attr": "", "doc": "A badge in the meta row of the card added last: a label, an estimate, a tag." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the cards' move buttons, column by column.", "script": false },
+            { "keys": "Enter / Space", "does": "Moves the card one column left from its left arrow button.", "script": false },
+            { "keys": "Enter / Space", "does": "Moves the card one column right from its right arrow button.", "script": false }
           ]
         }
       ]
@@ -1238,6 +1378,11 @@
           "props": [
             { "name": "item", "kind": "item", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "An item, after the ones added before it." },
             { "name": "description", "kind": "modifier", "applies_to": ["item"], "args": "text: &'a str", "default": "", "attr": "", "doc": "Small print under the item added last." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the items' move buttons, top to bottom.", "script": false },
+            { "keys": "Enter / Space", "does": "Moves the item one place up from its up button.", "script": false },
+            { "keys": "Enter / Space", "does": "Moves the item one place down from its down button.", "script": false }
           ]
         }
       ]
@@ -1275,6 +1420,9 @@
             { "name": "action", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "A button or link button under the text." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The id its dismiss cookie is named after instead of the title's slug." },
             { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A close button that keeps it closed with a `lui-dismiss-<id>` cookie." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Dismisses the alert from its close button.", "script": false }
           ]
         }
       ]
@@ -1306,7 +1454,8 @@
             { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "full", "attr": "", "doc": "The ends of the track and the fill, from square to round." },
             { "name": "indeterminate", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "No value yet: a stripe slides along the track." },
             { "name": "show_value", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The percentage beside the label, or above the bar without one." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1332,7 +1481,8 @@
             { "name": "high", "kind": "number", "args": "high: impl Into<f64>", "default": "", "attr": "high", "doc": "Above this is \"high\"." },
             { "name": "optimum", "kind": "number", "args": "optimum: impl Into<f64>", "default": "", "attr": "optimum", "doc": "The best value." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The meter's id instead of `lui-meter-<label>`." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1360,6 +1510,9 @@
             { "name": "delay", "kind": "number", "args": "ms: u32", "default": "0", "attr": "", "doc": "How long the pointer rests on the trigger before the text shows, in milliseconds." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The tooltip's id, `lui-tooltip-<slug of the text>` by default." },
             { "name": "trigger", "kind": "value", "args": "button: Button<'a>", "default": "", "attr": "", "doc": "A button builder as the trigger, in place of the markup: it gets `aria-describedby` as an attribute." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Shows the tooltip while its trigger has focus and hides it when focus leaves.", "script": false }
           ]
         }
       ]
@@ -1384,7 +1537,8 @@
           "props": [
             { "name": "label", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "A word in the middle of the line." },
             { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Down instead of across, between items in a row (a `ui.cluster`)." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1415,7 +1569,8 @@
             { "name": "duration", "kind": "number", "args": "ms: u32", "default": "5000", "attr": "", "doc": "How long a calm toast stays before it fades, in milliseconds." },
             { "name": "action", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link button on the newest toast (\"Undo\", \"View\")." },
             { "name": "max", "kind": "number", "args": "n: usize", "default": "all", "attr": "", "doc": "Show only the newest `n` toasts." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1442,6 +1597,10 @@
             { "name": "here", "kind": "item", "args": "label: &'a str", "default": "", "attr": "", "doc": "The current page, last in the trail and not a link." },
             { "name": "max", "kind": "number", "args": "n: usize", "default": "4", "attr": "", "doc": "The most crumbs shown, the current page included, before the middle folds into a menu." },
             { "name": "separator", "kind": "value", "args": "glyph: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "A glyph or an icon between the crumbs instead of the chevron." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Shows or hides the folded middle crumbs from the ellipsis button.", "script": false },
+            { "keys": "Enter", "does": "Follows the focused crumb.", "script": false }
           ]
         }
       ]
@@ -1471,7 +1630,8 @@
             { "name": "circle", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A 2.5rem circle beside the lines, standing in for an avatar." },
             { "name": "rect", "kind": "value", "args": "width: &'a str, height: &'a str", "default": "", "attr": "", "doc": "A block of that CSS width and height above the lines (an image, a chart)." },
             { "name": "avatar_lines", "kind": "number", "args": "n: usize", "default": "0", "attr": "", "doc": "`n` rows of a circle beside two lines, after the rest: a list of people." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1496,6 +1656,10 @@
             { "name": "body", "kind": "value", "args": "text: Markup", "default": "", "attr": "", "doc": "One or two sentences." },
             { "name": "link", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link to follow." },
             { "name": "action", "kind": "value", "args": "label: &'a str, action: &'a str", "default": "", "attr": "", "doc": "A button posting to `action`." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Sends the action button's form.", "script": false },
+            { "keys": "Enter", "does": "Follows the link button.", "script": false }
           ]
         }
       ]
@@ -1526,7 +1690,8 @@
             { "name": "reveal", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Fades and rises as it scrolls into view." },
             { "name": "sample", "kind": "item", "args": "value: f64", "default": "", "attr": "", "doc": "A recent value for the sparkline along the card's bottom edge (oldest first)." },
             { "name": "progress", "kind": "value", "args": "value: u64, max: u64", "default": "", "attr": "", "doc": "A bar under the value: how far towards a target." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1559,6 +1724,9 @@
             { "name": "bar", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Bars, one per point (the default)." },
             { "name": "line", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A line through the points." },
             { "name": "sparkline", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A small line with no axes, to sit beside a number." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves to the next or previous bar or point and shows its value.", "script": false }
           ]
         }
       ]
@@ -1588,6 +1756,10 @@
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the group headings' ids instead of `lui-sidebar-<label>`." },
             { "name": "collapsible", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A toggle that folds it to an icon rail, the labels shown as tooltips." },
             { "name": "current_prefix", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Mark a link current also when the path is under it (`/projects` on `/projects/42`)." }
+          ],
+          "keys": [
+            { "keys": "Enter", "does": "Follows the focused link.", "script": false },
+            { "keys": "Enter / Space", "does": "Folds the sidebar to its icon rail or unfolds it, when it is collapsible.", "script": false }
           ]
         }
       ]
@@ -1615,6 +1787,12 @@
             { "name": "panel", "kind": "item", "args": "text: &'a str, items: impl IntoIterator<Item = I>", "default": "", "attr": "", "doc": "A button that opens a panel of `items` (`MenuItem`s or `(text, href)` links)." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The prefix of the panels' ids instead of `nav-<label>`." },
             { "name": "current_prefix", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Mark a link current also when the path is under it (`/projects` on `/projects/42`)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the top-level links and panel buttons.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens the focused panel from its button.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Moves to the next or previous link in the open panel.", "script": true },
+            { "keys": "Escape", "does": "Closes the open panel and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
           ]
         }
       ]
@@ -1640,7 +1818,8 @@
           "props": [
             { "name": "item", "kind": "item", "args": "term: &'a str, detail: impl Render", "default": "", "attr": "", "doc": "A term and its detail (text, or markup such as a badge)." },
             { "name": "stacked", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Each term above its detail instead of beside it." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1671,6 +1850,12 @@
             { "name": "multiple", "kind": "switch", "args": "", "default": "off", "attr": "type", "doc": "Several options may be pressed (checkboxes, not radios)." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "The items' height and text: Radix's sizes 1 to 3." },
             { "name": "radius", "kind": "choice", "choices": ["none", "small", "medium", "large", "full"], "args": "radius: Radius", "default": "medium", "attr": "", "doc": "The corners of the track and the chip, from square to a pill." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves into the group: onto the picked item with one pick, or through each item with several.", "script": false },
+            { "keys": "ArrowRight / ArrowDown", "does": "Moves to the next item and picks it, with one pick.", "script": false },
+            { "keys": "ArrowLeft / ArrowUp", "does": "Moves to the previous item and picks it, with one pick.", "script": false },
+            { "keys": "Space", "does": "Picks the focused item, or toggles it with several picks.", "script": false }
           ]
         }
       ]
@@ -1704,6 +1889,14 @@
             { "name": "danger", "kind": "modifier", "applies_to": ["link", "action"], "args": "", "default": "", "attr": "", "doc": "The item is destructive." },
             { "name": "body", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The thing the actions are on." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The menu's id instead of `ctx-<label>`." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Opens the row's actions menu from its button.", "script": false },
+            { "keys": "Tab / Shift+Tab", "does": "Moves to the next or previous item in the open menu.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Moves to the next or previous item, wrapping at the ends.", "script": true },
+            { "keys": "Enter", "does": "Follows the focused link or sends the focused action.", "script": false },
+            { "keys": "Space", "does": "Ticks the focused checkbox or radio item.", "script": false },
+            { "keys": "Escape", "does": "Closes the menu and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
           ]
         }
       ]
@@ -1730,6 +1923,12 @@
             { "name": "length", "kind": "number", "args": "digits: u8", "default": "6", "attr": "maxlength", "doc": "How many digits the code has." },
             { "name": "group", "kind": "number", "args": "size: u8", "default": "", "attr": "", "doc": "A stronger divider after every `size` cells (3 for a 123 456 code)." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The field's id, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus into the code field.", "script": false },
+            { "keys": "Backspace", "does": "Deletes the last digit.", "script": false },
+            { "keys": "ArrowLeft / ArrowRight", "does": "Moves the caret between digits.", "script": false },
+            { "keys": "Enter", "does": "Submits the form.", "script": false }
           ]
         }
       ]
@@ -1768,6 +1967,11 @@
             { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open (non-modal) from the server." },
             { "name": "side", "kind": "choice", "choices": ["top", "bottom", "start", "end"], "args": "side: Side", "default": "start", "attr": "", "doc": "The edge it slides in from." },
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "18, 24 or 32rem wide (tall, from the top or bottom)." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Opens the drawer from its button.", "script": false },
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the drawer's links and controls while the page behind it is inert.", "script": false },
+            { "keys": "Escape", "does": "Closes the drawer and returns focus to its button. Without invoker commands or the script, its Close link closes it instead.", "script": false }
           ]
         }
       ]
@@ -1802,6 +2006,13 @@
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Search", "attr": "", "doc": "The opener's label (default \"Search\")." },
             { "name": "accesskey", "kind": "value", "args": "key: &'a str", "default": "k", "attr": "accesskey", "doc": "The opener's access key (default `k`)." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "lui-palette", "attr": "id", "doc": "The palette's id instead of `lui-palette`." }
+          ],
+          "keys": [
+            { "keys": "Alt+Shift+K / Alt+K", "does": "Opens the palette from anywhere on the page: Alt+Shift+K in Firefox, Alt+K in Chrome on Windows and Linux.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens the palette from its button and puts focus in the search field.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Moves through the command names the browser suggests for the typed text.", "script": false },
+            { "keys": "Enter", "does": "Searches for the typed command, or follows the focused command link.", "script": false },
+            { "keys": "Escape", "does": "Closes the suggestions, then the palette. Without popover support it closes from its button instead.", "script": false }
           ]
         }
       ]
@@ -1830,6 +2041,9 @@
             { "name": "item", "kind": "item", "args": "markup: Markup", "default": "", "attr": "", "doc": "One item of markup: a logo, a quote, a card." },
             { "name": "reverse", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Scroll towards the end of the line instead of the start." },
             { "name": "duration", "kind": "number", "args": "seconds: u32", "default": "40", "attr": "style", "doc": "Seconds for one full loop (`--lui-marquee-duration`)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Pauses the row while focus is on a link or button inside it.", "script": false }
           ]
         }
       ]
@@ -1857,7 +2071,8 @@
             { "name": "as_h", "kind": "number", "args": "level: u8", "default": "1", "attr": "", "doc": "The element, `<h1>` to `<h6>`: the level in the page's outline." },
             { "name": "weight", "kind": "choice", "choices": ["light", "regular", "medium", "bold"], "args": "weight: Weight", "default": "bold", "attr": "", "doc": "How heavy the letters are." },
             { "name": "trim", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Trim the space above the capitals and below the baseline." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1885,7 +2100,8 @@
             { "name": "as_div", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A `<div>`: a block that is not a paragraph (a caption, a cell's second line)." },
             { "name": "muted", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The muted gray of hints and secondary lines." },
             { "name": "truncate", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "One line, cut with an ellipsis where it overflows." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1911,6 +2127,9 @@
             { "name": "underline", "kind": "choice", "choices": ["always", "hover", "none"], "args": "underline: Underline", "default": "always", "attr": "", "doc": "When the underline shows: always, on hover, or never." },
             { "name": "external", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Opens in a new tab, with an arrow and a hint for screen readers." },
             { "name": "muted", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The muted gray, the text colour on hover: a footer's or a caption's links." }
+          ],
+          "keys": [
+            { "keys": "Enter", "does": "Follows the link, in a new tab when it is external.", "script": false }
           ]
         }
       ]
@@ -1934,7 +2153,8 @@
           "calls": ["ui.kbd(keys: &str)"],
           "props": [
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "Size 1 at 0.7em of the text around it, 2 at 0.75rem (the default), 3 at 0.875rem." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -1961,7 +2181,8 @@
           "props": [
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "neutral", "attr": "", "doc": "The colour of the tint and the text." },
             { "name": "variant", "kind": "choice", "choices": ["solid", "soft", "surface", "outline", "ghost"], "args": "variant: Variant", "default": "soft", "attr": "", "doc": "A tint (soft), a fill (solid), a tint in a border (surface), a border (outline) or the text alone (ghost)." }
-          ]
+          ],
+          "keys": []
         },
         {
           "builder": "CodeBlock",
@@ -1973,6 +2194,11 @@
             { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "A file name or caption above the code; it names the region too." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "Replace the id derived from the title (or the code)." },
             { "name": "copy", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A copy button in the corner, shown and wired by the enhancement script only." }
+          ],
+          "keys": [
+            { "keys": "Tab", "does": "Focuses the code block, then its copy button when the script shows one.", "script": false },
+            { "keys": "ArrowLeft / ArrowRight", "does": "Scrolls a long line sideways while the block has focus.", "script": false },
+            { "keys": "Enter / Space", "does": "Copies the code from the copy button.", "script": true }
           ]
         }
       ]
@@ -1998,7 +2224,8 @@
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "The quotation." },
             { "name": "caption", "kind": "value", "args": "source: &'a str", "default": "", "attr": "", "doc": "Who said it, or the work it is from, in a `<cite>` under the quotation." },
             { "name": "cite", "kind": "value", "args": "url: &'a str", "default": "", "attr": "cite", "doc": "The URL of the source, written as the blockquote's `cite` attribute." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2021,7 +2248,8 @@
           "calls": ["ui.prose()"],
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "The HTML to style: headings, paragraphs, lists, quotes, code, tables." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2045,7 +2273,8 @@
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What the column holds." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "4", "attr": "", "doc": "Radix's sizes 1–4: at most 448, 688, 880 or 1136px wide." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2070,7 +2299,8 @@
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What the band holds." },
             { "name": "size", "kind": "value", "args": "size: u8", "default": "3", "attr": "", "doc": "Radix's sizes 1–4: 24, 40, 64 or 80px above and below." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "", "attr": "aria-label", "doc": "A name (`aria-label`), which makes the section a region landmark." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2094,7 +2324,8 @@
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What reaches the edges: a picture, a map, a table." },
             { "name": "top", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Bleed through the card's top edge too (first in a card with no header)." },
             { "name": "bottom", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Bleed through the card's bottom edge too (last in a card with no footer)." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2118,7 +2349,8 @@
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What fills the box: a picture, a video, a map." },
             { "name": "ratio", "kind": "value", "args": "width: u32, height: u32", "default": "1 / 1", "attr": "", "doc": "Width to height: `(16, 9)`, `(4, 3)`." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2143,6 +2375,12 @@
           "props": [
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What scrolls." },
             { "name": "height", "kind": "value", "args": "height: &'a str", "default": "16rem", "attr": "", "doc": "The box's height as a CSS length (`12rem`, `50vh`)." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus to the scrolling region.", "script": false },
+            { "keys": "ArrowDown / ArrowUp", "does": "Scrolls the focused region a little down or up.", "script": false },
+            { "keys": "PageDown / PageUp / Space", "does": "Scrolls the focused region by about its height.", "script": false },
+            { "keys": "Home / End", "does": "Scrolls the focused region to its start or end.", "script": false }
           ]
         }
       ]
@@ -2167,7 +2405,8 @@
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "What is centred." },
             { "name": "min_height", "kind": "value", "args": "height: &'a str", "default": "", "attr": "", "doc": "At least this tall (a CSS length), so there is room to centre in." },
             { "name": "text_center", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "Centre the lines of text too." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2189,7 +2428,8 @@
           "calls": ["ui.spacer()"],
           "props": [
             { "name": "min", "kind": "value", "args": "length: &'a str", "default": "", "attr": "", "doc": "The least room it keeps (a CSS length), even when the row is full." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2213,7 +2453,8 @@
           "props": [
             { "name": "size", "kind": "choice", "choices": ["1", "2", "3"], "args": "size: impl Into<Size>", "default": "2", "attr": "", "doc": "12px (size 1), 16px (2, the default) or 20px (3) across." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "Loading", "attr": "", "doc": "What a screen reader announces: what is loading." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2240,7 +2481,8 @@
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "danger", "attr": "", "doc": "The badge's colour." },
             { "name": "label", "kind": "value", "args": "label: &'a str", "default": "{n} new", "attr": "", "doc": "What a screen reader says instead of the count in words." },
             { "name": "dot", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A dot instead of the number." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2267,6 +2509,9 @@
             { "name": "link", "kind": "value", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "A link after the text, with an arrow." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The id its dismiss cookie is named after instead of the text's slug." },
             { "name": "dismiss", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A close button that keeps it closed with a `lui-dismiss-<id>` cookie." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Dismisses the banner from its close button.", "script": false }
           ]
         }
       ]
@@ -2295,6 +2540,11 @@
             { "name": "align", "kind": "choice", "choices": ["start", "center", "end", "baseline", "stretch"], "args": "align: Align", "default": "start", "attr": "", "doc": "How it lines up with the button along that side." },
             { "name": "arrow", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A small arrow pointing at the button." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The panel's id instead of the trigger's slug." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Opens or closes the panel from its button.", "script": false },
+            { "keys": "Tab / Shift+Tab", "does": "Moves from the button into the panel's controls and back out.", "script": false },
+            { "keys": "Escape", "does": "Closes the panel and returns focus to its button. Without popover support it closes from its button instead.", "script": false }
           ]
         }
       ]
@@ -2320,6 +2570,11 @@
           "props": [
             { "name": "item", "kind": "item", "args": "markup: Markup", "default": "", "attr": "", "doc": "A slide." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The prefix of the slides' ids (`<id>-<n>`) instead of the label's slug." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus to the slide strip, then to the slide buttons and the dots.", "script": false },
+            { "keys": "ArrowLeft / ArrowRight", "does": "Scrolls the focused strip to the previous or next slide.", "script": false },
+            { "keys": "Enter", "does": "Goes to the slide the focused button or dot names.", "script": false }
           ]
         }
       ]
@@ -2352,7 +2607,8 @@
             { "name": "window", "kind": "number", "args": "neighbours: usize", "default": "1", "attr": "", "doc": "How many pages to number on each side of the current one." },
             { "name": "param", "kind": "item", "args": "key: &'a str, value: &'a str", "default": "", "attr": "", "doc": "A query pair every link carries (a filter, a sort)." },
             { "name": "first_last", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "\"First\" and \"Last\" links outside Previous and Next." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2383,7 +2639,8 @@
             { "name": "href", "kind": "modifier", "applies_to": ["step"], "args": "href: &'a str", "default": "", "attr": "href", "doc": "The title of the step added last links here." },
             { "name": "description", "kind": "modifier", "applies_to": ["step"], "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the step added last." },
             { "name": "vertical", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "A column at every width instead of a row from 30rem." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2412,7 +2669,8 @@
             { "name": "description", "kind": "modifier", "applies_to": ["event"], "args": "text: &'a str", "default": "", "attr": "", "doc": "A muted line under the title of the event added last." },
             { "name": "icon", "kind": "modifier", "applies_to": ["event"], "args": "icon: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "An icon in a ring on the line instead of the dot, for the event added last." },
             { "name": "tone", "kind": "choice", "choices": ["neutral", "brand", "ok", "warn", "danger", "info"], "args": "tone: Tone", "default": "", "attr": "", "doc": "The colour of the event added last's dot or icon (neutral by default)." }
-          ]
+          ],
+          "keys": []
         }
       ]
     },
@@ -2442,6 +2700,11 @@
             { "name": "children", "kind": "modifier", "applies_to": ["node"], "args": "nodes: impl FnOnce(Tree<'a>) -> Tree<'a>", "default": "", "attr": "", "doc": "The nodes under the node added last, which makes it a folder." },
             { "name": "open", "kind": "modifier", "applies_to": ["node"], "args": "open: bool", "default": "", "attr": "open", "doc": "The folder added last starts open while `open` holds." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "The key in `?open.<id>=` instead of the label's slug." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the folder toggles and the links.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens or closes the focused folder.", "script": false },
+            { "keys": "Enter", "does": "Follows the focused link.", "script": false }
           ]
         }
       ]
@@ -2468,6 +2731,9 @@
             { "name": "open", "kind": "condition", "args": "open: bool", "default": "off", "attr": "open", "doc": "Render it open." },
             { "name": "ghost", "kind": "switch", "args": "", "default": "off", "attr": "", "doc": "The ghost button look instead of the outline one." },
             { "name": "name", "kind": "value", "args": "group: &'a str", "default": "", "attr": "name", "doc": "Collapsibles with the same `name` are exclusive: opening one closes the others." }
+          ],
+          "keys": [
+            { "keys": "Enter / Space", "does": "Opens or closes the panel, closing any other open one with the same name.", "script": false }
           ]
         }
       ]
@@ -2494,6 +2760,12 @@
           "props": [
             { "name": "href", "kind": "value", "args": "href: &'a str", "default": "", "attr": "href", "doc": "The trigger is a link to `href` instead of a button." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The card's id, `lui-hover-card-<slug of the trigger>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Shows the card while its trigger has focus, where the browser has interest invokers.", "script": false },
+            { "keys": "Enter / Space", "does": "Opens or closes the card from its button where the browser has no interest invokers.", "script": false },
+            { "keys": "Enter", "does": "Follows the trigger link when the card has one.", "script": false },
+            { "keys": "Escape", "does": "Closes the card. Without popover support it closes from its button instead.", "script": false }
           ]
         }
       ]
@@ -2526,6 +2798,10 @@
             { "name": "help", "kind": "value", "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the choices." },
             { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the choices." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "What the checkboxes' ids start from, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves to the next or previous box.", "script": false },
+            { "keys": "Space", "does": "Ticks or clears the focused box.", "script": false }
           ]
         }
       ]
@@ -2565,6 +2841,13 @@
             { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the field." },
             { "name": "placeholder", "kind": "value", "args": "placeholder: &'a str", "default": "", "attr": "placeholder", "doc": "Placeholder text." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The control's id, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus into the field, then to the steppers.", "script": false },
+            { "keys": "ArrowUp / ArrowDown", "does": "Steps the value up or down by its step, within its bounds.", "script": false },
+            { "keys": "Enter", "does": "Submits the form.", "script": false },
+            { "keys": "Enter / Space", "does": "Presses a focused stepper, which posts the value one step up or down.", "script": false },
+            { "keys": "Enter / Space", "does": "Steps the value in place from a focused stepper.", "script": true }
           ]
         }
       ]
@@ -2594,6 +2877,10 @@
             { "name": "results_id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "aria-controls", "doc": "The id of the results it updates, for `aria-controls`." },
             { "name": "keep", "kind": "item", "args": "name: &'a str", "default": "", "attr": "", "doc": "A query parameter of this page carried by the search and by Clear." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The field's id, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the search field, the Search button and the Clear link.", "script": false },
+            { "keys": "Enter", "does": "Runs the search.", "script": false }
           ]
         }
       ]
@@ -2624,6 +2911,12 @@
             { "name": "help", "kind": "value", "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the stars." },
             { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the stars." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "What the stars' ids start from, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves focus onto the picked star, or the first one.", "script": false },
+            { "keys": "ArrowRight / ArrowUp", "does": "Picks one star more, wrapping from the last star to the first.", "script": false },
+            { "keys": "ArrowLeft / ArrowDown", "does": "Picks one star fewer, wrapping from the first star to the last.", "script": false },
+            { "keys": "Space", "does": "Picks the focused star when none is picked yet.", "script": false }
           ]
         }
       ]
@@ -2654,6 +2947,12 @@
             { "name": "help", "kind": "value", "args": "help: &'a str", "default": "", "attr": "", "doc": "Help text under the box." },
             { "name": "error", "kind": "value", "args": "message: &'a str", "default": "", "attr": "", "doc": "A server message under the box." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "id", "doc": "The text box's id, `f-<name>` by default." }
+          ],
+          "keys": [
+            { "keys": "Tab / Shift+Tab", "does": "Moves between the remove links, the text box and the Add button.", "script": false },
+            { "keys": "Enter", "does": "Adds the typed tag when the Add button is the first submit button in its form.", "script": false },
+            { "keys": "Enter / Space", "does": "Adds the typed tag from the focused Add button.", "script": false },
+            { "keys": "Enter", "does": "Removes the tag from its focused remove link.", "script": false }
           ]
         }
       ]

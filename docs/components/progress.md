@@ -21,6 +21,14 @@
 | `indeterminate` | switch |  | `off` |  | No value yet: a stripe slides along the track. |
 | `show_value` | switch |  | `off` |  | The percentage beside the label, or above the bar without one. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-progress-field` | `--lui-space-2`, `--lui-text-2`, `--lui-gray-11`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-progress-fill`, `--lui-primary`, `--lui-radius-sm`, `--lui-radius`, `--lui-radius-lg` |
+| `.lui-progress-value` | `--lui-muted` |
+| `.lui-progress` | `--lui-progress-h`, `--lui-progress-radius`, `--lui-progress-track`, `--lui-gray-4`, `--lui-progress-fill`, `--lui-primary`, `--lui-duration-slow`, `--lui-ease-out` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

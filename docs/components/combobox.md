@@ -23,6 +23,31 @@
 | `disabled` | switch |  | `off` | `disabled` | The box and its button disabled, the chips without remove links, no results. |
 | `readonly` | switch |  | `off` |  | The box `readonly`, the chips without remove links, no results. |
 
+## Keyboard of `Combobox`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the search field, the Search button, the result links and the remove links. | no |
+| `ArrowDown / ArrowUp` | Opens the suggestion list under the field and moves through it. | no |
+| `Enter` | Fills in the highlighted suggestion, or searches for the typed text when none is highlighted. | no |
+| `Escape` | Closes the suggestion list. | no |
+| `ArrowDown / ArrowUp` | Moves focus between the search field and the result links. | yes |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-combobox` | `--lui-space-2` |
+| `.lui-combobox-input` |  |
+| `.lui-combobox-chips` |  |
+| `.lui-combobox-results` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-combobox-status` | `--lui-space-2`, `--lui-text-2`, `--lui-muted` |
+| `.lui-combobox-list` | `--lui-space-1`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-text-2`, `--lui-space-2`, `--lui-radius-sm`, `--lui-primary`, `--lui-on-primary`, `--lui-hit` |
+| `.lui-combobox-chosen` | `--lui-space-2`, `--lui-radius-sm`, `--lui-hit` |
+| `.lui-combobox-picked` | `--lui-muted`, `--lui-text-1` |
+| `.lui-combobox-empty` | `--lui-space-6` |
+| `.lui-combobox-create` | `--lui-space-1` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

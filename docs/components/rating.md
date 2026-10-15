@@ -21,6 +21,26 @@
 | `error` | value | `message: &'a str` |  |  | A server message under the stars. |
 | `id` | value | `id: &'a str` |  | `id` | What the stars' ids start from, `f-<name>` by default. |
 
+## Keyboard of `Rating`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus onto the picked star, or the first one. | no |
+| `ArrowRight / ArrowUp` | Picks one star more, wrapping from the last star to the first. | no |
+| `ArrowLeft / ArrowDown` | Picks one star fewer, wrapping from the first star to the last. | no |
+| `Space` | Picks the focused star when none is picked yet. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-rating` | `--lui-text-2`, `--lui-leading-2`, `--lui-danger` |
+| `.lui-rating-label` | `--lui-text-2`, `--lui-leading-2` |
+| `.lui-rating-stars` |  |
+| `.lui-rating-star` | `--lui-gray-7`, `--lui-hit` |
+| `.lui-icon` | `--lui-duration-fast`, `--lui-warn`, `--lui-gray-7` |
+| `.lui-rating-input` | `--lui-ring`, `--lui-radius-sm` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

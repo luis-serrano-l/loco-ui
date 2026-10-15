@@ -21,6 +21,26 @@
 | `sample` | item | `value: f64` |  |  | A recent value for the sparkline along the card's bottom edge (oldest first). |
 | `progress` | value | `value: u64, max: u64` |  |  | A bar under the value: how far towards a target. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-stat-grid` | `--lui-space-4` |
+| `.lui-stat` | `--lui-space-1`, `--lui-space-4`, `--lui-fg`, `--lui-card`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-sm`, `--lui-highlight`, `--lui-duration-fast` |
+| `.lui-stat-link` | `--lui-accent`, `--lui-card` |
+| `.lui-stat-label` | `--lui-muted`, `--lui-text-2` |
+| `.lui-stat-value` | `--lui-text-7` |
+| `.lui-stat-delta` | `--lui-muted`, `--lui-radius-sm`, `--lui-text-1`, `--lui-stat-tone`, `--lui-fg`, `--lui-bg` |
+| `.lui-stat-good` | `--lui-ok` |
+| `.lui-stat-bad` | `--lui-danger` |
+| `.lui-stat-flat` | `--lui-muted` |
+| `.lui-stat-note` | `--lui-muted`, `--lui-text-1` |
+| `.lui-stat-progress` | `--lui-space-2`, `--lui-gray-4`, `--lui-primary` |
+| `.lui-stat-spark` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-stat-spark-line` | `--lui-primary` |
+| `.lui-stat-spark-area` | `--lui-primary` |
+| `.lui-stat-reveal` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

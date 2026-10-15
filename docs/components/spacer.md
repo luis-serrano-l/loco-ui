@@ -14,6 +14,12 @@
 |---|---|---|---|---|---|
 | `min` | value | `length: &'a str` |  |  | The least room it keeps (a CSS length), even when the row is full. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-spacer` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

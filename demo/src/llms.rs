@@ -214,6 +214,28 @@ fn markdown(doc: &Doc) -> String {
         }
         out.push('\n');
     }
+    for b in doc.builders.iter().filter(|b| !b.keys.is_empty()) {
+        out.push_str(&format!("## Keyboard of `{}`\n\n", b.builder));
+        out.push_str("| Keys | What they do | Needs the script |\n|---|---|---|\n");
+        for k in b.keys {
+            out.push_str(&format!(
+                "| {} | {} | {} |\n",
+                cell(&format!("`{}`", k.keys)),
+                cell(k.does),
+                if k.script { "yes" } else { "no" }
+            ));
+        }
+        out.push('\n');
+    }
+    let parts = crate::reference::anatomy(doc.module);
+    if !parts.is_empty() {
+        out.push_str("## Anatomy\n\n| Class | Tokens it reads |\n|---|---|\n");
+        for (class, tokens) in &parts {
+            let tokens: Vec<String> = tokens.iter().map(|t| format!("`{t}`")).collect();
+            out.push_str(&format!("| `.{class}` | {} |\n", cell(&tokens.join(", "))));
+        }
+        out.push('\n');
+    }
     if let Some(spec) = doc.spec {
         out.push_str("## Platform\n\n");
         if !spec.features.is_empty() {

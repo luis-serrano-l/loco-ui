@@ -21,6 +21,30 @@
 | `line` | switch |  | `off` |  | A line through the points. |
 | `sparkline` | switch |  | `off` |  | A small line with no axes, to sit beside a number. |
 
+## Keyboard of `Chart`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the next or previous bar or point and shows its value. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-chart` | `--lui-space-6` |
+| `.lui-chart-legend` | `--lui-space-2`, `--lui-text-2`, `--lui-muted` |
+| `.lui-chart-swatch` | `--lui-primary` |
+| `.lui-chart-grid` | `--lui-gray-5` |
+| `.lui-chart-tick` | `--lui-muted`, `--lui-text-1`, `--lui-text-5` |
+| `.lui-chart-label` | `--lui-muted`, `--lui-text-1`, `--lui-text-5` |
+| `.lui-chart-bar` | `--lui-primary`, `--lui-duration-fast`, `--lui-fg`, `--lui-ring` |
+| `.lui-chart-path` | `--lui-primary` |
+| `.lui-chart-dot` | `--lui-bg`, `--lui-primary`, `--lui-ring` |
+| `.lui-chart-mark` | `--lui-primary`, `--lui-fg` |
+| `.lui-chart-tip` | `--lui-duration-fast`, `--lui-gray-12`, `--lui-gray-1` |
+| `.lui-chart-label-odd` |  |
+| `.lui-chart-sparkline` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

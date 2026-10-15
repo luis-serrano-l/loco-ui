@@ -18,6 +18,26 @@
 | `multiple` | switch |  | `off` |  | Several sections may be open at once (`?open.<group>=0,2`). |
 | `controls` | switch |  | `off` |  | "Expand all" and "Collapse all" links above the sections (with `multiple`). |
 
+## Keyboard of `Accordion`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the section headers. | no |
+| `Enter` | Opens or closes the focused section. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-accordion-item` | `--lui-line` |
+| `.lui-accordion-trigger` | `--lui-text-2`, `--lui-muted`, `--lui-duration`, `--lui-ease-out` |
+| `.lui-accordion-title` |  |
+| `.lui-accordion-icon` |  |
+| `.lui-accordion-summary` | `--lui-text-2`, `--lui-muted` |
+| `.lui-accordion-body` | `--lui-text-2` |
+| `.lui-accordion-controls` | `--lui-space`, `--lui-text-2`, `--lui-line` |
+| `.lui-accordion` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -17,6 +17,23 @@
 | `id` | value | `id: &'a str` |  | `id` | The prefix of the panels' ids instead of `nav-<label>`. |
 | `current_prefix` | switch |  | `off` |  | Mark a link current also when the path is under it (`/projects` on `/projects/42`). |
 
+## Keyboard of `NavMenu`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the top-level links and panel buttons. | no |
+| `Enter / Space` | Opens the focused panel from its button. | no |
+| `ArrowDown / ArrowUp` | Moves to the next or previous link in the open panel. | yes |
+| `Escape` | Closes the open panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-nav-menu` | `--lui-space-1` |
+| `.lui-nav-menu-link` | `--lui-control-h`, `--lui-radius`, `--lui-text-2`, `--lui-fg`, `--lui-accent`, `--lui-on-accent` |
+| `.lui-popover-text` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

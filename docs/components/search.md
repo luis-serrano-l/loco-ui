@@ -18,6 +18,19 @@
 | `keep` | item | `name: &'a str` |  |  | A query parameter of this page carried by the search and by Clear. |
 | `id` | value | `id: &'a str` |  | `id` | The field's id, `f-<name>` by default. |
 
+## Keyboard of `Search`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the search field, the Search button and the Clear link. | no |
+| `Enter` | Runs the search. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-search` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -36,6 +36,7 @@
 use maud::{Markup, Render, html};
 
 use crate::button::Button;
+use crate::props::Key;
 use crate::{Caps, Redirect, Ui, cookie::SetCookie};
 
 /// Name of the cookie that remembers the chosen theme.
@@ -78,6 +79,17 @@ impl Theme {
 pub struct ThemeToggle<'a> {
     action: &'a str,
     current: Theme,
+}
+
+impl ThemeToggle<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the Auto, Light and Dark buttons.",
+        ),
+        Key::new("Enter / Space", "Switches to the focused theme."),
+    ];
 }
 
 impl Ui {

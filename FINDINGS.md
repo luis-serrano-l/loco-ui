@@ -1148,3 +1148,33 @@ is not drawn only because it sits behind the motion query.
   43 Blitz tests pass unchanged; 199 shots changed. The 420px index no longer paints a
   stray file list over the page, and docs tables lose the heavy borders beta.2 drew. The
   beta.2 notes above stand as history; recheck them against beta.3 before filing upstream.
+
+### Keyboard, 2026-10-15
+
+Writing `KEYS` for every builder meant reading what each one's markup does with keys. These
+are the gaps found, none fixed yet:
+
+- **Enter submits through the wrong button.** Implicit submission uses a form's first
+  submit button in tree order. The Wizard puts Skip before Next on an optional step, so
+  Enter in a field skips the step. A `.typed()` Counter's first submit is the decrement
+  button, so Enter in the value posts `op=dec` (and does nothing at the minimum). Number
+  steppers, the TagInput Add button (`formmethod=get`) and the Select filter button come
+  before a Form's own submit, so Enter in any field of such a form posts the stepper or
+  GETs through Add or Filter. Fix: the default action first in the source, moved with CSS
+  `order`, or a hidden default submit button at the top of the form.
+- **No Escape on the fallbacks.** Without popover support the menus, palette, hover card,
+  popover card and date picker fall back to `<details>`, which Escape does not close; without
+  invoker commands and without the script a dialog or drawer opens through `:target`, which
+  is not modal (no Escape, focus not kept inside). `KEYS` says so; `enhance.rs` could close
+  both on Escape.
+- **Tooltip cannot be dismissed** while its trigger keeps focus (WCAG 1.4.13 asks for
+  Escape); no no-script fix is obvious.
+- **Focus after a swap.** Kanban and Sortable move buttons share `name="to"` with no id, so
+  `restoreFocus` in `enhance.rs` focuses the first move button on the page, not the moved
+  card's; the Pager's Load more link has no id or name, so focus falls to `<body>`.
+- **Combobox with the script** prevents the default on ArrowDown/ArrowUp, so the native
+  datalist suggestions can no longer be walked with the arrows.
+- **Smaller:** the OTP's highlighted cell follows the value's length, not the caret; a
+  Chart makes every bar a tab stop (30 points, 30 presses); the Kanban board scrolls only
+  when focus lands on a card's button, so an empty column is unreachable; the calendar's
+  days are one radio group, so ArrowUp/ArrowDown move a day, not a week.

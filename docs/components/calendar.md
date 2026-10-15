@@ -24,6 +24,33 @@
 | `range` | value | `end: &'a str` |  |  | Pick a first and a last day: the first in the calendar's name, the last in `end`. |
 | `weeks` | switch |  | `off` |  | A column of ISO 8601 week numbers before the days. |
 
+## Keyboard of `Calendar`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the month links, then into the days. | no |
+| `ArrowRight / ArrowDown` | Picks the next day when the calendar is a radio group. | no |
+| `ArrowLeft / ArrowUp` | Picks the previous day when the calendar is a radio group. | no |
+| `Enter` | Follows the focused day or month link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-calendar` | `--lui-space-3`, `--lui-card`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-xs` |
+| `.lui-calendar-head` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-calendar-title` | `--lui-text-2` |
+| `.lui-calendar-grid` | `--lui-text-2`, `--lui-space-2`, `--lui-text-1`, `--lui-muted` |
+| `.lui-calendar-day` | `--lui-radius-sm`, `--lui-duration-fast`, `--lui-accent`, `--lui-on-accent` |
+| `.lui-calendar-off` | `--lui-accent`, `--lui-on-accent`, `--lui-gray-9` |
+| `.lui-calendar-outside` | `--lui-muted` |
+| `.lui-calendar-today` | `--lui-accent`, `--lui-on-accent` |
+| `.lui-calendar-picked` | `--lui-primary`, `--lui-on-primary` |
+| `.lui-calendar-radio` | `--lui-primary`, `--lui-on-primary`, `--lui-ring` |
+| `.lui-calendar-dots` | `--lui-primary` |
+| `.lui-calendar-between` | `--lui-accent`, `--lui-on-accent` |
+| `.lui-calendar-week` | `--lui-text-1`, `--lui-leading-1`, `--lui-muted` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

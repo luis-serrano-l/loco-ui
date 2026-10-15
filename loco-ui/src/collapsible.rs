@@ -34,7 +34,7 @@
 
 use maud::{Markup, Render, html};
 
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Icon, Ui};
 
 /// A section under a button that shows and hides it, made by [`Ui::collapsible`].
@@ -50,6 +50,12 @@ pub struct Collapsible<'a> {
 }
 
 impl Collapsible<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[Key::new(
+        "Enter / Space",
+        "Opens or closes the panel, closing any other open one with the same name.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

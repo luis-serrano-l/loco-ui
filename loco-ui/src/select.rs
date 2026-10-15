@@ -74,7 +74,7 @@ use maud::{Markup, Render, html};
 use crate::i18n::{Strings, Text};
 use crate::icon::Glyph;
 use crate::input::{Input, described_by, keep};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::variant::{Size, Variant};
 use crate::{Cap, Caps, Ui};
 
@@ -97,6 +97,9 @@ pub struct SelectOption<'a> {
 }
 
 impl SelectOption<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
@@ -212,6 +215,19 @@ pub struct Select<'a> {
 }
 
 impl Select<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new("Tab / Shift+Tab", "Moves focus to the select or past it."),
+        Key::new("Space / Alt+ArrowDown", "Opens the list of options."),
+        Key::new(
+            "ArrowUp / ArrowDown",
+            "Moves to the previous or next option.",
+        ),
+        Key::new("Home / End", "Moves to the first or last option."),
+        Key::new("Enter", "Picks the highlighted option and closes the list."),
+        Key::new("Escape", "Closes the list without changing the choice."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

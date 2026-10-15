@@ -54,7 +54,7 @@ use std::fmt::Write;
 
 use maud::{Markup, PreEscaped, Render, html};
 
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Ui, slug};
 
 /// Bars, a line or a sparkline, made by [`Ui::chart`].
@@ -80,6 +80,12 @@ enum Kind {
 }
 
 impl Chart<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new(
+        "Tab / Shift+Tab",
+        "Moves to the next or previous bar or point and shows its value.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

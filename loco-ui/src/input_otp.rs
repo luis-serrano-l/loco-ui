@@ -49,7 +49,7 @@ use maud::{Markup, Render, html};
 
 use crate::Ui;
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A one-time code field, made by [`Ui::input_otp`].
 ///
@@ -65,6 +65,14 @@ pub struct InputOtp<'a> {
 }
 
 impl InputOtp<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new("Tab / Shift+Tab", "Moves focus into the code field."),
+        Key::new("Backspace", "Deletes the last digit."),
+        Key::new("ArrowLeft / ArrowRight", "Moves the caret between digits."),
+        Key::new("Enter", "Submits the form."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

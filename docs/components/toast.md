@@ -18,6 +18,20 @@
 | `action` | value | `label: &'a str, href: &'a str` |  |  | A link button on the newest toast ("Undo", "View"). |
 | `max` | number | `n: usize` | `all` |  | Show only the newest `n` toasts. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-toasts` | `--lui-z-toast`, `--lui-space-6`, `--lui-space-3`, `--lui-space-4` |
+| `.lui-toast` | `--lui-muted`, `--lui-space-3`, `--lui-space-4`, `--lui-fg`, `--lui-popover`, `--lui-text-2`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-toast-duration`, `--lui-duration`, `--lui-ease-out`, `--lui-duration-slow`, `--lui-ease-spring`, `--lui-toast-dir` |
+| `.lui-toast-text` |  |
+| `.lui-toast-info` | `--lui-link` |
+| `.lui-toast-ok` | `--lui-ok` |
+| `.lui-toast-warn` | `--lui-warn` |
+| `.lui-toast-danger` | `--lui-danger` |
+| `.lui-toast-action` |  |
+| `.lui-toast-close` | `--lui-muted`, `--lui-radius-sm`, `--lui-hit`, `--lui-fg`, `--lui-accent` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

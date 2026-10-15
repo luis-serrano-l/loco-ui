@@ -17,6 +17,21 @@
 | `id` | value | `id: &'a str` |  |  | The id its dismiss cookie is named after instead of the text's slug. |
 | `dismiss` | switch |  | `off` |  | A close button that keeps it closed with a `lui-dismiss-<id>` cookie. |
 
+## Keyboard of `Banner`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Dismisses the banner from its close button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-banner` | `--lui-gray-12`, `--lui-gray-1`, `--lui-space-2`, `--lui-space-3`, `--lui-space-4`, `--lui-text-2`, `--lui-leading-2`, `--lui-banner-fg`, `--lui-banner-bg`, `--lui-brand-3`, `--lui-brand-11`, `--lui-ok`, `--lui-bg`, `--lui-fg`, `--lui-warn`, `--lui-danger` |
+| `.lui-banner-text` |  |
+| `.lui-banner-link` |  |
+| `.lui-banner-dismiss` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

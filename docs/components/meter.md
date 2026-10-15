@@ -18,6 +18,12 @@
 | `optimum` | number | `optimum: impl Into<f64>` |  | `optimum` | The best value. |
 | `id` | value | `id: &'a str` |  | `id` | The meter's id instead of `lui-meter-<label>`. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-meter` | `--lui-gray-4`, `--lui-ok`, `--lui-warn`, `--lui-danger` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

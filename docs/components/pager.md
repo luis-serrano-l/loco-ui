@@ -15,6 +15,20 @@
 | `per_page` | number | `per_page: usize` | `10` |  | Rows per page. |
 | `rows` | value | `row: impl Fn(usize) -> Markup + 'a` |  |  | Row `i` (0-based) of the list. |
 
+## Keyboard of `Pager`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Loads the next page from the Load more link and scrolls to the first new item. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-pager-list` | `--lui-text-2`, `--lui-line` |
+| `.lui-pager-anchor` |  |
+| `.lui-pager-more` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -16,6 +16,13 @@
 | `stat` | item | `stat: Stat<'a>` |  |  | A number in the row of stats. |
 | `body` | value | `body: Markup` |  |  | What goes under the stats. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-dashboard` |  |
+| `.lui-dashboard-description` | `--lui-muted` |
+
 ## Documentation
 
 A page of numbers: a title and a line, a row of stats that wraps to the width available,

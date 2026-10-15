@@ -57,7 +57,7 @@ use maud::{Markup, Render, html};
 use crate::Ui;
 use crate::i18n::{Strings, Text};
 use crate::input::{Choice, Field, Pick, described_by, error_line};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// Checkboxes under a legend, made by [`Ui::checkbox_group`]; a form's `.checkboxes(..)`
 /// field is one too.
@@ -80,6 +80,12 @@ pub struct CheckboxGroup<'a> {
 }
 
 impl CheckboxGroup<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new("Tab / Shift+Tab", "Moves to the next or previous box."),
+        Key::new("Space", "Ticks or clears the focused box."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

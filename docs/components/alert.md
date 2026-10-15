@@ -28,6 +28,29 @@
 | `id` | value | `id: &'a str` |  |  | The id its dismiss cookie is named after instead of the title's slug. |
 | `dismiss` | switch |  | `off` |  | A close button that keeps it closed with a `lui-dismiss-<id>` cookie. |
 
+## Keyboard of `Alert`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Dismisses the alert from its close button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-callout` | `--lui-brand-3`, `--lui-brand-11`, `--lui-brand-7`, `--lui-space-3`, `--lui-space-1`, `--lui-space-4`, `--lui-text-2`, `--lui-callout-fg`, `--lui-callout-bg`, `--lui-radius`, `--lui-space-2`, `--lui-space-6`, `--lui-text-3` |
+| `.lui-callout-ok` | `--lui-ok`, `--lui-bg`, `--lui-fg` |
+| `.lui-callout-warn` | `--lui-warn`, `--lui-bg`, `--lui-fg` |
+| `.lui-callout-danger` | `--lui-danger`, `--lui-bg`, `--lui-fg` |
+| `.lui-callout-neutral` | `--lui-gray-3`, `--lui-gray-12`, `--lui-gray-7` |
+| `.lui-callout-surface` | `--lui-callout-bg`, `--lui-bg`, `--lui-callout-line` |
+| `.lui-callout-outline` | `--lui-callout-line` |
+| `.lui-alert-title` |  |
+| `.lui-alert-description` |  |
+| `.lui-alert-actions` | `--lui-space-2` |
+| `.lui-alert-dismissible` |  |
+| `.lui-alert-dismiss` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

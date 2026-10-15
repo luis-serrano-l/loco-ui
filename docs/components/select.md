@@ -38,6 +38,28 @@
 | `body` | value | `content: Markup` |  |  | Rich markup instead of the text (with `Caps::BaseSelect` only). |
 | `disabled` | switch |  | `off` | `disabled` | Shown, but cannot be picked. |
 
+## Keyboard of `Select`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the select or past it. | no |
+| `Space / Alt+ArrowDown` | Opens the list of options. | no |
+| `ArrowUp / ArrowDown` | Moves to the previous or next option. | no |
+| `Home / End` | Moves to the first or last option. | no |
+| `Enter` | Picks the highlighted option and closes the list. | no |
+| `Escape` | Closes the list without changing the choice. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-select` | `--lui-space-2`, `--lui-control-h-sm`, `--lui-text-2`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-brand-3`, `--lui-muted`, `--lui-duration-fast`, `--lui-space-1`, `--lui-line`, `--lui-radius`, `--lui-popover`, `--lui-fg`, `--lui-shadow-md`, `--lui-highlight`, `--lui-radius-sm`, `--lui-primary`, `--lui-on-primary`, `--lui-text-1`, `--lui-gray-10`, `--lui-hit` |
+| `.lui-select-search` | `--lui-space-2` |
+| `.lui-select-filter` |  |
+| `.lui-select-trigger` |  |
+| `.lui-select-icon` |  |
+| `.lui-swatch` | `--lui-line` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -15,6 +15,26 @@
 | `item` | item | `markup: Markup` |  |  | A slide. |
 | `id` | value | `id: &'a str` |  |  | The prefix of the slides' ids (`<id>-<n>`) instead of the label's slug. |
 
+## Keyboard of `Carousel`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the slide strip, then to the slide buttons and the dots. | no |
+| `ArrowLeft / ArrowRight` | Scrolls the focused strip to the previous or next slide. | no |
+| `Enter` | Goes to the slide the focused button or dot names. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-carousel` | `--lui-space-3` |
+| `.lui-carousel-viewport` | `--lui-space-4`, `--lui-radius-lg`, `--lui-ring`, `--lui-text-3`, `--lui-fg`, `--lui-bg`, `--lui-line`, `--lui-shadow-sm`, `--lui-hit`, `--lui-space-2`, `--lui-space-3` |
+| `.lui-carousel-item` | `--lui-space-8`, `--lui-gray-6`, `--lui-fg` |
+| `.lui-carousel-prev` | `--lui-bg`, `--lui-space-2`, `--lui-space-4` |
+| `.lui-carousel-next` | `--lui-bg`, `--lui-space-2`, `--lui-space-4` |
+| `.lui-carousel-dots` | `--lui-space-2` |
+| `.lui-carousel-dot` | `--lui-gray-6`, `--lui-gray-9`, `--lui-hit` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -55,7 +55,7 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Icon, Ui, enhance};
 
 /// A file the server holds: its name, size, a thumbnail and a link.
@@ -84,6 +84,22 @@ pub struct Upload<'a> {
 }
 
 impl Upload<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the file picker, the Upload button and each file's remove button.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Opens the file chooser from the focused drop zone.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Presses the focused Upload or remove button, which posts the form.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

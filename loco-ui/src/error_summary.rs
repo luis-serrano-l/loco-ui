@@ -47,7 +47,7 @@
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Icon, Ui};
 
 /// A list of the fields in error, made by [`Ui::error_summary`] (and by a
@@ -62,6 +62,12 @@ pub struct ErrorSummary<'a> {
 }
 
 impl ErrorSummary<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new(
+        "Enter",
+        "Scrolls to the field a message names, so the next Tab lands in it.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

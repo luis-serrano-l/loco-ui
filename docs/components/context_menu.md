@@ -23,6 +23,24 @@
 | `body` | value | `body: Markup` |  |  | The thing the actions are on. |
 | `id` | value | `id: &'a str` |  | `id` | The menu's id instead of `ctx-<label>`. |
 
+## Keyboard of `ContextMenu`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the row's actions menu from its button. | no |
+| `Tab / Shift+Tab` | Moves to the next or previous item in the open menu. | no |
+| `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
+| `Enter` | Follows the focused link or sends the focused action. | no |
+| `Space` | Ticks the focused checkbox or radio item. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-context-menu` | `--lui-space`, `--lui-line`, `--lui-radius`, `--lui-card` |
+| `.lui-context-menu-body` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

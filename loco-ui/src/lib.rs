@@ -1013,8 +1013,11 @@ mod tests {
                     in_assert = !t.ends_with(");");
                     continue;
                 }
-                if t.starts_with("pub const PROPS") {
-                    in_props = true;
+                // `PROPS` and `KEYS` are documentation for the docs site, in English like
+                // the rustdoc; an empty `KEYS` ends on its own line.
+                if t.starts_with("pub const PROPS") || t.starts_with("pub const KEYS") {
+                    in_props = !t.ends_with("];");
+                    continue;
                 }
                 if in_props {
                     in_props = t != "];";

@@ -15,6 +15,14 @@
 | `label` | value | `text: &'a str` |  |  | A word in the middle of the line. |
 | `vertical` | switch |  | `off` |  | Down instead of across, between items in a row (a `ui.cluster`). |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-separator` | `--lui-line` |
+| `.lui-separator-vertical` | `--lui-line` |
+| `.lui-separator-label` | `--lui-muted`, `--lui-text-1`, `--lui-line` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

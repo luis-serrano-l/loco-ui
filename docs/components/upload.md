@@ -20,6 +20,33 @@
 | `href` | modifier | `href: &'a str` |  | `href` | A link to the file added last, on its name. |
 | `remove` | value | `action: &'a str` |  |  | A Remove button per file, posting `<name>=<file name>` to `action`. |
 
+## Keyboard of `Upload`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the file picker, the Upload button and each file's remove button. | no |
+| `Enter / Space` | Opens the file chooser from the focused drop zone. | no |
+| `Enter / Space` | Presses the focused Upload or remove button, which posts the form. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-upload` | `--lui-space-3` |
+| `.lui-upload-form` | `--lui-space-2` |
+| `.lui-upload-drop` | `--lui-space-1`, `--lui-space-6`, `--lui-space-4`, `--lui-input`, `--lui-radius-lg`, `--lui-bg`, `--lui-duration-fast`, `--lui-gray-8`, `--lui-gray-2`, `--lui-ring`, `--lui-brand-2`, `--lui-space-10` |
+| `.lui-upload-tile` | `--lui-space-2`, `--lui-line`, `--lui-bg`, `--lui-muted` |
+| `.lui-upload-title` | `--lui-text-2` |
+| `.lui-upload-hint` | `--lui-text-1`, `--lui-muted` |
+| `.lui-upload-input` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-upload-progress` | `--lui-primary` |
+| `.lui-upload-files` | `--lui-space-2` |
+| `.lui-upload-file` | `--lui-space-3`, `--lui-space-2`, `--lui-line`, `--lui-radius`, `--lui-card` |
+| `.lui-upload-thumb` | `--lui-radius-sm`, `--lui-line`, `--lui-gray-2`, `--lui-muted` |
+| `.lui-upload-meta` |  |
+| `.lui-upload-name` | `--lui-text-2` |
+| `.lui-upload-size` | `--lui-muted`, `--lui-text-1` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

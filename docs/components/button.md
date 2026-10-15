@@ -56,6 +56,34 @@
 | `interestfor` | value | `id: &'a str` |  | `interestfor` | Show the popover with this id while the button or link has the pointer or focus (`interestfor`). |
 | `shimmer` | switch |  | `off` |  | A light sweeps across the button, over its own background. |
 
+## Keyboard of `Button`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the button or past it. | no |
+| `Enter / Space` | Presses the button: submits its form, runs its command or opens its popover. | no |
+| `Enter` | Follows the link when the button is drawn as a link. | no |
+| `Alt / Alt+Shift` | Presses the button when held with its `.accesskey()` character; the modifier depends on the browser and system. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-button` | `--lui-control-h`, `--lui-text-2`, `--lui-bg`, `--lui-input`, `--lui-radius-sm`, `--lui-shadow-xs`, `--lui-fg`, `--lui-accent`, `--lui-on-accent`, `--lui-primary`, `--lui-on-primary`, `--lui-brand-11`, `--lui-brand-3`, `--lui-brand-4`, `--lui-brand-2`, `--lui-brand-7`, `--lui-gray-12`, `--lui-gray-1`, `--lui-gray-3`, `--lui-gray-4`, `--lui-gray-2`, `--lui-danger`, `--lui-on-danger`, `--lui-ok`, `--lui-warn`, `--lui-button-fill`, `--lui-button-on`, `--lui-highlight`, `--lui-button-tint`, `--lui-button-text`, `--lui-button-tint-hover`, `--lui-button-pale`, `--lui-button-line`, `--lui-ring`, `--lui-gray-8` |
+| `.lui-primary` | `--lui-primary`, `--lui-gradient-primary`, `--lui-on-primary`, `--lui-shadow-xs`, `--lui-highlight` |
+| `.lui-button-primary` | `--lui-primary`, `--lui-gradient-primary`, `--lui-on-primary`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-gray-4`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent`, `--lui-shimmer` |
+| `.lui-danger` | `--lui-danger`, `--lui-on-danger`, `--lui-shadow-xs`, `--lui-highlight` |
+| `.lui-button-danger` | `--lui-danger`, `--lui-on-danger`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-gray-4`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent`, `--lui-shimmer` |
+| `.lui-button-ghost` | `--lui-accent`, `--lui-gray-4`, `--lui-bg`, `--lui-gradient-ring` |
+| `.lui-button-soft` | `--lui-brand-3`, `--lui-brand-11`, `--lui-brand-4`, `--lui-gray-4`, `--lui-brand-5`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent` |
+| `.lui-button-surface` | `--lui-brand-2`, `--lui-brand-11`, `--lui-brand-7`, `--lui-brand-3`, `--lui-brand-8`, `--lui-gray-4`, `--lui-brand-4`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent` |
+| `.lui-button-small` | `--lui-control-h-sm`, `--lui-text-2` |
+| `.lui-button-block` |  |
+| `.lui-button-large` | `--lui-control-h-lg`, `--lui-text-3` |
+| `.lui-button-icon` | `--lui-control-h` |
+| `.lui-button-label` |  |
+| `.lui-button-shimmer` | `--lui-shimmer-surface`, `--lui-sweep`, `--lui-shimmer-duration` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

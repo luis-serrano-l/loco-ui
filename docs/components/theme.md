@@ -8,6 +8,19 @@
 |---|---|---|
 | `ThemeToggle` | `ui.theme_toggle(action: &str)` | stable |
 
+## Keyboard of `ThemeToggle`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the Auto, Light and Dark buttons. | no |
+| `Enter / Space` | Switches to the focused theme. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-theme` | `--lui-input`, `--lui-radius-sm`, `--lui-shadow-xs` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

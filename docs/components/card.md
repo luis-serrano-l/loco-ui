@@ -27,6 +27,25 @@
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | The padding and gaps: 1rem, 1.5rem (the default) or 2rem. |
 | `variant` | choice: solid, soft, surface, outline, ghost | `variant: Variant` | `surface` |  | Surface or ghost, as in Radix; the others draw as surface. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-card` | `--lui-card`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-card-header` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-card-heading` |  |
+| `.lui-card-title` | `--lui-text-3` |
+| `.lui-card-description` | `--lui-muted`, `--lui-text-2` |
+| `.lui-card-action` |  |
+| `.lui-card-classic` | `--lui-shadow-md`, `--lui-highlight` |
+| `.lui-card-ghost` |  |
+| `.lui-card-body` |  |
+| `.lui-card-footer` |  |
+| `.lui-card-beam` | `--lui-beam-angle`, `--lui-beam`, `--lui-fg`, `--lui-beam-duration` |
+| `.lui-card-glow` | `--lui-glow` |
+| `.lui-card-gradient-border` | `--lui-card`, `--lui-gradient-ring` |
+| `.lui-card-reveal` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -18,6 +18,19 @@
 | `id` | value | `id: &'a str` |  | `id` | The tooltip's id, `lui-tooltip-<slug of the text>` by default. |
 | `trigger` | value | `button: Button<'a>` |  |  | A button builder as the trigger, in place of the markup: it gets `aria-describedby` as an attribute. |
 
+## Keyboard of `Tooltip`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Shows the tooltip while its trigger has focus and hides it when focus leaves. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tooltip` |  |
+| `.lui-tooltip-text` | `--lui-z-tooltip`, `--lui-text-1`, `--lui-gray-1`, `--lui-gray-12`, `--lui-radius-sm`, `--lui-shadow-md`, `--lui-tooltip-delay` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

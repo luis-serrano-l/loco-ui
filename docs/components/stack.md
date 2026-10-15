@@ -18,6 +18,19 @@
 | `justify` | choice: start, center, end, between | `justify: Justify` | `start` |  | How the children share the column's height (`justify-content`). |
 | `padding` | number | `n: u8` |  |  | Padding on every side as a step of the `--lui-space-*` scale. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-stack` | `--lui-space-4` |
+| `.lui-pad-0` |  |
+| `.lui-pad-1` | `--lui-space-1` |
+| `.lui-pad-2` | `--lui-space-2` |
+| `.lui-pad-3` | `--lui-space-3` |
+| `.lui-pad-4` | `--lui-space-4` |
+| `.lui-pad-6` | `--lui-space-6` |
+| `.lui-pad-8` | `--lui-space-8` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

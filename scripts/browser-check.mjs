@@ -591,6 +591,84 @@ try {
   }
   if (wide.length) console.error(wide.join("\n"));
   assert(inner === 320 && wide.length === 0, `320px: no page scrolls sideways on ${paths.length} routes x 2 caps (frame ${inner}px; ${Object.keys(pending).length} pending M34 boxes)`);
+
+  // Keyboard (M46): Escape closes each overlay the KEYS say it closes, with real key presses
+  // (WebDriver actions), modern capabilities.
+  const press = (key) => wd("POST", S + "/actions", { actions: [{ type: "key", id: "kb", actions: [{ type: "keyDown", value: key }, { type: "keyUp", value: key }] }] });
+  await go("/caps");
+  await setCookies(caps.modern);
+  const overlays = [
+    ["/dialog", "main button[commandfor=filters][command=show-modal]", "#filters", "drawer"],
+    ["/popover-card", "main button[popovertarget=share]", "#share", "popover card"],
+    ["/context-menu", "main button[popovertarget=ctx-report-pdf]", "#ctx-report-pdf", "context menu"],
+    ["/hover-card", "main button[popovertarget=lui-hover-card-ada]", "#lui-hover-card-ada", "hover card"],
+    ["/palette", "main .lui-palette-open", "#cmd", "command palette"],
+  ];
+  const isOpen = (sel) => js("var e = document.querySelector(arguments[0]); return e.localName === 'dialog' ? e.open : e.matches(':popover-open')", sel);
+  for (const [path, trigger, panel, name] of overlays) {
+    await go(path);
+    await click(trigger);
+    await until(() => isOpen(panel), `${name} open`);
+    await press("\ue00c");
+    await until(async () => !(await isOpen(panel)), `${name} closed by Escape`);
+    assert(true, `keyboard: Escape closes the ${name}`);
+  }
+
+  // Keyboard (M46): without the script, Tab from the top of <main> reaches every control
+  // in it on each component page, under both capability variants. A control is what the
+  // browser puts in the tab order and draws: links, buttons, fields, summaries and
+  // tabindex=0, not disabled, not tabindex=-1, not inside a closed popover, dialog or
+  // details. A radio group is one stop (the checked radio, else any). Firefox also stops on
+  // scrollers; extra stops are fine, a control never reached is not.
+  const site = readFileSync(new URL("../demo/src/site.rs", import.meta.url), "utf8");
+  const pages = [...site.slice(site.indexOf("pub(crate) const COMPONENTS")).split("\n];")[0].matchAll(/href: "([^"]+)"/g)].map((m) => m[1]);
+  const mark = () => {
+    // A streamed page puts <main> inside a declarative shadow root.
+    const main = document.querySelector("main") || [...document.querySelectorAll("*")].map((e) => e.shadowRoot && e.shadowRoot.querySelector("main")).find(Boolean);
+    if (!main) return -1;
+    window.__ktMain = main;
+    const sel = "a[href], button, input:not([type=hidden]), select, textarea, summary, [tabindex]";
+    const groups = new Map();
+    let n = 0;
+    for (const el of main.querySelectorAll(sel)) {
+      if (el.matches(":disabled, [tabindex='-1'], [inert] *") || (el.localName === "summary" && el.parentElement.firstElementChild !== el)) continue;
+      if (el.hasAttribute("tabindex") && !el.matches("a[href], button, input, select, textarea, summary") && el.tabIndex < 0) continue;
+      if (!el.checkVisibility({ visibilityProperty: true })) continue;
+      if (el.type === "radio" && el.name) {
+        const key = (el.form ? "f" : "") + el.name;
+        if (!groups.has(key)) groups.set(key, n++);
+        el.dataset.kt = groups.get(key);
+      } else el.dataset.kt = n++;
+    }
+    main.focus();
+    return n;
+  };
+  const describe = (i) => {
+    const el = window.__ktMain.querySelector(`[data-kt="${i}"]`);
+    return el.localName + (el.id ? "#" + el.id : "") + (el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/)[0] : "") + (el.name ? `[name=${el.name}]` : "") + " " + (el.textContent || el.value || "").trim().slice(0, 20);
+  };
+  const unreached = [];
+  let stops = 0;
+  for (const [variant, cookie] of Object.entries(caps)) {
+    await go("/caps");
+    await setCookies(cookie);
+    for (const path of pages) {
+      await go(path + (path.includes("?") ? "&" : "?") + "script=off");
+      const total = await js("return (" + mark + ")()");
+      if (total < 0) { unreached.push(`${path} [${variant}]: no <main> (${await js("return location.href")})`); continue; }
+      const reached = new Set();
+      for (let i = 0; i < total * 2 + 20; i++) {
+        await tab();
+        const at = await js("var a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return window.__ktMain.contains(a) ? (a.closest('[data-kt]') || a).dataset.kt ?? '' : null");
+        if (at === null) break;
+        if (at !== "") reached.add(at);
+        stops++;
+      }
+      for (let i = 0; i < total; i++) if (!reached.has(String(i))) unreached.push(`${path} [${variant}]: ${await js("return (" + describe + ")(arguments[0])", i)}`);
+    }
+  }
+  if (unreached.length) console.error(unreached.join("\n"));
+  assert(unreached.length === 0, `keyboard: without the script, Tab reaches every control on ${pages.length} component pages x 2 caps (${stops} stops)`);
 } catch (e) {
   console.error("FAIL: " + e.message);
   await wd("DELETE", S).catch(() => {});

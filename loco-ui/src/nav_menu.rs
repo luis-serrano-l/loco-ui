@@ -52,7 +52,7 @@
 use maud::{Markup, Render, html};
 
 use crate::popover::{MenuItem, Placement, menu};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::sidebar::current_href;
 use crate::{Caps, Ui, slug};
 
@@ -78,6 +78,24 @@ pub struct NavMenu<'a> {
 }
 
 impl NavMenu<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the top-level links and panel buttons.",
+        ),
+        Key::new("Enter / Space", "Opens the focused panel from its button."),
+        Key::new(
+            "ArrowDown / ArrowUp",
+            "Moves to the next or previous link in the open panel.",
+        )
+        .script(),
+        Key::new(
+            "Escape",
+            "Closes the open panel and returns focus to its button. Without popover support it closes from its button instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

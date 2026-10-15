@@ -50,7 +50,7 @@ use crate::Ui;
 use crate::button::Button;
 use crate::i18n::Text;
 use crate::input::{Input, described_by, error_line};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// Chips and a text box posting `<name>[]`, made by [`Ui::tag_input`].
 ///
@@ -70,6 +70,23 @@ pub struct TagInput<'a> {
 }
 
 impl TagInput<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the remove links, the text box and the Add button.",
+        ),
+        Key::new(
+            "Enter",
+            "Adds the typed tag when the Add button is the first submit button in its form.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Adds the typed tag from the focused Add button.",
+        ),
+        Key::new("Enter", "Removes the tag from its focused remove link."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

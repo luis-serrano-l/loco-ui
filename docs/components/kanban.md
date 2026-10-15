@@ -18,6 +18,31 @@
 | `description` | modifier | `text: &'a str` |  |  | Small print under the card added last. |
 | `badge` | modifier | `text: impl Display` |  |  | A badge in the meta row of the card added last: a label, an estimate, a tag. |
 
+## Keyboard of `Kanban`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the cards' move buttons, column by column. | no |
+| `Enter / Space` | Moves the card one column left from its left arrow button. | no |
+| `Enter / Space` | Moves the card one column right from its right arrow button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-kanban` |  |
+| `.lui-kanban-board` |  |
+| `.lui-kanban-column` | `--lui-gray-3`, `--lui-radius-lg` |
+| `.lui-kanban-head` | `--lui-text-2` |
+| `.lui-kanban-count` |  |
+| `.lui-kanban-cards` |  |
+| `.lui-kanban-card` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-kanban-title` | `--lui-text-2` |
+| `.lui-kanban-note` | `--lui-text-1`, `--lui-muted` |
+| `.lui-kanban-meta` |  |
+| `.lui-kanban-move` |  |
+| `.lui-kanban-empty` | `--lui-text-2`, `--lui-muted`, `--lui-gray-6`, `--lui-radius` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

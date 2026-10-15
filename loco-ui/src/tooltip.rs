@@ -50,7 +50,7 @@ use maud::{Markup, PreEscaped, Render, html};
 
 use crate::button::Button;
 use crate::popover_card::Side;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Ui, slug};
 
 /// A trigger with a tooltip, made by [`Ui::tooltip`].
@@ -67,6 +67,12 @@ pub struct Tooltip<'a> {
 }
 
 impl Tooltip<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[Key::new(
+        "Tab / Shift+Tab",
+        "Shows the tooltip while its trigger has focus and hides it when focus leaves.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

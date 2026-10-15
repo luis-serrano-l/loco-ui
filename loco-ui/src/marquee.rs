@@ -52,7 +52,7 @@
 use maud::{Markup, Render, html};
 
 use crate::Ui;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A looping row, made by [`Ui::marquee`].
 ///
@@ -67,6 +67,12 @@ pub struct Marquee<'a> {
 }
 
 impl Marquee<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new(
+        "Tab / Shift+Tab",
+        "Pauses the row while focus is on a link or button inside it.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

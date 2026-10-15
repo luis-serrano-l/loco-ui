@@ -19,6 +19,24 @@
 | `open` | modifier | `open: bool` |  | `open` | The folder added last starts open while `open` holds. |
 | `id` | value | `id: &'a str` |  |  | The key in `?open.<id>=` instead of the label's slug. |
 
+## Keyboard of `Tree`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the folder toggles and the links. | no |
+| `Enter / Space` | Opens or closes the focused folder. | no |
+| `Enter` | Follows the focused link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tree` | `--lui-text-2` |
+| `.lui-tree-row` | `--lui-space-2`, `--lui-tree-depth`, `--lui-radius-sm`, `--lui-fg`, `--lui-accent`, `--lui-on-accent`, `--lui-gray-4`, `--lui-hit` |
+| `.lui-tree-label` |  |
+| `.lui-tree-icon` | `--lui-muted` |
+| `.lui-tree-toggle` | `--lui-tree-depth`, `--lui-radius-sm`, `--lui-accent`, `--lui-hit` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

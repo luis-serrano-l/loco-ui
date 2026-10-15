@@ -59,6 +59,29 @@
 | `errors` | value | `errors: &'a [(&'a str, &'a str)]` |  |  | Server messages `(field name, message)`. |
 | `id` | value | `id: &'a str` |  | `id` | What the swap root's id is built from, when two forms on a page post to the same action (one per tab, say). |
 
+## Keyboard of `Form`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves through the fields in order, then to the submit button and the secondary link. | no |
+| `Enter` | Submits the form from a single-line field through its first submit button. | no |
+| `Enter / Space` | Presses the focused submit button. | no |
+| `Enter` | Moves focus to the field from a link in the error summary. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-form` | `--lui-space-6` |
+| `.lui-form-inline` |  |
+| `.lui-form-group` | `--lui-space-4`, `--lui-space-6`, `--lui-line` |
+| `.lui-form-group-legend` | `--lui-text-3` |
+| `.lui-form-hint` | `--lui-muted`, `--lui-text-2` |
+| `.lui-form-group-description` | `--lui-space-4`, `--lui-space-1`, `--lui-muted`, `--lui-text-2` |
+| `.lui-form-actions` | `--lui-space-2` |
+| `.lui-field-help` |  |
+| `.lui-field-check` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

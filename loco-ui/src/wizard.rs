@@ -68,7 +68,7 @@
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Ui, enhance, form::Form};
 
 /// What a step shows: fields (listed by the review) or any markup.
@@ -125,6 +125,22 @@ pub struct Wizard<'a> {
 }
 
 impl Wizard<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves through the step's fields and buttons.",
+        ),
+        Key::new(
+            "Enter",
+            "Sends the step from a field through the form's first submit button, which is Skip on an optional step.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Presses the focused Back, Skip or Next button.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

@@ -107,6 +107,21 @@ assert!(tag.starts_with("<script src=\"/lui/enhance.js?v="));
 
 `loco_ui::layout`
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-gap-0` |  |
+| `.lui-gap-1` | `--lui-space-1` |
+| `.lui-gap-2` | `--lui-space-2` |
+| `.lui-gap-3` | `--lui-space-3` |
+| `.lui-gap-4` | `--lui-space-4` |
+| `.lui-gap-6` | `--lui-space-6` |
+| `.lui-gap-8` | `--lui-space-8` |
+| `.lui-sr` |  |
+| `.lui-skip` | `--lui-space-2`, `--lui-z-tooltip`, `--lui-space-3`, `--lui-radius-sm`, `--lui-popover`, `--lui-fg`, `--lui-shadow-md` |
+| `.lui-note` | `--lui-muted`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -294,6 +309,34 @@ assert!(caps::beacon_cookie("flag=popover", https).unwrap().ends_with("; Secure"
 | `interestfor` | value | `id: &'a str` |  | `interestfor` | Show the popover with this id while the button or link has the pointer or focus (`interestfor`). |
 | `shimmer` | switch |  | `off` |  | A light sweeps across the button, over its own background. |
 
+## Keyboard of `Button`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the button or past it. | no |
+| `Enter / Space` | Presses the button: submits its form, runs its command or opens its popover. | no |
+| `Enter` | Follows the link when the button is drawn as a link. | no |
+| `Alt / Alt+Shift` | Presses the button when held with its `.accesskey()` character; the modifier depends on the browser and system. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-button` | `--lui-control-h`, `--lui-text-2`, `--lui-bg`, `--lui-input`, `--lui-radius-sm`, `--lui-shadow-xs`, `--lui-fg`, `--lui-accent`, `--lui-on-accent`, `--lui-primary`, `--lui-on-primary`, `--lui-brand-11`, `--lui-brand-3`, `--lui-brand-4`, `--lui-brand-2`, `--lui-brand-7`, `--lui-gray-12`, `--lui-gray-1`, `--lui-gray-3`, `--lui-gray-4`, `--lui-gray-2`, `--lui-danger`, `--lui-on-danger`, `--lui-ok`, `--lui-warn`, `--lui-button-fill`, `--lui-button-on`, `--lui-highlight`, `--lui-button-tint`, `--lui-button-text`, `--lui-button-tint-hover`, `--lui-button-pale`, `--lui-button-line`, `--lui-ring`, `--lui-gray-8` |
+| `.lui-primary` | `--lui-primary`, `--lui-gradient-primary`, `--lui-on-primary`, `--lui-shadow-xs`, `--lui-highlight` |
+| `.lui-button-primary` | `--lui-primary`, `--lui-gradient-primary`, `--lui-on-primary`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-gray-4`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent`, `--lui-shimmer` |
+| `.lui-danger` | `--lui-danger`, `--lui-on-danger`, `--lui-shadow-xs`, `--lui-highlight` |
+| `.lui-button-danger` | `--lui-danger`, `--lui-on-danger`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-gray-4`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent`, `--lui-shimmer` |
+| `.lui-button-ghost` | `--lui-accent`, `--lui-gray-4`, `--lui-bg`, `--lui-gradient-ring` |
+| `.lui-button-soft` | `--lui-brand-3`, `--lui-brand-11`, `--lui-brand-4`, `--lui-gray-4`, `--lui-brand-5`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent` |
+| `.lui-button-surface` | `--lui-brand-2`, `--lui-brand-11`, `--lui-brand-7`, `--lui-brand-3`, `--lui-brand-8`, `--lui-gray-4`, `--lui-brand-4`, `--lui-bg`, `--lui-gradient-ring`, `--lui-accent` |
+| `.lui-button-small` | `--lui-control-h-sm`, `--lui-text-2` |
+| `.lui-button-block` |  |
+| `.lui-button-large` | `--lui-control-h-lg`, `--lui-text-3` |
+| `.lui-button-icon` | `--lui-control-h` |
+| `.lui-button-label` |  |
+| `.lui-button-shimmer` | `--lui-shimmer-surface`, `--lui-sweep`, `--lui-shimmer-duration` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -459,6 +502,51 @@ assert_eq!(lui! { Button("Continue") primary large block trailing=(Icon::ArrowRi
 | `help` | value | `help: &'a str` |  |  | Help text under the choices. |
 | `error` | value | `message: &'a str` |  |  | A server message under the choices. |
 
+## Keyboard of `Input`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the field or out of it. | no |
+| `Enter` | Submits the form from a single-line field, or starts a new line in a textarea. | no |
+| `Space` | Toggles a checkbox or switch. | no |
+| `ArrowUp / ArrowDown` | Steps a number field up or down by its step. | no |
+| `Enter / Space` | Presses a focused stepper, which posts the field one step up or down. | no |
+| `Enter / Space` | Steps the number in place from a stepper, or shows and hides the password from the reveal button. | yes |
+
+## Keyboard of `RadioGroup`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the group, onto the picked choice or the first one. | no |
+| `ArrowDown / ArrowRight` | Moves to the next choice and picks it, wrapping at the end. | no |
+| `ArrowUp / ArrowLeft` | Moves to the previous choice and picks it, wrapping at the start. | no |
+| `Space` | Picks the focused choice when none is picked yet. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-switch` | `--lui-on-primary`, `--lui-duration-fast`, `--lui-ease-spring`, `--lui-gray-5`, `--lui-gray-6`, `--lui-shadow-xs`, `--lui-duration`, `--lui-primary`, `--lui-gray-4` |
+| `.lui-field` | `--lui-text-2`, `--lui-danger`, `--lui-control-h-sm`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-brand-3` |
+| `.lui-radio-group-option` | `--lui-space-3`, `--lui-space-4`, `--lui-input`, `--lui-radius`, `--lui-bg`, `--lui-duration-fast`, `--lui-gray-8`, `--lui-primary`, `--lui-ring`, `--lui-gray-2`, `--lui-gray-11`, `--lui-hit` |
+| `.lui-field-count` | `--lui-muted`, `--lui-text-1` |
+| `.lui-error` | `--lui-danger`, `--lui-text-2` |
+| `.lui-input-slots` | `--lui-space-2`, `--lui-control-h`, `--lui-muted`, `--lui-text-2`, `--lui-input`, `--lui-radius-sm`, `--lui-duration-fast`, `--lui-fg`, `--lui-ring`, `--lui-danger`, `--lui-gray-2`, `--lui-gray-6`, `--lui-control-h-sm`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-brand-3` |
+| `.lui-input-leading` |  |
+| `.lui-input-trailing` |  |
+| `.lui-input-gradient-border` | `--lui-bg`, `--lui-gradient-ring` |
+| `.lui-radio-group` | `--lui-text-2`, `--lui-danger` |
+| `.lui-radio-group-options` | `--lui-space-3` |
+| `.lui-radio-group-description` | `--lui-muted`, `--lui-text-2` |
+| `.lui-radio-group-text` |  |
+| `.lui-field-optional` | `--lui-muted` |
+| `.lui-input-group` | `--lui-control-h`, `--lui-input`, `--lui-radius-sm`, `--lui-text-2`, `--lui-duration-fast`, `--lui-ring`, `--lui-danger`, `--lui-gray-2`, `--lui-gray-6`, `--lui-hit` |
+| `.lui-input-group-prefix` | `--lui-muted`, `--lui-gray-2`, `--lui-input`, `--lui-radius-sm` |
+| `.lui-input-group-suffix` | `--lui-muted`, `--lui-gray-2`, `--lui-input`, `--lui-radius-sm` |
+| `.lui-input-group-button` | `--lui-input` |
+| `.lui-input-steppers` | `--lui-input` |
+| `.lui-input-reveal` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -590,6 +678,20 @@ assert_eq!(lui! { Input("q", "Search") size=1 variant="soft"; }.into_string(), q
 | `variant` | choice: solid, soft, surface, outline, ghost | `variant: Variant` | `soft` |  | How the tone is painted; ghost is the tone's text with no fill or border. |
 | `radius` | choice: none, small, medium, large, full | `radius: Radius` | `small` |  | The corners, from square to a pill. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-badge` | `--lui-primary`, `--lui-on-primary`, `--lui-text-1`, `--lui-radius-sm`, `--lui-badge-tone`, `--lui-fg`, `--lui-duration-fast`, `--lui-text-2` |
+| `.lui-badge-outline` | `--lui-gray-11`, `--lui-badge-tone` |
+| `.lui-badge-secondary` | `--lui-gray-11` |
+| `.lui-badge-danger` | `--lui-danger`, `--lui-gray-1` |
+| `.lui-badge-ok` | `--lui-ok`, `--lui-gray-1` |
+| `.lui-badge-warn` | `--lui-warn`, `--lui-gray-1` |
+| `.lui-badge-solid` | `--lui-badge-tone`, `--lui-badge-on`, `--lui-fg`, `--lui-shimmer` |
+| `.lui-badge-surface` | `--lui-badge-tone` |
+| `.lui-badge-shimmer` | `--lui-shimmer-surface`, `--lui-sweep`, `--lui-shimmer-duration` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -679,6 +781,25 @@ assert_eq!(lui! { Badge("Beta") tone="info" variant="surface" size=2 radius="ful
 | `ghost` | switch |  | `off` |  | No frame, fill or shadow: only the card's spacing. |
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | The padding and gaps: 1rem, 1.5rem (the default) or 2rem. |
 | `variant` | choice: solid, soft, surface, outline, ghost | `variant: Variant` | `surface` |  | Surface or ghost, as in Radix; the others draw as surface. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-card` | `--lui-card`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-card-header` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-card-heading` |  |
+| `.lui-card-title` | `--lui-text-3` |
+| `.lui-card-description` | `--lui-muted`, `--lui-text-2` |
+| `.lui-card-action` |  |
+| `.lui-card-classic` | `--lui-shadow-md`, `--lui-highlight` |
+| `.lui-card-ghost` |  |
+| `.lui-card-body` |  |
+| `.lui-card-footer` |  |
+| `.lui-card-beam` | `--lui-beam-angle`, `--lui-beam`, `--lui-fg`, `--lui-beam-duration` |
+| `.lui-card-glow` | `--lui-glow` |
+| `.lui-card-gradient-border` | `--lui-card`, `--lui-gradient-ring` |
+| `.lui-card-reveal` |  |
 
 ## Platform
 
@@ -852,6 +973,19 @@ assert!(m.into_string().contains("M12 5v14"));
 | `max` | number | `max: usize` |  |  | Show this many, then a `+n` count of the rest. |
 | `size` | value | `size: u8` | `2` |  | Radix's sizes 1–5 for every avatar in the row. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-avatar` | `--lui-brand-3`, `--lui-brand-11`, `--lui-text-1`, `--lui-primary`, `--lui-gray-11`, `--lui-danger`, `--lui-ok`, `--lui-warn`, `--lui-avatar-tone`, `--lui-bg`, `--lui-fg`, `--lui-gray-1` |
+| `.lui-avatar-1` | `--lui-text-1` |
+| `.lui-avatar-3` | `--lui-text-2` |
+| `.lui-avatar-4` | `--lui-text-3` |
+| `.lui-avatar-5` | `--lui-text-5` |
+| `.lui-avatar-square` | `--lui-radius` |
+| `.lui-avatars` |  |
+| `.lui-avatar-more` | `--lui-gray-3`, `--lui-fg` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -928,6 +1062,19 @@ assert_eq!(lui! { Avatar("Build Bot") tone="neutral" variant="solid" radius="med
 | `justify` | choice: start, center, end, between | `justify: Justify` | `start` |  | How the children share the column's height (`justify-content`). |
 | `padding` | number | `n: u8` |  |  | Padding on every side as a step of the `--lui-space-*` scale. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-stack` | `--lui-space-4` |
+| `.lui-pad-0` |  |
+| `.lui-pad-1` | `--lui-space-1` |
+| `.lui-pad-2` | `--lui-space-2` |
+| `.lui-pad-3` | `--lui-space-3` |
+| `.lui-pad-4` | `--lui-space-4` |
+| `.lui-pad-6` | `--lui-space-6` |
+| `.lui-pad-8` | `--lui-space-8` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -999,6 +1146,15 @@ assert_eq!(same.into_string(), m);
 | `padding` | number | `n: u8` |  |  | Padding on every side as a step of the `--lui-space-*` scale. |
 | `nowrap` | switch |  | `off` |  | Keep the children on one line; they shrink instead of wrapping. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-cluster` | `--lui-space-2` |
+| `.lui-cluster-between` |  |
+| `.lui-cluster-end` |  |
+| `.lui-cluster-nowrap` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1069,6 +1225,12 @@ assert_eq!(same.into_string(), m);
 | `body` | value | `markup: Markup` |  |  | What is laid out: each top-level element is a cell. |
 | `gap` | number | `n: u8` |  |  | The gap as a step of the `--lui-space-*` scale. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-grid` | `--lui-grid-min`, `--lui-space-4` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1131,6 +1293,14 @@ assert_eq!(same.into_string(), m);
 | `side_width` | value | `width: &'a str` |  |  | The side's width, any CSS length. |
 | `side_end` | switch |  | `off` |  | The side after the main part, in the markup and on screen. |
 | `gap` | number | `n: u8` |  |  | The gap as a step of the `--lui-space-*` scale. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-split` | `--lui-space-4` |
+| `.lui-split-side` | `--lui-split-side` |
+| `.lui-split-main` |  |
 
 ## Platform
 
@@ -1200,6 +1370,33 @@ assert!(m.contains("--lui-split-side: 20rem") && m.find("Results") < m.find("Fil
 | `required` | switch |  | `off` | `required` | In radio mode, a day must be picked before the form submits. |
 | `range` | value | `end: &'a str` |  |  | Pick a first and a last day: the first in the calendar's name, the last in `end`. |
 | `weeks` | switch |  | `off` |  | A column of ISO 8601 week numbers before the days. |
+
+## Keyboard of `Calendar`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the month links, then into the days. | no |
+| `ArrowRight / ArrowDown` | Picks the next day when the calendar is a radio group. | no |
+| `ArrowLeft / ArrowUp` | Picks the previous day when the calendar is a radio group. | no |
+| `Enter` | Follows the focused day or month link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-calendar` | `--lui-space-3`, `--lui-card`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-xs` |
+| `.lui-calendar-head` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-calendar-title` | `--lui-text-2` |
+| `.lui-calendar-grid` | `--lui-text-2`, `--lui-space-2`, `--lui-text-1`, `--lui-muted` |
+| `.lui-calendar-day` | `--lui-radius-sm`, `--lui-duration-fast`, `--lui-accent`, `--lui-on-accent` |
+| `.lui-calendar-off` | `--lui-accent`, `--lui-on-accent`, `--lui-gray-9` |
+| `.lui-calendar-outside` | `--lui-muted` |
+| `.lui-calendar-today` | `--lui-accent`, `--lui-on-accent` |
+| `.lui-calendar-picked` | `--lui-primary`, `--lui-on-primary` |
+| `.lui-calendar-radio` | `--lui-primary`, `--lui-on-primary`, `--lui-ring` |
+| `.lui-calendar-dots` | `--lui-primary` |
+| `.lui-calendar-between` | `--lui-accent`, `--lui-on-accent` |
+| `.lui-calendar-week` | `--lui-text-1`, `--lui-leading-1`, `--lui-muted` |
 
 ## Platform
 
@@ -1300,6 +1497,27 @@ assert!(m.contains(r#"href="/stay?from=2026-09-10&amp;to=2026-09-14""#));
 | `required` | switch |  | `off` | `required` | A day must be picked before the form submits. |
 | `native` | switch |  | `off` |  | The browser's own `<input type="date">` instead of the calendar. |
 
+## Keyboard of `DatePicker`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the trigger button, or between the day, month and year parts of the native date field. | no |
+| `Enter / Space` | Opens the calendar from the trigger button. | no |
+| `Escape` | Closes the calendar popover. Without popover support it closes from its button instead. | no |
+| `ArrowRight / ArrowDown` | Picks the next day in the calendar. | no |
+| `ArrowLeft / ArrowUp` | Picks the previous day in the calendar. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-date-picker-anchor` |  |
+| `.lui-date-picker-label` | `--lui-text-2` |
+| `.lui-date-picker-chevron` | `--lui-muted` |
+| `.lui-date-picker-empty` | `--lui-muted` |
+| `.lui-date-picker-panel` | `--lui-space-1` |
+| `.lui-date-picker-range` | `--lui-space-1`, `--lui-space-4`, `--lui-muted`, `--lui-text-2`, `--lui-leading-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1395,6 +1613,33 @@ assert!(m.contains("lui-calendar-between"));
 | `closedby` | value | `closedby: &'a str` | `any` | `closedby` | The `closedby` attribute. |
 | `trigger` | value | `button: Button<'a>` |  |  | The opener as a styled button of the caller's (`ui.button(..).danger()`); its command or link is the dialog's. |
 | `no_trigger` | switch |  | `off` |  | No opener: a link to `?dialog=<id>` or a button elsewhere opens it. |
+
+## Keyboard of `Dialog`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the dialog from its button. | no |
+| `Tab / Shift+Tab` | Moves between the dialog's controls while the page behind it is inert. | no |
+| `Enter` | Presses the focused button, or sends the confirm form from a field in it. | no |
+| `Escape` | Closes the dialog and returns focus to its button, unless `closedby` is "none". Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-dialog` | `--lui-space-2`, `--lui-space-6`, `--lui-popover`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-dialog-pad`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-overlay`, `--lui-z-dialog`, `--lui-duration`, `--lui-ease-out`, `--lui-duration-slow`, `--lui-ease-spring` |
+| `.lui-dialog-form` |  |
+| `.lui-dialog-sm` | `--lui-space-4` |
+| `.lui-dialog-md` |  |
+| `.lui-dialog-lg` |  |
+| `.lui-dialog-xl` | `--lui-space-8` |
+| `.lui-dialog-title` | `--lui-text-5`, `--lui-space-2` |
+| `.lui-dialog-body` | `--lui-text-2`, `--lui-muted`, `--lui-fg` |
+| `.lui-dialog-actions` | `--lui-space-3`, `--lui-space-6` |
+| `.lui-dialog-close` | `--lui-space-3` |
+| `.lui-dialog-description` | `--lui-space-3`, `--lui-text-2`, `--lui-leading-2`, `--lui-muted` |
+| `.lui-dialog-footer` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-dialog-full` |  |
 
 ## Platform
 
@@ -1549,6 +1794,36 @@ assert!(bare.starts_with(r#"<div class="lui-dialog"><dialog id="lui-dialog-terms
 | `open_right` | switch |  | `off` |  | Open to the right of the button. |
 | `trigger` | value | `button: Button<'a>` |  |  | The opener as a styled button of the caller's; the menu sets its `popovertarget`. |
 
+## Keyboard of `Menu`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the menu from its button. | no |
+| `Tab / Shift+Tab` | Moves to the next or previous item in the open menu. | no |
+| `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
+| `Enter` | Follows the focused link or sends the focused action. | no |
+| `Space` | Ticks the focused checkbox or radio item. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-popover` | `--lui-space-1`, `--lui-popover`, `--lui-fg`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-duration-fast`, `--lui-ease-out`, `--lui-duration`, `--lui-ease-spring` |
+| `.lui-popover-anchored` |  |
+| `.lui-popover-details` | `--lui-z-popover`, `--lui-radius-sm` |
+| `.lui-popover-subnav` |  |
+| `.lui-popover-check` | `--lui-primary` |
+| `.lui-popover-apply` |  |
+| `.lui-popover-item` | `--lui-space-2`, `--lui-text-2`, `--lui-radius-sm`, `--lui-hit`, `--lui-primary`, `--lui-on-primary` |
+| `.lui-popover-icon` | `--lui-muted` |
+| `.lui-popover-kbd` | `--lui-text-1`, `--lui-muted`, `--lui-space-4` |
+| `.lui-popover-description` | `--lui-text-2`, `--lui-muted`, `--lui-space-2` |
+| `.lui-popover-danger` | `--lui-danger` |
+| `.lui-popover-heading` | `--lui-text-1`, `--lui-muted` |
+| `.lui-popover-sep` | `--lui-space-1`, `--lui-line` |
+| `.lui-popover-sub` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1679,6 +1954,27 @@ assert_eq!(same.into_string(), html);
 | `underline` | switch |  | `off` |  | Titles on a hairline, the open one marked by a 2px bar (Radix TabNav). |
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | The titles' text and padding: smaller at 1, larger at 3. |
 
+## Keyboard of `Tabs`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the tab links. | no |
+| `Enter` | Shows the focused tab's panel. | no |
+| `ArrowDown / ArrowUp` | Picks the next or previous tab in the narrow-screen select, sent with its Go button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tabs` |  |
+| `.lui-tabs-list` | `--lui-radius`, `--lui-secondary`, `--lui-line` |
+| `.lui-tabs-trigger` | `--lui-radius-sm`, `--lui-text-2`, `--lui-muted`, `--lui-fg`, `--lui-text-3` |
+| `.lui-tabs-label` |  |
+| `.lui-tabs-mark` | `--lui-radius-sm`, `--lui-bg`, `--lui-shadow-xs`, `--lui-duration-slow`, `--lui-ease-spring`, `--lui-fg`, `--lui-primary` |
+| `.lui-tabs-badge` | `--lui-text-1`, `--lui-line`, `--lui-fg`, `--lui-primary`, `--lui-on-primary` |
+| `.lui-tabs-panel` | `--lui-space` |
+| `.lui-tabs-select` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1786,6 +2082,26 @@ assert_eq!(lui! { Tabs("small") size=1 { tab "One" {} } }.into_string(), small);
 | `multiple` | switch |  | `off` |  | Several sections may be open at once (`?open.<group>=0,2`). |
 | `controls` | switch |  | `off` |  | "Expand all" and "Collapse all" links above the sections (with `multiple`). |
 
+## Keyboard of `Accordion`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the section headers. | no |
+| `Enter` | Opens or closes the focused section. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-accordion-item` | `--lui-line` |
+| `.lui-accordion-trigger` | `--lui-text-2`, `--lui-muted`, `--lui-duration`, `--lui-ease-out` |
+| `.lui-accordion-title` |  |
+| `.lui-accordion-icon` |  |
+| `.lui-accordion-summary` | `--lui-text-2`, `--lui-muted` |
+| `.lui-accordion-body` | `--lui-text-2` |
+| `.lui-accordion-controls` | `--lui-space`, `--lui-text-2`, `--lui-line` |
+| `.lui-accordion` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1877,6 +2193,31 @@ assert_eq!(same.into_string(), html);
 | `disabled` | switch |  | `off` | `disabled` | The box and its button disabled, the chips without remove links, no results. |
 | `readonly` | switch |  | `off` |  | The box `readonly`, the chips without remove links, no results. |
 
+## Keyboard of `Combobox`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the search field, the Search button, the result links and the remove links. | no |
+| `ArrowDown / ArrowUp` | Opens the suggestion list under the field and moves through it. | no |
+| `Enter` | Fills in the highlighted suggestion, or searches for the typed text when none is highlighted. | no |
+| `Escape` | Closes the suggestion list. | no |
+| `ArrowDown / ArrowUp` | Moves focus between the search field and the result links. | yes |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-combobox` | `--lui-space-2` |
+| `.lui-combobox-input` |  |
+| `.lui-combobox-chips` |  |
+| `.lui-combobox-results` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-combobox-status` | `--lui-space-2`, `--lui-text-2`, `--lui-muted` |
+| `.lui-combobox-list` | `--lui-space-1`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-text-2`, `--lui-space-2`, `--lui-radius-sm`, `--lui-primary`, `--lui-on-primary`, `--lui-hit` |
+| `.lui-combobox-chosen` | `--lui-space-2`, `--lui-radius-sm`, `--lui-hit` |
+| `.lui-combobox-picked` | `--lui-muted`, `--lui-text-1` |
+| `.lui-combobox-empty` | `--lui-space-6` |
+| `.lui-combobox-create` | `--lui-space-1` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -1963,6 +2304,20 @@ assert_eq!(same.into_string(), html);
 |---|---|---|---|---|---|
 | `per_page` | number | `per_page: usize` | `10` |  | Rows per page. |
 | `rows` | value | `row: impl Fn(usize) -> Markup + 'a` |  |  | Row `i` (0-based) of the list. |
+
+## Keyboard of `Pager`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Loads the next page from the Load more link and scrolls to the first new item. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-pager-list` | `--lui-text-2`, `--lui-line` |
+| `.lui-pager-anchor` |  |
+| `.lui-pager-more` |  |
 
 ## Platform
 
@@ -2073,6 +2428,66 @@ assert_eq!(same.into_string(), m);
 | `striped` | switch |  | `off` |  | Every other row on a gray band. |
 | `density` | value | `density: Density` | `Density::Comfortable` |  | `Density::Compact` halves the cell padding. |
 | `group_by` | value | `key: &'a str` |  |  | A group header row wherever the column `key`'s cell changes (rows sorted by it). |
+
+## Keyboard of `Table`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Sorts by the focused column header, or reverses that sort when it is already first. | no |
+| `Enter` | Applies the filters from the search box or any filter field. | no |
+| `Space` | Ticks or clears the focused row checkbox for the bulk actions. | no |
+| `Enter / Space` | Opens or closes the Filters and Columns lists and a row's details. | no |
+| `Enter` | Saves the row being edited from any of its fields. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-table` | `--lui-gray-2`, `--lui-muted`, `--lui-text-2`, `--lui-duration-fast`, `--lui-fg` |
+| `.lui-table-toolbar` | `--lui-space` |
+| `.lui-table-filter` | `--lui-space` |
+| `.lui-table-filter-input` |  |
+| `.lui-table-clear` | `--lui-muted`, `--lui-text-2`, `--lui-fg` |
+| `.lui-table-cols` | `--lui-text-2`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-radius-sm`, `--lui-accent`, `--lui-on-accent` |
+| `.lui-table-cols-mark` | `--lui-fg` |
+| `.lui-table-scroll` | `--lui-line`, `--lui-radius-lg`, `--lui-bg`, `--lui-fg`, `--lui-gray-2` |
+| `.lui-table-has-select` | `--lui-bg` |
+| `.lui-table-check` | `--lui-brand-3` |
+| `.lui-table-sorted` | `--lui-fg` |
+| `.lui-table-arrow` |  |
+| `.lui-table-num` |  |
+| `.lui-table-select` |  |
+| `.lui-table-menu` |  |
+| `.lui-table-edit-col` |  |
+| `.lui-table-edit` |  |
+| `.lui-table-edit-input` |  |
+| `.lui-table-empty` | `--lui-muted`, `--lui-space-6` |
+| `.lui-table-more` | `--lui-space-1`, `--lui-text-2`, `--lui-muted`, `--lui-fg` |
+| `.lui-table-p3` |  |
+| `.lui-table-more-p3` |  |
+| `.lui-table-p2` |  |
+| `.lui-table-more-p2` |  |
+| `.lui-table-detail` | `--lui-muted` |
+| `.lui-table-detail-body` | `--lui-text-2`, `--lui-muted` |
+| `.lui-table-bulk` | `--lui-space`, `--lui-text-2`, `--lui-muted` |
+| `.lui-table-skeleton` | `--lui-radius-sm`, `--lui-accent` |
+| `.lui-table-sort-index` | `--lui-gray-4`, `--lui-fg`, `--lui-text-1` |
+| `.lui-table-then` | `--lui-radius-sm`, `--lui-muted`, `--lui-gray-4`, `--lui-fg` |
+| `.lui-table-filters` | `--lui-text-2` |
+| `.lui-table-filters-count` | `--lui-primary`, `--lui-on-primary`, `--lui-text-1` |
+| `.lui-table-filters-body` | `--lui-space-2`, `--lui-space-3`, `--lui-gray-2`, `--lui-line`, `--lui-radius` |
+| `.lui-table-all` |  |
+| `.lui-table-striped` | `--lui-gray-2`, `--lui-gray-3` |
+| `.lui-table-compact` | `--lui-space-1`, `--lui-space-2`, `--lui-text-2` |
+| `.lui-table-group` | `--lui-gray-2`, `--lui-muted`, `--lui-text-2` |
+| `.lui-table-disabled` | `--lui-muted` |
+| `.lui-table-ok` | `--lui-ok`, `--lui-table-tone`, `--lui-bg` |
+| `.lui-table-warn` | `--lui-warn`, `--lui-table-tone`, `--lui-bg` |
+| `.lui-table-danger` | `--lui-danger`, `--lui-table-tone`, `--lui-bg` |
+| `.lui-table-go-col` |  |
+| `.lui-table-go` |  |
+| `.lui-table-linked` |  |
+| `.lui-table-row-link` | `--lui-muted`, `--lui-text-5` |
 
 ## Platform
 
@@ -2282,6 +2697,21 @@ assert_eq!(same.into_string(), html);
 
 `loco_ui::paged_table`
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-paged-table` |  |
+| `.lui-paged-table-nav` | `--lui-space-2`, `--lui-space-4`, `--lui-text-2`, `--lui-muted` |
+| `.lui-paged-table-pages` | `--lui-space-1` |
+| `.lui-paged-table-gap` |  |
+| `.lui-paged-table-of` | `--lui-space-2`, `--lui-fg` |
+| `.lui-paged-table-jump` | `--lui-space-2` |
+| `.lui-paged-table-per` | `--lui-space-2` |
+| `.lui-paged-table-page` |  |
+| `.lui-paged-table-num` |  |
+| `.lui-paged-table-end` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -2368,6 +2798,26 @@ assert!(html.contains("<select name=\"per.files\""));
 | `errors` | value | `errors: &'a [(&'a str, &'a str)]` |  |  | Server messages `(field name, message)` for the posted step. |
 | `finish` | value | `label: &'a str` | `Finish` |  | Label of the last step's submit button. |
 | `hide_progress` | switch |  | `off` |  | No `<progress>` element (the connectors still show progress on screen). |
+
+## Keyboard of `Wizard`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves through the step's fields and buttons. | no |
+| `Enter` | Sends the step from a field through the form's first submit button, which is Skip on an optional step. | no |
+| `Enter / Space` | Presses the focused Back, Skip or Next button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-wizard` |  |
+| `.lui-wizard-progress` |  |
+| `.lui-wizard-resume` | `--lui-text-2`, `--lui-line`, `--lui-radius`, `--lui-card` |
+| `.lui-wizard-form` | `--lui-line`, `--lui-radius-lg`, `--lui-space-4`, `--lui-space-6`, `--lui-danger`, `--lui-text-2` |
+| `.lui-wizard-actions` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-wizard-review` | `--lui-muted` |
+| `.lui-wizard-edit` | `--lui-space-2`, `--lui-text-2` |
 
 ## Platform
 
@@ -2511,6 +2961,29 @@ assert_eq!(same.into_string(), html);
 | `values` | value | `values: &'a [(String, String)]` |  |  | Submitted values by field name, as a form post parses them. |
 | `errors` | value | `errors: &'a [(&'a str, &'a str)]` |  |  | Server messages `(field name, message)`. |
 | `id` | value | `id: &'a str` |  | `id` | What the swap root's id is built from, when two forms on a page post to the same action (one per tab, say). |
+
+## Keyboard of `Form`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves through the fields in order, then to the submit button and the secondary link. | no |
+| `Enter` | Submits the form from a single-line field through its first submit button. | no |
+| `Enter / Space` | Presses the focused submit button. | no |
+| `Enter` | Moves focus to the field from a link in the error summary. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-form` | `--lui-space-6` |
+| `.lui-form-inline` |  |
+| `.lui-form-group` | `--lui-space-4`, `--lui-space-6`, `--lui-line` |
+| `.lui-form-group-legend` | `--lui-text-3` |
+| `.lui-form-hint` | `--lui-muted`, `--lui-text-2` |
+| `.lui-form-group-description` | `--lui-space-4`, `--lui-space-1`, `--lui-muted`, `--lui-text-2` |
+| `.lui-form-actions` | `--lui-space-2` |
+| `.lui-field-help` |  |
+| `.lui-field-check` |  |
 
 ## Platform
 
@@ -2663,6 +3136,19 @@ assert_eq!(same.into_string(), html);
 | `title` | value | `text: &'a str` | `There is a problem` |  | The heading. |
 | `field` | item | `name: &'a str, label: &'a str` |  |  | The label of the field `name`, written before its message as a form's summary does. |
 
+## Keyboard of `ErrorSummary`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Scrolls to the field a message names, so the next Tab lands in it. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-error-summary-title` | `--lui-text-2`, `--lui-ring` |
+| `.lui-error-summary-list` | `--lui-space-1` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -2743,6 +3229,22 @@ assert_eq!(same.into_string(), m);
 | `disabled` | switch |  | `off` | `disabled` | Every button and the number field disabled. |
 | `readonly` | switch |  | `off` |  | The value shown, its buttons off and the number field `readonly`. |
 
+## Keyboard of `Counter`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the decrement, increment and reset buttons and the value field. | no |
+| `Enter / Space` | Presses the focused button, which posts the change. | no |
+| `ArrowUp / ArrowDown` | Steps the typed value up or down by the step before it is set. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-counter` | `--lui-space`, `--lui-text-6` |
+| `.lui-counter-input` |  |
+| `.lui-counter-bounds` | `--lui-muted`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -2812,6 +3314,19 @@ assert_eq!(same.into_string(), bounded.render().into_string());
 |---|---|---|
 | `ThemeToggle` | `ui.theme_toggle(action: &str)` | stable |
 
+## Keyboard of `ThemeToggle`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the Auto, Light and Dark buttons. | no |
+| `Enter / Space` | Switches to the focused theme. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-theme` | `--lui-input`, `--lui-radius-sm`, `--lui-shadow-xs` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -2879,6 +3394,18 @@ assert_eq!(same.into_string(), m);
 | `variant` | choice: solid, soft, surface, outline, ghost | `variant: Variant` | `soft` |  | Each message's callout: soft, surface or outline, as on an alert. |
 | `title` | value | `text: &'a str` |  |  | A bold line over each message. |
 | `action` | value | `label: &'a str, href: &'a str` |  |  | A link button under each message ("Undo", "View"). |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-flash` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-flash-item` |  |
+| `.lui-flash-title` |  |
+| `.lui-flash-text` |  |
+| `.lui-flash-actions` | `--lui-space-2`, `--lui-space-1` |
+| `.lui-flash-dismiss` | `--lui-radius-sm`, `--lui-hit` |
+| `.lui-flash-auto` |  |
 
 ## Platform
 
@@ -3060,6 +3587,28 @@ assert_eq!(state.set_cookies().len(), 2); // remember tab.settings, clear the fl
 | `body` | value | `content: Markup` |  |  | Rich markup instead of the text (with `Caps::BaseSelect` only). |
 | `disabled` | switch |  | `off` | `disabled` | Shown, but cannot be picked. |
 
+## Keyboard of `Select`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the select or past it. | no |
+| `Space / Alt+ArrowDown` | Opens the list of options. | no |
+| `ArrowUp / ArrowDown` | Moves to the previous or next option. | no |
+| `Home / End` | Moves to the first or last option. | no |
+| `Enter` | Picks the highlighted option and closes the list. | no |
+| `Escape` | Closes the list without changing the choice. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-select` | `--lui-space-2`, `--lui-control-h-sm`, `--lui-text-2`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-brand-3`, `--lui-muted`, `--lui-duration-fast`, `--lui-space-1`, `--lui-line`, `--lui-radius`, `--lui-popover`, `--lui-fg`, `--lui-shadow-md`, `--lui-highlight`, `--lui-radius-sm`, `--lui-primary`, `--lui-on-primary`, `--lui-text-1`, `--lui-gray-10`, `--lui-hit` |
+| `.lui-select-search` | `--lui-space-2` |
+| `.lui-select-filter` |  |
+| `.lui-select-trigger` |  |
+| `.lui-select-icon` |  |
+| `.lui-swatch` | `--lui-line` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3170,6 +3719,27 @@ assert_eq!(same.into_string(), sort);
 | `ticks` | switch |  | `off` |  | The lowest, middle and highest values marked under the track. |
 | `id` | value | `id: &'a str` |  | `id` | The slider's id, `f-<name>` by default. |
 
+## Keyboard of `Range`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the slider, or between the two thumbs of a pair. | no |
+| `ArrowRight / ArrowUp` | Raises the value by one step. | no |
+| `ArrowLeft / ArrowDown` | Lowers the value by one step. | no |
+| `Home / End` | Sets the value to the minimum or maximum. | no |
+| `PageUp / PageDown` | Raises or lowers the value by a larger amount the browser picks. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-range` | `--lui-space-3`, `--lui-text-2`, `--lui-hit` |
+| `.lui-range-main` | `--lui-space-1` |
+| `.lui-range-input` | `--lui-primary`, `--lui-range-fill`, `--lui-gray-4`, `--lui-on-primary`, `--lui-gray-7`, `--lui-shadow-xs`, `--lui-duration-fast`, `--lui-ring`, `--lui-gray-8`, `--lui-hit` |
+| `.lui-range-values` | `--lui-text-2`, `--lui-hit` |
+| `.lui-range-ticks` | `--lui-muted`, `--lui-text-1`, `--lui-gray-7` |
+| `.lui-range-track` | `--lui-gray-4`, `--lui-range-lo`, `--lui-primary`, `--lui-range-hi`, `--lui-hit` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3259,6 +3829,28 @@ assert_eq!(same.into_string(), m);
 | `disabled` | switch |  | `off` | `disabled` | `disabled` and `aria-disabled`: shown greyed and not posted. |
 | `readonly` | switch |  | `off` |  | Shown and posted, not changeable: disabled controls and hidden inputs with the values. |
 
+## Keyboard of `Color`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the colour well, the opacity slider and the presets. | no |
+| `Enter / Space` | Opens the system colour picker from the colour well. | no |
+| `ArrowRight / ArrowLeft` | Raises or lowers the opacity by one percent. | no |
+| `Home / End` | Sets the opacity to 0 or 100 percent. | no |
+| `Enter / Space` | Picks the focused preset, which posts the form. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-color` | `--lui-space-2` |
+| `.lui-color-input` | `--lui-control-h`, `--lui-radius-sm` |
+| `.lui-color-value` | `--lui-space-2`, `--lui-control-h`, `--lui-input`, `--lui-radius-sm`, `--lui-font-mono`, `--lui-text-2` |
+| `.lui-color-swatch` | `--lui-fg`, `--lui-color-value`, `--lui-color-alpha`, `--lui-line`, `--lui-surface` |
+| `.lui-color-alpha` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-color-alpha-range` |  |
+| `.lui-color-presets` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3317,6 +3909,13 @@ assert_eq!(same.into_string(), m.render().into_string());
 # Streaming
 
 `loco_ui::stream`
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-stream-pending` | `--lui-muted` |
+| `.lui-stream-section` | `--lui-line`, `--lui-radius-lg`, `--lui-space`, `--lui-card`, `--lui-shadow-sm`, `--lui-highlight` |
 
 ## Platform
 
@@ -3400,6 +3999,33 @@ assert_eq!(same.into_string(), slot.into_string());
 | `preview` | modifier | `src: &'a str` |  |  | A thumbnail for the file added last (an image URL). |
 | `href` | modifier | `href: &'a str` |  | `href` | A link to the file added last, on its name. |
 | `remove` | value | `action: &'a str` |  |  | A Remove button per file, posting `<name>=<file name>` to `action`. |
+
+## Keyboard of `Upload`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the file picker, the Upload button and each file's remove button. | no |
+| `Enter / Space` | Opens the file chooser from the focused drop zone. | no |
+| `Enter / Space` | Presses the focused Upload or remove button, which posts the form. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-upload` | `--lui-space-3` |
+| `.lui-upload-form` | `--lui-space-2` |
+| `.lui-upload-drop` | `--lui-space-1`, `--lui-space-6`, `--lui-space-4`, `--lui-input`, `--lui-radius-lg`, `--lui-bg`, `--lui-duration-fast`, `--lui-gray-8`, `--lui-gray-2`, `--lui-ring`, `--lui-brand-2`, `--lui-space-10` |
+| `.lui-upload-tile` | `--lui-space-2`, `--lui-line`, `--lui-bg`, `--lui-muted` |
+| `.lui-upload-title` | `--lui-text-2` |
+| `.lui-upload-hint` | `--lui-text-1`, `--lui-muted` |
+| `.lui-upload-input` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-upload-progress` | `--lui-primary` |
+| `.lui-upload-files` | `--lui-space-2` |
+| `.lui-upload-file` | `--lui-space-3`, `--lui-space-2`, `--lui-line`, `--lui-radius`, `--lui-card` |
+| `.lui-upload-thumb` | `--lui-radius-sm`, `--lui-line`, `--lui-gray-2`, `--lui-muted` |
+| `.lui-upload-meta` |  |
+| `.lui-upload-name` | `--lui-text-2` |
+| `.lui-upload-size` | `--lui-muted`, `--lui-text-1` |
 
 ## Platform
 
@@ -3487,6 +4113,31 @@ assert_eq!(same.into_string(), m);
 | `description` | modifier | `text: &'a str` |  |  | Small print under the card added last. |
 | `badge` | modifier | `text: impl Display` |  |  | A badge in the meta row of the card added last: a label, an estimate, a tag. |
 
+## Keyboard of `Kanban`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the cards' move buttons, column by column. | no |
+| `Enter / Space` | Moves the card one column left from its left arrow button. | no |
+| `Enter / Space` | Moves the card one column right from its right arrow button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-kanban` |  |
+| `.lui-kanban-board` |  |
+| `.lui-kanban-column` | `--lui-gray-3`, `--lui-radius-lg` |
+| `.lui-kanban-head` | `--lui-text-2` |
+| `.lui-kanban-count` |  |
+| `.lui-kanban-cards` |  |
+| `.lui-kanban-card` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-kanban-title` | `--lui-text-2` |
+| `.lui-kanban-note` | `--lui-text-1`, `--lui-muted` |
+| `.lui-kanban-meta` |  |
+| `.lui-kanban-move` |  |
+| `.lui-kanban-empty` | `--lui-text-2`, `--lui-muted`, `--lui-gray-6`, `--lui-radius` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3565,6 +4216,27 @@ assert_eq!(same.into_string(), m);
 |---|---|---|---|---|---|
 | `item` | item | `key: &'a str, title: &'a str` |  |  | An item, after the ones added before it. |
 | `description` | modifier | `text: &'a str` |  |  | Small print under the item added last. |
+
+## Keyboard of `Sortable`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the items' move buttons, top to bottom. | no |
+| `Enter / Space` | Moves the item one place up from its up button. | no |
+| `Enter / Space` | Moves the item one place down from its down button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-sortable-list` |  |
+| `.lui-sortable-item` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-sortable-grip` | `--lui-muted` |
+| `.lui-sortable-text` |  |
+| `.lui-sortable-title` | `--lui-text-2` |
+| `.lui-sortable-note` | `--lui-text-1`, `--lui-muted` |
+| `.lui-sortable-move` |  |
+| `.lui-sortable-slot` | `--lui-control-h-sm` |
 
 ## Platform
 
@@ -3652,6 +4324,29 @@ assert_eq!(same.into_string(), m);
 | `id` | value | `id: &'a str` |  |  | The id its dismiss cookie is named after instead of the title's slug. |
 | `dismiss` | switch |  | `off` |  | A close button that keeps it closed with a `lui-dismiss-<id>` cookie. |
 
+## Keyboard of `Alert`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Dismisses the alert from its close button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-callout` | `--lui-brand-3`, `--lui-brand-11`, `--lui-brand-7`, `--lui-space-3`, `--lui-space-1`, `--lui-space-4`, `--lui-text-2`, `--lui-callout-fg`, `--lui-callout-bg`, `--lui-radius`, `--lui-space-2`, `--lui-space-6`, `--lui-text-3` |
+| `.lui-callout-ok` | `--lui-ok`, `--lui-bg`, `--lui-fg` |
+| `.lui-callout-warn` | `--lui-warn`, `--lui-bg`, `--lui-fg` |
+| `.lui-callout-danger` | `--lui-danger`, `--lui-bg`, `--lui-fg` |
+| `.lui-callout-neutral` | `--lui-gray-3`, `--lui-gray-12`, `--lui-gray-7` |
+| `.lui-callout-surface` | `--lui-callout-bg`, `--lui-bg`, `--lui-callout-line` |
+| `.lui-callout-outline` | `--lui-callout-line` |
+| `.lui-alert-title` |  |
+| `.lui-alert-description` |  |
+| `.lui-alert-actions` | `--lui-space-2` |
+| `.lui-alert-dismissible` |  |
+| `.lui-alert-dismiss` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3737,6 +4432,14 @@ assert_eq!(gone.alert("Trial ends Friday").dismiss().render().into_string(), "")
 | `indeterminate` | switch |  | `off` |  | No value yet: a stripe slides along the track. |
 | `show_value` | switch |  | `off` |  | The percentage beside the label, or above the bar without one. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-progress-field` | `--lui-space-2`, `--lui-text-2`, `--lui-gray-11`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-progress-fill`, `--lui-primary`, `--lui-radius-sm`, `--lui-radius`, `--lui-radius-lg` |
+| `.lui-progress-value` | `--lui-muted` |
+| `.lui-progress` | `--lui-progress-h`, `--lui-progress-radius`, `--lui-progress-track`, `--lui-gray-4`, `--lui-progress-fill`, `--lui-primary`, `--lui-duration-slow`, `--lui-ease-out` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3812,6 +4515,12 @@ assert_eq!(lui! { Progress(9, 10) size=1 tone="ok" variant="soft" radius="none";
 | `optimum` | number | `optimum: impl Into<f64>` |  | `optimum` | The best value. |
 | `id` | value | `id: &'a str` |  | `id` | The meter's id instead of `lui-meter-<label>`. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-meter` | `--lui-gray-4`, `--lui-ok`, `--lui-warn`, `--lui-danger` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -3870,6 +4579,19 @@ assert_eq!(same.into_string(), m);
 | `delay` | number | `ms: u32` | `0` |  | How long the pointer rests on the trigger before the text shows, in milliseconds. |
 | `id` | value | `id: &'a str` |  | `id` | The tooltip's id, `lui-tooltip-<slug of the text>` by default. |
 | `trigger` | value | `button: Button<'a>` |  |  | A button builder as the trigger, in place of the markup: it gets `aria-describedby` as an attribute. |
+
+## Keyboard of `Tooltip`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Shows the tooltip while its trigger has focus and hides it when focus leaves. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tooltip` |  |
+| `.lui-tooltip-text` | `--lui-z-tooltip`, `--lui-text-1`, `--lui-gray-1`, `--lui-gray-12`, `--lui-radius-sm`, `--lui-shadow-md`, `--lui-tooltip-delay` |
 
 ## Platform
 
@@ -3948,6 +4670,14 @@ assert_eq!(lui! { Tooltip("Saved", html! { span { "3" } }) side=(Side::End) dela
 | `label` | value | `text: &'a str` |  |  | A word in the middle of the line. |
 | `vertical` | switch |  | `off` |  | Down instead of across, between items in a row (a `ui.cluster`). |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-separator` | `--lui-line` |
+| `.lui-separator-vertical` | `--lui-line` |
+| `.lui-separator-label` | `--lui-muted`, `--lui-text-1`, `--lui-line` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4008,6 +4738,20 @@ assert_eq!(same.into_string(), or);
 | `duration` | number | `ms: u32` | `5000` |  | How long a calm toast stays before it fades, in milliseconds. |
 | `action` | value | `label: &'a str, href: &'a str` |  |  | A link button on the newest toast ("Undo", "View"). |
 | `max` | number | `n: usize` | `all` |  | Show only the newest `n` toasts. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-toasts` | `--lui-z-toast`, `--lui-space-6`, `--lui-space-3`, `--lui-space-4` |
+| `.lui-toast` | `--lui-muted`, `--lui-space-3`, `--lui-space-4`, `--lui-fg`, `--lui-popover`, `--lui-text-2`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-toast-duration`, `--lui-duration`, `--lui-ease-out`, `--lui-duration-slow`, `--lui-ease-spring`, `--lui-toast-dir` |
+| `.lui-toast-text` |  |
+| `.lui-toast-info` | `--lui-link` |
+| `.lui-toast-ok` | `--lui-ok` |
+| `.lui-toast-warn` | `--lui-warn` |
+| `.lui-toast-danger` | `--lui-danger` |
+| `.lui-toast-action` |  |
+| `.lui-toast-close` | `--lui-muted`, `--lui-radius-sm`, `--lui-hit`, `--lui-fg`, `--lui-accent` |
 
 ## Platform
 
@@ -4097,6 +4841,24 @@ assert_eq!(same.into_string(), m);
 | `max` | number | `n: usize` | `4` |  | The most crumbs shown, the current page included, before the middle folds into a menu. |
 | `separator` | value | `glyph: impl Into<Glyph<'a>>` |  |  | A glyph or an icon between the crumbs instead of the chevron. |
 
+## Keyboard of `Breadcrumbs`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Shows or hides the folded middle crumbs from the ellipsis button. | no |
+| `Enter` | Follows the focused crumb. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-breadcrumbs` | `--lui-text-2`, `--lui-muted`, `--lui-space-4`, `--lui-duration-fast`, `--lui-fg` |
+| `.lui-breadcrumbs-custom` |  |
+| `.lui-breadcrumbs-sep` |  |
+| `.lui-breadcrumbs-fold` | `--lui-radius-sm`, `--lui-accent`, `--lui-on-accent`, `--lui-z-popover`, `--lui-space-1`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-fg`, `--lui-hit` |
+| `.lui-breadcrumbs-fold-narrow` |  |
+| `.lui-breadcrumbs-mid` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4179,6 +4941,19 @@ assert_eq!(lui! { Breadcrumbs max=3 separator="/" { link "Home" "/"; link "A" "/
 | `rect` | value | `width: &'a str, height: &'a str` |  |  | A block of that CSS width and height above the lines (an image, a chart). |
 | `avatar_lines` | number | `n: usize` | `0` |  | `n` rows of a circle beside two lines, after the rest: a list of people. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-skeleton` | `--lui-space` |
+| `.lui-skeleton-line` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3` |
+| `.lui-skeleton-heading` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3`, `--lui-space` |
+| `.lui-skeleton-rect` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3`, `--lui-radius` |
+| `.lui-skeleton-circle` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3` |
+| `.lui-skeleton-last` |  |
+| `.lui-skeleton-media` | `--lui-space-3` |
+| `.lui-skeleton-lines` | `--lui-space` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4254,6 +5029,23 @@ assert_eq!(lui! { Skeleton(0) avatar_lines=3; }.into_string(), m);
 | `link` | value | `label: &'a str, href: &'a str` |  |  | A link to follow. |
 | `action` | value | `label: &'a str, action: &'a str` |  |  | A button posting to `action`. |
 
+## Keyboard of `EmptyState`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Sends the action button's form. | no |
+| `Enter` | Follows the link button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-empty` | `--lui-space`, `--lui-line`, `--lui-radius-lg` |
+| `.lui-empty-icon` | `--lui-space-2`, `--lui-text-6`, `--lui-radius-lg`, `--lui-brand-3`, `--lui-brand-11` |
+| `.lui-empty-title` | `--lui-text-4` |
+| `.lui-empty-text` | `--lui-muted`, `--lui-text-2` |
+| `.lui-empty-actions` | `--lui-space` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4325,6 +5117,26 @@ assert_eq!(same.into_string(), m);
 | `reveal` | switch |  | `off` |  | Fades and rises as it scrolls into view. |
 | `sample` | item | `value: f64` |  |  | A recent value for the sparkline along the card's bottom edge (oldest first). |
 | `progress` | value | `value: u64, max: u64` |  |  | A bar under the value: how far towards a target. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-stat-grid` | `--lui-space-4` |
+| `.lui-stat` | `--lui-space-1`, `--lui-space-4`, `--lui-fg`, `--lui-card`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-sm`, `--lui-highlight`, `--lui-duration-fast` |
+| `.lui-stat-link` | `--lui-accent`, `--lui-card` |
+| `.lui-stat-label` | `--lui-muted`, `--lui-text-2` |
+| `.lui-stat-value` | `--lui-text-7` |
+| `.lui-stat-delta` | `--lui-muted`, `--lui-radius-sm`, `--lui-text-1`, `--lui-stat-tone`, `--lui-fg`, `--lui-bg` |
+| `.lui-stat-good` | `--lui-ok` |
+| `.lui-stat-bad` | `--lui-danger` |
+| `.lui-stat-flat` | `--lui-muted` |
+| `.lui-stat-note` | `--lui-muted`, `--lui-text-1` |
+| `.lui-stat-progress` | `--lui-space-2`, `--lui-gray-4`, `--lui-primary` |
+| `.lui-stat-spark` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-stat-spark-line` | `--lui-primary` |
+| `.lui-stat-spark-area` | `--lui-primary` |
+| `.lui-stat-reveal` |  |
 
 ## Platform
 
@@ -4408,6 +5220,30 @@ assert_eq!(lui! { Stat("Revenue", "$48,210") sample=30.0 sample=34.0 sample=31.0
 | `bar` | switch |  | `off` |  | Bars, one per point (the default). |
 | `line` | switch |  | `off` |  | A line through the points. |
 | `sparkline` | switch |  | `off` |  | A small line with no axes, to sit beside a number. |
+
+## Keyboard of `Chart`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the next or previous bar or point and shows its value. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-chart` | `--lui-space-6` |
+| `.lui-chart-legend` | `--lui-space-2`, `--lui-text-2`, `--lui-muted` |
+| `.lui-chart-swatch` | `--lui-primary` |
+| `.lui-chart-grid` | `--lui-gray-5` |
+| `.lui-chart-tick` | `--lui-muted`, `--lui-text-1`, `--lui-text-5` |
+| `.lui-chart-label` | `--lui-muted`, `--lui-text-1`, `--lui-text-5` |
+| `.lui-chart-bar` | `--lui-primary`, `--lui-duration-fast`, `--lui-fg`, `--lui-ring` |
+| `.lui-chart-path` | `--lui-primary` |
+| `.lui-chart-dot` | `--lui-bg`, `--lui-primary`, `--lui-ring` |
+| `.lui-chart-mark` | `--lui-primary`, `--lui-fg` |
+| `.lui-chart-tip` | `--lui-duration-fast`, `--lui-gray-12`, `--lui-gray-1` |
+| `.lui-chart-label-odd` |  |
+| `.lui-chart-sparkline` |  |
 
 ## Platform
 
@@ -4497,6 +5333,25 @@ assert_eq!(same.into_string(), html);
 | `collapsible` | switch |  | `off` |  | A toggle that folds it to an icon rail, the labels shown as tooltips. |
 | `current_prefix` | switch |  | `off` |  | Mark a link current also when the path is under it (`/projects` on `/projects/42`). |
 
+## Keyboard of `Sidebar`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the focused link. | no |
+| `Enter / Space` | Folds the sidebar to its icon rail or unfolds it, when it is collapsible. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-sidebar` | `--lui-space-4`, `--lui-text-2`, `--lui-space-2`, `--lui-radius-sm`, `--lui-fg`, `--lui-hit`, `--lui-accent`, `--lui-on-accent`, `--lui-gray-4` |
+| `.lui-sidebar-group` |  |
+| `.lui-sidebar-heading` | `--lui-text-1`, `--lui-muted` |
+| `.lui-sidebar-text` | `--lui-z-tooltip`, `--lui-radius-sm`, `--lui-text-1`, `--lui-gray-1`, `--lui-gray-12`, `--lui-shadow-md`, `--lui-duration-fast` |
+| `.lui-sidebar-initial` | `--lui-radius-sm`, `--lui-gray-3`, `--lui-text-1` |
+| `.lui-sidebar-badge` | `--lui-text-1`, `--lui-muted` |
+| `.lui-sidebar-rail` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4585,6 +5440,23 @@ assert!(m.contains(r#"<a href="/projects" aria-current="page">"#) && !m.contains
 | `id` | value | `id: &'a str` |  | `id` | The prefix of the panels' ids instead of `nav-<label>`. |
 | `current_prefix` | switch |  | `off` |  | Mark a link current also when the path is under it (`/projects` on `/projects/42`). |
 
+## Keyboard of `NavMenu`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the top-level links and panel buttons. | no |
+| `Enter / Space` | Opens the focused panel from its button. | no |
+| `ArrowDown / ArrowUp` | Moves to the next or previous link in the open panel. | yes |
+| `Escape` | Closes the open panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-nav-menu` | `--lui-space-1` |
+| `.lui-nav-menu-link` | `--lui-control-h`, `--lui-radius`, `--lui-text-2`, `--lui-fg`, `--lui-accent`, `--lui-on-accent` |
+| `.lui-popover-text` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4665,6 +5537,13 @@ assert!(m.contains(r#"href="/blog" aria-current="page""#));
 | `item` | item | `term: &'a str, detail: impl Render` |  |  | A term and its detail (text, or markup such as a badge). |
 | `stacked` | switch |  | `off` |  | Each term above its detail instead of beside it. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-description-list` | `--lui-space-4`, `--lui-text-2`, `--lui-muted` |
+| `.lui-description-list-item` | `--lui-space-1`, `--lui-space-3`, `--lui-line`, `--lui-space-4` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4733,6 +5612,25 @@ assert_eq!(same.into_string(), html);
 | `multiple` | switch |  | `off` | `type` | Several options may be pressed (checkboxes, not radios). |
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | The items' height and text: Radix's sizes 1 to 3. |
 | `radius` | choice: none, small, medium, large, full | `radius: Radius` | `medium` |  | The corners of the track and the chip, from square to a pill. |
+
+## Keyboard of `ToggleGroup`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves into the group: onto the picked item with one pick, or through each item with several. | no |
+| `ArrowRight / ArrowDown` | Moves to the next item and picks it, with one pick. | no |
+| `ArrowLeft / ArrowUp` | Moves to the previous item and picks it, with one pick. | no |
+| `Space` | Picks the focused item, or toggles it with several picks. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-toggle-group` | `--lui-toggle-radius`, `--lui-radius`, `--lui-gray-3`, `--lui-radius-sm`, `--lui-radius-lg` |
+| `.lui-toggle-group-item` |  |
+| `.lui-toggle-group-input` |  |
+| `.lui-toggle-group-face` | `--lui-control-h`, `--lui-toggle-radius`, `--lui-radius`, `--lui-text-2`, `--lui-gray-11`, `--lui-duration-fast`, `--lui-control-h-sm`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-fg`, `--lui-gray-8`, `--lui-card`, `--lui-line`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-ring` |
+| `.lui-toggle-group-one` | `--lui-toggle-n`, `--lui-toggle-at`, `--lui-toggle-radius`, `--lui-radius`, `--lui-card`, `--lui-line`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-duration`, `--lui-ease-spring` |
 
 ## Platform
 
@@ -4826,6 +5724,24 @@ assert_eq!(same.into_string(), html);
 | `body` | value | `body: Markup` |  |  | The thing the actions are on. |
 | `id` | value | `id: &'a str` |  | `id` | The menu's id instead of `ctx-<label>`. |
 
+## Keyboard of `ContextMenu`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the row's actions menu from its button. | no |
+| `Tab / Shift+Tab` | Moves to the next or previous item in the open menu. | no |
+| `ArrowDown / ArrowUp` | Moves to the next or previous item, wrapping at the ends. | yes |
+| `Enter` | Follows the focused link or sends the focused action. | no |
+| `Space` | Ticks the focused checkbox or radio item. | no |
+| `Escape` | Closes the menu and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-context-menu` | `--lui-space`, `--lui-line`, `--lui-radius`, `--lui-card` |
+| `.lui-context-menu-body` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -4896,6 +5812,22 @@ assert_eq!(same.into_string(), html);
 | `length` | number | `digits: u8` | `6` | `maxlength` | How many digits the code has. |
 | `group` | number | `size: u8` |  |  | A stronger divider after every `size` cells (3 for a 123 456 code). |
 | `id` | value | `id: &'a str` |  | `id` | The field's id, `f-<name>` by default. |
+
+## Keyboard of `InputOtp`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the code field. | no |
+| `Backspace` | Deletes the last digit. | no |
+| `ArrowLeft / ArrowRight` | Moves the caret between digits. | no |
+| `Enter` | Submits the form. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-otp` |  |
+| `.lui-otp-input` | `--lui-otp-cells`, `--lui-otp-none`, `--lui-otp-cell`, `--lui-radius`, `--lui-primary`, `--lui-font-mono`, `--lui-text-5`, `--lui-otp-active`, `--lui-otp-sep`, `--lui-input`, `--lui-bg`, `--lui-gray-8`, `--lui-otp-group`, `--lui-ring`, `--lui-otp-at` |
 
 ## Platform
 
@@ -4983,6 +5915,30 @@ assert_eq!(lui! { InputOtp("code", "Code") group=3; }.into_string(), m);
 | `open` | condition | `open: bool` | `off` | `open` | Render it open (non-modal) from the server. |
 | `side` | choice: top, bottom, start, end | `side: Side` | `start` |  | The edge it slides in from. |
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | 18, 24 or 32rem wide (tall, from the top or bottom). |
+
+## Keyboard of `Drawer`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the drawer from its button. | no |
+| `Tab / Shift+Tab` | Moves between the drawer's links and controls while the page behind it is inert. | no |
+| `Escape` | Closes the drawer and returns focus to its button. Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-drawer` | `--lui-space-4` |
+| `.lui-drawer-open` |  |
+| `.lui-drawer-panel` | `--lui-space-4`, `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-drawer-size`, `--lui-z-drawer`, `--lui-space-6`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-overlay`, `--lui-radius-lg`, `--lui-radius-sm`, `--lui-text-2`, `--lui-hit`, `--lui-accent`, `--lui-on-accent`, `--lui-space-8`, `--lui-space-3`, `--lui-gray-5`, `--lui-space-2`, `--lui-surface`, `--lui-duration-slow`, `--lui-ease-out`, `--lui-drawer-away` |
+| `.lui-drawer-head` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-drawer-title` | `--lui-text-3` |
+| `.lui-drawer-description` | `--lui-text-2`, `--lui-muted` |
+| `.lui-drawer-close` |  |
+| `.lui-drawer-nav` | `--lui-space-2` |
+| `.lui-drawer-foot` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-drawer-content` |  |
+| `.lui-drawer-sidebar` |  |
 
 ## Platform
 
@@ -5089,6 +6045,32 @@ assert_eq!(lui! { Drawer("Filters") side=(Side::End) size=3; }.into_string(), m)
 | `accesskey` | value | `key: &'a str` | `k` | `accesskey` | The opener's access key (default `k`). |
 | `id` | value | `id: &'a str` | `lui-palette` | `id` | The palette's id instead of `lui-palette`. |
 
+## Keyboard of `Palette`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Alt+Shift+K / Alt+K` | Opens the palette from anywhere on the page: Alt+Shift+K in Firefox, Alt+K in Chrome on Windows and Linux. | no |
+| `Enter / Space` | Opens the palette from its button and puts focus in the search field. | no |
+| `ArrowDown / ArrowUp` | Moves through the command names the browser suggests for the typed text. | no |
+| `Enter` | Searches for the typed command, or follows the focused command link. | no |
+| `Escape` | Closes the suggestions, then the palette. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-palette-open` | `--lui-muted`, `--lui-surface` |
+| `.lui-palette-kbd` | `--lui-font-mono`, `--lui-text-1`, `--lui-fg`, `--lui-secondary`, `--lui-line`, `--lui-radius-sm` |
+| `.lui-palette-panel` | `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-overlay`, `--lui-space`, `--lui-radius-lg` |
+| `.lui-palette-form` | `--lui-space-2`, `--lui-line` |
+| `.lui-palette-input` |  |
+| `.lui-palette-heading` | `--lui-text-1`, `--lui-muted` |
+| `.lui-palette` | `--lui-space-2`, `--lui-radius-sm`, `--lui-text-2`, `--lui-fg`, `--lui-hit`, `--lui-primary`, `--lui-on-primary` |
+| `.lui-palette-label` |  |
+| `.lui-palette-shortcut` | `--lui-text-1`, `--lui-muted` |
+| `.lui-palette-empty` | `--lui-space-6`, `--lui-text-2`, `--lui-muted` |
+| `.lui-palette-results` | `--lui-space`, `--lui-text-4` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5176,6 +6158,21 @@ assert_eq!(lui! { Palette("/search") { link "Open settings" "/settings" icon=(Ic
 | `reverse` | switch |  | `off` |  | Scroll towards the end of the line instead of the start. |
 | `duration` | number | `seconds: u32` | `40` | `style` | Seconds for one full loop (`--lui-marquee-duration`). |
 
+## Keyboard of `Marquee`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Pauses the row while focus is on a link or button inside it. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-marquee` | `--lui-space-1`, `--lui-fg` |
+| `.lui-marquee-track` | `--lui-space-4`, `--lui-marquee-duration` |
+| `.lui-marquee-group` | `--lui-space-4` |
+| `.lui-marquee-item` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5260,6 +6257,12 @@ assert_eq!(same.into_string(), quotes);
 | `weight` | choice: light, regular, medium, bold | `weight: Weight` | `bold` |  | How heavy the letters are. |
 | `trim` | switch |  | `off` |  | Trim the space above the capitals and below the baseline. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-heading-trim` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5331,6 +6334,15 @@ assert_eq!(lui! { Heading("Members") size=3 as_h=2 weight="medium" trim; }.into_
 | `muted` | switch |  | `off` |  | The muted gray of hints and secondary lines. |
 | `truncate` | switch |  | `off` |  | One line, cut with an ellipsis where it overflows. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-text` | `--lui-text-1`, `--lui-leading-1`, `--lui-text-2`, `--lui-leading-2`, `--lui-text-3`, `--lui-leading-3`, `--lui-text-4`, `--lui-leading-4`, `--lui-text-5`, `--lui-leading-5`, `--lui-text-6`, `--lui-leading-6`, `--lui-text-7`, `--lui-leading-7`, `--lui-text-8`, `--lui-leading-8`, `--lui-text-9`, `--lui-leading-9`, `--lui-gray-11`, `--lui-brand-11`, `--lui-ok`, `--lui-fg`, `--lui-warn`, `--lui-danger` |
+| `.lui-heading` | `--lui-text-1`, `--lui-leading-1`, `--lui-text-2`, `--lui-leading-2`, `--lui-text-3`, `--lui-leading-3`, `--lui-text-4`, `--lui-leading-4`, `--lui-text-5`, `--lui-leading-5`, `--lui-text-6`, `--lui-leading-6`, `--lui-text-7`, `--lui-leading-7`, `--lui-text-8`, `--lui-leading-8`, `--lui-text-9`, `--lui-leading-9` |
+| `.lui-text-muted` | `--lui-muted` |
+| `.lui-text-truncate` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5401,6 +6413,19 @@ assert_eq!(lui! { Text("Payment failed") tone="danger" weight="medium" truncate;
 | `external` | switch |  | `off` |  | Opens in a new tab, with an arrow and a hint for screen readers. |
 | `muted` | switch |  | `off` |  | The muted gray, the text colour on hover: a footer's or a caption's links. |
 
+## Keyboard of `Link`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the link, in a new tab when it is external. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-link` | `--lui-brand-11`, `--lui-radius-sm` |
+| `.lui-link-muted` | `--lui-muted`, `--lui-fg` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5469,6 +6494,12 @@ assert_eq!(same.into_string(), a);
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | Size 1 at 0.7em of the text around it, 2 at 0.75rem (the default), 3 at 0.875rem. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-kbd` | `--lui-font-sans`, `--lui-text-1`, `--lui-gray-12`, `--lui-gray-1`, `--lui-gray-7`, `--lui-gray-3`, `--lui-gray-4`, `--lui-text-2` |
 
 ## Platform
 
@@ -5542,6 +6573,25 @@ assert_eq!(lui! { Kbd("Esc") size=3; }.into_string(), k);
 | `title` | value | `title: &'a str` |  |  | A file name or caption above the code; it names the region too. |
 | `id` | value | `id: &'a str` |  | `id` | Replace the id derived from the title (or the code). |
 | `copy` | switch |  | `off` |  | A copy button in the corner, shown and wired by the enhancement script only. |
+
+## Keyboard of `CodeBlock`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab` | Focuses the code block, then its copy button when the script shows one. | no |
+| `ArrowLeft / ArrowRight` | Scrolls a long line sideways while the block has focus. | no |
+| `Enter / Space` | Copies the code from the copy button. | yes |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-code` | `--lui-gray-11`, `--lui-font-mono`, `--lui-radius-sm`, `--lui-code-tone`, `--lui-fg`, `--lui-brand-11`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-gray-1` |
+| `.lui-code-block` | `--lui-line`, `--lui-radius-lg`, `--lui-gray-2` |
+| `.lui-code-block-title` | `--lui-line`, `--lui-muted`, `--lui-font-mono`, `--lui-text-1` |
+| `.lui-code-block-pre` | `--lui-font-mono`, `--lui-text-2`, `--lui-leading-3`, `--lui-fg`, `--lui-line` |
+| `.lui-code-block-code` |  |
+| `.lui-code-block-copy` |  |
 
 ## Platform
 
@@ -5623,6 +6673,14 @@ assert_eq!(same.into_string(), block);
 | `caption` | value | `source: &'a str` |  |  | Who said it, or the work it is from, in a `<cite>` under the quotation. |
 | `cite` | value | `url: &'a str` |  | `cite` | The URL of the source, written as the blockquote's `cite` attribute. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-blockquote` |  |
+| `.lui-blockquote-quote` | `--lui-brand-6`, `--lui-fg` |
+| `.lui-blockquote-caption` | `--lui-muted`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5686,6 +6744,12 @@ assert_eq!(same.into_string(), q);
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
 | `body` | value | `markup: Markup` |  |  | The HTML to style: headings, paragraphs, lists, quotes, code, tables. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-prose` | `--lui-fg`, `--lui-text-8`, `--lui-leading-8`, `--lui-text-7`, `--lui-leading-7`, `--lui-line`, `--lui-text-6`, `--lui-leading-6`, `--lui-text-5`, `--lui-leading-5`, `--lui-link`, `--lui-radius-lg`, `--lui-font-mono`, `--lui-gray-3`, `--lui-radius-sm`, `--lui-gray-2`, `--lui-text-2`, `--lui-leading-3`, `--lui-font-sans`, `--lui-gray-1`, `--lui-gray-7`, `--lui-leading-2` |
 
 ## Platform
 
@@ -5751,6 +6815,12 @@ assert_eq!(same.into_string(), m);
 | `body` | value | `markup: Markup` |  |  | What the column holds. |
 | `size` | value | `size: u8` | `4` |  | Radix's sizes 1–4: at most 448, 688, 880 or 1136px wide. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-container` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -5811,6 +6881,12 @@ assert_eq!(lui! { Container size=1 { p { "Narrow" } } }.into_string(), m);
 | `body` | value | `markup: Markup` |  |  | What the band holds. |
 | `size` | value | `size: u8` | `3` |  | Radix's sizes 1–4: 24, 40, 64 or 80px above and below. |
 | `label` | value | `label: &'a str` |  | `aria-label` | A name (`aria-label`), which makes the section a region landmark. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-section` |  |
 
 ## Platform
 
@@ -5873,6 +6949,14 @@ assert_eq!(lui! { Section size=4 label="Pricing" { h2 { "Pricing" } } }.into_str
 | `body` | value | `markup: Markup` |  |  | What reaches the edges: a picture, a map, a table. |
 | `top` | switch |  | `off` |  | Bleed through the card's top edge too (first in a card with no header). |
 | `bottom` | switch |  | `off` |  | Bleed through the card's bottom edge too (last in a card with no footer). |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-inset` | `--lui-inset-pad` |
+| `.lui-inset-top` | `--lui-inset-pad`, `--lui-radius-lg` |
+| `.lui-inset-bottom` | `--lui-inset-pad`, `--lui-radius-lg` |
 
 ## Platform
 
@@ -5940,6 +7024,12 @@ assert_eq!(lui! { Inset top { img src="/cover.jpg" alt=""; } }.into_string(), m)
 | `body` | value | `markup: Markup` |  |  | What fills the box: a picture, a video, a map. |
 | `ratio` | value | `width: u32, height: u32` | `1 / 1` |  | Width to height: `(16, 9)`, `(4, 3)`. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-aspect-ratio` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -6003,6 +7093,25 @@ assert_eq!(lui! { AspectRatio ratio=(16, 9) { img src="/a.jpg" alt="A lake"; } }
 |---|---|---|---|---|---|
 | `body` | value | `markup: Markup` |  |  | What scrolls. |
 | `height` | value | `height: &'a str` | `16rem` |  | The box's height as a CSS length (`12rem`, `50vh`). |
+
+## Keyboard of `ScrollArea`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the scrolling region. | no |
+| `ArrowDown / ArrowUp` | Scrolls the focused region a little down or up. | no |
+| `PageDown / PageUp / Space` | Scrolls the focused region by about its height. | no |
+| `Home / End` | Scrolls the focused region to its start or end. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-scroll-area` | `--lui-scroll-area-height`, `--lui-gray-8`, `--lui-radius` |
+| `.lui-scroll-area-content` |  |
+| `.lui-scroll-area-edge` | `--lui-duration-fast` |
+| `.lui-scroll-area-top` | `--lui-fg` |
+| `.lui-scroll-area-bottom` | `--lui-fg` |
 
 ## Platform
 
@@ -6072,6 +7181,13 @@ assert_eq!(lui! { ScrollArea("Log") height="12rem" { p { "…" } } }.into_string
 | `min_height` | value | `height: &'a str` |  |  | At least this tall (a CSS length), so there is room to centre in. |
 | `text_center` | switch |  | `off` |  | Centre the lines of text too. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-center` | `--lui-space-2` |
+| `.lui-center-text` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -6129,6 +7245,12 @@ assert_eq!(lui! { Center min_height="12rem" text_center { p { "Nothing here yet"
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
 | `min` | value | `length: &'a str` |  |  | The least room it keeps (a CSS length), even when the row is full. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-spacer` |  |
 
 ## Platform
 
@@ -6189,6 +7311,12 @@ assert_eq!(lui! { Spacer min="2rem"; }.into_string(), m);
 |---|---|---|---|---|---|
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | 12px (size 1), 16px (2, the default) or 20px (3) across. |
 | `label` | value | `label: &'a str` | `Loading` |  | What a screen reader announces: what is loading. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-spinner` |  |
 
 ## Platform
 
@@ -6256,6 +7384,14 @@ assert_eq!(lui! { Spinner size=3 label="Loading results"; }.into_string(), s);
 | `tone` | choice: neutral, brand, ok, warn, danger, info | `tone: Tone` | `danger` |  | The badge's colour. |
 | `label` | value | `label: &'a str` | `{n} new` |  | What a screen reader says instead of the count in words. |
 | `dot` | switch |  | `off` |  | A dot instead of the number. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-indicator` |  |
+| `.lui-indicator-badge` |  |
+| `.lui-indicator-dot` | `--lui-danger`, `--lui-indicator-tone`, `--lui-bg`, `--lui-primary`, `--lui-ok`, `--lui-warn`, `--lui-gray-9` |
 
 ## Platform
 
@@ -6329,6 +7465,21 @@ assert_eq!(lui! { Indicator(120) max=99 { "Mail" } }.into_string(), many);
 | `id` | value | `id: &'a str` |  |  | The id its dismiss cookie is named after instead of the text's slug. |
 | `dismiss` | switch |  | `off` |  | A close button that keeps it closed with a `lui-dismiss-<id>` cookie. |
 
+## Keyboard of `Banner`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Dismisses the banner from its close button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-banner` | `--lui-gray-12`, `--lui-gray-1`, `--lui-space-2`, `--lui-space-3`, `--lui-space-4`, `--lui-text-2`, `--lui-leading-2`, `--lui-banner-fg`, `--lui-banner-bg`, `--lui-brand-3`, `--lui-brand-11`, `--lui-ok`, `--lui-bg`, `--lui-fg`, `--lui-warn`, `--lui-danger` |
+| `.lui-banner-text` |  |
+| `.lui-banner-link` |  |
+| `.lui-banner-dismiss` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -6399,6 +7550,23 @@ assert_eq!(ui.banner("Version 2 is out.").dismiss().render().into_string(), "");
 | `align` | choice: start, center, end, baseline, stretch | `align: Align` | `start` |  | How it lines up with the button along that side. |
 | `arrow` | switch |  | `off` |  | A small arrow pointing at the button. |
 | `id` | value | `id: &'a str` |  | `id` | The panel's id instead of the trigger's slug. |
+
+## Keyboard of `Popover`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens or closes the panel from its button. | no |
+| `Tab / Shift+Tab` | Moves from the button into the panel's controls and back out. | no |
+| `Escape` | Closes the panel and returns focus to its button. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-popover-card` |  |
+| `.lui-popover-card-panel` | `--lui-space-4`, `--lui-text-2`, `--lui-leading-2`, `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-md`, `--lui-highlight`, `--lui-popover-card-gap`, `--lui-z-popover`, `--lui-duration-fast`, `--lui-ease-out`, `--lui-duration`, `--lui-ease-spring` |
+| `.lui-popover-card-arrow` |  |
+| `.lui-popover-card-details` |  |
 
 ## Platform
 
@@ -6477,6 +7645,26 @@ assert!(m.starts_with(r#"<details class="lui-popover-card lui-popover-card-detai
 |---|---|---|---|---|---|
 | `item` | item | `markup: Markup` |  |  | A slide. |
 | `id` | value | `id: &'a str` |  |  | The prefix of the slides' ids (`<id>-<n>`) instead of the label's slug. |
+
+## Keyboard of `Carousel`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus to the slide strip, then to the slide buttons and the dots. | no |
+| `ArrowLeft / ArrowRight` | Scrolls the focused strip to the previous or next slide. | no |
+| `Enter` | Goes to the slide the focused button or dot names. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-carousel` | `--lui-space-3` |
+| `.lui-carousel-viewport` | `--lui-space-4`, `--lui-radius-lg`, `--lui-ring`, `--lui-text-3`, `--lui-fg`, `--lui-bg`, `--lui-line`, `--lui-shadow-sm`, `--lui-hit`, `--lui-space-2`, `--lui-space-3` |
+| `.lui-carousel-item` | `--lui-space-8`, `--lui-gray-6`, `--lui-fg` |
+| `.lui-carousel-prev` | `--lui-bg`, `--lui-space-2`, `--lui-space-4` |
+| `.lui-carousel-next` | `--lui-bg`, `--lui-space-2`, `--lui-space-4` |
+| `.lui-carousel-dots` | `--lui-space-2` |
+| `.lui-carousel-dot` | `--lui-gray-6`, `--lui-gray-9`, `--lui-hit` |
 
 ## Platform
 
@@ -6558,6 +7746,18 @@ assert_eq!(lui! { Carousel("Photos") id="trip" { item (html! { "One" }); } }.int
 | `window` | number | `neighbours: usize` | `1` |  | How many pages to number on each side of the current one. |
 | `param` | item | `key: &'a str, value: &'a str` |  |  | A query pair every link carries (a filter, a sort). |
 | `first_last` | switch |  | `off` |  | "First" and "Last" links outside Previous and Next. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-pagination` |  |
+| `.lui-pagination-link` | `--lui-control-h`, `--lui-hit` |
+| `.lui-pagination-step` |  |
+| `.lui-pagination-gap` | `--lui-control-h`, `--lui-muted` |
+| `.lui-pagination-wide` |  |
+| `.lui-pagination-label` |  |
+| `.lui-pagination-narrow` |  |
 
 ## Platform
 
@@ -6642,6 +7842,18 @@ assert_eq!(same.into_string(), html);
 | `description` | modifier | `text: &'a str` |  |  | A muted line under the title of the step added last. |
 | `vertical` | switch |  | `off` |  | A column at every width instead of a row from 30rem. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-steps` | `--lui-steps-dot`, `--lui-space-3`, `--lui-space-6`, `--lui-muted`, `--lui-text-2`, `--lui-space-1`, `--lui-gray-6` |
+| `.lui-steps-dot` | `--lui-steps-dot`, `--lui-gray-3`, `--lui-gray-11`, `--lui-text-1`, `--lui-primary`, `--lui-on-primary`, `--lui-danger`, `--lui-on-danger` |
+| `.lui-steps-label` | `--lui-steps-dot`, `--lui-space-2` |
+| `.lui-steps-title` | `--lui-text-1`, `--lui-muted`, `--lui-fg`, `--lui-danger`, `--lui-hit` |
+| `.lui-steps-description` | `--lui-text-1`, `--lui-muted` |
+| `.lui-steps-done` | `--lui-primary` |
+| `.lui-steps-vertical` | `--lui-space-2`, `--lui-steps-dot` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -6721,6 +7933,17 @@ assert_eq!(same.into_string(), html);
 | `icon` | modifier | `icon: impl Into<Glyph<'a>>` |  |  | An icon in a ring on the line instead of the dot, for the event added last. |
 | `tone` | choice: neutral, brand, ok, warn, danger, info | `tone: Tone` |  |  | The colour of the event added last's dot or icon (neutral by default). |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-timeline` | `--lui-primary`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-gray-9` |
+| `.lui-timeline-icon` | `--lui-timeline-tone`, `--lui-bg` |
+| `.lui-timeline-dot` | `--lui-timeline-tone` |
+| `.lui-timeline-when` | `--lui-space-1`, `--lui-text-1`, `--lui-muted` |
+| `.lui-timeline-title` | `--lui-text-2`, `--lui-fg` |
+| `.lui-timeline-description` | `--lui-text-2`, `--lui-muted` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -6793,6 +8016,24 @@ assert_eq!(same.into_string(), html);
 | `children` | modifier | `nodes: impl FnOnce(Tree<'a>) -> Tree<'a>` |  |  | The nodes under the node added last, which makes it a folder. |
 | `open` | modifier | `open: bool` |  | `open` | The folder added last starts open while `open` holds. |
 | `id` | value | `id: &'a str` |  |  | The key in `?open.<id>=` instead of the label's slug. |
+
+## Keyboard of `Tree`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the folder toggles and the links. | no |
+| `Enter / Space` | Opens or closes the focused folder. | no |
+| `Enter` | Follows the focused link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tree` | `--lui-text-2` |
+| `.lui-tree-row` | `--lui-space-2`, `--lui-tree-depth`, `--lui-radius-sm`, `--lui-fg`, `--lui-accent`, `--lui-on-accent`, `--lui-gray-4`, `--lui-hit` |
+| `.lui-tree-label` |  |
+| `.lui-tree-icon` | `--lui-muted` |
+| `.lui-tree-toggle` | `--lui-tree-depth`, `--lui-radius-sm`, `--lui-accent`, `--lui-hit` |
 
 ## Platform
 
@@ -6880,6 +8121,19 @@ assert_eq!(same.into_string(), html);
 | `ghost` | switch |  | `off` |  | The ghost button look instead of the outline one. |
 | `name` | value | `group: &'a str` |  | `name` | Collapsibles with the same `name` are exclusive: opening one closes the others. |
 
+## Keyboard of `Collapsible`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens or closes the panel, closing any other open one with the same name. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-collapsible` | `--lui-duration`, `--lui-ease-out`, `--lui-hit` |
+| `.lui-collapsible-body` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -6943,6 +8197,24 @@ assert_eq!(same.into_string(), html);
 |---|---|---|---|---|---|
 | `href` | value | `href: &'a str` |  | `href` | The trigger is a link to `href` instead of a button. |
 | `id` | value | `id: &'a str` |  | `id` | The card's id, `lui-hover-card-<slug of the trigger>` by default. |
+
+## Keyboard of `HoverCard`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Shows the card while its trigger has focus, where the browser has interest invokers. | no |
+| `Enter / Space` | Opens or closes the card from its button where the browser has no interest invokers. | no |
+| `Enter` | Follows the trigger link when the card has one. | no |
+| `Escape` | Closes the card. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-hover-card` | `--lui-space-1` |
+| `.lui-hover-card-trigger` | `--lui-link`, `--lui-space-1`, `--lui-hit` |
+| `.lui-hover-card-content` | `--lui-space-4`, `--lui-text-2`, `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-md`, `--lui-highlight`, `--lui-space-2` |
+| `.lui-hover-card-link` | `--lui-hit` |
 
 ## Platform
 
@@ -7025,6 +8297,24 @@ assert_eq!(same.into_string(), html);
 | `help` | value | `help: &'a str` |  |  | Help text under the choices. |
 | `error` | value | `message: &'a str` |  |  | A server message under the choices. |
 | `id` | value | `id: &'a str` |  | `id` | What the checkboxes' ids start from, `f-<name>` by default. |
+
+## Keyboard of `CheckboxGroup`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the next or previous box. | no |
+| `Space` | Ticks or clears the focused box. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-checkbox-group` | `--lui-text-2`, `--lui-danger` |
+| `.lui-checkbox-group-options` | `--lui-space-3` |
+| `.lui-checkbox-group-option` | `--lui-text-2`, `--lui-leading-2`, `--lui-space-3`, `--lui-space-4`, `--lui-input`, `--lui-radius`, `--lui-bg`, `--lui-duration-fast`, `--lui-gray-8`, `--lui-hit` |
+| `.lui-checkbox-group-input` | `--lui-gray-11`, `--lui-primary`, `--lui-ring`, `--lui-gray-2` |
+| `.lui-checkbox-group-text` |  |
+| `.lui-checkbox-group-description` | `--lui-muted`, `--lui-text-2`, `--lui-leading-2` |
 
 ## Platform
 
@@ -7123,6 +8413,22 @@ assert_eq!(same.into_string(), html);
 | `placeholder` | value | `placeholder: &'a str` |  | `placeholder` | Placeholder text. |
 | `id` | value | `id: &'a str` |  | `id` | The control's id, `f-<name>` by default. |
 
+## Keyboard of `Number`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the field, then to the steppers. | no |
+| `ArrowUp / ArrowDown` | Steps the value up or down by its step, within its bounds. | no |
+| `Enter` | Submits the form. | no |
+| `Enter / Space` | Presses a focused stepper, which posts the value one step up or down. | no |
+| `Enter / Space` | Steps the value in place from a focused stepper. | yes |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-number` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -7207,6 +8513,19 @@ assert_eq!(same.into_string(), html);
 | `keep` | item | `name: &'a str` |  |  | A query parameter of this page carried by the search and by Clear. |
 | `id` | value | `id: &'a str` |  | `id` | The field's id, `f-<name>` by default. |
 
+## Keyboard of `Search`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the search field, the Search button and the Clear link. | no |
+| `Enter` | Runs the search. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-search` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -7287,6 +8606,26 @@ assert_eq!(same.into_string(), html);
 | `error` | value | `message: &'a str` |  |  | A server message under the stars. |
 | `id` | value | `id: &'a str` |  | `id` | What the stars' ids start from, `f-<name>` by default. |
 
+## Keyboard of `Rating`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus onto the picked star, or the first one. | no |
+| `ArrowRight / ArrowUp` | Picks one star more, wrapping from the last star to the first. | no |
+| `ArrowLeft / ArrowDown` | Picks one star fewer, wrapping from the first star to the last. | no |
+| `Space` | Picks the focused star when none is picked yet. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-rating` | `--lui-text-2`, `--lui-leading-2`, `--lui-danger` |
+| `.lui-rating-label` | `--lui-text-2`, `--lui-leading-2` |
+| `.lui-rating-stars` |  |
+| `.lui-rating-star` | `--lui-gray-7`, `--lui-hit` |
+| `.lui-icon` | `--lui-duration-fast`, `--lui-warn`, `--lui-gray-7` |
+| `.lui-rating-input` | `--lui-ring`, `--lui-radius-sm` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |
@@ -7360,6 +8699,24 @@ assert_eq!(lui! { Rating("score", "Score") max=10 value=7 readonly; }.into_strin
 | `help` | value | `help: &'a str` |  |  | Help text under the box. |
 | `error` | value | `message: &'a str` |  |  | A server message under the box. |
 | `id` | value | `id: &'a str` |  | `id` | The text box's id, `f-<name>` by default. |
+
+## Keyboard of `TagInput`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the remove links, the text box and the Add button. | no |
+| `Enter` | Adds the typed tag when the Add button is the first submit button in its form. | no |
+| `Enter / Space` | Adds the typed tag from the focused Add button. | no |
+| `Enter` | Removes the tag from its focused remove link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-tag-input-box` | `--lui-space-1`, `--lui-control-h`, `--lui-input`, `--lui-radius-sm`, `--lui-duration-fast`, `--lui-danger` |
+| `.lui-tag-input-field` | `--lui-ring`, `--lui-control-h` |
+| `.lui-tag-input-chips` |  |
+| `.lui-tag-input-chip` | `--lui-radius-sm`, `--lui-brand-3`, `--lui-brand-11`, `--lui-text-1`, `--lui-leading-1`, `--lui-brand-5`, `--lui-hit` |
 
 ## Platform
 
@@ -7443,6 +8800,20 @@ assert_eq!(same.into_string(), html);
 | `banner` | value | `banner: Markup` |  |  | A bar across the top, above the sidebar and the content (a `ui.banner(..)`). |
 | `current_prefix` | switch |  | `off` |  | Mark a link current also when the path is under it (`/projects` on `/projects/42`). |
 
+## Keyboard of `AppShell`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the navigation from the menu button on a narrow screen. | no |
+| `Tab / Shift+Tab` | Moves through the navigation links and the sign-out button. | no |
+| `Escape` | Closes the open navigation and returns focus to the menu button. Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-app-shell-user` | `--lui-space`, `--lui-line`, `--lui-text-2` |
+
 ## Documentation
 
 The frame of a signed-in app: its name and navigation in a sidebar (a drawer on narrow
@@ -7511,6 +8882,16 @@ assert!(m.contains(r#"<a href="/p/apollo" aria-current="page">"#));
 | `body` | value | `body: Markup` |  |  | The form. |
 | `footer` | value | `footer: Markup` |  |  | Under the card: links to the other account pages. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-auth` | `--lui-space` |
+| `.lui-auth-card` | `--lui-space`, `--lui-card`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-xs` |
+| `.lui-auth-title` | `--lui-text-6` |
+| `.lui-auth-description` | `--lui-muted`, `--lui-text-2` |
+| `.lui-auth-footer` | `--lui-text-2`, `--lui-muted` |
+
 ## Documentation
 
 A sign-in, sign-up or reset page: a narrow card in the middle of the page with a title, a
@@ -7556,6 +8937,13 @@ assert_eq!(same.into_string(), m);
 | `description` | value | `text: &'a str` |  |  | A line under the title. |
 | `stat` | item | `stat: Stat<'a>` |  |  | A number in the row of stats. |
 | `body` | value | `body: Markup` |  |  | What goes under the stats. |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-dashboard` |  |
+| `.lui-dashboard-description` | `--lui-muted` |
 
 ## Documentation
 
@@ -7606,6 +8994,19 @@ assert_eq!(same.into_string(), m);
 | `title` | value | `text: &'a str` | `the status's own heading` |  | The heading. |
 | `description` | value | `text: &'a str` |  |  | The sentence under it. |
 | `home` | value | `href: &'a str` | `/` | `href` | Where the button goes. |
+
+## Keyboard of `ErrorPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the Go home link. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-error-page` | `--lui-space`, `--lui-muted` |
+| `.lui-error-page-status` | `--lui-text-9`, `--lui-fg` |
 
 ## Documentation
 
@@ -7660,6 +9061,23 @@ for (status, title) in [(401, "Sign in to continue"), (403, "You cannot open thi
 | `delete` | value | `action: &'a str` |  | `action` | A Delete button that asks first, in a dialog, then posts to `action`. |
 | `back` | value | `href: &'a str` |  | `href` | A Back link to the list. |
 
+## Keyboard of `RecordPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the Back or Edit link. | no |
+| `Enter / Space` | Opens the delete confirmation from the Delete button. | no |
+| `Escape` | Closes the delete confirmation without deleting. Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-record` | `--lui-space` |
+| `.lui-record-head` | `--lui-space` |
+| `.lui-record-actions` | `--lui-space` |
+| `.lui-record-fields` | `--lui-space-6`, `--lui-card`, `--lui-line`, `--lui-radius-lg` |
+
 ## Documentation
 
 One record: its title, its fields as a description list in a card, and the actions on it
@@ -7707,6 +9125,20 @@ assert_eq!(same.into_string(), m);
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
 | `section` | item | `title: &'a str, description: &'a str, body: Markup` |  |  | A section: its title and a line on the left, `body` (a form) on the right. |
+
+## Keyboard of `SettingsPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Jumps to the section the focused side link names. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-settings-page` | `--lui-space` |
+| `.lui-settings-page-nav` | `--lui-space`, `--lui-text-2`, `--lui-line`, `--lui-muted`, `--lui-fg` |
+| `.lui-settings-page-section` | `--lui-space`, `--lui-line`, `--lui-text-3`, `--lui-muted`, `--lui-text-2` |
 
 ## Documentation
 

@@ -45,7 +45,7 @@ use crate::Ui;
 use crate::i18n::{Strings, Text};
 use crate::icon::Icon;
 use crate::input::{described_by, error_line, keep};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A star rating, made by [`Ui::rating`]. Five stars, nothing picked, unless told otherwise.
 ///
@@ -67,6 +67,23 @@ pub struct Rating<'a> {
 }
 
 impl Rating<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves focus onto the picked star, or the first one.",
+        ),
+        Key::new(
+            "ArrowRight / ArrowUp",
+            "Picks one star more, wrapping from the last star to the first.",
+        ),
+        Key::new(
+            "ArrowLeft / ArrowDown",
+            "Picks one star fewer, wrapping from the first star to the last.",
+        ),
+        Key::new("Space", "Picks the focused star when none is picked yet."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

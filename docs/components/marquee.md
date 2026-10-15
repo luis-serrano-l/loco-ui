@@ -17,6 +17,21 @@
 | `reverse` | switch |  | `off` |  | Scroll towards the end of the line instead of the start. |
 | `duration` | number | `seconds: u32` | `40` | `style` | Seconds for one full loop (`--lui-marquee-duration`). |
 
+## Keyboard of `Marquee`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Pauses the row while focus is on a link or button inside it. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-marquee` | `--lui-space-1`, `--lui-fg` |
+| `.lui-marquee-track` | `--lui-space-4`, `--lui-marquee-duration` |
+| `.lui-marquee-group` | `--lui-space-4` |
+| `.lui-marquee-item` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

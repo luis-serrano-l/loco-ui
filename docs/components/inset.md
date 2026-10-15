@@ -16,6 +16,14 @@
 | `top` | switch |  | `off` |  | Bleed through the card's top edge too (first in a card with no header). |
 | `bottom` | switch |  | `off` |  | Bleed through the card's bottom edge too (last in a card with no footer). |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-inset` | `--lui-inset-pad` |
+| `.lui-inset-top` | `--lui-inset-pad`, `--lui-radius-lg` |
+| `.lui-inset-bottom` | `--lui-inset-pad`, `--lui-radius-lg` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

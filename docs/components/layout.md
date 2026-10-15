@@ -2,6 +2,21 @@
 
 `loco_ui::layout`
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-gap-0` |  |
+| `.lui-gap-1` | `--lui-space-1` |
+| `.lui-gap-2` | `--lui-space-2` |
+| `.lui-gap-3` | `--lui-space-3` |
+| `.lui-gap-4` | `--lui-space-4` |
+| `.lui-gap-6` | `--lui-space-6` |
+| `.lui-gap-8` | `--lui-space-8` |
+| `.lui-sr` |  |
+| `.lui-skip` | `--lui-space-2`, `--lui-z-tooltip`, `--lui-space-3`, `--lui-radius-sm`, `--lui-popover`, `--lui-fg`, `--lui-shadow-md` |
+| `.lui-note` | `--lui-muted`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

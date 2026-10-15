@@ -186,6 +186,8 @@ async fn pages_ship_only_the_enhancement_script() {
                 "/" => 300,
                 // The stage drawn twice, in each theme.
                 p if p.contains("themes=both") => 112,
+                // The whole CHANGELOG, which grows with every milestone.
+                "/changelog" => 160,
                 _ => 96,
             } * 1024;
             assert!(

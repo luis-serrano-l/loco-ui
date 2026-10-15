@@ -20,6 +20,15 @@
 | `muted` | switch |  | `off` |  | The muted gray of hints and secondary lines. |
 | `truncate` | switch |  | `off` |  | One line, cut with an ellipsis where it overflows. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-text` | `--lui-text-1`, `--lui-leading-1`, `--lui-text-2`, `--lui-leading-2`, `--lui-text-3`, `--lui-leading-3`, `--lui-text-4`, `--lui-leading-4`, `--lui-text-5`, `--lui-leading-5`, `--lui-text-6`, `--lui-leading-6`, `--lui-text-7`, `--lui-leading-7`, `--lui-text-8`, `--lui-leading-8`, `--lui-text-9`, `--lui-leading-9`, `--lui-gray-11`, `--lui-brand-11`, `--lui-ok`, `--lui-fg`, `--lui-warn`, `--lui-danger` |
+| `.lui-heading` | `--lui-text-1`, `--lui-leading-1`, `--lui-text-2`, `--lui-leading-2`, `--lui-text-3`, `--lui-leading-3`, `--lui-text-4`, `--lui-leading-4`, `--lui-text-5`, `--lui-leading-5`, `--lui-text-6`, `--lui-leading-6`, `--lui-text-7`, `--lui-leading-7`, `--lui-text-8`, `--lui-leading-8`, `--lui-text-9`, `--lui-leading-9` |
+| `.lui-text-muted` | `--lui-muted` |
+| `.lui-text-truncate` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

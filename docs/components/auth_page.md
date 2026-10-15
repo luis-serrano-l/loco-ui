@@ -16,6 +16,16 @@
 | `body` | value | `body: Markup` |  |  | The form. |
 | `footer` | value | `footer: Markup` |  |  | Under the card: links to the other account pages. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-auth` | `--lui-space` |
+| `.lui-auth-card` | `--lui-space`, `--lui-card`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-xs` |
+| `.lui-auth-title` | `--lui-text-6` |
+| `.lui-auth-description` | `--lui-muted`, `--lui-text-2` |
+| `.lui-auth-footer` | `--lui-text-2`, `--lui-muted` |
+
 ## Documentation
 
 A sign-in, sign-up or reset page: a narrow card in the middle of the page with a title, a

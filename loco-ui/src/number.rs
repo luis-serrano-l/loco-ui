@@ -54,7 +54,7 @@ use maud::{Markup, Render};
 use crate::Ui;
 use crate::icon::Glyph;
 use crate::input::{FieldKind, Input};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// A number field, made by [`Ui::number`]. Unbounded, stepping by 1, unless told otherwise.
 ///
@@ -70,6 +70,28 @@ pub struct Number<'a> {
 }
 
 impl Number<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves focus into the field, then to the steppers.",
+        ),
+        Key::new(
+            "ArrowUp / ArrowDown",
+            "Steps the value up or down by its step, within its bounds.",
+        ),
+        Key::new("Enter", "Submits the form."),
+        Key::new(
+            "Enter / Space",
+            "Presses a focused stepper, which posts the value one step up or down.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Steps the value in place from a focused stepper.",
+        )
+        .script(),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

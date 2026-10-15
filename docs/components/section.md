@@ -16,6 +16,12 @@
 | `size` | value | `size: u8` | `3` |  | Radix's sizes 1–4: 24, 40, 64 or 80px above and below. |
 | `label` | value | `label: &'a str` |  | `aria-label` | A name (`aria-label`), which makes the section a region landmark. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-section` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

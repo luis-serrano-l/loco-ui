@@ -18,6 +18,18 @@
 | `title` | value | `text: &'a str` |  |  | A bold line over each message. |
 | `action` | value | `label: &'a str, href: &'a str` |  |  | A link button under each message ("Undo", "View"). |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-flash` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-flash-item` |  |
+| `.lui-flash-title` |  |
+| `.lui-flash-text` |  |
+| `.lui-flash-actions` | `--lui-space-2`, `--lui-space-1` |
+| `.lui-flash-dismiss` | `--lui-radius-sm`, `--lui-hit` |
+| `.lui-flash-auto` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

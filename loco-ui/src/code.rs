@@ -49,7 +49,7 @@
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::variant::{Tone, Variant};
 use crate::{Caps, Icon, Ui};
 
@@ -64,6 +64,9 @@ pub struct Code<'a> {
 }
 
 impl Code<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
@@ -149,6 +152,19 @@ pub struct CodeBlock<'a> {
 }
 
 impl CodeBlock<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab",
+            "Focuses the code block, then its copy button when the script shows one.",
+        ),
+        Key::new(
+            "ArrowLeft / ArrowRight",
+            "Scrolls a long line sideways while the block has focus.",
+        ),
+        Key::new("Enter / Space", "Copies the code from the copy button.").script(),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

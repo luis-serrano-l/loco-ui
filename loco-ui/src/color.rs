@@ -45,7 +45,7 @@ use maud::{Markup, Render, html};
 
 use crate::button::Button;
 use crate::i18n::{Strings, Text};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Caps, Ui};
 
 /// A colour input with a swatch of its current value, made by [`Ui::color`].
@@ -65,6 +65,27 @@ pub struct Color<'a> {
 }
 
 impl Color<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the colour well, the opacity slider and the presets.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Opens the system colour picker from the colour well.",
+        ),
+        Key::new(
+            "ArrowRight / ArrowLeft",
+            "Raises or lowers the opacity by one percent.",
+        ),
+        Key::new("Home / End", "Sets the opacity to 0 or 100 percent."),
+        Key::new(
+            "Enter / Space",
+            "Picks the focused preset, which posts the form.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

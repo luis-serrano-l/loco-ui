@@ -22,6 +22,32 @@
 | `accesskey` | value | `key: &'a str` | `k` | `accesskey` | The opener's access key (default `k`). |
 | `id` | value | `id: &'a str` | `lui-palette` | `id` | The palette's id instead of `lui-palette`. |
 
+## Keyboard of `Palette`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Alt+Shift+K / Alt+K` | Opens the palette from anywhere on the page: Alt+Shift+K in Firefox, Alt+K in Chrome on Windows and Linux. | no |
+| `Enter / Space` | Opens the palette from its button and puts focus in the search field. | no |
+| `ArrowDown / ArrowUp` | Moves through the command names the browser suggests for the typed text. | no |
+| `Enter` | Searches for the typed command, or follows the focused command link. | no |
+| `Escape` | Closes the suggestions, then the palette. Without popover support it closes from its button instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-palette-open` | `--lui-muted`, `--lui-surface` |
+| `.lui-palette-kbd` | `--lui-font-mono`, `--lui-text-1`, `--lui-fg`, `--lui-secondary`, `--lui-line`, `--lui-radius-sm` |
+| `.lui-palette-panel` | `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-radius`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-overlay`, `--lui-space`, `--lui-radius-lg` |
+| `.lui-palette-form` | `--lui-space-2`, `--lui-line` |
+| `.lui-palette-input` |  |
+| `.lui-palette-heading` | `--lui-text-1`, `--lui-muted` |
+| `.lui-palette` | `--lui-space-2`, `--lui-radius-sm`, `--lui-text-2`, `--lui-fg`, `--lui-hit`, `--lui-primary`, `--lui-on-primary` |
+| `.lui-palette-label` |  |
+| `.lui-palette-shortcut` | `--lui-text-1`, `--lui-muted` |
+| `.lui-palette-empty` | `--lui-space-6`, `--lui-text-2`, `--lui-muted` |
+| `.lui-palette-results` | `--lui-space`, `--lui-text-4` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

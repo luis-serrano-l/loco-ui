@@ -16,6 +16,14 @@
 | `caption` | value | `source: &'a str` |  |  | Who said it, or the work it is from, in a `<cite>` under the quotation. |
 | `cite` | value | `url: &'a str` |  | `cite` | The URL of the source, written as the blockquote's `cite` attribute. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-blockquote` |  |
+| `.lui-blockquote-quote` | `--lui-brand-6`, `--lui-fg` |
+| `.lui-blockquote-caption` | `--lui-muted`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -31,6 +31,19 @@
 | `max` | number | `max: usize` |  |  | Show this many, then a `+n` count of the rest. |
 | `size` | value | `size: u8` | `2` |  | Radix's sizes 1–5 for every avatar in the row. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-avatar` | `--lui-brand-3`, `--lui-brand-11`, `--lui-text-1`, `--lui-primary`, `--lui-gray-11`, `--lui-danger`, `--lui-ok`, `--lui-warn`, `--lui-avatar-tone`, `--lui-bg`, `--lui-fg`, `--lui-gray-1` |
+| `.lui-avatar-1` | `--lui-text-1` |
+| `.lui-avatar-3` | `--lui-text-2` |
+| `.lui-avatar-4` | `--lui-text-3` |
+| `.lui-avatar-5` | `--lui-text-5` |
+| `.lui-avatar-square` | `--lui-radius` |
+| `.lui-avatars` |  |
+| `.lui-avatar-more` | `--lui-gray-3`, `--lui-fg` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

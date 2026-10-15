@@ -58,7 +58,7 @@ use maud::{Markup, Render, html};
 use crate::Ui;
 use crate::i18n::Text;
 use crate::icon::Glyph;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 
 /// One section: a title, a body, an optional icon before the title and summary line under it.
 #[derive(Clone, Debug)]
@@ -85,6 +85,12 @@ pub struct Accordion<'a> {
 }
 
 impl Accordion<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new("Tab / Shift+Tab", "Moves between the section headers."),
+        Key::new("Enter", "Opens or closes the focused section."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

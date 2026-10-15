@@ -22,6 +22,27 @@
 | `required` | switch |  | `off` | `required` | A day must be picked before the form submits. |
 | `native` | switch |  | `off` |  | The browser's own `<input type="date">` instead of the calendar. |
 
+## Keyboard of `DatePicker`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves to the trigger button, or between the day, month and year parts of the native date field. | no |
+| `Enter / Space` | Opens the calendar from the trigger button. | no |
+| `Escape` | Closes the calendar popover. Without popover support it closes from its button instead. | no |
+| `ArrowRight / ArrowDown` | Picks the next day in the calendar. | no |
+| `ArrowLeft / ArrowUp` | Picks the previous day in the calendar. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-date-picker-anchor` |  |
+| `.lui-date-picker-label` | `--lui-text-2` |
+| `.lui-date-picker-chevron` | `--lui-muted` |
+| `.lui-date-picker-empty` | `--lui-muted` |
+| `.lui-date-picker-panel` | `--lui-space-1` |
+| `.lui-date-picker-range` | `--lui-space-1`, `--lui-space-4`, `--lui-muted`, `--lui-text-2`, `--lui-leading-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

@@ -18,6 +18,19 @@
 | `rect` | value | `width: &'a str, height: &'a str` |  |  | A block of that CSS width and height above the lines (an image, a chart). |
 | `avatar_lines` | number | `n: usize` | `0` |  | `n` rows of a circle beside two lines, after the rest: a list of people. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-skeleton` | `--lui-space` |
+| `.lui-skeleton-line` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3` |
+| `.lui-skeleton-heading` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3`, `--lui-space` |
+| `.lui-skeleton-rect` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3`, `--lui-radius` |
+| `.lui-skeleton-circle` | `--lui-radius-sm`, `--lui-gray-4`, `--lui-gray-3` |
+| `.lui-skeleton-last` |  |
+| `.lui-skeleton-media` | `--lui-space-3` |
+| `.lui-skeleton-lines` | `--lui-space` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

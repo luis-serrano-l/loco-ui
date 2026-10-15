@@ -58,7 +58,7 @@ use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
 use crate::input::Input;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Icon, Ui};
 
 /// A search form sending `name` (the text) and `sel` (the selection) by GET, made by
@@ -83,6 +83,28 @@ pub struct Combobox<'a> {
 }
 
 impl Combobox<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the search field, the Search button, the result links and the remove links.",
+        ),
+        Key::new(
+            "ArrowDown / ArrowUp",
+            "Opens the suggestion list under the field and moves through it.",
+        ),
+        Key::new(
+            "Enter",
+            "Fills in the highlighted suggestion, or searches for the typed text when none is highlighted.",
+        ),
+        Key::new("Escape", "Closes the suggestion list."),
+        Key::new(
+            "ArrowDown / ArrowUp",
+            "Moves focus between the search field and the result links.",
+        )
+        .script(),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

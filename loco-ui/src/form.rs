@@ -119,7 +119,7 @@ use maud::{Markup, Render, html};
 use crate::button::Button;
 use crate::i18n::{Strings, Text};
 use crate::input::{Bound, Choice, Field, FieldKind, Pick};
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::select::SelectOption;
 use crate::variant::Size;
 use crate::{Caps, Ui, enhance};
@@ -184,6 +184,23 @@ pub(crate) struct Group<'a> {
 const FIELD: &[&str] = &["field"];
 
 impl Form<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves through the fields in order, then to the submit button and the secondary link.",
+        ),
+        Key::new(
+            "Enter",
+            "Submits the form from a single-line field through its first submit button.",
+        ),
+        Key::new("Enter / Space", "Presses the focused submit button."),
+        Key::new(
+            "Enter",
+            "Moves focus to the field from a link in the error summary.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

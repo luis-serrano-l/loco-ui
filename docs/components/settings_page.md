@@ -14,6 +14,20 @@
 |---|---|---|---|---|---|
 | `section` | item | `title: &'a str, description: &'a str, body: Markup` |  |  | A section: its title and a line on the left, `body` (a form) on the right. |
 
+## Keyboard of `SettingsPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Jumps to the section the focused side link names. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-settings-page` | `--lui-space` |
+| `.lui-settings-page-nav` | `--lui-space`, `--lui-text-2`, `--lui-line`, `--lui-muted`, `--lui-fg` |
+| `.lui-settings-page-section` | `--lui-space`, `--lui-line`, `--lui-text-3`, `--lui-muted`, `--lui-text-2` |
+
 ## Documentation
 
 A page of settings in sections: each has a title and a line on the left and its form on

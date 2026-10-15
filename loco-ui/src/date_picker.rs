@@ -53,7 +53,7 @@ use maud::{Markup, Render, html};
 use crate::button::Button;
 use crate::calendar::{Date, Off};
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Icon, Ui};
 
 /// A date field, made by [`Ui::date_picker`].
@@ -77,6 +77,30 @@ pub struct DatePicker<'a> {
 }
 
 impl DatePicker<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves to the trigger button, or between the day, month and year parts of the native date field.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Opens the calendar from the trigger button.",
+        ),
+        Key::new(
+            "Escape",
+            "Closes the calendar popover. Without popover support it closes from its button instead.",
+        ),
+        Key::new(
+            "ArrowRight / ArrowDown",
+            "Picks the next day in the calendar.",
+        ),
+        Key::new(
+            "ArrowLeft / ArrowUp",
+            "Picks the previous day in the calendar.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

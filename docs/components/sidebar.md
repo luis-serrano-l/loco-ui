@@ -20,6 +20,25 @@
 | `collapsible` | switch |  | `off` |  | A toggle that folds it to an icon rail, the labels shown as tooltips. |
 | `current_prefix` | switch |  | `off` |  | Mark a link current also when the path is under it (`/projects` on `/projects/42`). |
 
+## Keyboard of `Sidebar`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the focused link. | no |
+| `Enter / Space` | Folds the sidebar to its icon rail or unfolds it, when it is collapsible. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-sidebar` | `--lui-space-4`, `--lui-text-2`, `--lui-space-2`, `--lui-radius-sm`, `--lui-fg`, `--lui-hit`, `--lui-accent`, `--lui-on-accent`, `--lui-gray-4` |
+| `.lui-sidebar-group` |  |
+| `.lui-sidebar-heading` | `--lui-text-1`, `--lui-muted` |
+| `.lui-sidebar-text` | `--lui-z-tooltip`, `--lui-radius-sm`, `--lui-text-1`, `--lui-gray-1`, `--lui-gray-12`, `--lui-shadow-md`, `--lui-duration-fast` |
+| `.lui-sidebar-initial` | `--lui-radius-sm`, `--lui-gray-3`, `--lui-text-1` |
+| `.lui-sidebar-badge` | `--lui-text-1`, `--lui-muted` |
+| `.lui-sidebar-rail` | `--lui-space-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

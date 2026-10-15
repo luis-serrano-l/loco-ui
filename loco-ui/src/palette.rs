@@ -57,7 +57,7 @@ use maud::{Markup, Render, html};
 use crate::i18n::Text;
 use crate::icon::Glyph;
 use crate::input::Input;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Cap, Icon, Ui};
 
 /// One destination in the palette.
@@ -113,6 +113,30 @@ pub struct Palette<'a> {
 }
 
 impl Palette<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Alt+Shift+K / Alt+K",
+            "Opens the palette from anywhere on the page: Alt+Shift+K in Firefox, Alt+K in Chrome on Windows and Linux.",
+        ),
+        Key::new(
+            "Enter / Space",
+            "Opens the palette from its button and puts focus in the search field.",
+        ),
+        Key::new(
+            "ArrowDown / ArrowUp",
+            "Moves through the command names the browser suggests for the typed text.",
+        ),
+        Key::new(
+            "Enter",
+            "Searches for the typed command, or follows the focused command link.",
+        ),
+        Key::new(
+            "Escape",
+            "Closes the suggestions, then the palette. Without popover support it closes from its button instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

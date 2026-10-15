@@ -2,6 +2,21 @@
 
 `loco_ui::paged_table`
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-paged-table` |  |
+| `.lui-paged-table-nav` | `--lui-space-2`, `--lui-space-4`, `--lui-text-2`, `--lui-muted` |
+| `.lui-paged-table-pages` | `--lui-space-1` |
+| `.lui-paged-table-gap` |  |
+| `.lui-paged-table-of` | `--lui-space-2`, `--lui-fg` |
+| `.lui-paged-table-jump` | `--lui-space-2` |
+| `.lui-paged-table-per` | `--lui-space-2` |
+| `.lui-paged-table-page` |  |
+| `.lui-paged-table-num` |  |
+| `.lui-paged-table-end` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

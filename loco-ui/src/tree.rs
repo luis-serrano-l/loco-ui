@@ -58,7 +58,7 @@ use std::cell::Cell;
 use maud::{Markup, Render, html};
 
 use crate::icon::Glyph;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::{Icon, Ui, slug};
 
 /// One node: a label, where it links, an icon and the nodes under it.
@@ -91,6 +91,16 @@ pub struct Tree<'a> {
 }
 
 impl Tree<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the folder toggles and the links.",
+        ),
+        Key::new("Enter / Space", "Opens or closes the focused folder."),
+        Key::new("Enter", "Follows the focused link."),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

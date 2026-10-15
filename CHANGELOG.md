@@ -60,6 +60,10 @@ M16 entries are older still and describe options structs that M18 replaced.
 
 #### M46 · Tests that would have caught the audit's bugs
 
+- Keyboard checks in `scripts/browser-check.mjs`: Escape closes the drawer, popover card,
+  context menu, hover card and palette by a real key press, and without the script Tab
+  reaches every control on every component page under both capability variants.
+
 - Property tests (`proptest`, `loco-ui/tests/prop.rs`): any path, query and cookie build a
   `Ui`, a `UiState` and a `TableQuery` without a panic; `href`, the `lui-ui` cookie, `Caps`
   (query and cookies) and `Date` read back what they write; `slug` stays id-safe and stable;
@@ -152,6 +156,11 @@ M16 entries are older still and describe options structs that M18 replaced.
   `Text::DeleteConfirm`, `Text::CannotUndo`) instead of posting at once.
 
 #### M42 · A docs site, not a demo
+
+- `props::Key` and a `KEYS` const on every builder: the keys it answers to, what they do,
+  and whether only the script does it. `props()`, `spec/components.json`, each component
+  page's new Keyboard section and the llms files list them; the llms `.md` files also gain
+  an Anatomy table. A test fails when a builder that renders a control lists no keys.
 
 - The demo is a docs site. Getting started at `/start`, `/start/axum`, `/start/loco` and
   `/start/any-server` (new `docs/start/*.md`, the Axum and any-server pages run as

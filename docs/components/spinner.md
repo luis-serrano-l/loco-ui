@@ -15,6 +15,12 @@
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | 12px (size 1), 16px (2, the default) or 20px (3) across. |
 | `label` | value | `label: &'a str` | `Loading` |  | What a screen reader announces: what is loading. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-spinner` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

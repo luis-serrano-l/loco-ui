@@ -20,6 +20,25 @@
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | The items' height and text: Radix's sizes 1 to 3. |
 | `radius` | choice: none, small, medium, large, full | `radius: Radius` | `medium` |  | The corners of the track and the chip, from square to a pill. |
 
+## Keyboard of `ToggleGroup`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves into the group: onto the picked item with one pick, or through each item with several. | no |
+| `ArrowRight / ArrowDown` | Moves to the next item and picks it, with one pick. | no |
+| `ArrowLeft / ArrowUp` | Moves to the previous item and picks it, with one pick. | no |
+| `Space` | Picks the focused item, or toggles it with several picks. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-toggle-group` | `--lui-toggle-radius`, `--lui-radius`, `--lui-gray-3`, `--lui-radius-sm`, `--lui-radius-lg` |
+| `.lui-toggle-group-item` |  |
+| `.lui-toggle-group-input` |  |
+| `.lui-toggle-group-face` | `--lui-control-h`, `--lui-toggle-radius`, `--lui-radius`, `--lui-text-2`, `--lui-gray-11`, `--lui-duration-fast`, `--lui-control-h-sm`, `--lui-control-h-lg`, `--lui-text-3`, `--lui-fg`, `--lui-gray-8`, `--lui-card`, `--lui-line`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-ring` |
+| `.lui-toggle-group-one` | `--lui-toggle-n`, `--lui-toggle-at`, `--lui-toggle-radius`, `--lui-radius`, `--lui-card`, `--lui-line`, `--lui-shadow-xs`, `--lui-highlight`, `--lui-duration`, `--lui-ease-spring` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

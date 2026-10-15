@@ -55,6 +55,14 @@ pub struct Widget<'a> {
 }
 
 impl Widget<'_> {
+    // TODO(5, KEYS): the keys it answers to, from the elements it renders (a `<dialog>` closes
+    // on Escape, radios move on arrows); `.script()` on what only enhance.rs does. Empty only
+    // when it renders no control of its own (`builders_with_controls_list_their_keys`).
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        crate::props::Key::new("Enter / Space", "Opens the widget."),
+    ];
+
     // TODO(5, PROPS): one `Prop` per public setter, in the order written below
     // (`every_setter_is_in_props`, `props_follow_the_conventions`). Kinds: `Switch` (no
     // argument, switches on), `Condition` (takes a bool from a route), `Value`, `Number`, `Item` (an

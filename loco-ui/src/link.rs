@@ -41,7 +41,7 @@
 use maud::{Markup, Render, html};
 
 use crate::i18n::Text;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::variant::Underline;
 use crate::{Icon, Ui};
 
@@ -59,6 +59,12 @@ pub struct Link<'a> {
 }
 
 impl Link<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [Key] = &[Key::new(
+        "Enter",
+        "Follows the link, in a new tab when it is external.",
+    )];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

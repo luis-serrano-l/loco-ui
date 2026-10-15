@@ -2277,10 +2277,9 @@ M44. Shared lists (`lib.rs`, `props::COMPONENTS`, `SPECS`, `PATHS`, `SOURCES`, t
 Status on 2026-10-15, after every branch merged: M37, M40, M41, M43 and M44 are done. Open
 boxes: M38 Ids (the `f-<slug(name)>` control id), misfires (Table, and Form and ToggleGroup
 still in `MODIFIERS_UNCHECKED`) and shims (four `#[deprecated]` setters);
-M39 RTL (a Blitz shot of a right-to-left page); M42 per-component sections (the `KEYS` const
-and the Keyboard section), the llms files (keyboard and anatomy in each `.md`) and the
-examples gallery; M46 per-file unit test modules and keyboard tests in `browser-check.mjs`
-(waits on `KEYS`). The publish (0.2.0) waits on the owner (BLOCKED.md).
+M39 RTL (a Blitz shot of a right-to-left page); M42 the examples gallery; M46 per-file unit
+test modules. Keyboard docs and tests (M42, M46) were done 2026-10-15; the bugs they found
+are in FINDINGS ("Keyboard, 2026-10-15"). The publish (0.2.0) waits on the owner (BLOCKED.md).
 
 ## M37 · Ready for docs.rs and crates.io (small, first, blocks nothing)
 
@@ -3021,7 +3020,7 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   owner's draft). `docs/start/any-server.md` and `axum.md` run as doctests (`lib.rs`).
   Kept different: the guides list adds `ergonomics` and `latency`; the sidebar gains a
   "Docs" navigation above the components'.
-- [ ] Per-component page sections from data: "Platform" (baselines from `spec::SPECS`,
+- [x] Per-component page sections from data: "Platform" (baselines from `spec::SPECS`,
   `needs_js`), "Accessibility", "Without script", "Fallback" (parsed from the `//!` header
   at build time, as `code.rs` reads sources), "Keyboard" (new `KEYS: &[(&str, &str)]` const
   per component, listed by `props()`, enforced by a test like `PROPS`), "Anatomy" (the
@@ -3041,8 +3040,15 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   something: point it at `props()` once each component carries `KEYS` (left for the last
   commit before merge, as the box says, since other milestones were editing every
   component file).
-  Left: a `KEYS` const per component, its entry in `props()` and a test like `PROPS`'s;
-  `reference::keys` still returns nothing, so no page shows "Keyboard".
+  Done 2026-10-15: `props::Key { keys, does, script }` and a `KEYS` const beside every
+  builder's `PROPS`, in `Component::keys` (so `props()`, the spec JSON and the llms files
+  list it). 66 builders list keys, read from the elements each renders (`.script()` on
+  what only `enhance.rs` does); the Keyboard section renders them, one `<kbd>` per key.
+  `builders_with_controls_list_their_keys` (`tests/snapshots.rs`) renders each header
+  example and fails when one with a control other than a plain link has none, or names a
+  key outside a fixed list; `HOLDS_OTHERS` exempts Cluster, Indicator and AuthPage, whose
+  controls are the parts passed in. Kept different: the box's `&[(&str, &str)]` became a
+  struct to carry the script flag.
 - [x] Search: `/find?q=` over components, props, docs headings; the site header shows
   `ui.palette` fed from the same index (`?q=` exact lands on the page), so the component
   demonstrates itself.
@@ -3090,7 +3096,7 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   (a fixed sentence off the component pages), `og:type`, `og:site_name`, `og:title` and
   `og:description`, and the mark (three bars on indigo 9) as an SVG `data:` URI; the test
   `pages_carry_a_description_og_and_favicon` checks them.
-- [ ] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
+- [x] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
   (index), `docs/llms-full.txt` (every component: constructor, props table, keyboard,
   anatomy, the doc header, the `lui!` example) and `docs/components/<name>.md`; the demo
   serves them at `/llms.txt`, `/llms-full.txt`, `/<component>.md` (content negotiation:
@@ -3113,8 +3119,9 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   files on disk, stale `components/*.md` included, and
   `llms_files_are_served_and_pages_answer_markdown` checks the routes, negotiation and the
   snapshot. The `/changelog` page renders CHANGELOG.md through `docs.rs`.
-  Left: keyboard and anatomy in each `.md`. The keyboard waits on `KEYS`; the anatomy
-  exists in `demo/src/reference.rs` for the pages, but `llms.rs` does not read it yet.
+  Keyboard and anatomy added 2026-10-15: each `.md` has "Keyboard of `<Builder>`" (keys,
+  what they do, whether the script is needed) and "Anatomy" (each class with the tokens it
+  reads, from `reference::anatomy`).
 - [ ] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
   `tests/pages.rs` writes, copied into `docs/examples/`), each linked to the source file.
   Blocks gallery grows with M40's banner/steps/timeline and three new blocks
@@ -3443,11 +3450,16 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
   `Table` and `Select`). The calendar's today is pinned. `cargo insta review` is in
   CLAUDE.md. The CI line is left to the merger (`.github` is outside this branch); plain
   `cargo test` already fails on a changed snapshot under `CI=true`.
-- [ ] Keyboard tests in `browser-check.mjs` per component that claims keys in `KEYS`
+- [x] Keyboard tests in `browser-check.mjs` per component that claims keys in `KEYS`
   (M42): tab order, Escape on dialog/popover/palette, arrows on tabs/menu/calendar with
   the script; without the script, Tab reaches every control (count focusable = expected).
-  Not done: waits on M42's `KEYS`. `browser-check.mjs` keeps its older dialog Escape, menu
-  and combobox arrow checks, and has no Tab count without the script.
+  Done 2026-10-15: real key presses (WebDriver actions). Escape closes the drawer, popover
+  card, context menu, hover card and palette (the dialog's and the menu and combobox
+  arrows were already checked). With `?script=off`, Tab from the top of `<main>` reaches
+  every control on all 69 component pages under both capability variants (about 16 000
+  stops; a radio group counts once; a streamed page's `<main>` inside its shadow root is
+  followed). Kept different: arrows on tabs and the calendar are not claimed by `KEYS`
+  (tabs are links, the calendar's days one radio group), so they are not tested.
 - [x] Test timing: `cargo test --workspace -- -Z unstable-options --report-time` once,
   recorded in FINDINGS; `verify.sh` skips the Blitz crate by default (`--full` runs it),
   matching the CLAUDE.md "quick verify" intent.

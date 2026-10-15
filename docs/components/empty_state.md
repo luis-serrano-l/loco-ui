@@ -17,6 +17,23 @@
 | `link` | value | `label: &'a str, href: &'a str` |  |  | A link to follow. |
 | `action` | value | `label: &'a str, action: &'a str` |  |  | A button posting to `action`. |
 
+## Keyboard of `EmptyState`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Sends the action button's form. | no |
+| `Enter` | Follows the link button. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-empty` | `--lui-space`, `--lui-line`, `--lui-radius-lg` |
+| `.lui-empty-icon` | `--lui-space-2`, `--lui-text-6`, `--lui-radius-lg`, `--lui-brand-3`, `--lui-brand-11` |
+| `.lui-empty-title` | `--lui-text-4` |
+| `.lui-empty-text` | `--lui-muted`, `--lui-text-2` |
+| `.lui-empty-actions` | `--lui-space` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

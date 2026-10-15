@@ -25,6 +25,30 @@
 | `side` | choice: top, bottom, start, end | `side: Side` | `start` |  | The edge it slides in from. |
 | `size` | choice: 1, 2, 3 | `size: impl Into<Size>` | `2` |  | 18, 24 or 32rem wide (tall, from the top or bottom). |
 
+## Keyboard of `Drawer`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the drawer from its button. | no |
+| `Tab / Shift+Tab` | Moves between the drawer's links and controls while the page behind it is inert. | no |
+| `Escape` | Closes the drawer and returns focus to its button. Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-drawer` | `--lui-space-4` |
+| `.lui-drawer-open` |  |
+| `.lui-drawer-panel` | `--lui-space-4`, `--lui-fg`, `--lui-popover`, `--lui-line`, `--lui-drawer-size`, `--lui-z-drawer`, `--lui-space-6`, `--lui-shadow-lg`, `--lui-highlight`, `--lui-overlay`, `--lui-radius-lg`, `--lui-radius-sm`, `--lui-text-2`, `--lui-hit`, `--lui-accent`, `--lui-on-accent`, `--lui-space-8`, `--lui-space-3`, `--lui-gray-5`, `--lui-space-2`, `--lui-surface`, `--lui-duration-slow`, `--lui-ease-out`, `--lui-drawer-away` |
+| `.lui-drawer-head` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-drawer-title` | `--lui-text-3` |
+| `.lui-drawer-description` | `--lui-text-2`, `--lui-muted` |
+| `.lui-drawer-close` |  |
+| `.lui-drawer-nav` | `--lui-space-2` |
+| `.lui-drawer-foot` | `--lui-space-2`, `--lui-space-4` |
+| `.lui-drawer-content` |  |
+| `.lui-drawer-sidebar` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

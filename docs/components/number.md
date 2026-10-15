@@ -28,6 +28,22 @@
 | `placeholder` | value | `placeholder: &'a str` |  | `placeholder` | Placeholder text. |
 | `id` | value | `id: &'a str` |  | `id` | The control's id, `f-<name>` by default. |
 
+## Keyboard of `Number`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves focus into the field, then to the steppers. | no |
+| `ArrowUp / ArrowDown` | Steps the value up or down by its step, within its bounds. | no |
+| `Enter` | Submits the form. | no |
+| `Enter / Space` | Presses a focused stepper, which posts the value one step up or down. | no |
+| `Enter / Space` | Steps the value in place from a focused stepper. | yes |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-number` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

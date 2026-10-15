@@ -68,7 +68,7 @@ use maud::{Markup, Render, html};
 use crate::button::Button;
 use crate::i18n::Text;
 use crate::popover_card::Side;
-use crate::props::{Prop, PropKind};
+use crate::props::{Key, Prop, PropKind};
 use crate::variant::Size;
 use crate::{Cap, Icon, Ui, slug};
 
@@ -96,6 +96,19 @@ pub struct Drawer<'a> {
 }
 
 impl Drawer<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[
+        Key::new("Enter / Space", "Opens the drawer from its button."),
+        Key::new(
+            "Tab / Shift+Tab",
+            "Moves between the drawer's links and controls while the page behind it is inert.",
+        ),
+        Key::new(
+            "Escape",
+            "Closes the drawer and returns focus to its button. Without invoker commands or the script, its Close link closes it instead.",
+        ),
+    ];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[

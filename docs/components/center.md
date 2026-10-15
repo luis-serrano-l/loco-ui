@@ -16,6 +16,13 @@
 | `min_height` | value | `height: &'a str` |  |  | At least this tall (a CSS length), so there is room to centre in. |
 | `text_center` | switch |  | `off` |  | Centre the lines of text too. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-center` | `--lui-space-2` |
+| `.lui-center-text` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

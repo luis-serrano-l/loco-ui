@@ -43,6 +43,9 @@ pub struct AuthPage<'a> {
 }
 
 impl AuthPage<'_> {
+    /// The keys it answers to, listed by [`crate::props()`] and shown on its docs page.
+    pub const KEYS: &'static [crate::props::Key] = &[];
+
     /// Every setter with its kind, arguments, default and the HTML attribute it sets.
     pub const PROPS: &'static [Prop] = &[
         Prop::new("description", PropKind::Value, "text: &'a str").doc("A line under the title."),

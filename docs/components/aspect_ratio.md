@@ -15,6 +15,12 @@
 | `body` | value | `markup: Markup` |  |  | What fills the box: a picture, a video, a map. |
 | `ratio` | value | `width: u32, height: u32` | `1 / 1` |  | Width to height: `(16, 9)`, `(4, 3)`. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-aspect-ratio` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

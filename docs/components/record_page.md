@@ -17,6 +17,23 @@
 | `delete` | value | `action: &'a str` |  | `action` | A Delete button that asks first, in a dialog, then posts to `action`. |
 | `back` | value | `href: &'a str` |  | `href` | A Back link to the list. |
 
+## Keyboard of `RecordPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter` | Follows the Back or Edit link. | no |
+| `Enter / Space` | Opens the delete confirmation from the Delete button. | no |
+| `Escape` | Closes the delete confirmation without deleting. Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-record` | `--lui-space` |
+| `.lui-record-head` | `--lui-space` |
+| `.lui-record-actions` | `--lui-space` |
+| `.lui-record-fields` | `--lui-space-6`, `--lui-card`, `--lui-line`, `--lui-radius-lg` |
+
 ## Documentation
 
 One record: its title, its fields as a description list in a card, and the actions on it

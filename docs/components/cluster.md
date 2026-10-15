@@ -21,6 +21,15 @@
 | `padding` | number | `n: u8` |  |  | Padding on every side as a step of the `--lui-space-*` scale. |
 | `nowrap` | switch |  | `off` |  | Keep the children on one line; they shrink instead of wrapping. |
 
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-cluster` | `--lui-space-2` |
+| `.lui-cluster-between` |  |
+| `.lui-cluster-end` |  |
+| `.lui-cluster-nowrap` |  |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

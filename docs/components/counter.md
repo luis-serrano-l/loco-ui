@@ -19,6 +19,22 @@
 | `disabled` | switch |  | `off` | `disabled` | Every button and the number field disabled. |
 | `readonly` | switch |  | `off` |  | The value shown, its buttons off and the number field `readonly`. |
 
+## Keyboard of `Counter`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the decrement, increment and reset buttons and the value field. | no |
+| `Enter / Space` | Presses the focused button, which posts the change. | no |
+| `ArrowUp / ArrowDown` | Steps the typed value up or down by the step before it is set. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-counter` | `--lui-space`, `--lui-text-6` |
+| `.lui-counter-input` |  |
+| `.lui-counter-bounds` | `--lui-muted`, `--lui-text-2` |
+
 ## Platform
 
 | Feature | Chrome | Firefox | Safari |

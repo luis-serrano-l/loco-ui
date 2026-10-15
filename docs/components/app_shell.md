@@ -21,6 +21,20 @@
 | `banner` | value | `banner: Markup` |  |  | A bar across the top, above the sidebar and the content (a `ui.banner(..)`). |
 | `current_prefix` | switch |  | `off` |  | Mark a link current also when the path is under it (`/projects` on `/projects/42`). |
 
+## Keyboard of `AppShell`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Enter / Space` | Opens the navigation from the menu button on a narrow screen. | no |
+| `Tab / Shift+Tab` | Moves through the navigation links and the sign-out button. | no |
+| `Escape` | Closes the open navigation and returns focus to the menu button. Without invoker commands or the script, its Close link closes it instead. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-app-shell-user` | `--lui-space`, `--lui-line`, `--lui-text-2` |
+
 ## Documentation
 
 The frame of a signed-in app: its name and navigation in a sidebar (a drawer on narrow
