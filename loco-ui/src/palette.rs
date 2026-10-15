@@ -343,10 +343,10 @@ pub const CSS: &str = r#"
    phone the panel is full width at the top. */
 /* The trigger is an outline button drawn as a search bar: muted text, the shortcut at the end. */
 .lui-palette-open { min-width: 16rem; justify-content: flex-start; padding: 0.375rem 0.5rem 0.375rem 0.75rem; font-weight: 400; color: var(--lui-muted); background: var(--lui-surface); list-style: none; }
-.lui-palette-open .lui-palette-kbd { margin-left: auto; }
+.lui-palette-open .lui-palette-kbd { margin-inline-start: auto; }
 .lui-palette-open::-webkit-details-marker { display: none; }
 .lui-palette-kbd {
-  font-family: var(--lui-font-mono); font-size: 0.75rem; font-weight: 500; padding: 0 0.375rem; line-height: 1.25rem;
+  font-family: var(--lui-font-mono); font-size: var(--lui-text-1); font-weight: 500; padding: 0 0.375rem; line-height: 1.25rem;
   color: var(--lui-fg); background: var(--lui-secondary); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-sm);
 }
 .lui-palette-panel {
@@ -361,23 +361,23 @@ pub const CSS: &str = r#"
 .lui-palette-form > .lui-icon { color: var(--lui-muted); }
 .lui-palette-input { flex: 1; min-height: 2.75rem; padding: 0.5rem 0.25rem; border: 0; box-shadow: none; background: transparent; }
 .lui-palette-input:focus-visible { outline: none; }
-.lui-palette-heading { display: flex; align-items: center; min-height: 1.75rem; margin: 0; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
+.lui-palette-heading { display: flex; align-items: center; min-height: 1.75rem; margin: 0; padding: 0 0.5rem; font-size: var(--lui-text-1); font-weight: 500; color: var(--lui-muted); }
 .lui-palette ul { list-style: none; margin: 0; padding: 0; }
 .lui-palette li { max-width: none; }
 .lui-palette li a {
   display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; padding: 0 0.5rem; box-sizing: border-box;
-  border-radius: var(--lui-radius-sm); font-size: 0.875rem; color: var(--lui-fg); text-decoration: none;
+  border-radius: var(--lui-radius-sm); font-size: var(--lui-text-2); color: var(--lui-fg); text-decoration: none;
 }
 @media (pointer: coarse) { .lui-palette li a { min-height: var(--lui-hit); } }
 .lui-palette li a > .lui-icon { color: var(--lui-muted); }
 .lui-palette-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lui-palette-shortcut { font: inherit; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0; }
+.lui-palette-shortcut { font: inherit; font-size: var(--lui-text-1); letter-spacing: 0.1em; color: var(--lui-muted); background: none; border: 0; padding: 0; }
 .lui-palette li a:hover, .lui-palette li a:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
 .lui-palette li a:is(:hover, :focus-visible) > :is(.lui-icon, .lui-palette-shortcut) { color: inherit; }
-.lui-palette-empty { margin: 0; padding: var(--lui-space-6) 0; text-align: center; font-size: 0.875rem; color: var(--lui-muted); }
+.lui-palette-empty { margin: 0; padding: var(--lui-space-6) 0; text-align: center; font-size: var(--lui-text-2); color: var(--lui-muted); }
 @media (max-width: 30rem) {
   .lui-palette-panel[popover] { width: 100%; margin: 0 0 auto; max-height: 85vh; border-width: 0 0 1px; border-radius: 0 0 var(--lui-radius-lg) var(--lui-radius-lg); }
 }
 .lui-palette-results { margin-top: calc(var(--lui-space) * 3); }
-.lui-palette-results h2 { font-size: 1.125rem; }
+.lui-palette-results h2 { font-size: var(--lui-text-4); }
 "#;

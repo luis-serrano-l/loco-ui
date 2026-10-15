@@ -359,20 +359,20 @@ pub const CSS: &str = r#"
    2rem rows, a check in the left gutter on the picked one, the primary colour on hover and
    focus, and an empty row when nothing matches. */
 .lui-combobox-results { margin: var(--lui-space-2) 0 var(--lui-space-4); }
-.lui-combobox-status { margin: 0 0 var(--lui-space-2); font-size: 0.875rem; color: var(--lui-muted); }
+.lui-combobox-status { margin: 0 0 var(--lui-space-2); font-size: var(--lui-text-2); color: var(--lui-muted); }
 .lui-combobox-list {
   list-style: none; margin: 0; padding: var(--lui-space-1); background: var(--lui-popover);
   border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-md), var(--lui-highlight);
 }
-.lui-combobox-list > li { max-width: none; font-size: 0.875rem; }
+.lui-combobox-list > li { max-width: none; font-size: var(--lui-text-2); }
 .lui-combobox-list a, .lui-combobox-list > .lui-combobox-chosen {
   display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; box-sizing: border-box;
   padding: 0 0.75rem 0 1.5rem; border-radius: var(--lui-radius-sm); text-decoration: none; color: inherit;
 }
 .lui-combobox-list a:hover, .lui-combobox-list a:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
 .lui-combobox-list > .lui-combobox-chosen { position: relative; }
-.lui-combobox-chosen > .lui-icon { position: absolute; left: 0.375rem; width: 0.875rem; height: 0.875rem; }
-.lui-combobox-picked { margin-left: auto; color: var(--lui-muted); font-size: 0.75rem; }
+.lui-combobox-chosen > .lui-icon { position: absolute; inset-inline-start: 0.375rem; width: 0.875rem; height: 0.875rem; }
+.lui-combobox-picked { margin-inline-start: auto; color: var(--lui-muted); font-size: var(--lui-text-1); }
 .lui-combobox-empty { margin: 0; padding: var(--lui-space-6) 0; text-align: center; }
 .lui-combobox-create { display: flex; justify-content: center; padding-bottom: var(--lui-space-1); }
 @media (pointer: coarse) { .lui-combobox-list a, .lui-combobox-list > .lui-combobox-chosen { min-height: var(--lui-hit); } }

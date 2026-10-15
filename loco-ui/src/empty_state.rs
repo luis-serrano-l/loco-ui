@@ -134,12 +134,12 @@ pub const CSS: &str = r#"
   border: 1px dashed var(--lui-line); border-radius: var(--lui-radius-lg);
 }
 .lui-empty-icon {
-  display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: var(--lui-space-2); font-size: 1.5rem; line-height: 1;
+  display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: var(--lui-space-2); font-size: var(--lui-text-6); line-height: 1;
   border-radius: var(--lui-radius-lg); background: var(--lui-brand-3); color: var(--lui-brand-11);
 }
 .lui-empty-icon > .lui-icon { width: 1.5rem; height: 1.5rem; }
-.lui-empty-title { margin: 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.0125em; }
-.lui-empty-text { margin: 0; color: var(--lui-muted); max-width: 24rem; font-size: 0.875rem; }
+.lui-empty-title { margin: 0; font-size: var(--lui-text-4); font-weight: 600; letter-spacing: -0.0125em; }
+.lui-empty-text { margin: 0; color: var(--lui-muted); max-width: 24rem; font-size: var(--lui-text-2); }
 .lui-empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--lui-space) * 2); margin-top: var(--lui-space); }
 .lui-empty-actions form { margin: 0; }
 "#;

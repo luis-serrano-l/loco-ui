@@ -263,9 +263,9 @@ pub const CSS: &str = r#"
   display: grid; place-items: center; width: 2.75rem; height: 2.75rem; margin-bottom: var(--lui-space-2);
   border: 1px solid var(--lui-line); border-radius: 50%; background: var(--lui-bg); color: var(--lui-muted);
 }
-.lui-upload-title { font-size: 0.875rem; font-weight: 500; }
-.lui-upload-hint { font-size: 0.75rem; color: var(--lui-muted); }
-.lui-upload-input { max-width: 100%; margin-top: var(--lui-space-2); font-size: 0.8125rem; }
+.lui-upload-title { font-size: var(--lui-text-2); font-weight: 500; }
+.lui-upload-hint { font-size: var(--lui-text-1); color: var(--lui-muted); }
+.lui-upload-input { max-width: 100%; margin-top: var(--lui-space-2); font-size: var(--lui-text-2); }
 .lui-upload-progress { width: 100%; height: 0.5rem; accent-color: var(--lui-primary); }
 .lui-upload-files { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--lui-space-2); }
 .lui-upload-file {
@@ -275,9 +275,9 @@ pub const CSS: &str = r#"
 .lui-upload-file form { margin: 0 0 0 auto; }
 .lui-upload-thumb { display: inline-grid; place-items: center; flex: none; width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--lui-radius-sm); border: 1px solid var(--lui-line); background: var(--lui-gray-2); color: var(--lui-muted); }
 .lui-upload-meta { display: grid; min-width: 0; flex: 1; }
-.lui-upload-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.875rem; font-weight: 500; }
+.lui-upload-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--lui-text-2); font-weight: 500; }
 .lui-upload-name a { color: inherit; }
-.lui-upload-size { color: var(--lui-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.lui-upload-size { color: var(--lui-muted); font-size: var(--lui-text-1); font-variant-numeric: tabular-nums; }
 "#;
 
 #[cfg(test)]

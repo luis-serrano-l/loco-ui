@@ -289,9 +289,9 @@ pub(crate) fn current_href<'h>(
 pub const CSS: &str = r#"
 /* After the shadcn Sidebar block: small muted group labels, 2rem rows (44px on touch) with an
    icon slot and a count at the end, the current row on --lui-gray-4 in medium weight. */
-.lui-sidebar { display: grid; gap: var(--lui-space-4); font-size: 0.875rem; }
+.lui-sidebar { display: grid; gap: var(--lui-space-4); font-size: var(--lui-text-2); }
 .lui-sidebar-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.125rem; }
-.lui-sidebar-heading { display: flex; align-items: center; min-height: 2rem; margin: 0; padding: 0 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--lui-muted); }
+.lui-sidebar-heading { display: flex; align-items: center; min-height: 2rem; margin: 0; padding: 0 0.5rem; font-size: var(--lui-text-1); font-weight: 500; color: var(--lui-muted); }
 .lui-sidebar a {
   position: relative; display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; box-sizing: border-box; padding: 0 0.5rem;
   border-radius: var(--lui-radius-sm); color: var(--lui-fg); text-decoration: none;
@@ -303,7 +303,7 @@ pub const CSS: &str = r#"
 .lui-sidebar a[aria-current="page"] > .lui-icon { color: var(--lui-fg); }
 .lui-sidebar-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lui-sidebar-initial { display: none; }
-.lui-sidebar-badge { margin-left: auto; font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--lui-muted); }
+.lui-sidebar-badge { margin-inline-start: auto; font-size: var(--lui-text-1); font-variant-numeric: tabular-nums; color: var(--lui-muted); }
 /* .collapsible(): the <details> keeps its content in view when closed, and closed it is an
    icon rail: headings and counts go, each label becomes a tooltip chip beside its icon (still
    the link's name for assistive tech). */
@@ -316,11 +316,11 @@ pub const CSS: &str = r#"
 /* A link with no icon keeps its first letter in the rail, in a small tile. */
 .lui-sidebar-rail:not([open]) .lui-sidebar-initial {
   display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: var(--lui-radius-sm);
-  background: var(--lui-gray-3); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+  background: var(--lui-gray-3); font-size: var(--lui-text-1); font-weight: 600; text-transform: uppercase;
 }
 .lui-sidebar-rail:not([open]) .lui-sidebar-text {
-  position: absolute; z-index: 30; left: calc(100% + 0.5rem); top: 50%; translate: 0 -50%; width: max-content; max-width: 14rem;
-  padding: 0.375rem 0.75rem; border-radius: var(--lui-radius-sm); font-size: 0.75rem; line-height: 1rem; font-weight: 400;
+  position: absolute; z-index: var(--lui-z-tooltip); inset-inline-start: calc(100% + 0.5rem); top: 50%; translate: 0 -50%; width: max-content; max-width: 14rem;
+  padding: 0.375rem 0.75rem; border-radius: var(--lui-radius-sm); font-size: var(--lui-text-1); line-height: 1rem; font-weight: 400;
   color: var(--lui-gray-1); background: var(--lui-gray-12); box-shadow: var(--lui-shadow-md);
   opacity: 0; pointer-events: none; transition: opacity var(--lui-duration-fast);
 }

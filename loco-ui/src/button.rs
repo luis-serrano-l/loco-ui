@@ -719,7 +719,7 @@ pub const CSS: &str = r#"
 button, .lui-button {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   min-height: var(--lui-control-h); padding: 0.375rem 1rem; white-space: nowrap; cursor: pointer;
-  font-family: inherit; font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; color: inherit;
+  font-family: inherit; font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500; color: inherit;
   background: var(--lui-bg); border: 1px solid var(--lui-input); border-radius: var(--lui-radius-sm);
   box-shadow: var(--lui-shadow-xs); transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
@@ -780,9 +780,9 @@ button.lui-danger:hover, .lui-button.lui-button-danger:hover { background: color
 .lui-button.lui-button-surface:active:not(:disabled), .lui-button.lui-button-surface[data-state=on] { background: var(--lui-brand-4); }
 .lui-button:is(.lui-button-primary, .lui-button-danger):active:not(:disabled) { background-image: none; filter: brightness(0.92); }
 /* Sizes: Radix 1 to 3, on the shared control heights (all 2.75rem on a touch screen). */
-.lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; font-size: 0.8125rem; }
+.lui-button.lui-button-small { min-height: var(--lui-control-h-sm); padding: 0.25rem 0.75rem; gap: 0.375rem; font-size: var(--lui-text-2); }
 .lui-button.lui-button-block { inline-size: 100%; }
-.lui-button.lui-button-large { min-height: var(--lui-control-h-lg); padding: 0.5rem 1.25rem; gap: 0.625rem; font-size: 1rem; line-height: 1.5rem; }
+.lui-button.lui-button-large { min-height: var(--lui-control-h-lg); padding: 0.5rem 1.25rem; gap: 0.625rem; font-size: var(--lui-text-3); line-height: 1.5rem; }
 .lui-button.lui-button-icon { width: var(--lui-control-h); min-width: var(--lui-control-h); padding: 0; }
 .lui-button.lui-button-icon.lui-button-small { width: var(--lui-control-h-sm); min-width: var(--lui-control-h-sm); }
 .lui-button.lui-button-icon.lui-button-large { width: var(--lui-control-h-lg); min-width: var(--lui-control-h-lg); }

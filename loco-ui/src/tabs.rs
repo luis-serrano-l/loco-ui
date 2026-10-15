@@ -309,14 +309,14 @@ pub const CSS: &str = r#"
 }
 .lui-tabs-trigger {
   position: relative; display: flex; align-items: center; padding: 0.25rem 0.75rem;
-  border-radius: var(--lui-radius-sm); font-size: 0.875rem; line-height: 1.25rem; font-weight: 500;
+  border-radius: var(--lui-radius-sm); font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500;
   white-space: nowrap; text-decoration: none; color: color-mix(in srgb, var(--lui-muted) 70%, var(--lui-fg));
 }
 .lui-tabs-trigger:hover, .lui-tabs-trigger[data-state="active"] { color: var(--lui-fg); }
 /* Positioned after the chip, so the title paints over it. */
 .lui-tabs-label { position: relative; display: flex; align-items: center; gap: 0.375rem; }
-.lui-tabs[data-size="1"] .lui-tabs-trigger { font-size: 0.8125rem; padding-inline: 0.5rem; }
-.lui-tabs[data-size="3"] .lui-tabs-trigger { font-size: 1rem; line-height: 1.5rem; padding-inline: 1rem; }
+.lui-tabs[data-size="1"] .lui-tabs-trigger { font-size: var(--lui-text-2); padding-inline: 0.5rem; }
+.lui-tabs[data-size="3"] .lui-tabs-trigger { font-size: var(--lui-text-3); line-height: 1.5rem; padding-inline: 1rem; }
 /* The chip is its own empty element so the view transition slides it, not the text. */
 .lui-tabs-mark {
   position: absolute; inset: 0; border-radius: var(--lui-radius-sm);
@@ -327,7 +327,7 @@ pub const CSS: &str = r#"
 ::view-transition-group(*.lui-tabs-mark) { animation-duration: var(--lui-duration-slow); animation-timing-function: var(--lui-ease-spring); }
 .lui-tabs-badge {
   display: inline-block; min-width: 1.25rem; padding: 0 0.3rem; border-radius: 1em; text-align: center;
-  font-size: 0.75rem; font-weight: 500; line-height: 1.25rem; background: var(--lui-line); color: var(--lui-fg);
+  font-size: var(--lui-text-1); font-weight: 500; line-height: 1.25rem; background: var(--lui-line); color: var(--lui-fg);
 }
 .lui-tabs-trigger[data-state="active"] .lui-tabs-badge { background: var(--lui-primary); color: var(--lui-on-primary); }
 .lui-tabs-panel { padding: 1rem 0; }
@@ -337,7 +337,7 @@ pub const CSS: &str = r#"
 .lui-tabs[data-orientation=vertical] .lui-tabs-select { grid-column: 1 / -1; }
 .lui-tabs[data-orientation=vertical] .lui-tabs-list {
   grid-column: 1; flex-direction: column; flex-wrap: nowrap; align-self: stretch; padding: 0;
-  background: none; border-radius: 0; border-right: 1px solid var(--lui-line);
+  background: none; border-radius: 0; border-inline-end: 1px solid var(--lui-line);
 }
 .lui-tabs[data-orientation=vertical] .lui-tabs-trigger { padding: 0.5rem 1rem; border-radius: 0; }
 .lui-tabs[data-orientation=vertical] .lui-tabs-mark { inset: 0 -1px 0 auto; width: 2px; border-radius: 0; background: var(--lui-fg); box-shadow: none; }

@@ -246,13 +246,13 @@ pub const CSS: &str = r#"
    with their labels. It is its own container: under 30rem it is previous, "Page X of Y" and
    next, the numbers, first/last and the jump form gone (the page select stays). */
 .lui-paged-table { container: lui-paged-table / inline-size; }
-.lui-paged-table-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2) var(--lui-space-4); margin-top: var(--lui-space-4); font-size: 0.875rem; color: var(--lui-muted); }
+.lui-paged-table-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2) var(--lui-space-4); margin-top: var(--lui-space-4); font-size: var(--lui-text-2); color: var(--lui-muted); }
 .lui-paged-table-pages { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-1); list-style: none; margin: 0; padding: 0; }
 .lui-paged-table-pages .lui-button { min-width: var(--lui-control-h); padding-inline: 0.625rem; }
 .lui-paged-table-gap { align-self: center; padding: 0 0.25rem; }
 .lui-paged-table-of { display: none; padding-inline: var(--lui-space-2); color: var(--lui-fg); white-space: nowrap; }
 .lui-paged-table-jump, .lui-paged-table-per { display: flex; align-items: center; gap: var(--lui-space-2); }
-.lui-paged-table-jump { margin-left: auto; }
+.lui-paged-table-jump { margin-inline-start: auto; }
 .lui-paged-table-page { width: 5em; }
 @container lui-paged-table (width < 30rem) {
   .lui-paged-table-num, .lui-paged-table-gap, .lui-paged-table-end, .lui-paged-table-jump { display: none; }

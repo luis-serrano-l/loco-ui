@@ -282,7 +282,7 @@ pub const CSS: &str = r#"
   --lui-callout-bg: var(--lui-brand-3); --lui-callout-fg: var(--lui-brand-11); --lui-callout-line: var(--lui-brand-7);
   display: grid; grid-template-columns: 1rem minmax(0, 1fr); column-gap: var(--lui-space-3); row-gap: var(--lui-space-1);
   align-items: start; box-sizing: border-box; padding: var(--lui-space-3) var(--lui-space-4);
-  font-size: 0.875rem; line-height: 1.25rem; color: var(--lui-callout-fg);
+  font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-callout-fg);
   background: var(--lui-callout-bg); border: 1px solid transparent; border-radius: var(--lui-radius);
 }
 .lui-callout-ok { --lui-callout-bg: color-mix(in srgb, var(--lui-ok) 12%, var(--lui-bg)); --lui-callout-fg: color-mix(in srgb, var(--lui-ok) 80%, var(--lui-fg)); --lui-callout-line: color-mix(in srgb, var(--lui-ok) 45%, var(--lui-bg)); }
@@ -293,8 +293,8 @@ pub const CSS: &str = r#"
 .lui-callout-outline { background: transparent; border-color: var(--lui-callout-line); }
 .lui-callout[data-variant=ghost] { background: transparent; border-color: transparent; padding-inline: 0; }
 /* Radix's sizes: 1 is tighter, 3 roomier with larger text. */
-.lui-callout[data-size="1"] { padding: var(--lui-space-2) var(--lui-space-3); column-gap: var(--lui-space-2); font-size: 0.8125rem; }
-.lui-callout[data-size="3"] { padding: var(--lui-space-4) var(--lui-space-6); column-gap: var(--lui-space-4); font-size: 1rem; line-height: 1.5rem; }
+.lui-callout[data-size="1"] { padding: var(--lui-space-2) var(--lui-space-3); column-gap: var(--lui-space-2); font-size: var(--lui-text-2); }
+.lui-callout[data-size="3"] { padding: var(--lui-space-4) var(--lui-space-6); column-gap: var(--lui-space-4); font-size: var(--lui-text-3); line-height: 1.5rem; }
 .lui-callout > .lui-icon { grid-row: 1 / span 2; margin-top: 0.125rem; }
 .lui-callout > :not(.lui-icon) { grid-column: 2; margin: 0; }
 .lui-callout a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

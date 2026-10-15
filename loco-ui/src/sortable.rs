@@ -172,8 +172,8 @@ pub const CSS: &str = r#"
 @media (scripting: enabled) { .lui-sortable-grip { cursor: grab; } }
 .lui-sortable-item[data-lui-dragging] { opacity: 0.5; box-shadow: none; }
 .lui-sortable-text { flex: 1; min-width: 0; }
-.lui-sortable-title { margin: 0; font-size: 0.875rem; font-weight: 500; overflow-wrap: anywhere; }
-.lui-sortable-note { margin: 0; font-size: 0.75rem; color: var(--lui-muted); }
+.lui-sortable-title { margin: 0; font-size: var(--lui-text-2); font-weight: 500; overflow-wrap: anywhere; }
+.lui-sortable-note { margin: 0; font-size: var(--lui-text-1); color: var(--lui-muted); }
 .lui-sortable-move { display: flex; flex: none; }
 .lui-sortable-slot { width: var(--lui-control-h-sm); }
 "#;

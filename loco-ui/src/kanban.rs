@@ -259,16 +259,16 @@ pub const CSS: &str = r#"
   background: var(--lui-gray-3); border-radius: var(--lui-radius-lg);
 }
 .lui-kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 0.25rem 0.25rem; }
-.lui-kanban-head h3 { margin: 0; font-size: 0.875rem; font-weight: 600; }
+.lui-kanban-head h3 { margin: 0; font-size: var(--lui-text-2); font-weight: 600; }
 .lui-kanban-count { font-variant-numeric: tabular-nums; }
 .lui-kanban-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .lui-kanban-card {
   display: grid; gap: 0.25rem; padding: 0.75rem 0.75rem 0.5rem;
   background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); box-shadow: var(--lui-shadow-sm), var(--lui-highlight);
 }
-.lui-kanban-title { margin: 0; font-size: 0.875rem; font-weight: 500; }
-.lui-kanban-note { margin: 0; font-size: 0.75rem; color: var(--lui-muted); }
+.lui-kanban-title { margin: 0; font-size: var(--lui-text-2); font-weight: 500; }
+.lui-kanban-note { margin: 0; font-size: var(--lui-text-1); color: var(--lui-muted); }
 .lui-kanban-meta { display: flex; align-items: center; gap: 0.5rem; min-height: 2rem; }
 .lui-kanban-move { display: flex; margin: 0 -0.375rem 0 auto; }
-.lui-kanban-empty { margin: 0; padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--lui-muted); border: 1px dashed var(--lui-gray-6); border-radius: var(--lui-radius); }
+.lui-kanban-empty { margin: 0; padding: 1rem; text-align: center; font-size: var(--lui-text-2); color: var(--lui-muted); border: 1px dashed var(--lui-gray-6); border-radius: var(--lui-radius); }
 "#;

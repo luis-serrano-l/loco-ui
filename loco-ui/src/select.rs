@@ -549,16 +549,16 @@ pub const CSS: &str = r#"
 .lui-select select, .lui-select select::picker(select) { appearance: base-select; }
 .lui-select select { min-width: min(12rem, 100%); }
 /* .size(..) and .variant(..) on the trigger: Radix's sizes 1 and 3, its soft and ghost looks. */
-.lui-select[data-size="1"] select { min-height: var(--lui-control-h-sm); padding-block: 0.25rem; font-size: 0.8125rem; }
-.lui-select[data-size="3"] select { min-height: var(--lui-control-h-lg); padding-block: 0.5rem; font-size: 1rem; line-height: 1.5rem; }
+.lui-select[data-size="1"] select { min-height: var(--lui-control-h-sm); padding-block: 0.25rem; font-size: var(--lui-text-2); }
+.lui-select[data-size="3"] select { min-height: var(--lui-control-h-lg); padding-block: 0.5rem; font-size: var(--lui-text-3); line-height: 1.5rem; }
 .lui-select[data-variant=soft] select { background-color: var(--lui-brand-3); border-color: transparent; }
 .lui-select[data-variant=ghost] select { background-color: transparent; border-color: transparent; }
 /* base-select draws its own ::picker-icon; drop the gradient chevron from input.rs. */
 @supports (appearance: base-select) {
-  .lui-select select { display: flex; align-items: center; gap: var(--lui-space-2); background-image: none; padding-right: 0.75rem; }
+  .lui-select select { display: flex; align-items: center; gap: var(--lui-space-2); background-image: none; padding-inline-end: 0.75rem; }
   .lui-select-trigger { display: contents; }
 }
-.lui-select select::picker-icon { margin-left: auto; color: var(--lui-muted); transition: rotate var(--lui-duration-fast); }
+.lui-select select::picker-icon { margin-inline-start: auto; color: var(--lui-muted); transition: rotate var(--lui-duration-fast); }
 .lui-select select:open::picker-icon { rotate: 180deg; }
 .lui-select select::picker(select) {
   margin-block: var(--lui-space-1); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); padding: var(--lui-space-1);
@@ -567,15 +567,15 @@ pub const CSS: &str = r#"
 }
 .lui-select option {
   position: relative; display: flex; align-items: center; gap: var(--lui-space-2); min-height: 2rem; box-sizing: border-box;
-  padding: 0 0.75rem 0 1.5rem; border-radius: var(--lui-radius-sm); font-size: 0.875rem; cursor: default;
+  padding: 0 0.75rem 0 1.5rem; border-radius: var(--lui-radius-sm); font-size: var(--lui-text-2); cursor: default;
 }
 .lui-select option:hover, .lui-select option:focus-visible { background: var(--lui-primary); color: var(--lui-on-primary); outline: none; }
-.lui-select option::checkmark { position: absolute; left: 0.5rem; }
-.lui-select optgroup { font-size: 0.75rem; font-weight: 500; color: var(--lui-gray-10); padding-top: var(--lui-space-2); }
+.lui-select option::checkmark { position: absolute; inset-inline-start: 0.5rem; }
+.lui-select optgroup { font-size: var(--lui-text-1); font-weight: 500; color: var(--lui-gray-10); padding-top: var(--lui-space-2); }
 .lui-select optgroup + optgroup { border-top: 1px solid var(--lui-line); margin-top: var(--lui-space-1); }
 .lui-select optgroup option { font-weight: 400; color: var(--lui-fg); }
 .lui-select optgroup option:hover, .lui-select optgroup option:focus-visible { color: var(--lui-on-primary); }
 @media (pointer: coarse) { .lui-select option { min-height: var(--lui-hit); } }
 .lui-select-icon { display: inline-block; width: 1.25em; text-align: center; }
-.lui-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 50%; vertical-align: -0.15em; margin-right: 0.4em; border: 1px solid var(--lui-line); }
+.lui-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 50%; vertical-align: -0.15em; margin-inline-end: 0.4em; border: 1px solid var(--lui-line); }
 "#;

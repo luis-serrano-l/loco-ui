@@ -105,7 +105,7 @@ pub const CSS: &str = r#"
 .lui-description-list-item:first-child { padding-top: 0; }
 .lui-description-list-item:last-child { padding-bottom: 0; }
 .lui-description-list-item + .lui-description-list-item { border-top: 1px solid var(--lui-line); }
-.lui-description-list dt, .lui-description-list dd { min-width: 0; font-size: 0.875rem; line-height: 1.25rem; }
+.lui-description-list dt, .lui-description-list dd { min-width: 0; font-size: var(--lui-text-2); line-height: 1.25rem; }
 .lui-description-list dt { color: var(--lui-muted); }
 .lui-description-list dd { margin: 0; overflow-wrap: anywhere; }
 .lui-description-list dd:empty::before { content: "—"; color: var(--lui-muted); }
