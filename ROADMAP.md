@@ -2274,6 +2274,14 @@ parallel worktrees and merge in the order M37, M38, M41, M45, M40a-d, M39, M42, 
 M44. Shared lists (`lib.rs`, `props::COMPONENTS`, `SPECS`, `PATHS`, `SOURCES`, the index
 `COMPONENTS`, `Text`) are append-only; `layout.rs` belongs to M39 and `table.rs` to M41.
 
+Status on 2026-10-15, after every branch merged: M37, M40, M41, M43 and M44 are done. Open
+boxes: M38 Ids (the `f-<slug(name)>` control id), misfires (Table, and Form and ToggleGroup
+still in `MODIFIERS_UNCHECKED`) and shims (four `#[deprecated]` setters);
+M39 RTL (a Blitz shot of a right-to-left page); M42 per-component sections (the `KEYS` const
+and the Keyboard section), the llms files (keyboard and anatomy in each `.md`) and the
+examples gallery; M46 per-file unit test modules and keyboard tests in `browser-check.mjs`
+(waits on `KEYS`). The publish (0.2.0) waits on the owner (BLOCKED.md).
+
 ## M37 · Ready for docs.rs and crates.io (small, first, blocks nothing)
 
 Goal: the publish, when the owner says yes, works the first time.
@@ -2344,7 +2352,9 @@ Goal: the publish, when the owner says yes, works the first time.
   items sit under `[0.2.0] - unreleased` in milestone groups (after M36, M36, M35, M33, M32,
   M14 to M16), wording unchanged. `[Unreleased]` stays on top, holding M37 and later
   milestones, all bound for 0.2.0. Versions are still 0.1.0 in the manifests: the bump is
-  the release step's (M44 `release` skill).
+  the release step's (M44 `release` skill). After the merges, M37 to M46 moved under
+  `[0.2.0]` as well, one block per milestone below a "Breaking changes in 0.2.0" list, and
+  `[Unreleased]` is empty.
 
 Key files: both `lib.rs:50`, three `Cargo.toml`, `.github/workflows/rust.yml`, README,
 CHANGELOG. Verify: new CI jobs green locally (`cargo +nightly doc` with the flag,
@@ -2485,8 +2495,9 @@ Decisions (to confirm with the owner, defaults chosen):
   on; `UiState::dialog_is` opens a dialog from the old unprefixed `?dialog=` for one release
   (tested). Conformance bugs fixed: `<a>` inside `<summary>` (Tabs and Accordion rebuilt as
   links and panels) and the settings block's two forms to one action (the demo gives each an
-  `.id(..)`; `docs/api.md` Ids says two forms to one action need one). Left for M40c, which
-  owns `input.rs`/`form.rs`: the `f-<slug(name)>` control id.
+  `.id(..)`; `docs/api.md` Ids says two forms to one action need one).
+  Left: the `f-<slug(name)>` control id. M40c did not take it: `control_id` in `input.rs` still
+  writes `f-<name>`, so `user[email]` is `f-user[email]`.
 - [ ] Modifier misfires loud: `Last` enum on Form, Menu, ContextMenu, Table, Kanban,
   Sortable, Palette, Sidebar, AppShell, Tabs, Accordion; `debug_assert!` with the message
   `Form::required() applies to a field, but the last item was a group`; a `#[should_panic]`
@@ -2507,19 +2518,24 @@ Decisions (to confirm with the owner, defaults chosen):
   CheckboxGroup and ToggleGroup option modifiers assert an option exists. `Prop` gained
   `applies_to` (default `&[]`); Form's modifiers say `applies_to(FIELD)`. The other builders
   are M38b's.
-- [ ] Shared vocabulary cleanups: `ui.badge(impl Display)`; `id: &'a str` everywhere
+  Left: Table (`Table::last` changes the last column without a check, so
+  `.column(..).keep(..).numeric()` still passes silently), and `form` and `toggle_group`
+  still sit in `MODIFIERS_UNCHECKED`, so props rule 8 skips their `applies_to`.
+- [x] Shared vocabulary cleanups: `ui.badge(impl Display)`; `id: &'a str` everywhere
   (Dialog, Drawer, Menu lose their `to_string`); Calendar `today/min/max/value: &'a str`;
   `Button::style` stays `Into<String>` but every other text setter becomes
   `impl Into<Cow<'a, str>>` **only if** a 30-minute spike shows `lui!` and `PROPS` arg
   strings survive it; otherwise record the decision in `docs/api.md` and keep `&'a str`.
   Add `Button::large()`, `.leading(Glyph)`/`.trailing(Glyph)`, `.block()`; `Glyph::Svg(Markup)`
   so an app's icon set works everywhere `.icon(..)` is accepted.
-  Partly done (M38b): `ui.badge(impl Display)`; Dialog, Drawer and Menu hold `id: &'a str`,
+  Done (M38b, M40c): `ui.badge(impl Display)`; Dialog, Drawer and Menu hold `id: &'a str`,
   and so does the component template; `Button::large()`, `.block()`, `.leading(..)`,
   `.trailing(..)`; `Glyph::Svg(&Markup)` (borrowed so a `Glyph` stays `Copy`). The `Cow`
   spike on `Dialog::title` compiled and `lui!` was unaffected, but `PROPS` then lists two
   spellings of one argument and every builder would have to move at once: text stays
-  `&'a str`, recorded in `docs/api.md`. Left for M40c: Calendar's `&'a str` fields.
+  `&'a str`, recorded in `docs/api.md` ("Text arguments borrow"). Calendar's `today`,
+  `min`, `max` and `value` are `Option<Date>` parsed from `&str` setters, so it keeps no
+  owned text.
 - [x] Dialog, Menu, Tooltip, Drawer accept a styled trigger: `.trigger(Button)` (takes the
   builder, forces `command`/`popovertarget`) and `.no_trigger()` for a dialog opened by a
   link elsewhere. Dialog root gets the `lui-dialog` class (convention 4).
@@ -2537,6 +2553,9 @@ Decisions (to confirm with the owner, defaults chosen):
   `Text::OneMatch` and the old setters on twelve builders), callers and the Spanish strings
   updated. Left: the shims in `date_picker.rs`, `calendar.rs`, `combobox.rs`, `select.rs`,
   `toggle_group.rs` (M40c owns those files) and the table keys and `TableOptions` (M41).
+  M40c removed the Calendar and DatePicker aliases, and M41 the table keys and
+  `TableOptions`. Left: `Combobox::multi`, `ToggleGroup::item` and `::multi`,
+  `Select::content` (`layout::layout_with` is deleted).
 - [x] Docs: `docs/api.md` "Variants" section with the four enums and a table of which
   builder takes which; `docs/ergonomics.md` trimmed to the current API (move the M17 history
   under a `<details>` or delete it); demo `/button`, `/badge`, `/alert`, `/inputs` snippets
@@ -2586,7 +2605,7 @@ theme covers type, motion, depth, density, RTL and forced colours.
   `.lui-prose` (M40's Prose component) or into the `lui.reset` layer as a minimal
   normalisation. **Breaking** (apps that relied on styled bare `<table>`); test:
   `stylesheet()` contains no `.lui-site`.
-  Done: the demo's rules and header are `demo/src/site.rs` `CSS` and `LOOK`, layered on in `router()`; `layout::header()` is gone and a page has no header unless `Look`/`Page::header` gives one. Bare-element rules are `layout::RESET` in `lui.reset` (M40a's `.lui-prose` can take `h1-h3`, `p`, `li`, `a`, `code`, `table` from there). Kept: the bare `button` rules in `button.rs`, left for the sweep. Test: the stylesheet contains no `.lui-site`.
+  Done: the demo's rules and header are `demo/src/site.rs` `CSS` and `LOOK`, layered on in `router()`; `layout::header()` is gone and a page has no header unless `Look`/`Page::header` gives one. Bare-element rules are `layout::RESET` in `lui.reset` (M40a's `.lui-prose` can take `h1-h3`, `p`, `li`, `a`, `code`, `table` from there). Kept: the bare `button` rules in `button.rs` (still there after the sweep, `button, .lui-button`). Test: the stylesheet contains no `.lui-site`.
 - [x] Tokens that exist: `Tokens` gains `font: Fonts { sans, mono, serif }`,
   `type_scale` (`--lui-text-1..9` Radix ramp), `size` (`--lui-size-1..3` control heights),
   `radius` becomes a `Radius` ramp (`--lui-radius-{none,1,2,3,full}` with a factor),
@@ -2626,7 +2645,8 @@ theme covers type, motion, depth, density, RTL and forced colours.
   a `dir="rtl"` demo (`?dir=rtl` query handled by `Ui`, or an Arabic strings table in the
   demo with three strings translated) and a Blitz shot; a test greps component CSS for
   physical properties (allow-list: `translate`, transforms, `inset` shorthand).
-  Partly done: `layout.rs` uses logical properties (`text-align: start`, `margin-inline-*`), and `no_physical_property_in_component_css` exists and the sweep is done: component CSS uses `inset-inline-*`, `margin-inline-*`, `padding-inline-*`, `border-inline-*`, `text-align: start/end` and `float: inline-start`; the three transform-centred parts (tooltip, switch thumb, toggle-group thumb) get a `:dir(rtl)` mirror of their `translate`, and the drawer grabber centres with `inset-inline: 0; margin-inline: auto`; `PENDING_SWEEP` is gone. Not done: `Strings::dir()`, `<html dir>` and the RTL demo, which M45 owns.
+  Partly done: `layout.rs` uses logical properties (`text-align: start`, `margin-inline-*`), and `no_physical_property_in_component_css` exists and the sweep is done: component CSS uses `inset-inline-*`, `margin-inline-*`, `padding-inline-*`, `border-inline-*`, `text-align: start/end` and `float: inline-start`; the three transform-centred parts (tooltip, switch thumb, toggle-group thumb) get a `:dir(rtl)` mirror of their `translate`, and the drawer grabber centres with `inset-inline: 0; margin-inline: auto`; `PENDING_SWEEP` is gone. M45 added `Strings::dir()`, `<html dir>`, `?dir=rtl` and an Arabic table (`pages_run_right_to_left`).
+  Left: a Blitz shot of a right-to-left page; `tests/shots/` has none.
 - [x] Skip link: `layout::page` emits `<a class="lui-skip" href="#main">Skip to content</a>`
   (`Text::SkipToContent`) as the first child of `<body>`, visible on focus; `<main id="main"
   tabindex="-1">`; AppShell gets the same. The enhancement script, after a swap, moves
@@ -2911,7 +2931,8 @@ Goal: the table page is the one visitors compare; make its feature table win.
   `aria-sort` goes on the first only. `Table::sort()` and `TableQuery::sort()` return
   `&[(&str, bool)]`; `TableQuery::sort_by` compares key by key. `paged_from` only takes the
   total, so the Loco side is a new `loco::order_by(select, sort, |key| column)` that adds one
-  `ORDER BY` per key (doctest pins the SQL). The scaffold templates do not sort yet (M43).
+  `ORDER BY` per key (doctest pins the SQL). The scaffold templates did not sort yet; M43
+  added it.
 - [x] Per-column filters: `.column(..).filter()` renders an input in a filter row (shown via
   `<details>` "Filters"), keys `files.f.<col>`; `t.filters()` for the route; `filter_select`
   joins the row. Select-all: a checkbox that submits `all=1` for the current filter (the
@@ -3018,6 +3039,8 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   something: point it at `props()` once each component carries `KEYS` (left for the last
   commit before merge, as the box says, since other milestones were editing every
   component file).
+  Left: a `KEYS` const per component, its entry in `props()` and a test like `PROPS`'s;
+  `reference::keys` still returns nothing, so no page shows "Keyboard".
 - [x] Search: `/find?q=` over components, props, docs headings; the site header shows
   `ui.palette` fed from the same index (`?q=` exact lands on the page), so the component
   demonstrates itself.
@@ -3028,13 +3051,12 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   shows `ui.palette("/find")` with the components and docs pages, drawn from a `Ui`
   without the request's query so a page's own `?q=` never fills it; `site::page` sets it
   with `Page::header`, so pages not drawn through it (the 404) keep the plain header.
-  Kept different: props and headings are found by `/search` but not listed in the header's
+  Kept different: props and headings are found by `/find` but not listed in the header's
   palette, which would add about 40 KB to every page.
 - [x] Stage: a "Both themes" toggle (`?themes=both`) renders the stage twice under
   `data-theme=light` and `dark`; a "Script off" toggle already exists; add a width toggle
   (narrow/medium/wide stage via `container` width class) so container queries are visible.
   Copy button on snippets: `data-lui="copy"` upgraded by enhance.rs (absent without script).
-- [x] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
   Done: above every component's stage a row of links that keep the rest of the query:
   theme (this page's, or both: the stage twice, `data-theme=light` and `dark`, which set
   `color-scheme` so the `light-dark()` tokens follow), width (`?stage=medium|narrow`, a
@@ -3044,10 +3066,12 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   `popovertarget`, `href="#…"`, `data-lui-target`). The same function gives the index's
   previews (an id an earlier preview used gets the later one's prefix) and the props
   playground's copy their own ids: the M42 entries left `CONFORMANCE_BUGS`. The modes page
-  gives each stage's progress bar an id. `data-lui="copy"` on the snippets and the docs'
-  code blocks: `enhance.rs` adds a ghost "Copy" button to each (`navigator.clipboard`), so
-  without the script there is none; the script's budget is 14 KB served, 17 KB of source.
-- [ ] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
+  gives each stage's progress bar an id. The snippets and the docs' code blocks reuse
+  M40a's copy button (`code::copy_button`): a `hidden` `span[data-lui=copy]` around a
+  ghost button with `command="--copy"` and `commandfor` the `<pre>`, which `enhance.rs`
+  shows where `navigator.clipboard` exists, so without the script there is none. The
+  script's budget is now 15.5 KB served, 19 KB of source, with every M40 and M41 addition.
+- [x] `Page` head setters (library): `.description(..)`, `.canonical(..)`, `.icon(href)`,
   `.meta(name, content)`, `.og(..)`, `.link_rel(rel, href)`, `.stylesheet(href)` (for apps
   with their own CSS), `.head(markup)` escape hatch; `layout::meta()` emits them; the demo
   sets description + OG per page and a favicon (an inline SVG data URI of the mark).
@@ -3064,7 +3088,7 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   (a fixed sentence off the component pages), `og:type`, `og:site_name`, `og:title` and
   `og:description`, and the mark (three bars on indigo 9) as an SVG `data:` URI; the test
   `pages_carry_a_description_og_and_favicon` checks them.
-- [x] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
+- [ ] AI-readable: `cargo run -p demo -- spec write` also writes `docs/llms.txt`
   (index), `docs/llms-full.txt` (every component: constructor, props table, keyboard,
   anatomy, the doc header, the `lui!` example) and `docs/components/<name>.md`; the demo
   serves them at `/llms.txt`, `/llms-full.txt`, `/<component>.md` (content negotiation:
@@ -3086,17 +3110,16 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   the files beside the pages. `llms_files_are_in_step_with_the_sources` compares the
   files on disk, stale `components/*.md` included, and
   `llms_files_are_served_and_pages_answer_markdown` checks the routes, negotiation and the
-  snapshot. Left for the other M42 boxes: keyboard and anatomy join each `.md` when the
-  per-component sections box adds `KEYS` and the anatomy (they are data `llms.rs` can
-  read then), and the `/changelog` page goes with `docs.rs`, the Markdown renderer that box
-  adds.
-  Partly done (the rest belongs to the agent writing the llms files): the `/changelog` page
-  renders CHANGELOG.md through `docs.rs`.
+  snapshot. The `/changelog` page renders CHANGELOG.md through `docs.rs`.
+  Left: keyboard and anatomy in each `.md`. The keyboard waits on `KEYS`; the anatomy
+  exists in `demo/src/reference.rs` for the pages, but `llms.rs` does not read it yet.
 - [ ] Examples gallery `/examples`: screenshots of `examples/loco-app` (reuse the shots its
   `tests/pages.rs` writes, copied into `docs/examples/`), each linked to the source file.
   Blocks gallery grows with M40's banner/steps/timeline and three new blocks
   (pricing page from `demo/src/pricing.rs` promoted into `blocks/`, inbox/list-detail,
   billing/invoice) — only if time allows, last box.
+  Not done: no `/examples` route and no `docs/examples/`; `blocks/` has no pricing, inbox or
+  billing page.
 
 Key files: `demo/src/site.rs`, new `demo/src/docs.rs`, `demo/src/main.rs` (spec write),
 `demo/src/snapshot.rs`, `ui.rs`/`layout.rs` (head setters: coordinate with M39, which
@@ -3131,10 +3154,10 @@ Owner question (BLOCKED.md "Copy-paste mode"): answered **yes, option 1** on 202
   `SubscribeExt` pattern of `docs/components.md`) and `src/ui/mod.rs` re-exports builder and
   trait: `use crate::ui::*;` brings all. Doctests get `# use <app>::ui::*;`, unit tests
   (loco-ui internals) and `cfg(feature = ..)` lines go, the CSS joins `css: &[..]` in
-  `src/views/look.rs`. Only 26 modules are copyable (`COPYABLE`): the others call
+  `src/views/look.rs`. Only 22 modules are copyable (`COPYABLE`): the others call
   `pub(crate)` helpers (search box, `labelled`, menu placement, `gap_class`) and do not
   compile outside the crate; `flash` is out because its cookie is named like its class.
-  The ignored install test copies all 26 into a fresh Loco app, builds it and runs their
+  The ignored install test copies all 22 into a fresh Loco app, builds it and runs their
   doctests. `eject` copies loco-ui, -caps and -macros into `vendor/`, spells out
   `workspace = true` dependencies, points the dependency at the copy and excludes `vendor`
   from the app's workspace; an ignored test checks it.
@@ -3158,9 +3181,8 @@ Owner question (BLOCKED.md "Copy-paste mode"): answered **yes, option 1** on 202
   `--parent notebook` option generating `/notebooks/:id/notes`; generated controller test.
   Done: `query()` reads `ui.table_query(TABLE, SORTABLE)`: `Condition::any()` of
   `Column::X.contains(..)` over `string`/`text` fields, then `for (key, desc) in
-  table.sort()` parsed into `Column` and `order_by`, then id. The loop is written for M41's
-  list of `(key, desc)` pairs and compiles unchanged on today's `Option` (a slice of
-  `&(key, desc)` would need `*desc`). Every view column is `sortable`; `/<plural>/export.csv`
+  table.sort()` parsed into `Column` and `order_by`, then id. Since M41 merged the loop is
+  `for &(key, desc) in table.sort()` over its slice of keys. Every view column is `sortable`; `/<plural>/export.csv`
   answers the same search and sort as CSV (formula characters escaped) and the table's CSV
   link points at it. `RecordPage::delete` now opens a danger dialog (`Text::DeleteConfirm`,
   `Text::CannotUndo`). `--parent` goes through `cargo lui scaffold .. --parent notebook`,
@@ -3295,8 +3317,7 @@ delete it; run `look-check` on `/button`. Parallel: yes, no code conflicts.
   rules for en, es, fr, de, ar, he, ru, pl are a small table keyed by tag; an app language
   passes its own with `Strings::with_plural` rather than through `i18n::languages`, so
   `languages` keeps its signature. A counted text writes its forms `one:..|other:..`.
-  `Text::Matches` holds both forms and `Text::OneMatch` is deprecated, kept for the table
-  order.
+  `Text::Matches` holds both forms; `Text::OneMatch` went with M38's shim removal.
 - [x] Numbers: `Strings::number(f64)` with grouping and decimal separators per language
   (data in `Strings`), used by paged table range, stat, meter, counter, pagination.
   Dates: `Strings::date(Date)` long/short, weekday abbreviations as explicit arrays
@@ -3335,12 +3356,13 @@ delete it; run `look-check` on `/button`. Parallel: yes, no code conflicts.
   unreadable form); `Valid` uses the visitor's language from the request's cookie and
   `Accept-Language`, `FieldErrors::from` and `Submitted` the default one
   (`Submitted::strings(ui.strings)` for the visitor's). `Text::month(0)` is January.
-  `layout()` and `layout_with()` both deleted.
+  `layout()` and `layout_with()` deleted (in M45; the M39 merge brought them back, and the
+  final pass deleted them again).
 - [x] Demo: Spanish table completed for every new key (test exists:
   `components_write_no_english_outside_the_string_table`); add a `?dir=rtl` showcase
   shared with M39's RTL box (one of them owns `Ui` parsing of `dir`; M45 owns it, M39
   only the CSS).
-  Done: Spanish covers every new key (the test skips only the deprecated `OneMatch`). An
+  Done: Spanish covers every new key. An
   Arabic table of 11 texts joins the language buttons; `Strings::new("ar")` brings
   `dir="rtl"`, the Arabic plural rule and Saturday first. `?dir=rtl` works on any page.
   `pages_run_right_to_left` in `demo/src/tests.rs` checks both. The logical CSS is M39's.
@@ -3389,7 +3411,7 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
   `<summary>` (tabs fallback, accordion; M38, no box yet), the derived form id shared by two
   forms with one action (`/blocks/settings`; M38 "Ids"), and ids repeated by the index
   previews and the props playground (M42). The test also fails when a listed bug is fixed
-  and still listed.
+  and still listed. All three are fixed now (M38 and M42) and `CONFORMANCE_BUGS` is empty.
 - [ ] Unit tests for the 42 untested files: one `#[cfg(test)] mod tests` per file with at
   least: default render shape, each switch changes the class or attribute it claims
   (`PROPS` attr ↔ output, generated from `PROPS` where `attr` is set: a generic test in
@@ -3403,7 +3425,9 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
   `PROPS` no longer backs. All pass; on the way it showed that `Menu`/`ContextMenu`
   `.disabled()` on a link drops the `href` (no `disabled` attribute, as documented) and
   `Input::multiple()` only acts on a file input, so their examples use an action and a
-  file. Left open: the per-file `mod tests` modules, after M38 and M40 merge.
+  file.
+  Left: the per-file `#[cfg(test)] mod tests` modules (default shape, caps branch), now that
+  M38 and M40 have merged.
 - [x] `insta` HTML snapshots (dev-dep): `loco-ui/tests/snapshots/<component>.snap` for
   the header example of every component under both caps, reviewed with `cargo insta`;
   M38/M39 changes then show as diffs rather than surprises. CI runs `cargo insta test
@@ -3420,6 +3444,8 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
 - [ ] Keyboard tests in `browser-check.mjs` per component that claims keys in `KEYS`
   (M42): tab order, Escape on dialog/popover/palette, arrows on tabs/menu/calendar with
   the script; without the script, Tab reaches every control (count focusable = expected).
+  Not done: waits on M42's `KEYS`. `browser-check.mjs` keeps its older dialog Escape, menu
+  and combobox arrow checks, and has no Tab count without the script.
 - [x] Test timing: `cargo test --workspace -- -Z unstable-options --report-time` once,
   recorded in FINDINGS; `verify.sh` skips the Blitz crate by default (`--full` runs it),
   matching the CLAUDE.md "quick verify" intent.

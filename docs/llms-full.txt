@@ -2780,7 +2780,8 @@ a POST and a redirect.
 **Fallback:** without view transitions the page simply reloads.
 
 **Enhanced:** the form is a swap root (`data-lui="swap"`), so with the `crate::enhance`
-script each click is a background POST and only the form is replaced; rapid clicks queue.
+script each click is a background POST and only the form is replaced; its buttons are
+disabled until the answer lands, so a double click counts once.
 
 **Finding:** without the script every click is a full navigation, and a click that lands
 while the page unloads is dropped. There is no optimistic update and no offline behaviour.

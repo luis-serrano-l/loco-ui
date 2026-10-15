@@ -870,29 +870,6 @@ impl Tokens {
     }
 }
 
-/// Wrap `body` in a full page with the default [`Tokens`]. Beacons are added while the
-/// browser is still unknown.
-pub fn layout(caps: &Caps, title: &str, theme: Theme, body: Markup) -> Markup {
-    Doc::new(caps, title, theme).render(body)
-}
-
-/// [`layout`] under a different set of [`Tokens`]: the overrides are emitted once, in a
-/// `<style>` right after the stylesheet, so every component on the page picks them up.
-#[deprecated(note = "use ui.page(..).tokens(&tokens)")]
-pub fn layout_with(
-    caps: &Caps,
-    title: &str,
-    theme: Theme,
-    tokens: &Tokens,
-    body: Markup,
-) -> Markup {
-    Doc {
-        tokens: Some(tokens),
-        ..Doc::new(caps, title, theme)
-    }
-    .render(body)
-}
-
 /// How a page carries the library's stylesheet.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) enum Sheet {

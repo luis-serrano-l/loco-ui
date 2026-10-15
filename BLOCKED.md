@@ -1,8 +1,15 @@
 # Blocked
 
 Questions only the owner can answer. The name, hosting and Loco questions were answered on
-2026-09-24 (below). What is still with the owner: the publish (M13, on hold), posting the
-announcement (M26), and turning on GitHub Pages and pushing once the snapshot exists.
+2026-09-24, copy-paste mode and the first version on 2026-10-14 (below). What is still with
+the owner, as of 2026-10-15:
+
+1. The crates.io publish, as 0.2.0 (on hold until you say yes).
+2. Posting the announcement (M26) and asking Loco for a link (M29), both after the publish.
+3. The Timeline copies Flowbite, which is not on the list of reference libraries.
+4. Filing the Blitz and browser gaps that FINDINGS marks "the owner files it".
+5. The Dependabot pull requests that fail CI.
+6. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
 
 ## Name, license and repository (M13, box 1), answered
 
@@ -23,7 +30,11 @@ Answered 2026-09-24: **the repository is https://github.com/luis-serrano-l/loco-
 
 ## The publish itself (M13, box 4), on hold
 
-On hold at the owner's request (2026-09-24). The rename is done and `repository` is set; publish only on the owner's yes. Never run on your behalf. M25 puts it after M26, whose naming box (below) may still change the crate names.
+On hold at the owner's request (2026-09-24). The first publish is **0.2.0** (answered
+2026-10-14, below); nothing is on crates.io yet. The rename is done, `repository` is set, and
+M37 made the three crates ready (`publish-dry-run` and `docsrs` jobs in CI). The manifests
+still say 0.1.0: the `release` skill bumps them and stops before `cargo publish`. Publish
+only on your yes; it is never run on your behalf.
 
 ## Rename to `nojs-ui`? (M26, box 1), answered
 
@@ -57,25 +68,6 @@ loco-rs's source before anything is built on them.
 Posted on 2026-09-23 after the owner's approval:
 https://github.com/DioxusLabs/blitz/issues/923#issuecomment-5800768284
 
-## Copy-paste mode: what does a vendored file keep? (M29, "Copy-paste mode" box), open
-
-`cargo lui add <component>` would copy a component's file into the app (shadcn and templUI
-do this). loco-ui components read the request through `Ui` (caps, theme, state, language)
-and build on the primitives (`Button`, `Input`, `Icon`, the i18n table, `enhance::swap_id`),
-so a copied file cannot stand alone. Options:
-
-1. **Keep `use loco_ui::…`** (suggested): the vendored file imports `Ui`, the primitives and
-   the i18n table from the crate, and only the component's own markup, CSS and `PROPS` are
-   the app's to edit. Small, stays in step with fixes to the primitives; the app still
-   depends on `loco-ui`.
-2. **Copy everything it touches**: the file plus `Ui`, the primitives and their CSS, renamed
-   into the app. Fully owned, but hundreds of lines per component and no upstream fixes.
-3. **Do not build it**: the blocks and the "write your own" page (M24) already show how to
-   make a component in the app; the spec JSON is the registry for tools.
-
-Suggested answer: 1, with the command writing `src/components/<name>.rs` and registering its
-CSS through `Page::css`. Nothing is built until you choose.
-
 ## Ask Loco to link loco-ui (M29, last box), open
 
 An outward action, and it waits for the publish (M13/M29): a crate that is only a git
@@ -92,26 +84,55 @@ Loco's GitHub Discussions ("Show and tell"), not an issue, along these lines:
 
 Yours: whether, when and where to post it.
 
-## File the M30 Blitz gaps upstream (M30, last box), open
+## File the Blitz and browser gaps upstream (M30 and later), open
 
-M30 recorded Blitz 0.3.0-beta.2 gaps in FINDINGS.md ("M30 · The Linear / Magic UI look").
-Two already link issues (#196 for `:modal`/`:popover-open`, #863 for transitions); these have
-no upstream issue, and filing one is an outward action:
+Filing an issue is an outward action, so these wait on you. Each FINDINGS.md entry below says
+"no upstream issue yet; the owner files it" (or close to it). Blitz is 0.3.0-beta.2.
+
+M30 · The Linear / Magic UI look:
 
 1. `@starting-style` is parsed but never applied: Stylo resolves starting styles only in its
    Gecko build (`maybe_resolve_starting_style` is `cfg(feature = "gecko")`).
-2. `@property` is unsupported: a registered property's `initial-value` is ignored and
+2. `get_client_bounding_rect` ignores `translate` and `scale`.
+3. `@property` is unsupported: a registered property's `initial-value` is ignored and
    `@keyframes` cannot animate it.
-3. `@supports (animation-timeline: view())` is true, but no scroll timeline runs.
-4. `@media (prefers-reduced-motion: no-preference)` never matches.
-5. `get_client_bounding_rect` ignores `translate` and `scale`.
-6. A `z-index: -1` `::after` inside an `isolation: isolate` element with a sized
-   `radial-gradient` is not painted (the card `.glow()`); the cause is not isolated yet.
+4. `@supports (animation-timeline: view())` is true, but no scroll timeline runs.
+5. `@media (prefers-reduced-motion: no-preference)` never matches.
+6. The card `.glow()`, a `z-index: -1` `::after` inside an `isolation: isolate` element with
+   a sized `radial-gradient`, is not painted; the cause is not isolated yet.
 
-Suggested: one issue per item on github.com/DioxusLabs/blitz, each with a minimal HTML file
-(items 1–4 can share one "motion features" issue if the maintainers prefer), then replace
-"(no upstream issue yet; the owner files it)" in FINDINGS.md with the links. Nothing else in
-the library waits on it: every effect has its at-rest fallback proved in Blitz today.
+Later milestones:
+
+7. M34: Stylo does not know `interpolate-size`.
+8. M36: Blitz paints a `position: relative` element with a `z-index` at the page origin.
+9. M39: Blitz always takes the light side of `light-dark()` (Stylo's servo device answers
+   `is_dark_color_scheme` with `false`).
+10. M41: a whole-row link needs `position: relative` on a `<tr>`; Safari is not checked.
+11. M41: Blitz paints the sticky first column, the group rows and the tinted rows at the
+    page origin (the M36 gap again).
+12. M40d: Blitz has no `popover`, `::scroll-button()` or `::scroll-marker`.
+13. M40b: Blitz places an absolutely positioned `<summary>` at its static position.
+
+Suggested: one issue per item on github.com/DioxusLabs/blitz (items 1, 3, 4 and 5 can share
+one "motion features" issue if the maintainers prefer; item 9 may belong on servo/stylo; item
+10 is a Safari check, not a Blitz bug), each with a minimal HTML file, then replace the
+phrase in FINDINGS.md with the links. Nothing in the library waits on it: every effect has
+its at-rest fallback proved in Blitz today.
+
+## The Timeline copies Flowbite (M40b), open
+
+CLAUDE.md convention 9 says each component copies one of Radix Themes, Origin UI, shadcn/ui,
+Tremor or Dice UI. `loco-ui/src/timeline.rs` (M40b) copies the Flowbite Timeline, which is
+not on that list, as the M40b box asked. Yours: add Flowbite to the list in CLAUDE.md, or
+have the Timeline restyled after one of the five.
+
+## Dependabot pull requests fail CI, open
+
+The Dependabot pull requests were cut before the CI fixes on `main` (the latest is
+3383650), so they fail for reasons that are not theirs. Rebasing them (`@dependabot rebase`) is an action
+on GitHub, so it is yours. One may need code: `toml_edit` 0.22 to 0.25 (the `cli` feature,
+`loco-ui/src/bin/cargo-lui/`) changes its API, so that bump should be tried locally before
+it is merged.
 
 ## One snippet style: `/wizard` and `/palette` (M34, "One snippet style" box), open
 
@@ -131,13 +152,26 @@ and `lui!` only returns `Markup`. The options:
 
 The demo test that stops snippets drifting back waits on this answer.
 
-## Copy-paste mode (M29 / M43), answered
+## Copy-paste mode (M29 / M43), answered and built
 
 Answered 2026-10-14: **yes, build `cargo lui add <component>`**, option 1: the vendored
 file is the component's own `loco-ui/src/<name>.rs` kept whole (header, `PROPS`, CSS,
-doctests), registered in the app through an extension trait on `Ui`. M43 holds the boxes.
+doctests), registered in the app through an extension trait on `Ui`. M43 built it (`cargo lui add`);
+22 modules can be copied, the others use crate-private helpers.
 
 ## First published version, answered
 
 Answered 2026-10-14: the API under `[0.1.0]` in CHANGELOG no longer exists, so the first
-publish is **0.2.0**; M37 rewrites the entry. The publish itself stays with the owner.
+publish is **0.2.0**. CHANGELOG has `[0.1.0]` as an unpublished prototype and every change
+since under `[0.2.0] - unreleased`, with a list of the breaking changes. The publish itself
+stays with the owner.
+
+## Text setters: `Cow` or `&'a str` (M38), decided, yours to reverse
+
+M38 asked for `impl Into<Cow<'a, str>>` text setters only if a spike showed `lui!` and
+`PROPS` survive them. The spike on `Dialog::title` compiled and `lui!` was unaffected, but
+`PROPS` then lists two spellings of one argument and every builder would have to change at
+once, so the change was rejected: text setters stay `&'a str`. The reasoning is in
+`docs/api.md`, "Text arguments borrow (`&'a str`, not `Cow`)". `Tokens` values are
+`Cow<'static, str>` (M39); that is a separate case. Nothing to do unless you want `Cow`
+after all.

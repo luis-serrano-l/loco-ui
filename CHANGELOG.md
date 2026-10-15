@@ -6,54 +6,59 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
-Everything below also ships in 0.2.0, the first publish.
+Nothing yet. 0.2.0 below is not published, so every change since the 0.1.0 prototype goes
+there.
 
-#### M40d
+## [0.2.0] - unreleased
 
-- New components: `ui.banner(text)` (a full-width bar, `.tone()`, `.link()`, `.dismiss()`
-  through a POST to `/lui/dismiss` that sets `lui-dismiss-<id>`, so it stays closed without
-  script; `AppShell::banner`), `ui.popover(trigger, body)` (a generic popover, module
-  `popover_card`, class `lui-popover-card`: `.side()`, `.align()`, `.arrow()`, a
-  `<details>` fallback) and `ui.carousel(label)` (`scroll-snap`, `.item()`, buttons and dots
-  from `::scroll-button()`/`::scroll-marker` where supported, links to `#<id>-<n>` slides
-  elsewhere). New prelude types `Side`, `Align` and `toast::Position`.
-- Anchor positioning is shared: Menu, Popover and Tooltip take their `position-area` from one
-  table (logical keywords, `block-end span-inline-start`) and flip with
-  `position-try-fallbacks`. Tooltip gains `.side()` and `.delay(ms)`.
-- Menu: `.checkbox(text, action, name)` and `.radio(text, action, name, value)` items with a
-  `.checked(bool)` modifier, each its own form with an Apply button; with script the form
-  posts on change (`data-lui="autosubmit"` in `enhance.rs`) and the button is hidden.
-- Toasts `.position()`, `.duration(ms)`, `.action(label, href)`, `.max(n)`; Flash `.title()`,
-  `.action()`; Alert `.info()`, `.action(Button)`, `.dismiss()`, `.id()`; Skeleton
-  `.circle()`, `.rect(w, h)`, `.avatar_lines(n)`; EmptyState takes several links and
-  actions; Progress `.indeterminate()` and `.show_value()`.
-- Dialog `.description()` (`aria-describedby`), `.footer(markup)`, `.fullscreen()`; Drawer
-  `.side()` and `.size()`; ErrorPage words for 401, 403, 422 and 503 (new `Text` keys,
-  Spanish in the demo).
-- **Breaking:** Progress prints its percentage only with `.show_value()`; Menu positions are
-  logical keywords (`block-end span-inline-start` instead of `bottom span-left`).
-- Budgets: stylesheet 124 to 136 KB, served `enhance.js` 13 to 13.5 KB.
-- Demo: `/banner`, `/popover-card`, `/carousel`; `/blocks/error?status=` shows each page.
+The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
+from `ui` (M18) instead of functions taking options structs, so this section lists changes
+by milestone, newest first, rather than against 0.1.0.
 
-#### M37
+### Breaking changes in 0.2.0
 
-- Ready for crates.io and docs.rs, nothing published: `rust-version = "1.88"` (the `loco`
-  feature needs 1.94, as loco-rs 1.2 does), `homepage` and `documentation` in the three
-  manifests, a `LICENSE` in each crate, `loco-ui-macros` with a README of its own. The
-  docs.rs build uses `doc_cfg` (nightly merged `doc_auto_cfg` into it), and the three
-  crates `forbid(unsafe_code)` and deny broken intra-doc links at every feature level.
-- CI: `docsrs`, `msrv`, `publish-dry-run` (`cargo package`), `deny` (`deny.toml`) and
-  `semver` (reports only, until 0.2.0 is tagged). `.github/` has a contributing guide, a
-  security policy, issue and pull request templates and dependabot.
+One line each, from M32 on; the milestone's bullet says what to write instead. The M14 to
+M16 entries are older still and describe options structs that M18 replaced.
 
-#### M44
+- M45: `Strings` gained fields, so a struct literal of it no longer compiles; its
+  `PartialEq` leaves out the plural rule.
+- M43: the `cargo-lui` binary needs the `cli` feature.
+- M43: the scaffold's `views::<plural>::list` takes a `base` path (template copies only).
+- M41: a table sorts by several keys, `?sort.<id>=name,-size`; `dir.<id>` and `Keys::dir`
+  are gone and `Table::sort()` / `TableQuery::sort()` return a slice.
+- M41: the bare `q`, `sort`, `dir`, `page` and `cols` table keys are no longer read.
+- M41: `TableOptions`, `ui.table_with` and `PagedTableOptions` are removed; `Table::empty`
+  takes any `Render`.
+- M40d: Progress prints its percentage only with `.show_value()`.
+- M40d: Menu positions are logical keywords (`block-end span-inline-start`).
+- M40c: `ui.number(f64)`, the number formatter, is `ui.format_number(f64)`.
+- M40c: Calendar and DatePicker lose the `.disabled(fn)` aliases; `disabled_dates` takes
+  `&|d| ..`.
+- M40b: the wizard's step list classes are `lui-steps-*`.
+- M39: the stylesheet is five cascade layers.
+- M39: colour tokens are `light-dark()` declarations; `layout::DEPTH_*`, `EFFECTS_*`,
+  `Palette::declarations` and `DerivedScale::css` are gone.
+- M39: `Tokens` values are `Cow<'static, str>` and `Tokens` has new fields.
+- M39: no default header (`layout::header()` is gone).
+- M38: `PropKind::Choice` is a new variant.
+- M38: `Button::size` and `Badge`'s tone and look take the `variant` enums.
+- M38: toned, varied and sized buttons and badges carry `data-tone`, `data-variant`,
+  `data-size` in the HTML.
+- M38: the `#[deprecated]` M32 names are gone (all but four, see M38).
+- M38: Tabs and Accordion are links and panels, not `<details>`.
+- M38: `slug` keeps letters in any script, and derived ids have a `lui-` prefix.
+- M38: `Input::number(min, max)` takes `impl Into<Bound>`; Range, Meter and Counter hold
+  `f64`.
+- M35: the `Ui` extractor's `Rejection` is `Response`.
+- M35: `Redirect::save` and `forget` need `T: DeserializeOwned`.
+- M35 (`loco-ui-caps`): `beacon_cookie` and `cookie_for` take a `secure` flag.
+- M32: `ui.stack()`, `ui.cluster()` and `ui.grid(min)` take their content as `.body(..)`.
+- M32: `ui.select`, `ui.color`, `ui.range` and `ui.range_pair` read their value from the
+  query; their `.label(..)` is gone.
 
-- Repo tooling: skills `new-component`, `look-check`, `roadmap-tick` and `release`, the
-  `component-reviewer` agent, a component template (`loco-ui/src/_template.rs.txt`, not
-  packaged), hooks for `cargo fmt` and the `<script>` check, and `scripts/check-script.sh`
-  shared by `verify.sh`, CI and the hook.
+### `loco-ui`
 
-#### M46
+#### M46 · Tests that would have caught the audit's bugs
 
 - Property tests (`proptest`, `loco-ui/tests/prop.rs`): any path, query and cookie build a
   `Ui`, a `UiState` and a `TableQuery` without a panic; `href`, the `lui-ui` cookie, `Caps`
@@ -63,15 +68,16 @@ Everything below also ships in 0.2.0, the first publish.
 - The demo parses every route with `html5ever` under all and no capabilities, light and
   dark, and fails on parse errors, duplicate ids, references to ids that do not exist,
   interactive content inside a link, button or `<summary>`, nested forms and `<img>`
-  without `alt`. The bugs it found are listed in `CONFORMANCE_BUGS` with the milestone
-  that fixes each.
+  without `alt`. What it found (links in `<summary>`, one derived id for two forms, ids
+  repeated by the index previews and the props playground) was fixed in M38 and M42, so
+  `CONFORMANCE_BUGS` is empty; the test fails when a fixed bug stays listed.
 - `insta` snapshots of every builder's header example under all and no capabilities in
   `loco-ui/tests/snapshots/`; review changes with `cargo insta review`.
 - A test renders each setter whose `PROPS` entry names an HTML attribute and checks the
   attribute appears.
 - `scripts/verify.sh` skips the Blitz crate unless given `--full`.
 
-#### M45
+#### M45 · i18n that survives a second language
 
 - `Strings` carries more than words. `Strings::new(tag)` takes CLDR data for en, es, fr, de,
   ar, he, ru and pl from the tag (English's for any other): `dir()` (written as
@@ -81,8 +87,9 @@ Everything below also ships in 0.2.0, the first publish.
 - `Strings::count(text, n)` and `ui.count(..)` pick a counted text's form: a text written
   `one:{} match|other:{} matches` holds one form per CLDR category (`Plural`), `other`
   standing in for a missing one. `Text::Matches` is written that way; `Text::OneMatch` is
-  deprecated and no longer read.
-- `Strings::number(f64)` and `ui.format_number(..)` (renamed from `ui.number` in M40c, which took the name for the number field) write `1,234.5`, `1.234,5`, `1234` / `12.345`
+  gone (M38).
+- `Strings::number(f64)` and `ui.format_number(..)` (renamed from `ui.number` in M40c, which
+  took the name for the number field) write `1,234.5`, `1.234,5`, `1234` / `12.345`
   (Spanish) or `1 234,5`. The paged table's range and page numbers, the pager, counter,
   meter and stat use them.
 - `Strings::date` and `Strings::date_long`. The calendar's column heads come from new texts
@@ -100,88 +107,19 @@ Everything below also ships in 0.2.0, the first publish.
   default; `Submitted::strings(ui.strings)` picks the visitor's.
 - `Text::month(0)` no longer underflows. `i18n::languages(&[])` no longer panics on the next
   request.
-- **Breaking:** `layout::layout` and `layout::layout_with` are deleted (both wrote
-  `lang="en"`); use `ui.page(..)`. `Strings` gained fields, so a struct literal of it no
-  longer compiles (its fields were private already); its `PartialEq` leaves out the plural
-  rule.
+- **Breaking:** `layout::layout` and `layout::layout_with` (both wrote `lang="en"`) are
+  deleted. Use `ui.page(..)`.
+- **Breaking:** `Strings` gained fields, so a struct literal of it no longer compiles (its
+  fields were private already); its `PartialEq` leaves out the plural rule.
 
-#### M38
+#### M44 · Repo tooling
 
-- New `loco_ui::variant` with four enums in the prelude: `Size` (`S1` to `S3`, also
-  `Size::ONE`.., and `From<u8>` saturating), `Tone` (neutral, brand, ok, warn, danger, info),
-  `Variant` (solid, soft, surface, outline, ghost) and `Radius` (none, small, medium, large,
-  full). Each has `NAMES`, `as_str`, a `const fn parse`, `Display` and `FromStr`.
-- `PropKind::Choice { of }` lists a setter's names; the spec JSON writes them as `"choices"`,
-  the demo's props tables show them and the playground offers them in a `<select>`.
-  **Breaking** for code that matches on `PropKind` exhaustively.
-- `lui!` looks up a string given to `size`, `tone`, `variant` or `radius` at compile time:
-  `tone="danger"` is `.tone(Tone::Danger)`, and `tone="dangr"` is a compile error at the
-  literal. `size=2` and `tone=(Tone::Danger)` work as before.
-- New setters: `.size(impl Into<Size>)` on Button, Badge, Alert, Card, Tabs, Input, Select,
-  ToggleGroup and Progress; `.tone(Tone)` on Button, Badge, Alert, Avatar and Progress;
-  `.variant(Variant)` on Button, Badge, Alert, Avatar, Card, Input, Select, Progress and
-  Flash; `.radius(Radius)` on Button, Badge, Avatar, ToggleGroup and Progress. Each value
-  that is not the component's default is also written on the root as `data-size`,
-  `data-tone`, `data-variant` or `data-radius`. **Breaking**: `Button::size` and `Badge`'s
-  tone and look now take these types (a `u8` still works through `From<u8>`).
-- Button's tone and variant compose: `.danger().ghost()` is a red ghost button and
-  `.primary()` is `.tone(Tone::Brand).variant(Variant::Solid)`. The switch setters stay, and
-  the five looks that had a class keep it (`lui-button-primary` and so on), now beside
-  `data-tone` and `data-variant`. **Breaking** in the HTML: a primary, danger, ghost, soft or
-  surface button, a small or large one, and a toned badge carry the new attributes.
-- **Breaking:** the `#[deprecated]` M32 names are gone: `wizard::Posted`, `Text::OneMatch`,
-  and the old setters on Accordion (`summary`, `multi`), Button (`icon`, `label`,
-  `content`), ContextMenu (`items`), EmptyState (`text`, `post`), ErrorPage (`message`),
-  Kanban (`note`), Palette (`command`, `commands`, `key`), Menu (`heading`), Stat (`note`),
-  Upload (`hint`) and Wizard (`progress`). The few on Calendar, DatePicker, Combobox, Select
-  and ToggleGroup go with M40's controls.
-- **Breaking (HTML):** Tabs and Accordion are links and panels, no longer `<details>`: tabs
-  are `div.lui-tabs-list > a.lui-tabs-trigger[data-state=active|inactive]` and
-  `div.lui-tabs-panel[data-state][hidden]`; an accordion item is
-  `a.lui-accordion-trigger[aria-expanded][aria-controls]` and `div.lui-accordion-body[hidden]`,
-  each with `data-state="open|closed"`. No `<a>` inside a `<summary>` any more (two
-  conformance exceptions removed). The accordion's height animation is gone.
-- **Breaking (ids):** `slug` keeps letters and digits in any script (`"Configuración"` is
-  `configuración`); derived ids get a `lui-` prefix (`#lui-dialog-delete`,
-  `#lui-menu-account`, `#lui-drawer-menu`, `#lui-palette`). `?dialog=<old id>` still opens
-  the dialog for one release (`UiState::dialog_is`).
-- A modifier after the wrong kind of item panics in debug builds with a message naming both:
-  ``Menu::danger() applies to a link, an action or a submenu, but the last item was a
-  separator``. `Prop::applies_to` lists the items, and the spec JSON writes it as
-  `"applies_to"`. On Menu, ContextMenu, Kanban, Sortable, Palette, Sidebar, AppShell, Tabs,
-  Accordion, Avatars, Upload and Wizard (Form and Table with M40 and M41).
-- `ui.badge(impl Display)`: `ui.badge(3)` works. `Button::large()`, `.block()`,
-  `.leading(icon)` and `.trailing(icon)`. `Glyph::Svg(&Markup)` puts an app's own SVG
-  wherever an icon goes.
-- `.trigger(Button)` on Dialog, Drawer, Menu and Tooltip: a styled opener of the caller's,
-  with the command, popover target or link set by the component. `.no_trigger()` on Dialog
-  and Drawer renders the overlay alone.
-- State attributes as a styling API (`docs/api.md`): a toggle button carries
-  `data-state="on|off"`, a disabled or busy button and a disabled menu item `data-disabled`,
-  vertical tabs `data-orientation`; each component's CSS selects them, and
-  `state_attributes_are_styled_where_they_are_set` keeps it so.
-- Docs: `docs/api.md` gains Variants, State attributes, the new Ids rules and why text
-  setters stay `&'a str` (a `Cow` spike on `Dialog::title` split `PROPS`);
-  `docs/ergonomics.md` leads with the current API and keeps M17/M18 under History.
-- Controls (with M40c): `.disabled()` and `.readonly()` on Input, Form fields, Select,
-  Combobox, Range, Color, Counter, DatePicker, Number and Rating, and `.disabled()` on a
-  ToggleGroup, RadioGroup or CheckboxGroup option and a `SelectOption`. Disabled renders
-  `disabled` and `aria-disabled="true"`; readonly is `readonly` where HTML has it, else a
-  disabled control plus a hidden input, so the value still posts, and `Form::values` leaves
-  a readonly field's own value alone. New kinds `tel`, `url`, `month` and `week`; `.optional()`
-  writes "(optional)" (`Text::Optional`) after the label. **Breaking:** `Input::number(min,
-  max)` takes `impl Into<Bound>` (a number, or `None::<f64>` for no bound) and `step` takes
-  `impl Into<f64>`; Range, Meter and Counter hold `f64` (`2.0` prints as `2`), and
-  `Counter::apply` returns `f64`.
-- `Input::hide_label()` keeps help, count and error after the bare control, so every id in
-  `aria-describedby` exists (a test checks it on every field shape); `.multiple()` before
-  `.file()` keeps the flag; a textarea and a select honour `autocomplete`, `form`,
-  `inputmode`, `autofocus` and `class`.
-- Form modifiers misfire loudly: `.required()` after `.group(..)` fails a debug assertion
-  ("Form::required() applies to a field, but the last item was Group"), as does
-  `.description()` after a field; `Prop::applies_to` names what a modifier applies to.
+- Skills `new-component`, `look-check`, `roadmap-tick` and `release`, the
+  `component-reviewer` agent, a component template (`loco-ui/src/_template.rs.txt`, not
+  packaged), hooks for `cargo fmt` and the `<script>` check, and `scripts/check-script.sh`
+  shared by `verify.sh`, CI and the hook.
 
-#### M43
+#### M43 · `cargo lui add`, `cargo lui new`, and a scaffold that searches and sorts
 
 - **Breaking (installer):** the `cargo-lui` binary needs the new `cli` feature
   (`cargo install --git .. loco-ui --bin cargo-lui --features cli`). The feature brings
@@ -192,7 +130,10 @@ Everything below also ships in 0.2.0, the first publish.
   with an `App<Name>Ext` trait, registered in `src/ui/mod.rs`, `src/lib.rs` and the `css`
   list of the app's `Look`. `--prefix`, `--dry-run`, `--diff`, `--view`, `--force`; `cargo lui
   list`, `cargo lui info <name>` (the setters), `cargo lui eject` (all of loco-ui into
-  `vendor/`). 26 components can be copied; the rest use crate-private helpers.
+  `vendor/`). 22 modules can be copied (`COPYABLE`: 17 components and the five blocks). The
+  rest, dialog, drawer, tooltip and input among them, call crate-private helpers, and
+  `flash` is left out because its cookie shares its class name; `cargo lui eject` copies
+  everything.
 - `cargo lui new <app>` writes an Axum app (app shell, settings, theme toggle, 404 page, CSP,
   `Look`, a page test, `scripts/check.sh`); `--loco` builds on `loco new` (or `--from DIR`)
   with `install`, `auth` and a demo account seeded in development.
@@ -201,15 +142,101 @@ Everything below also ships in 0.2.0, the first publish.
   commit (`--rev` overrides), edits `Cargo.toml` with `toml_edit` (CRLF and dotted tables
   kept), and takes `--dry-run`, `--help` and `--version`.
 - The scaffold's list searches (`LIKE` over text columns) and sorts (every column
-  `sortable`) in SQL through `ui.table_query`, has a CSV download (`/<plural>/export.csv`),
-  and ends with a generated test of its query; `cargo lui scaffold .. --parent <model>` adds
-  `/<parents>/{id}/<plural>` routes. Its titles and flashes use `Text::New`, `Edit`,
-  `Created`, `Saved`, `Deleted`. The scaffold's `views::<plural>::list` takes a `base` path
-  (**breaking** for a template copy that calls it, not for generated apps).
+  `sortable`, every key of M41's multi-key sort) in SQL through `ui.table_query`, has a CSV
+  download (`/<plural>/export.csv`), and ends with a generated test of its query; `cargo lui
+  scaffold .. --parent <model>` adds `/<parents>/{id}/<plural>` routes. Its titles and
+  flashes use `Text::New`, `Edit`, `Created`, `Saved`, `Deleted`. The scaffold's
+  `views::<plural>::list` takes a `base` path (**Breaking** for a template copy that calls
+  it, not for generated apps).
 - `RecordPage::delete` opens a dialog that asks first ("Delete Invoice 42?",
   `Text::DeleteConfirm`, `Text::CannotUndo`) instead of posting at once.
 
-#### M40b
+#### M42 · A docs site, not a demo
+
+- The demo is a docs site. Getting started at `/start`, `/start/axum`, `/start/loco` and
+  `/start/any-server` (new `docs/start/*.md`, the Axum and any-server pages run as
+  doctests), the guides at `/docs/<name>` and the changelog at `/changelog`, rendered from
+  the Markdown with a table of contents beside each page. A test checks every relative link
+  and heading fragment in `docs/`.
+- Each component page ends with "When to use", "Platform" (browser versions from
+  `spec::SPECS`), "Accessibility", "Without script", "Fallback" (from the component's doc
+  header) and "Anatomy" (the classes its CSS styles and the tokens each reads).
+- Search: `/find?q=` over components, props and docs headings; the header's command
+  palette (access key K; the `/palette` demo's own palette uses J, so the two never clash)
+  searches the components and docs pages from every page, and an exact name goes straight
+  to its page.
+- The stage above a component's code shows it in both themes (`?themes=both`), at a medium
+  or narrow width (`?stage=`) and without the script (`?script=off`), from a row of links.
+- The demo's snippets and the docs' code blocks carry the code block's copy button from
+  M40a: a `hidden` `data-lui="copy"` span around a ghost button whose `commandfor` names the
+  `<pre>`. The script shows it where `navigator.clipboard` exists; without the script there
+  is no button.
+- The index's previews, the props playground and the both-themes stage no longer repeat
+  ids (each copy's ids are prefixed by `ids::scope`).
+- `Page` head setters: `.description(..)`, `.canonical(..)`, `.icon(..)` (an SVG file or
+  `data:` URI gets `type="image/svg+xml"`), `.meta(name, content)`, `.og(property, content)`,
+  `.link_rel(rel, href)`, `.stylesheet(href)` (linked after the library's styles) and
+  `.head(markup)` for anything else. The meta follow `<title>`; the links and the markup
+  close `<head>`. `Page` stays under 128 bytes: the header and these share one box.
+- The demo gives every page a description (on a component page, what it is for), Open Graph
+  type, site name, title and description, and the mark as an inline SVG favicon. The strict
+  CSP already allows `img-src 'self' data:`, so nothing changed there.
+- AI-readable docs: `cargo run -p demo -- spec write` also writes `docs/llms.txt` (an index
+  in the llmstxt.org shape), `docs/llms-full.txt` and `docs/components/<name>.md` (the
+  constructors, the props table, the platform features with their baselines, the fallback
+  and the `//!` header with its `lui!` example). The demo serves them at `/llms.txt`,
+  `/llms-full.txt` and `/<name>.md`; a component page asked for with `Accept: text/markdown`
+  answers with its components' Markdown (`Vary: Accept`). The snapshot exports them, and a
+  demo test fails when the files fall behind the sources.
+
+#### M41 · Data table
+
+- **Breaking:** a table sorts by several keys: `?sort.<id>=name,-size` (`-` for descending,
+  most significant first). `dir.<id>` is gone; `Table::sort()` and `TableQuery::sort()` return
+  `&[(&str, bool)]` instead of one `Option` pair; `Keys::dir` is gone. A header's `+` link adds
+  its column as the next key, and each sorted header shows its place. New
+  `loco::order_by(select, sort, |key| column)` orders a SeaORM query by every key.
+- **Breaking:** the bare `q`, `sort`, `dir`, `page` and `cols` keys (deprecated in M33) are no
+  longer read. Rewrite `?sort=size&dir=desc` as `?sort.<id>=-size`.
+- **Breaking:** `TableOptions`, `ui.table_with` and `PagedTableOptions` are removed; the
+  builder covers them. `Table::empty` takes any `Render`, not only text.
+- Column filters: `.column(..).filterable()` adds a text box to a "Filters" panel, read from
+  `?q.<id>.<col>=` (`Table::filters()`, `TableQuery::filters()`, `matches_in`).
+- `.bulk(..).select_all()`: a header checkbox posting `all=1` with the query on the form, so
+  the route acts on every matching row; the enhancement script ticks the page's boxes too.
+- `.caption(text)`, `.total(key, text)` and `.footer(row)` (a `<tfoot>`), `.striped()`,
+  `.density(Density::Compact)`, `.group_by(key)` (group header rows), `.json(href)`, and on a
+  row `.href(url)` (the whole row is a link), `.disabled()`, `.ok()`, `.warn()`, `.danger()`.
+- The renderer is split into `table/{toolbar,head,body,foot}.rs`, pinned by a golden test.
+- Demo: /table shows the caption, totals, column filters, select-all, JSON and a Features
+  matrix; the new /table/rows shows groups, row links, tones, stripes and the compact density.
+
+#### M40 · The missing HTML/CSS-only components
+
+##### M40a · Typography and layout
+
+- Type: `ui.heading(text)` (Radix sizes 1–9, `.as_h(1..6)`, `.weight(..)`, `.trim()`),
+  `ui.text(text)` (sizes 1–9, `.weight(..)`, `.tone(..)`, `.muted()`, `.as_p()`,
+  `.as_div()`, `.truncate()`), `ui.link(text, href)` (`.external()`, `.muted()`,
+  `.underline(Always | Hover | None)`), `ui.kbd(keys)`, `ui.code(text)` (tone and variant),
+  `ui.code_block(text)` (`.language(..)`, `.title(..)`, `.copy()`: a ghost button with
+  `command="--copy"` and `commandfor` the `<pre>`, inside a `hidden` `data-lui="copy"` span
+  that only the enhancement script shows), `ui.blockquote()` (`.caption(..)`, `.cite(url)`)
+  and `ui.prose()`, which styles plain HTML from Markdown or a CMS inside one block.
+- Layout: `ui.container()` (Radix's four widths), `ui.section()` (four heights, `.label(..)`),
+  `ui.inset()` (`.top()`, `.bottom()`), `ui.aspect_ratio()` (`.ratio(w, h)`),
+  `ui.scroll_area(label)` (`.height(..)`, edge shadows from `scroll-state()` queries),
+  `ui.center()` and `ui.spacer()`. Stack and Cluster take `.align(..)`, `.justify(..)` and
+  `.padding(n)`; Cluster `.nowrap()`.
+- `ui.spinner()` (`.size(..)`, `.label(..)`), the ring Button's busy state now draws, and
+  `ui.indicator(count)` (`.dot()`, `.max(n)`, `.tone(..)`, `.label(..)`).
+- `ui.text(..)` takes an `i18n::Text` key (the word, as before) or a `&str` (the component).
+  New choices in `variant`: `Weight`, `Align`, `Justify`, `Underline`, written as strings in
+  `lui!` (`weight="medium"`). New texts: `OpensInNewTab`, `Code`, `Copy`, `Copied`,
+  `IndicatorNew`. Six demo pages: `/typography`, `/code-block`, `/prose`, `/container`,
+  `/scroll-area`, `/spinner`.
+
+##### M40b · Navigation
 
 - `ui.pagination(href)`: numbered page links with an ellipsis over each gap, Previous and
   Next (`rel=prev/next`), `aria-current` on the page shown, read from `?page=` or
@@ -240,7 +267,8 @@ Everything below also ships in 0.2.0, the first publish.
   `/projects/42` (the longest such link wins; `/` only matches itself). Breadcrumbs:
   `.max(n)` crumbs before the middle folds (4 by default) and `.separator(glyph)` in place
   of the chevron.
-#### M40c · Inputs
+
+##### M40c · Inputs
 
 - New components, each with a demo page, a playground entry and a spec row:
   `ui.checkbox_group(name, legend)` (posts `name[]`, `.option(..).description(..).disabled()`,
@@ -256,9 +284,9 @@ Everything below also ships in 0.2.0, the first publish.
   enhancement script runs (it marks `<html data-lui-js>` and flips the field's type).
   Number steppers post the stepped value without script and call `stepUp()`/`stepDown()`
   with it.
-- Select gains `.required()`, `.help(..)`, `.placeholder(..)`, `.disabled()`, `.readonly()`,
-  `.multiple()`, `.hide_label()` and disabled options; a Form's select renders through it
-  (one implementation).
+- Select gains `.required()`, `.help(..)`, `.placeholder(..)`, `.multiple()`,
+  `.hide_label()` and disabled options (`.disabled()` and `.readonly()` are under M38); a
+  Form's select renders through it (one implementation).
 - Form adders `radio`, `checkboxes`, `search`, `url`, `tel`, `color`, `range` and `number`
   (bounds `impl Into<Bound>`); modifiers `.autocomplete(..)`, `.disabled()`, `.readonly()`,
   `.optional()` and `.width(..)`; `.action_secondary("Cancel", href)`; `.method_override(
@@ -278,52 +306,39 @@ Everything below also ships in 0.2.0, the first publish.
   is the number field.
 - New texts: `ShowPassword`, `Stars`, `RatingOf`, `Add`, `WeekShort`, `WeekNumber`,
   `StartDate`, `EndDate`; icons `Eye` and `Star`.
-#### M42
 
-- `Page` head setters: `.description(..)`, `.canonical(..)`, `.icon(..)` (an SVG file or
-  `data:` URI gets `type="image/svg+xml"`), `.meta(name, content)`, `.og(property, content)`,
-  `.link_rel(rel, href)`, `.stylesheet(href)` (linked after the library's styles) and
-  `.head(markup)` for anything else. The meta follow `<title>`; the links and the markup
-  close `<head>`. `Page` stays under 128 bytes: the header and these share one box.
-- The demo gives every page a description (on a component page, what it is for), Open Graph
-  type, site name, title and description, and the mark as an inline SVG favicon. The strict
-  CSP already allows `img-src 'self' data:`, so nothing changed there.
-- AI-readable docs: `cargo run -p demo -- spec write` also writes `docs/llms.txt` (an index
-  in the llmstxt.org shape), `docs/llms-full.txt` and `docs/components/<name>.md` (the
-  constructors, the props table, the platform features with their baselines, the fallback
-  and the `//!` header with its `lui!` example). The demo serves them at `/llms.txt`,
-  `/llms-full.txt` and `/<name>.md`; a component page asked for with `Accept: text/markdown`
-  answers with its components' Markdown (`Vary: Accept`). The snapshot exports them, and a
-  demo test fails when the files fall behind the sources.
-#### M42
+##### M40d · Feedback and overlays
 
-- The demo is a docs site. Getting started at `/start`, `/start/axum`, `/start/loco` and
-  `/start/any-server` (new `docs/start/*.md`, the Axum and any-server pages run as
-  doctests), the guides at `/docs/<name>` and the changelog at `/changelog`, rendered from
-  the Markdown with a table of contents beside each page. A test checks every relative link
-  and heading fragment in `docs/`.
-- Each component page ends with "When to use", "Platform" (browser versions from
-  `spec::SPECS`), "Accessibility", "Without script", "Fallback" (from the component's doc
-  header) and "Anatomy" (the classes its CSS styles and the tokens each reads).
-- Search: `/find?q=` over components, props and docs headings; the header's command
-  palette searches from every page, and an exact name goes straight to its page.
-- The stage above a component's code shows it in both themes (`?themes=both`), at a medium
-  or narrow width (`?stage=`) and without the script (`?script=off`), from a row of links.
-- The enhancement script adds a Copy button to any element marked `data-lui="copy"`
-  (the demo's snippets and code blocks); without the script there is none. The script is
-  now under 14 KB served.
-- The index's previews, the props playground and the both-themes stage no longer repeat
-  ids (the conformance test's M42 entries are gone).
+- New components: `ui.banner(text)` (a full-width bar, `.tone()`, `.link()`, `.dismiss()`
+  through a POST to `/lui/dismiss` that sets `lui-dismiss-<id>`, so it stays closed without
+  script; `AppShell::banner`), `ui.popover(trigger, body)` (a generic popover, module
+  `popover_card`, class `lui-popover-card`: `.side()`, `.align()`, `.arrow()`, a
+  `<details>` fallback) and `ui.carousel(label)` (`scroll-snap`, `.item()`, buttons and dots
+  from `::scroll-button()`/`::scroll-marker` where supported, links to `#<id>-<n>` slides
+  elsewhere). New prelude types `Side`, `Align` and `toast::Position`.
+- Anchor positioning is shared: Menu, Popover and Tooltip take their `position-area` from one
+  table (logical keywords, `block-end span-inline-start`) and flip with
+  `position-try-fallbacks`. Tooltip gains `.side()` and `.delay(ms)`.
+- Menu: `.checkbox(text, action, name)` and `.radio(text, action, name, value)` items with a
+  `.checked(bool)` modifier, each its own form with an Apply button; with script the form
+  posts on change (`data-lui="autosubmit"` in `enhance.rs`) and the button is hidden.
+- Toasts `.position()`, `.duration(ms)`, `.action(label, href)`, `.max(n)`; Flash `.title()`,
+  `.action()`; Alert `.info()`, `.action(Button)`, `.dismiss()`, `.id()`; Skeleton
+  `.circle()`, `.rect(w, h)`, `.avatar_lines(n)`; EmptyState takes several links and
+  actions; Progress `.indeterminate()` and `.show_value()`.
+- Dialog `.description()` (`aria-describedby`), `.footer(markup)`, `.fullscreen()`; Drawer
+  `.side()` and `.size()`; ErrorPage words for 401, 403, 422 and 503 (new `Text` keys,
+  Spanish in the demo).
+- **Breaking:** Progress prints its percentage only with `.show_value()`; Menu positions are
+  logical keywords (`block-end span-inline-start` instead of `bottom span-left`).
+- Demo: `/banner`, `/popover-card`, `/carousel`; `/blocks/error?status=` shows each page.
 
-## [0.2.0] - unreleased
+##### Budgets after M40
 
-The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
-from `ui` (M18) instead of functions taking options structs, so this section lists changes
-by milestone, newest first, rather than against 0.1.0.
+- With all four parts merged, the stylesheet budget is 176 KB (124 KB before M40), and the
+  served `enhance.js` budget is 15.5 KB (13 KB before M40a's copy button, M40c's steppers
+  and reveal, M40d's autosubmit and M41's select-all).
 
-### `loco-ui`
-
-#### After M36: input hardening, `lui!` templates, sign-in redirects
 #### M39 · CSS that an app can own
 
 - The type and z-index literals and physical properties in component CSS became tokens and
@@ -363,32 +378,99 @@ by milestone, newest first, rather than against 0.1.0.
   The enhancement script moves a lost focus into the swapped root and announces the new
   title through a `role=status` region.
 - Two lint tests: `no_literal_font_size_or_z_outside_tokens` and
-  `no_physical_property_in_component_css`, with the files still to sweep listed in them.
+  `no_physical_property_in_component_css`. The sweep is done, so neither keeps a list of
+  files still to fix.
 
-#### M41 · Data table
+#### M38 · One variant system, loud modifier misfires
 
-- **Breaking:** a table sorts by several keys: `?sort.<id>=name,-size` (`-` for descending,
-  most significant first). `dir.<id>` is gone; `Table::sort()` and `TableQuery::sort()` return
-  `&[(&str, bool)]` instead of one `Option` pair; `Keys::dir` is gone. A header's `+` link adds
-  its column as the next key, and each sorted header shows its place. New
-  `loco::order_by(select, sort, |key| column)` orders a SeaORM query by every key.
-- **Breaking:** the bare `q`, `sort`, `dir`, `page` and `cols` keys (deprecated in M33) are no
-  longer read. Rewrite `?sort=size&dir=desc` as `?sort.<id>=-size`.
-- **Breaking:** `TableOptions`, `ui.table_with` and `PagedTableOptions` are removed; the
-  builder covers them. `Table::empty` takes any `Render`, not only text.
-- Column filters: `.column(..).filterable()` adds a text box to a "Filters" panel, read from
-  `?q.<id>.<col>=` (`Table::filters()`, `TableQuery::filters()`, `matches_in`).
-- `.bulk(..).select_all()`: a header checkbox posting `all=1` with the query on the form, so
-  the route acts on every matching row; the enhancement script ticks the page's boxes too.
-- `.caption(text)`, `.total(key, text)` and `.footer(row)` (a `<tfoot>`), `.striped()`,
-  `.density(Density::Compact)`, `.group_by(key)` (group header rows), `.json(href)`, and on a
-  row `.href(url)` (the whole row is a link), `.disabled()`, `.ok()`, `.warn()`, `.danger()`.
-- The renderer is split into `table/{toolbar,head,body,foot}.rs`, pinned by a golden test.
-- Demo: /table shows the caption, totals, column filters, select-all, JSON and a Features
-  matrix; the new /table/rows shows groups, row links, tones, stripes and the compact density.
+- New `loco_ui::variant` with four enums in the prelude: `Size` (`S1` to `S3`, also
+  `Size::ONE`.., and `From<u8>` saturating), `Tone` (neutral, brand, ok, warn, danger, info),
+  `Variant` (solid, soft, surface, outline, ghost) and `Radius` (none, small, medium, large,
+  full). Each has `NAMES`, `as_str`, a `const fn parse`, `Display` and `FromStr`.
+- `PropKind::Choice { of }` lists a setter's names; the spec JSON writes them as `"choices"`,
+  the demo's props tables show them and the playground offers them in a `<select>`.
+  **Breaking** for code that matches on `PropKind` exhaustively.
+- `lui!` looks up a string given to `size`, `tone`, `variant` or `radius` at compile time:
+  `tone="danger"` is `.tone(Tone::Danger)`, and `tone="dangr"` is a compile error at the
+  literal. `size=2` and `tone=(Tone::Danger)` work as before.
+- New setters: `.size(impl Into<Size>)` on Button, Badge, Alert, Card, Tabs, Input, Select,
+  ToggleGroup and Progress; `.tone(Tone)` on Button, Badge, Alert, Avatar and Progress;
+  `.variant(Variant)` on Button, Badge, Alert, Avatar, Card, Input, Select, Progress and
+  Flash; `.radius(Radius)` on Button, Badge, Avatar, ToggleGroup and Progress. Each value
+  that is not the component's default is also written on the root as `data-size`,
+  `data-tone`, `data-variant` or `data-radius`. **Breaking**: `Button::size` and `Badge`'s
+  tone and look now take these types (a `u8` still works through `From<u8>`).
+- Button's tone and variant compose: `.danger().ghost()` is a red ghost button and
+  `.primary()` is `.tone(Tone::Brand).variant(Variant::Solid)`. The switch setters stay, and
+  the five looks that had a class keep it (`lui-button-primary` and so on), now beside
+  `data-tone` and `data-variant`. **Breaking** in the HTML: a primary, danger, ghost, soft or
+  surface button, a small or large one, and a toned badge carry the new attributes.
+- **Breaking:** the `#[deprecated]` M32 names are gone: `wizard::Posted`, `Text::OneMatch`,
+  and the old setters on Accordion (`summary`, `multi`), Button (`icon`, `label`,
+  `content`), ContextMenu (`items`), EmptyState (`text`, `post`), ErrorPage (`message`),
+  Kanban (`note`), Palette (`command`, `commands`, `key`), Menu (`heading`), Stat (`note`),
+  Upload (`hint`) and Wizard (`progress`). Calendar's and DatePicker's went in M40c. Four
+  are still there: `Combobox::multi`, `ToggleGroup::item` and `::multi`, `Select`'s
+  `content`.
+- **Breaking (HTML):** Tabs and Accordion are links and panels, no longer `<details>`: tabs
+  are `div.lui-tabs-list > a.lui-tabs-trigger[data-state=active|inactive]` and
+  `div.lui-tabs-panel[data-state][hidden]`; an accordion item is
+  `a.lui-accordion-trigger[aria-expanded][aria-controls]` and `div.lui-accordion-body[hidden]`,
+  each with `data-state="open|closed"`. No `<a>` inside a `<summary>` any more (two
+  conformance exceptions removed). The accordion's height animation is gone.
+- **Breaking (ids):** `slug` keeps letters and digits in any script (`"Configuración"` is
+  `configuración`); derived ids get a `lui-` prefix (`#lui-dialog-delete`,
+  `#lui-menu-account`, `#lui-drawer-menu`, `#lui-palette`). `?dialog=<old id>` still opens
+  the dialog for one release (`UiState::dialog_is`).
+- A modifier after the wrong kind of item panics in debug builds with a message naming both:
+  ``Menu::danger() applies to a link, an action or a submenu, but the last item was a
+  separator``. `Prop::applies_to` lists the items, and the spec JSON writes it as
+  `"applies_to"`. On Menu, ContextMenu, Kanban, Sortable, Palette, Sidebar, AppShell, Tabs,
+  Accordion, Avatars, Upload and Wizard, and on Form with M40c; Table's modifiers are not
+  checked yet.
+- `ui.badge(impl Display)`: `ui.badge(3)` works. `Button::large()`, `.block()`,
+  `.leading(icon)` and `.trailing(icon)`. `Glyph::Svg(&Markup)` puts an app's own SVG
+  wherever an icon goes.
+- `.trigger(Button)` on Dialog, Drawer, Menu and Tooltip: a styled opener of the caller's,
+  with the command, popover target or link set by the component. `.no_trigger()` on Dialog
+  and Drawer renders the overlay alone.
+- State attributes as a styling API (`docs/api.md`): a toggle button carries
+  `data-state="on|off"`, a disabled or busy button and a disabled menu item `data-disabled`,
+  vertical tabs `data-orientation`; each component's CSS selects them, and
+  `state_attributes_are_styled_where_they_are_set` keeps it so.
+- Docs: `docs/api.md` gains Variants, State attributes, the new Ids rules and why text
+  setters stay `&'a str` (a `Cow` spike on `Dialog::title` split `PROPS`);
+  `docs/ergonomics.md` leads with the current API and keeps M17/M18 under History.
+- Controls (with M40c): `.disabled()` and `.readonly()` on Input, Form fields, Select,
+  Combobox, Range, Color, Counter, DatePicker, Number and Rating, and `.disabled()` on a
+  ToggleGroup, RadioGroup or CheckboxGroup option and a `SelectOption`. Disabled renders
+  `disabled` and `aria-disabled="true"`; readonly is `readonly` where HTML has it, else a
+  disabled control plus a hidden input, so the value still posts, and `Form::values` leaves
+  a readonly field's own value alone. New kinds `tel`, `url`, `month` and `week`; `.optional()`
+  writes "(optional)" (`Text::Optional`) after the label. **Breaking:** `Input::number(min,
+  max)` takes `impl Into<Bound>` (a number, or `None::<f64>` for no bound) and `step` takes
+  `impl Into<f64>`; Range, Meter and Counter hold `f64` (`2.0` prints as `2`), and
+  `Counter::apply` returns `f64`.
+- `Input::hide_label()` keeps help, count and error after the bare control, so every id in
+  `aria-describedby` exists (a test checks it on every field shape); `.multiple()` before
+  `.file()` keeps the flag; a textarea and a select honour `autocomplete`, `form`,
+  `inputmode`, `autofocus` and `class`.
+- Form modifiers misfire loudly: `.required()` after `.group(..)` fails a debug assertion
+  ("Form::required() applies to a field, but the last item was Group"), as does
+  `.description()` after a field; `Prop::applies_to` names what a modifier applies to.
 
-#### Earlier
+#### M37 · Ready for docs.rs and crates.io
 
+- Ready for crates.io and docs.rs, nothing published: `rust-version = "1.88"` (the `loco`
+  feature needs 1.94, as loco-rs 1.2 does), `homepage` and `documentation` in the three
+  manifests, a `LICENSE` in each crate, `loco-ui-macros` with a README of its own. The
+  docs.rs build uses `doc_cfg` (nightly merged `doc_auto_cfg` into it), and the three
+  crates `forbid(unsafe_code)` and deny broken intra-doc links at every feature level.
+- CI: `docsrs`, `msrv`, `publish-dry-run` (`cargo package`), `deny` (`deny.toml`) and
+  `semver` (reports only, until 0.2.0 is tagged). `.github/` has a contributing guide, a
+  security policy, issue and pull request templates and dependabot.
+
+#### After M36: input hardening, `lui!` templates, sign-in redirects
 
 - Fixed two panics a request could trigger. A query with a non-ASCII character right after `%`
   (`?x=%aé`) no longer panics while it is decoded. A redirect whose target holds a control
@@ -436,28 +518,6 @@ by milestone, newest first, rather than against 0.1.0.
   signed-out visitor lands on the page they wanted after signing in.
 - Fix: the enhancement script no longer copies a urlencoded POST's fields into the URL
   (a sign-up put the password in the request line and the server log).
-
-#### M40a · Typography and layout
-
-- Type: `ui.heading(text)` (Radix sizes 1–9, `.as_h(1..6)`, `.weight(..)`, `.trim()`),
-  `ui.text(text)` (sizes 1–9, `.weight(..)`, `.tone(..)`, `.muted()`, `.as_p()`,
-  `.as_div()`, `.truncate()`), `ui.link(text, href)` (`.external()`, `.muted()`,
-  `.underline(Always | Hover | None)`), `ui.kbd(keys)`, `ui.code(text)` (tone and variant),
-  `ui.code_block(text)` (`.language(..)`, `.title(..)`, `.copy()`: a button only the
-  enhancement script shows), `ui.blockquote()` (`.caption(..)`, `.cite(url)`) and
-  `ui.prose()`, which styles plain HTML from Markdown or a CMS inside one block.
-- Layout: `ui.container()` (Radix's four widths), `ui.section()` (four heights, `.label(..)`),
-  `ui.inset()` (`.top()`, `.bottom()`), `ui.aspect_ratio()` (`.ratio(w, h)`),
-  `ui.scroll_area(label)` (`.height(..)`, edge shadows from `scroll-state()` queries),
-  `ui.center()` and `ui.spacer()`. Stack and Cluster take `.align(..)`, `.justify(..)` and
-  `.padding(n)`; Cluster `.nowrap()`.
-- `ui.spinner()` (`.size(..)`, `.label(..)`), the ring Button's busy state now draws, and
-  `ui.indicator(count)` (`.dot()`, `.max(n)`, `.tone(..)`, `.label(..)`).
-- `ui.text(..)` takes an `i18n::Text` key (the word, as before) or a `&str` (the component).
-  New choices in `variant`: `Weight`, `Align`, `Justify`, `Underline`, written as strings in
-  `lui!` (`weight="medium"`). New texts: `OpensInNewTab`, `Code`, `Copy`, `Copied`,
-  `IndicatorNew`. Six demo pages: `/typography`, `/code-block`, `/prose`, `/container`,
-  `/scroll-area`, `/spinner`.
 
 #### M36 · A description list that lines up, and one look per app
 

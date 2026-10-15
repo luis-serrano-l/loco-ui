@@ -1127,3 +1127,20 @@ is not drawn only because it sits behind the motion query.
 - **A calendar range cannot sit in a popover without script.** Each pick is a link (two
   values cannot come from one radio group), and a page load closes a popover, so a range
   DatePicker lays its calendar in the page.
+
+### Final pass after M37 to M46 (2026-10-15)
+
+- **Bench on a quiet machine (load ~1), `cargo bench -p loco-ui`:** `stylesheet` 0.97 ns (a
+  cached `&'static str`), `layout` 25.9 µs, `table 1 000 rows` 280.9 µs, `paged_table 25 of
+  1000` 21.8 µs, `UiState::from_request` 0.66 µs. The paged table is half the 45 to 49 µs the
+  loaded M41 runs gave. The full table is 280 µs against 41.7 µs before M41's features
+  (sort badges, filters, select-all, groups, totals, data attributes per cell): about 0.28 µs
+  a row, still far under a request's network time, but the one number that grew. The page
+  with all 1 000 rows is the case to profile if it matters.
+- **Every page carries the full sidebar and the header search palette.** Component pages are
+  about 90 KB of markup and the index about 290 KB (budgets in `demo/src/tests.rs`: 96 and
+  300). Shrinking the sidebar (a collapsed group per layer, or the palette alone on narrow
+  pages) is the obvious next weight win.
+- **One pixel of font rounding at 320 px.** On the CI runner's fonts the index's OTP field
+  and popover card measure a sub-pixel past 320 that rounds to 1; `browser-check.mjs` allows
+  1 px. Local Firefox measures 0.
