@@ -1144,3 +1144,7 @@ is not drawn only because it sits behind the motion query.
 - **One pixel of font rounding at 320 px.** On the CI runner's fonts the index's OTP field
   and popover card measure a sub-pixel past 320 that rounds to 1; `browser-check.mjs` allows
   1 px. Local Firefox measures 0.
+- **Blitz 0.3.0-beta.3 (with anyrender 0.14, anyrender_vello_cpu 0.18), 2026-10-15.** The
+  43 Blitz tests pass unchanged; 199 shots changed. The 420px index no longer paints a
+  stray file list over the page, and docs tables lose the heavy borders beta.2 drew. The
+  beta.2 notes above stand as history; recheck them against beta.3 before filing upstream.

@@ -9,12 +9,12 @@ publish = false
 axum.workspace = true
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
-blitz-dom = { version = "=0.3.0-beta.2", default-features = false, features = ["system-fonts", "woff"] }
-blitz-html = "=0.3.0-beta.2"
-blitz-paint = { version = "=0.3.0-beta.2", default-features = false, features = ["svg"] }
-blitz-traits = "=0.3.0-beta.2"
-anyrender = "0.13.0"
-anyrender_vello_cpu = "0.17.0"
+blitz-dom = { version = "=0.3.0-beta.3", default-features = false, features = ["system-fonts", "woff"] }
+blitz-html = "=0.3.0-beta.3"
+blitz-paint = { version = "=0.3.0-beta.3", default-features = false, features = ["svg"] }
+blitz-traits = "=0.3.0-beta.3"
+anyrender = "0.14.0"
+anyrender_vello_cpu = "0.18.0"
 png = "0.18"
 
 [dev-dependencies]
