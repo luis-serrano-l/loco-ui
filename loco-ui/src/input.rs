@@ -881,6 +881,11 @@ fn slot_id(id: &str, side: &str, glyph: Option<Glyph>) -> Option<String> {
     matches!(glyph, Some(Glyph::Text(_))).then(|| format!("{id}-{side}"))
 }
 
+/// `dir="auto"` on a text slot, so `https://` or `kg` keeps its own direction on an RTL page.
+fn text_dir(glyph: Option<Glyph>) -> Option<&'static str> {
+    matches!(glyph, Some(Glyph::Text(_))).then_some("auto")
+}
+
 /// The ids of what describes a control (its help, counter and error), joined for
 /// `aria-describedby`, `None` when there are none.
 pub(crate) fn described_by(ids: &[Option<String>]) -> Option<String> {
@@ -1129,7 +1134,7 @@ impl Render for Field<'_> {
         };
         let slot = |side: &str, glyph: Option<Glyph>| {
             html! { @if let Some(g) = glyph {
-                span id=[slot_id(&id, side, glyph)] class={ "lui-input-" (side) } { (g) }
+                span id=[slot_id(&id, side, glyph)] class={ "lui-input-" (side) } dir=[text_dir(glyph)] { (g) }
             } }
         };
         let control = if slots {
@@ -1142,7 +1147,7 @@ impl Render for Field<'_> {
         let control = if group {
             let addon = |side: &str, glyph: Option<Glyph>| {
                 html! { @if let Some(g) = glyph {
-                    span id=[slot_id(&id, side, glyph)] class={ "lui-input-group-" (side) } { (g) }
+                    span id=[slot_id(&id, side, glyph)] class={ "lui-input-group-" (side) } dir=[text_dir(glyph)] { (g) }
                 } }
             };
             html! {
@@ -1580,11 +1585,13 @@ input.lui-switch:disabled { background: var(--lui-gray-4); }
 .lui-input-group-prefix, .lui-input-group-suffix {
   display: inline-flex; align-items: center; flex: none; padding-inline: 0.75rem; white-space: nowrap;
   color: var(--lui-muted); background: var(--lui-gray-2);
+  /* Its own direction from its text, so "https://" or "kg" reads the same on an RTL page. */
+  unicode-bidi: plaintext;
 }
-.lui-input-group-prefix { order: 1; border-inline-end: 1px solid var(--lui-input); border-radius: calc(var(--lui-radius-sm) - 1px) 0 0 calc(var(--lui-radius-sm) - 1px); }
-.lui-input-group-suffix { order: 5; border-inline-start: 1px solid var(--lui-input); border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
+.lui-input-group-prefix { order: 1; border-inline-end: 1px solid var(--lui-input); border-start-start-radius: calc(var(--lui-radius-sm) - 1px); border-end-start-radius: calc(var(--lui-radius-sm) - 1px); }
+.lui-input-group-suffix { order: 5; border-inline-start: 1px solid var(--lui-input); border-start-end-radius: calc(var(--lui-radius-sm) - 1px); border-end-end-radius: calc(var(--lui-radius-sm) - 1px); }
 .lui-input-group-button { order: 6; display: flex; flex: none; border-inline-start: 1px solid var(--lui-input); }
-.lui-input-group-button > .lui-button { min-height: 100%; border: 0; border-radius: 0 calc(var(--lui-radius-sm) - 1px) calc(var(--lui-radius-sm) - 1px) 0; }
+.lui-input-group-button > .lui-button { min-height: 100%; border: 0; border-radius: 0; border-start-end-radius: calc(var(--lui-radius-sm) - 1px); border-end-end-radius: calc(var(--lui-radius-sm) - 1px); }
 /* A number's steppers: Origin UI's chevrons stacked at the end. They come first in the
    markup (the pressed one's value posts first) and show last. */
 .lui-input-steppers { order: 4; display: flex; flex-direction: column; flex: none; border-inline-start: 1px solid var(--lui-input); }
@@ -1797,7 +1804,7 @@ mod tests {
             .suffix("USD")
             .render()
             .into_string();
-        assert!(a.contains(r#"<div class="lui-input-group"><span id="f-price-prefix" class="lui-input-group-prefix">$</span>"#), "{a}");
+        assert!(a.contains(r#"<div class="lui-input-group"><span id="f-price-prefix" class="lui-input-group-prefix" dir="auto">$</span>"#), "{a}");
         assert_described_ids_exist(&a);
         let p = ui
             .input("pw", "Password")

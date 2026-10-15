@@ -18,7 +18,7 @@ caps: all
 </button>
 </span>
 <input id="f-qty" class="lui-number" name="qty" type="number" value="2" min="1" max="10" aria-describedby="f-qty-suffix">
-<span id="f-qty-suffix" class="lui-input-group-suffix">kg</span>
+<span id="f-qty-suffix" class="lui-input-group-suffix" dir="auto">kg</span>
 </div>
 </div>
 
@@ -39,6 +39,6 @@ caps: none
 </button>
 </span>
 <input id="f-qty" class="lui-number" name="qty" type="number" value="2" min="1" max="10" aria-describedby="f-qty-suffix">
-<span id="f-qty-suffix" class="lui-input-group-suffix">kg</span>
+<span id="f-qty-suffix" class="lui-input-group-suffix" dir="auto">kg</span>
 </div>
 </div>

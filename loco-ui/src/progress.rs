@@ -214,7 +214,7 @@ pub const CSS: &str = r#"
    with the primary fill. */
 .lui-progress-field { display: grid; gap: var(--lui-space-2); }
 .lui-progress-field label { display: flex; justify-content: space-between; font-size: var(--lui-text-2); font-weight: 500; }
-.lui-progress-value { color: var(--lui-muted); font-variant-numeric: tabular-nums; font-weight: 400; }
+.lui-progress-value { color: var(--lui-muted); font-variant-numeric: tabular-nums; font-weight: 400; direction: ltr; unicode-bidi: isolate; }
 .lui-progress {
   appearance: none; display: block; width: 100%; height: var(--lui-progress-h, 0.5rem); border: 0; border-radius: var(--lui-progress-radius, 9999px); overflow: hidden;
   background: var(--lui-progress-track, var(--lui-gray-4)); accent-color: var(--lui-progress-fill, var(--lui-primary));

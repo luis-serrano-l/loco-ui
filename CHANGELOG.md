@@ -343,7 +343,10 @@ M16 entries are older still and describe options structs that M18 replaced.
 
 - The type and z-index literals and physical properties in component CSS became tokens and
   logical properties (`--lui-text-n`, `--lui-z-*`, `inset-inline-*`, `margin-inline-*`,
-  `text-align: start`). Tooltip, switch and toggle-group thumbs mirror in right-to-left.
+  `text-align: start`). Tooltip, switch and toggle-group thumbs and a centred toast stack
+  mirror in right-to-left. Checked in Firefox on the Arabic pages: a field's text slots and
+  addons carry `dir="auto"` (so `https://` and `kg` keep their order), a progress or meter
+  value reads left to right (`83 / 100`), and addon corners use logical radii.
 - **Breaking.** The stylesheet is five cascade layers, `lui.reset, lui.tokens,
   lui.components, lui.blocks, lui.modes`; `Look::css` and `Page::css` come unlayered after
   it, so an app's rule wins without `!important`. `LAYERS` and `layout::RESET` / `MODES`

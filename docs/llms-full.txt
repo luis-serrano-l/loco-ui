@@ -7183,7 +7183,7 @@ assert_eq!(same.into_string(), m);
 let m = ui.number("price", "Price").value(2).step(0.5).min(0).prefix("$").steppers();
 let html = m.render().into_string();
 assert!(html.contains(r#"name="price" value="2.5""#) && html.contains(r#"name="price" value="1.5""#));
-assert!(html.contains(r#"<span id="f-price-prefix" class="lui-input-group-prefix">$</span>"#));
+assert!(html.contains(r#"<span id="f-price-prefix" class="lui-input-group-prefix" dir="auto">$</span>"#));
 let same = lui! { Number("price", "Price") value=2 step=0.5 min=0 prefix="$" steppers; };
 assert_eq!(same.into_string(), html);
 ```
