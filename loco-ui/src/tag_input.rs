@@ -177,7 +177,7 @@ impl Render for TagInput<'_> {
         let ui = self.ui;
         let id = self
             .id
-            .map_or_else(|| format!("f-{}", self.name), str::to_string);
+            .map_or_else(|| crate::field_id(self.name), str::to_string);
         let key = format!("{}[]", self.name);
         let action = self.action.unwrap_or_else(|| ui.state.path());
         let others: Vec<(&str, &str)> = ui.param_pairs().filter(|(k, _)| *k != key).collect();

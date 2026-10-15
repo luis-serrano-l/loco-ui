@@ -2483,7 +2483,7 @@ Decisions (to confirm with the owner, defaults chosen):
   textarea, select, checkbox, radio and number shapes, and the rating, tag input and
   checkbox group tests reuse it. `file()` keeps an earlier `.multiple()`; textarea and select
   write `autocomplete`, `form`, `inputmode`, `autofocus` and `class`.
-- [ ] Ids: `slug()` keeps Unicode letters and digits (`char::is_alphanumeric`), lowercases
+- [x] Ids: `slug()` keeps Unicode letters and digits (`char::is_alphanumeric`), lowercases
   with `to_lowercase`, strips combining marks is out of scope; derived ids for Dialog,
   Menu, Drawer, Tooltip, Palette get a `lui-` prefix (**Breaking** for deep links
   `?dialog=confirm`: `UiState` reads both for one release); a form control's id is
@@ -2497,7 +2497,13 @@ Decisions (to confirm with the owner, defaults chosen):
   `.id(..)`; `docs/api.md` Ids says two forms to one action need one).
   Left: the `f-<slug(name)>` control id. M40c did not take it: `control_id` in `input.rs` still
   writes `f-<name>`, so `user[email]` is `f-user[email]`.
-- [ ] Modifier misfires loud: `Last` enum on Form, Menu, ContextMenu, Table, Kanban,
+  Done (2026-10-15): `crate::field_id(name)` is `f-` plus `slug(name)` without trailing
+  dashes, and every derived control id goes through it (Input, Select, Range, Color, Rating,
+  TagInput, CheckboxGroup, DatePicker, the error summary and Form's summary links), so
+  `user[email]` is `f-user-email` and `tags[]` is `f-tags` (unit test in `input.rs`).
+  Kept different: the slug lowercases, so `firstName` is `f-firstname`; `.id(..)` keeps
+  any spelling.
+- [x] Modifier misfires loud: `Last` enum on Form, Menu, ContextMenu, Table, Kanban,
   Sortable, Palette, Sidebar, AppShell, Tabs, Accordion; `debug_assert!` with the message
   `Form::required() applies to a field, but the last item was a group`; a `#[should_panic]`
   test per builder in debug. `Form::group("x").required()` and
@@ -2520,6 +2526,14 @@ Decisions (to confirm with the owner, defaults chosen):
   Left: Table (`Table::last` changes the last column without a check, so
   `.column(..).keep(..).numeric()` still passes silently), and `form` and `toggle_group`
   still sit in `MODIFIERS_UNCHECKED`, so props rule 8 skips their `applies_to`.
+  Done (2026-10-15): Table records the item setter called last (`column`, `keep`,
+  `filter_select`, `footer`) and its six column modifiers say `applies_to(&["column"])` and
+  go through `check_last`, so `.column(..).keep(..).numeric()` panics in debug with
+  "Table::numeric() applies to a column, but the last item was a keep" (and changes nothing
+  in release); ToggleGroup's `.icon()` and `.disabled()` do the same for `option`. Both
+  pinned in `props::misfires` and out of `MODIFIERS_UNCHECKED`. Kept different: `form` stays
+  listed, with the reason that its modifiers follow an item kind (field, hidden, group)
+  rather than one of its twenty adders, and its own `Form::last` already asserts them.
 - [x] Shared vocabulary cleanups: `ui.badge(impl Display)`; `id: &'a str` everywhere
   (Dialog, Drawer, Menu lose their `to_string`); Calendar `today/min/max/value: &'a str`;
   `Button::style` stays `Into<String>` but every other text setter becomes
@@ -2545,7 +2559,7 @@ Decisions (to confirm with the owner, defaults chosen):
   always has a trigger and a menu without one is a submenu. The dialog's root was already a
   `div.lui-dialog`. Demo: `/dialog` opens with a red ghost button with a trash icon,
   `/popover`'s second menu with an icon button.
-- [ ] Remove the ~25 `#[deprecated]` shims and the bare `q/sort/dir/page/cols` table keys
+- [x] Remove the ~25 `#[deprecated]` shims and the bare `q/sort/dir/page/cols` table keys
   (unpublished crate; **Breaking**, listed in CHANGELOG), and the legacy
   `TableOptions`/`table_with` path (`table.rs:658-728`) once M41 lands or in M41.
   Partly done (M38b): every shim outside the control files is gone (`wizard::Posted`,
@@ -2555,6 +2569,8 @@ Decisions (to confirm with the owner, defaults chosen):
   M40c removed the Calendar and DatePicker aliases, and M41 the table keys and
   `TableOptions`. Left: `Combobox::multi`, `ToggleGroup::item` and `::multi`,
   `Select::content` (`layout::layout_with` is deleted).
+  Done (2026-10-15): those four are removed too; no `#[deprecated]` item is left in the
+  crate, and CHANGELOG's breaking list names each with its replacement.
 - [x] Docs: `docs/api.md` "Variants" section with the four enums and a table of which
   builder takes which; `docs/ergonomics.md` trimmed to the current API (move the M17 history
   under a `<details>` or delete it); demo `/button`, `/badge`, `/alert`, `/inputs` snippets
@@ -2639,13 +2655,14 @@ theme covers type, motion, depth, density, RTL and forced colours.
   (emulated by a class, since media cannot be forced server-side) and `look.sh --tag modes`
   screenshots it.
   Done: `layout::MODES` (the `lui.modes` layer) with forced-colours rules for checkbox, radio, switch, range, progress, meter, stat progress and badges, `prefers-contrast: more`, and print; `.lui-forced`/`.lui-contrast` emulate them; `/modes` (in `PATHS` as `/modes?forced=1`). Not run here: `look.sh --tag modes` (slow checks are the merger's/CI's).
-- [ ] RTL: every physical `left/right/margin-left/padding-right/text-align: left/border-left`
+- [x] RTL: every physical `left/right/margin-left/padding-right/text-align: left/border-left`
   (≈53) becomes its logical twin; `Strings` gets `dir()`; `<html dir>` set from it;
   a `dir="rtl"` demo (`?dir=rtl` query handled by `Ui`, or an Arabic strings table in the
   demo with three strings translated) and a Blitz shot; a test greps component CSS for
   physical properties (allow-list: `translate`, transforms, `inset` shorthand).
   Partly done: `layout.rs` uses logical properties (`text-align: start`, `margin-inline-*`), and `no_physical_property_in_component_css` exists and the sweep is done: component CSS uses `inset-inline-*`, `margin-inline-*`, `padding-inline-*`, `border-inline-*`, `text-align: start/end` and `float: inline-start`; the three transform-centred parts (tooltip, switch thumb, toggle-group thumb) get a `:dir(rtl)` mirror of their `translate`, and the drawer grabber centres with `inset-inline: 0; margin-inline: auto`; `PENDING_SWEEP` is gone. M45 added `Strings::dir()`, `<html dir>`, `?dir=rtl` and an Arabic table (`pages_run_right_to_left`).
   Left: a Blitz shot of a right-to-left page; `tests/shots/` has none.
+  Done (2026-10-15): `a_form_runs_right_to_left` in `loco-ui-test` renders `/form?dir=rtl`, checks `<html dir="rtl">` and that a radio sits at the form's right edge, and writes `tests/shots/form-rtl.png` (the site sidebar on the right, the text right-aligned). Blitz follows `direction` for block and inline layout, so no FINDINGS gap.
 - [x] Skip link: `layout::page` emits `<a class="lui-skip" href="#main">Skip to content</a>`
   (`Text::SkipToContent`) as the first child of `<body>`, visible on focus; `<main id="main"
   tabindex="-1">`; AppShell gets the same. The enhancement script, after a swap, moves

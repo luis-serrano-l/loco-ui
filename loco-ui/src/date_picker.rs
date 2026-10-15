@@ -231,7 +231,7 @@ impl Render for DatePicker<'_> {
             return input.value(value).render();
         }
         let shown = Date::parse(value).map(|d| d.long(ui.strings));
-        let id = format!("f-{}", self.name);
+        let id = crate::field_id(self.name);
         if self.disabled || self.readonly {
             let face = html! {
                 (Icon::Calendar)
@@ -314,7 +314,7 @@ impl DatePicker<'_> {
             calendar = calendar.disabled_dates(off.0);
         }
         let last = ui.param(end).unwrap_or("");
-        let legend = format!("f-{}-label", self.name);
+        let legend = crate::field_id(self.name) + "-label";
         let day = |v: &str| Date::parse(v).map(|d| d.long(ui.strings));
         html! {
             div class="lui-field lui-date-picker" role="group" aria-labelledby=(legend) {

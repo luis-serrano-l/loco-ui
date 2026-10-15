@@ -20,6 +20,12 @@ by milestone, newest first, rather than against 0.1.0.
 One line each, from M32 on; the milestone's bullet says what to write instead. The M14 to
 M16 entries are older still and describe options structs that M18 replaced.
 
+- M38: a control's derived id is `f-` plus the slug of its name, lowercased and without
+  trailing dashes: `user[email]` is `f-user-email`, `firstName` is `f-firstname`.
+- M38: the last deprecated setters are gone: `Combobox::multi` and `ToggleGroup::multi`
+  (use `.multiple()`), `ToggleGroup::item` (`.option()`), `Select::content` (`.body()`).
+- M38: a Table column modifier or a ToggleGroup option modifier after another kind of item
+  panics in debug builds and does nothing in release.
 - M45: `Strings` gained fields, so a struct literal of it no longer compiles; its
   `PartialEq` leaves out the plural rule.
 - M43: the `cargo-lui` binary needs the `cli` feature.

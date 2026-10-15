@@ -1152,4 +1152,23 @@ mod misfires {
             .icon("x")
             .badge(1);
     }
+
+    #[test]
+    #[should_panic(expected = "Table::numeric() applies to a column, but the last item was a keep")]
+    fn table() {
+        let ui = Ui::default();
+        let _ = ui
+            .table("t", "/t")
+            .column("size", "Size")
+            .keep("status")
+            .numeric();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "ToggleGroup::icon() applies to an option, but nothing was added yet"
+    )]
+    fn toggle_group() {
+        let _ = Ui::default().toggle_group("view", "View").icon("x");
+    }
 }

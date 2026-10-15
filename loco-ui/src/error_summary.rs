@@ -88,7 +88,7 @@ impl Ui {
         let items = errors
             .iter()
             .map(|(name, message)| {
-                let id = (!name.is_empty()).then(|| format!("f-{name}"));
+                let id = (!name.is_empty()).then(|| crate::field_id(name));
                 (id, None, *message)
             })
             .collect();
@@ -109,7 +109,7 @@ impl<'a> ErrorSummary<'a> {
     /// The label of the field `name`, written before its message as a form's summary does
     /// ("Email: Enter an email address.").
     pub fn field(mut self, name: &'a str, label: &'a str) -> Self {
-        let id = format!("f-{name}");
+        let id = crate::field_id(name);
         for item in self
             .items
             .iter_mut()

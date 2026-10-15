@@ -1926,3 +1926,18 @@ async fn number_rating_tags_and_reveal() {
         "Clear drops the query"
     );
 }
+
+/// `?dir=rtl` lays a form out right to left: a radio sits at the form's right edge, its
+/// label to the left of it. `form-rtl.png` is the right-to-left shot.
+#[tokio::test]
+async fn a_form_runs_right_to_left() {
+    let mut page = Page::render(demo::router(), "/form?dir=rtl", MODERN).await;
+    assert!(page.exists(r#"html[dir="rtl"]"#));
+    let form = page.bbox(".lui-form").expect("the form");
+    let radio = page.bbox(".lui-form input[type=radio]").expect("a radio");
+    assert!(
+        radio.x > form.x + form.width / 2.0 && radio.x + radio.width > form.x + form.width - 48.0,
+        "radio {radio:?} should sit at the right edge of form {form:?}"
+    );
+    shot(&mut page, "form-rtl");
+}

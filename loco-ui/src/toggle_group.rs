@@ -102,8 +102,10 @@ impl ToggleGroup<'_> {
             .attr("value")
             .doc("An option posting `value`, shown as `text`."),
         Prop::new("icon", PropKind::Modifier, "icon: impl Into<Glyph<'a>>")
+            .applies_to(&["option"])
             .doc("The option added last shows this icon, its text becoming a hidden label."),
         Prop::new("disabled", PropKind::Modifier, "")
+            .applies_to(&["option"])
             .attr("disabled")
             .doc("The option added last cannot be pressed."),
         Prop::new("value", PropKind::Value, "value: &'a str")
@@ -144,14 +146,10 @@ impl<'a> ToggleGroup<'a> {
         self
     }
 
-    /// The old name of [`Self::option`], kept for one release.
-    #[deprecated(note = "use .option()")]
-    pub fn item(self, value: &'a str, text: &'a str) -> Self {
-        self.option(value, text)
-    }
-
     /// The option added last shows this icon, its text becoming a hidden label.
+    #[track_caller]
     pub fn icon(mut self, icon: impl Into<Glyph<'a>>) -> Self {
+        crate::props::check_last::<Self>(Self::PROPS, "icon", self.items.last().map(|_| "option"));
         if let Some(last) = self.items.last_mut() {
             last.2 = Some(icon.into());
         }
@@ -159,10 +157,12 @@ impl<'a> ToggleGroup<'a> {
     }
 
     /// The option added last cannot be pressed: shown greyed, `disabled`, never posted.
+    #[track_caller]
     pub fn disabled(mut self) -> Self {
-        debug_assert!(
-            !self.items.is_empty(),
-            "ToggleGroup::disabled() applies to an option, but there is none yet"
+        crate::props::check_last::<Self>(
+            Self::PROPS,
+            "disabled",
+            self.items.last().map(|_| "option"),
         );
         if let Some(last) = self.items.last_mut() {
             last.3 = true;
@@ -183,12 +183,6 @@ impl<'a> ToggleGroup<'a> {
     pub fn multiple(mut self) -> Self {
         self.multi = true;
         self
-    }
-
-    /// The old name of [`Self::multiple`], kept for one release.
-    #[deprecated(note = "use .multiple()")]
-    pub fn multi(self) -> Self {
-        self.multiple()
     }
 }
 

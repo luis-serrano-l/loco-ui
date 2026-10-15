@@ -189,7 +189,7 @@ impl Render for Rating<'_> {
     fn render(&self) -> Markup {
         let id = self
             .id
-            .map_or_else(|| format!("f-{}", self.name), str::to_string);
+            .map_or_else(|| crate::field_id(self.name), str::to_string);
         let value = self.value.min(self.max);
         let described = described_by(&[
             self.help.map(|_| format!("{id}-help")),

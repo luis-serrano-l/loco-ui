@@ -183,7 +183,7 @@ impl Render for Color<'_> {
             alpha,
             label,
         } = *self;
-        let id = format!("f-{name}");
+        let id = crate::field_id(name);
         let pct = alpha.unwrap_or(100);
         let preset_name = format!("{name}-preset");
         let off = disabled || readonly;

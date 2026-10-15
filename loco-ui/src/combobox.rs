@@ -195,12 +195,6 @@ impl<'a> Combobox<'a> {
         self
     }
 
-    /// The old name of [`Self::multiple`], kept for one release.
-    #[deprecated(note = "use .multiple()")]
-    pub fn multi(self) -> Self {
-        self.multiple()
-    }
-
     /// A "Create" row posting to `action` when the query matches nothing; it receives the
     /// text as `name` and the selection as `sel`.
     pub fn create(mut self, action: &'a str) -> Self {

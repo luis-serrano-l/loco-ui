@@ -139,12 +139,6 @@ impl<'a> SelectOption<'a> {
         self.disabled = true;
         self
     }
-
-    /// The old name of [`Self::body`], kept for one release.
-    #[deprecated(note = "use .body()")]
-    pub fn content(self, content: Markup) -> Self {
-        self.body(content)
-    }
 }
 
 /// `("m", "Medium")`: a value and its label.
@@ -478,7 +472,9 @@ impl<'a> Select<'a> {
 impl Render for Select<'_> {
     fn render(&self) -> Markup {
         let name = self.name;
-        let id = self.id.map_or_else(|| format!("f-{name}"), str::to_string);
+        let id = self
+            .id
+            .map_or_else(|| crate::field_id(name), str::to_string);
         let error_id = format!("{id}-error");
         let rich = self.caps.has(Cap::BaseSelect) && !self.multiple;
         let total: usize = self.groups.iter().map(|g| g.options.len()).sum();

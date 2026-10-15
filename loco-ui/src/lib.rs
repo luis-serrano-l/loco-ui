@@ -237,6 +237,13 @@ pub fn slug(key: &str) -> String {
         .collect()
 }
 
+/// The id of the control posting `name` when the caller gives none: `f-` and the name's
+/// [`slug`] without trailing dashes, so `user[email]` is `f-user-email` and `tags[]` is
+/// `f-tags`.
+pub(crate) fn field_id(name: &str) -> String {
+    format!("f-{}", slug(name).trim_end_matches('-'))
+}
+
 /// `path` with `pairs` as its query, each key and value percent-encoded as the components'
 /// own links are: a link to another page and its parameters. [`Ui::link_with`] changes one
 /// parameter of this page instead.
@@ -1841,17 +1848,10 @@ mod tests {
     ];
 
     /// Modules whose modifiers do not yet check the item they follow, each with the reason.
-    const MODIFIERS_UNCHECKED: &[(&str, &str)] = &[
-        (
-            "form",
-            "M40's controls work owns form.rs; Form::required() is the pinned case",
-        ),
-        (
-            "table",
-            "M41 owns table.rs; Table::column(..).keep(..).numeric() is the pinned case",
-        ),
-        ("toggle_group", "M40's controls work owns toggle_group.rs"),
-    ];
+    const MODIFIERS_UNCHECKED: &[(&str, &str)] = &[(
+        "form",
+        "its modifiers follow an item kind (field, hidden, group), not one of twenty adders; `Form::last` checks them",
+    )];
 
     /// Modules that derive ids with `slug` yet need no `.id(..)`, each with the reason.
     const SLUG_WITHOUT_ID: &[(&str, &str)] = &[

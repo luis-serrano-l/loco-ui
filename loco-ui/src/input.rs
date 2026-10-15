@@ -349,7 +349,7 @@ impl<'a> Field<'a> {
     /// The control's id: `f-<name>` unless set.
     pub(crate) fn control_id(&self) -> String {
         self.id
-            .map_or_else(|| format!("f-{}", self.name), str::to_string)
+            .map_or_else(|| crate::field_id(self.name), str::to_string)
     }
 
     /// The marks after a label: the required star or the "(optional)" note.
@@ -1396,7 +1396,7 @@ impl<'a> RadioGroup<'a> {
 
 impl Render for RadioGroup<'_> {
     fn render(&self) -> Markup {
-        let id = format!("f-{}", self.name);
+        let id = crate::field_id(self.name);
         let described = described_by(&[
             self.help.map(|_| format!("{id}-help")),
             self.error.map(|_| format!("{id}-error")),
@@ -1893,5 +1893,20 @@ mod tests {
             .render()
             .into_string();
         assert!(m.contains(r#"<label for="search">"#) && m.contains(r#"id="search""#));
+    }
+
+    #[test]
+    fn a_bracketed_name_gets_a_plain_id() {
+        let ui = Ui::default();
+        let m = ui
+            .input("user[email]", "Email")
+            .email()
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<label for="f-user-email""#) && m.contains(r#"id="f-user-email""#),
+            "{m}"
+        );
+        assert_eq!(crate::field_id("tags[]"), "f-tags");
     }
 }

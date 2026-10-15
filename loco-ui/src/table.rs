@@ -973,6 +973,8 @@ pub struct Table<'a> {
     selects: Vec<FilterSelect<'a>>,
     search: bool,
     columns: Vec<Column<'a>>,
+    /// The item setter called last, which the column modifiers check (`props::check_last`).
+    added: Option<&'static str>,
     rows: Vec<Row<'a>>,
     total: Option<usize>,
     choose_columns: bool,
@@ -1022,18 +1024,24 @@ impl Table<'_> {
         Prop::new("column", PropKind::Item, "key: &'a str, label: &'a str")
             .doc("A column."),
         Prop::new("sortable", PropKind::Modifier, "")
+            .applies_to(&["column"])
             .doc("The column added last sorts the table."),
         Prop::new("filterable", PropKind::Modifier, "")
+            .applies_to(&["column"])
             .doc("The column added last gets a text box in the \"Filters\" panel, `?q.<id>.<key>=`."),
         Prop::new("numeric", PropKind::Modifier, "")
+            .applies_to(&["column"])
             .doc("The column added last holds numbers."),
         Prop::new("editable", PropKind::Modifier, "")
+            .applies_to(&["column"])
             .doc("The column added last becomes a text box when its row is edited in place (`Table::edit`)."),
         Prop::new("edit", PropKind::Value, "action: &'a str")
             .doc("Rows (with a `Row::key`) can be edited in place."),
         Prop::new("width", PropKind::Modifier, "width: &'a str")
+            .applies_to(&["column"])
             .doc("A CSS width for the column added last, such as `6rem` or `30%`."),
         Prop::new("priority", PropKind::Modifier, "priority: u8")
+            .applies_to(&["column"])
             .default("1")
             .doc("1 always shown, 2 hidden in a narrow table, 3 below a medium one; values then show under the first cell."),
         Prop::new("rows", PropKind::Value, "rows: impl IntoIterator<Item = R>")
@@ -1094,6 +1102,7 @@ impl Ui {
             selects: Vec::new(),
             search: true,
             columns: Vec::new(),
+            added: None,
             rows: Vec::new(),
             total: None,
             choose_columns: false,
@@ -1124,8 +1133,14 @@ fn prio(c: &Column) -> Option<&'static str> {
 }
 
 impl<'a> Table<'a> {
-    fn last(mut self, change: impl FnOnce(&mut Column<'a>)) -> Self {
-        if let Some(c) = self.columns.last_mut() {
+    #[track_caller]
+    fn last(mut self, method: &str, change: impl FnOnce(&mut Column<'a>)) -> Self {
+        crate::props::check_last::<Self>(Self::PROPS, method, self.added);
+        if let Some(c) = self
+            .columns
+            .last_mut()
+            .filter(|_| self.added == Some("column"))
+        {
             change(c);
         }
         self
@@ -1135,6 +1150,7 @@ impl<'a> Table<'a> {
     /// is its header.
     pub fn column(mut self, key: &'a str, label: &'a str) -> Self {
         self.columns.push(Column::plain(key, label));
+        self.added = Some("column");
         self
     }
 
@@ -1142,7 +1158,7 @@ impl<'a> Table<'a> {
     /// `-<key>` when it is already sorted ascending), and once the table is sorted a small
     /// "then by" link beside it adds it as the next sort key (`?sort.<id>=name,-size`).
     pub fn sortable(self) -> Self {
-        let mut table = self.last(|c| c.sortable = true);
+        let mut table = self.last("sortable", |c| c.sortable = true);
         let columns = &table.columns;
         table.sort = (table.query.sort.iter())
             .filter(|(k, _)| columns.iter().any(|c| c.sortable && c.key == *k))
@@ -1155,7 +1171,7 @@ impl<'a> Table<'a> {
     /// (`?q.<id>.<key>=`); the route filters by [`Table::filters`] or
     /// [`TableQuery::matches_in`].
     pub fn filterable(self) -> Self {
-        let mut table = self.last(|c| c.filterable = true);
+        let mut table = self.last("filterable", |c| c.filterable = true);
         let columns = &table.columns;
         table.filters = (table.query.filters.iter())
             .filter(|(k, _)| columns.iter().any(|c| c.filterable && c.key == *k))
@@ -1166,12 +1182,12 @@ impl<'a> Table<'a> {
 
     /// The column added last holds numbers: right-aligned, tabular figures.
     pub fn numeric(self) -> Self {
-        self.last(|c| c.numeric = true)
+        self.last("numeric", |c| c.numeric = true)
     }
 
     /// The column added last becomes a text box when its row is edited in place ([`Table::edit`]).
     pub fn editable(self) -> Self {
-        self.last(|c| c.editable = true)
+        self.last("editable", |c| c.editable = true)
     }
 
     /// Rows (with a [`Row::key`]) can be edited in place: each gets an "Edit" link to
@@ -1185,14 +1201,14 @@ impl<'a> Table<'a> {
 
     /// A CSS width for the column added last, such as `6rem` or `30%`.
     pub fn width(self, width: &'a str) -> Self {
-        self.last(|c| c.width = Some(width))
+        self.last("width", |c| c.width = Some(width))
     }
 
     /// How much the column added last matters on a small screen: 1 (the default) is always
     /// shown, 2 hides when the table is under 30rem wide, 3 under 48rem (container queries).
     /// A hidden column's values still show, label and value, under the row's first cell.
     pub fn priority(self, priority: u8) -> Self {
-        self.last(|c| c.priority = priority.clamp(1, 3))
+        self.last("priority", |c| c.priority = priority.clamp(1, 3))
     }
 
     /// The rows, already sorted and filtered as [`Table::sort`] and [`Table::filter`] say;
@@ -1208,6 +1224,7 @@ impl<'a> Table<'a> {
     /// itself survives sorting and paging. Absent or empty, it is not carried.
     pub fn keep(mut self, name: &'a str) -> Self {
         self.keep.push(name);
+        self.added = Some("keep");
         self
     }
 
@@ -1227,7 +1244,10 @@ impl<'a> Table<'a> {
             options: options.into_iter().collect(),
             value: self.ui.param(name).unwrap_or(""),
         });
-        self.keep(name)
+        Table {
+            added: Some("filter_select"),
+            ..self.keep(name)
+        }
     }
 
     /// No search box: a display-only table, or one filtered by [`Table::filter_select`] alone.
@@ -1324,6 +1344,7 @@ impl<'a> Table<'a> {
     /// A row in `<tfoot>` after the totals, cells in column order as in [`Table::rows`].
     pub fn footer(mut self, row: impl Into<Row<'a>>) -> Self {
         self.footer.push(row.into());
+        self.added = Some("footer");
         self
     }
 

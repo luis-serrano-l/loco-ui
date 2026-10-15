@@ -298,7 +298,7 @@ impl Render for Range<'_> {
                 (lo, Some(hi))
             }
         };
-        let base = own.map_or_else(|| format!("f-{name}"), str::to_string);
+        let base = own.map_or_else(|| crate::field_id(name), str::to_string);
         let control = match value {
             (value, None) => {
                 let list = own.map_or_else(|| format!("{name}-ticks"), |i| format!("{i}-ticks"));

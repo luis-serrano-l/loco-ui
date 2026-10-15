@@ -724,10 +724,9 @@ impl<'a> Form<'a> {
             .filter_map(|f| {
                 let id = match f.kind {
                     // A group's first choice, which the summary's link focuses.
-                    FieldKind::Radio(_) => format!("f-{}-0", f.name),
+                    FieldKind::Radio(_) => crate::field_id(f.name) + "-0",
                     FieldKind::Checkboxes(_) => {
-                        f.id.map_or_else(|| format!("f-{}", crate::slug(f.name)), str::to_string)
-                            + "-0"
+                        f.id.map_or_else(|| crate::field_id(f.name), str::to_string) + "-0"
                     }
                     _ => f.control_id(),
                 };

@@ -221,7 +221,7 @@ impl Render for CheckboxGroup<'_> {
     fn render(&self) -> Markup {
         let id = self
             .id
-            .map_or_else(|| format!("f-{}", crate::slug(self.name)), str::to_string);
+            .map_or_else(|| crate::field_id(self.name), str::to_string);
         let posted = format!("{}[]", self.name);
         let described = described_by(&[
             self.help.map(|_| format!("{id}-help")),
