@@ -120,3 +120,53 @@ pub const CSS: &str = r#"
 @keyframes lui-spin { to { transform: rotate(1turn); } }
 @media (prefers-reduced-motion: reduce) { .lui-spinner { animation-duration: 1.5s; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_spinner_is_a_status_named_with_the_loading_text() {
+        let ui = Ui::default();
+        let m = ui.spinner().render().into_string();
+        assert_eq!(
+            m,
+            format!(
+                r#"<span class="lui-spinner" role="status" aria-label="{}"></span>"#,
+                ui.text(Text::Loading)
+            ),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn size_and_label_are_written_but_the_default_size_is_not() {
+        let ui = Ui::default();
+        let m = ui
+            .spinner()
+            .size(1)
+            .label("Searching")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"aria-label="Searching""#) && m.contains(r#"data-size="1""#),
+            "{m}"
+        );
+        assert!(
+            !ui.spinner()
+                .size(2)
+                .render()
+                .into_string()
+                .contains("data-size")
+        );
+    }
+
+    #[test]
+    fn the_decoration_is_hidden_from_assistive_tech() {
+        let m = Spinner::decoration().into_string();
+        assert_eq!(
+            m, r#"<span class="lui-spinner" aria-hidden="true"></span>"#,
+            "{m}"
+        );
+    }
+}

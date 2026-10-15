@@ -122,3 +122,57 @@ pub const CSS: &str = r#"
 .lui-blockquote-caption::before { content: "— "; }
 .lui-blockquote-caption cite { font-style: normal; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_bare_quotation_is_a_figure_with_a_blockquote_and_no_caption() {
+        let m = Ui::default()
+            .blockquote()
+            .body(html! { "Words." })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<figure class="lui-blockquote">"#), "{m}");
+        assert!(
+            m.contains(r#"<blockquote class="lui-blockquote-quote">Words.</blockquote>"#),
+            "{m}"
+        );
+        assert!(!m.contains("figcaption") && !m.contains("cite"), "{m}");
+    }
+
+    #[test]
+    fn caption_adds_a_figcaption_with_a_cite_element() {
+        let m = Ui::default()
+            .blockquote()
+            .caption("Ada")
+            .body(html! { "Words." })
+            .render()
+            .into_string();
+        assert!(
+            m.contains(
+                r#"<figcaption class="lui-blockquote-caption"><cite>Ada</cite></figcaption>"#
+            ),
+            "{m}"
+        );
+        assert!(
+            m.find("</blockquote>").unwrap() < m.find("<figcaption").unwrap(),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn cite_is_an_attribute_of_the_blockquote_not_a_visible_element() {
+        let m = Ui::default()
+            .blockquote()
+            .cite("https://example.com/x")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<blockquote class="lui-blockquote-quote" cite="https://example.com/x">"#),
+            "{m}"
+        );
+        assert!(!m.contains("<cite>"), "{m}");
+    }
+}

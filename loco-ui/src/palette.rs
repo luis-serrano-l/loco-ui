@@ -405,3 +405,121 @@ pub const CSS: &str = r#"
 .lui-palette-results { margin-top: calc(var(--lui-space) * 3); }
 .lui-palette-results h2 { font-size: var(--lui-text-4); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    fn palette_html(ui: &Ui) -> String {
+        ui.palette("/search")
+            .group("Go to")
+            .link("Open settings", "/settings")
+            .link("New invoice", "/invoices/new")
+            .keywords("bill create")
+            .render()
+            .into_string()
+    }
+
+    #[test]
+    fn the_popover_variant_has_an_opener_a_panel_a_search_form_and_a_datalist() {
+        let ui = Ui::from(Caps::all());
+        let m = palette_html(&ui);
+        assert!(m.starts_with(r#"<div class="lui-palette">"#), "{m}");
+        assert!(
+            m.contains(r#"popovertarget="lui-palette""#) && m.contains(r#"accesskey="k""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"aria-keyshortcuts="Alt+Shift+K""#), "{m}");
+        assert!(
+            m.contains(r#"<form method="get" action="/search" class="lui-palette-form">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"list="lui-palette-list""#), "{m}");
+        assert!(m.contains(r#"<option value="New invoice">"#), "{m}");
+        assert!(
+            m.contains(r#"<p class="lui-palette-heading">Go to</p>"#),
+            "{m}"
+        );
+        assert!(
+            !m.contains("<details") && !m.contains("lui-palette-results"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn without_popover_the_palette_is_a_details_disclosure() {
+        let m = palette_html(&Ui::from(Caps::NONE));
+        assert!(
+            m.contains(r#"<details class="lui-palette-details" id="lui-palette">"#),
+            "{m}"
+        );
+        assert!(!m.contains("popover"), "{m}");
+        assert!(
+            m.contains("<summary") && m.contains(r#"href="/settings""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_query_lists_the_matches_by_label_or_keyword_and_exact_names_redirect() {
+        let ui = Ui::from_request("/search", "q=bill", "");
+        let p = ui
+            .palette("/search")
+            .link("New invoice", "/invoices/new")
+            .keywords("bill create")
+            .link("Open settings", "/settings");
+        assert_eq!(p.exact(), None);
+        let m = p.render().into_string();
+        assert!(m.contains(r#"<section class="lui-palette-results""#), "{m}");
+        assert!(m.contains(r#"value="bill""#), "{m}");
+        let results = &m[m.find("lui-palette-results").unwrap()..];
+        assert!(
+            results.contains("New invoice") && !results.contains("Open settings"),
+            "{m}"
+        );
+        let ui = Ui::from_request("/search", "q=%20OPEN+settings%20", "");
+        assert_eq!(
+            ui.palette("/search")
+                .link("Open settings", "/settings")
+                .exact(),
+            Some("/settings")
+        );
+        let ui = Ui::from_request("/search", "q=zzz", "");
+        let m = ui
+            .palette("/search")
+            .link("Open settings", "/settings")
+            .render()
+            .into_string();
+        assert!(m.contains("lui-palette-empty"), "{m}");
+    }
+
+    #[test]
+    fn label_accesskey_id_icon_and_shortcut_change_the_opener_and_the_rows() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .palette("/s")
+            .label("Find")
+            .accesskey("j")
+            .id("pal")
+            .links([("A", "/a"), ("B", "/b")])
+            .icon(Icon::Pencil)
+            .shortcut("G B")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"popovertarget="pal""#) && m.contains(r#"list="pal-list""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"accesskey="j""#) && m.contains("Alt+Shift+J"),
+            "{m}"
+        );
+        assert!(m.contains("<span>Find</span>"), "{m}");
+        assert!(
+            m.contains(r#"<kbd class="lui-palette-shortcut">G B</kbd>"#),
+            "{m}"
+        );
+        assert_eq!(m.matches("lui-palette-shortcut").count(), 1, "{m}");
+    }
+}

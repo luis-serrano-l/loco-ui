@@ -186,3 +186,54 @@ pub const CSS: &str = r#"
 .lui-pad-6 { padding: var(--lui-space-6); }
 .lui-pad-8 { padding: var(--lui-space-8); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_stack_wraps_its_body_with_no_extras_by_default() {
+        let m = Ui::default()
+            .stack()
+            .body(html! { p { "A" } p { "B" } })
+            .render()
+            .into_string();
+        assert_eq!(m, r#"<div class="lui-stack"><p>A</p><p>B</p></div>"#, "{m}");
+    }
+
+    #[test]
+    fn gap_and_padding_add_scale_classes_gap_first() {
+        let m = Ui::default()
+            .stack()
+            .gap(2)
+            .padding(6)
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<div class="lui-stack lui-gap-2 lui-pad-6""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn align_and_justify_write_data_attributes() {
+        let m = Ui::default()
+            .stack()
+            .align(Align::Center)
+            .justify(Justify::End)
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"data-align="center" data-justify="end""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn padding_snaps_to_the_scale() {
+        assert_eq!(pad_class(0), "lui-pad-0");
+        assert_eq!(pad_class(5), "lui-pad-4");
+        assert_eq!(pad_class(7), "lui-pad-6");
+        assert_eq!(pad_class(200), "lui-pad-8");
+    }
+}

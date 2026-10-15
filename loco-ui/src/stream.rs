@@ -253,3 +253,74 @@ pub const CSS: &str = r#"
 .lui-stream-pending { color: var(--lui-muted); font-style: italic; }
 .lui-stream-section { border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); padding: 1.5rem; margin-bottom: calc(var(--lui-space) * 2); background: var(--lui-card); box-shadow: var(--lui-shadow-sm), var(--lui-highlight); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    async fn collect(page: Streamed) -> Vec<String> {
+        page.into_stream().collect().await
+    }
+
+    #[test]
+    fn a_slot_is_a_named_slot_with_dsd_and_a_comment_marker_without() {
+        let on = Ui::from(Caps::all());
+        let m = on.slot("news", html! { p { "wait" } }).into_string();
+        assert!(
+            m.contains(r#"<slot name="news">"#) && m.contains("wait"),
+            "{m}"
+        );
+        assert!(!m.contains("lui-slot"), "{m}");
+
+        let off = Ui::from(Caps::NONE);
+        let m = off.slot("news", html! { p { "wait" } }).into_string();
+        assert_eq!(m, "<!--lui-slot:news-->", "{m}");
+    }
+
+    #[test]
+    fn out_of_order_follows_the_streaming_dsd_capability() {
+        let on = Ui::from(Caps::all()).stream("T", html! { p { "x" } });
+        let off = Ui::from(Caps::NONE).stream("T", html! { p { "x" } });
+        assert!(on.out_of_order() && !off.out_of_order());
+    }
+
+    #[tokio::test]
+    async fn dsd_sends_the_head_first_and_each_fill_in_its_own_slotted_div() {
+        let ui = Ui::from(Caps::all());
+        let page = ui
+            .stream("Feed", html! { (ui.slot("a", html! { "..." })) })
+            .fill("a", async {
+                html! { p { "done" } }
+            });
+        let chunks = collect(page).await;
+        assert!(chunks[0].ends_with("</head>"), "{chunks:?}");
+        let all = chunks.concat();
+        assert!(all.contains(r#"<template shadowrootmode="open">"#), "{all}");
+        assert!(all.contains(r#"<div slot="a"><p>done</p></div>"#), "{all}");
+        assert!(!all.contains("<!--lui-slot:"), "{all}");
+        assert!(all.ends_with("</body></html>"), "{all}");
+    }
+
+    #[tokio::test]
+    async fn without_dsd_a_fill_replaces_its_marker_in_document_order() {
+        let ui = Ui::from(Caps::NONE);
+        let page = ui
+            .stream(
+                "Feed",
+                html! { (ui.slot("a", html! {})) hr; (ui.slot("b", html! {})) },
+            )
+            .fill("b", async {
+                html! { i { "second" } }
+            })
+            .fill("a", async {
+                html! { b { "first" } }
+            });
+        let all = collect(page).await.concat();
+        assert!(
+            !all.contains("shadowrootmode") && !all.contains("lui-slot"),
+            "{all}"
+        );
+        let (a, b) = (all.find("<b>first</b>"), all.find("<i>second</i>"));
+        assert!(a.is_some() && b.is_some() && a < b, "{all}");
+    }
+}

@@ -278,3 +278,95 @@ pub const CSS: &str = r#"
   .lui-toggle-group-one:has(> .lui-toggle-group-item:nth-of-type(8) > .lui-toggle-group-input:checked) { --lui-toggle-at: 7; }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Icon;
+
+    #[test]
+    fn a_single_group_is_a_fieldset_of_radios_named_by_a_hidden_legend() {
+        let ui = Ui::default();
+        let m = ui
+            .toggle_group("align", "Alignment")
+            .option("left", "Left")
+            .option("right", "Right")
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<fieldset class="lui-toggle-group lui-toggle-group-one""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<legend class="lui-sr">Alignment</legend>"#),
+            "{m}"
+        );
+        assert_eq!(m.matches(r#"type="radio" name="align""#).count(), 2, "{m}");
+        assert!(m.contains("--lui-toggle-n: 2"), "{m}");
+        assert!(!m.contains("checked") && !m.contains("data-size"), "{m}");
+    }
+
+    #[test]
+    fn multiple_switches_to_checkboxes_and_value_presses_options() {
+        let ui = Ui::default();
+        let m = ui
+            .toggle_group("style", "Style")
+            .multiple()
+            .option("bold", "Bold")
+            .option("italic", "Italic")
+            .option("under", "Under")
+            .value("bold")
+            .value("italic")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"type="checkbox""#) && !m.contains(r#"type="radio""#),
+            "{m}"
+        );
+        assert!(!m.contains("lui-toggle-group-one"), "{m}");
+        assert_eq!(m.matches(" checked").count(), 2, "{m}");
+        // Without .multiple() a later value replaces the earlier one.
+        let one = ui
+            .toggle_group("a", "A")
+            .option("x", "X")
+            .option("y", "Y")
+            .value("x")
+            .value("y")
+            .render()
+            .into_string();
+        assert_eq!(one.matches(" checked").count(), 1, "{one}");
+        assert!(one.contains(r#"value="y" checked"#), "{one}");
+    }
+
+    #[test]
+    fn the_query_presets_the_pressed_option() {
+        let ui = Ui::from_request("/", "align=center", "");
+        let m = ui
+            .toggle_group("align", "Alignment")
+            .option("left", "Left")
+            .option("center", "Center")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"value="center" checked"#), "{m}");
+        assert!(!m.contains(r#"value="left" checked"#), "{m}");
+    }
+
+    #[test]
+    fn an_icon_hides_the_text_and_disabled_applies_to_the_last_option_only() {
+        let ui = Ui::default();
+        let m = ui
+            .toggle_group("v", "View")
+            .option("list", "List")
+            .icon(Icon::Bold)
+            .option("grid", "Grid")
+            .disabled()
+            .size(3)
+            .radius(Radius::Full)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<span class="lui-sr">List</span>"#), "{m}");
+        assert!(!m.contains(r#"<span class="lui-sr">Grid</span>"#), "{m}");
+        assert_eq!(m.matches("disabled").count(), 1, "{m}");
+        assert!(m.contains(r#"data-size="3" data-radius="full""#), "{m}");
+    }
+}

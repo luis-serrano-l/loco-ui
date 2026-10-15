@@ -96,3 +96,36 @@ pub const CSS: &str = r#"
 .lui-container[data-size="2"] { max-width: min(43rem, 100%); }
 .lui-container[data-size="3"] { max-width: min(55rem, 100%); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_container_is_size_four_and_has_no_data_size() {
+        let m = Ui::default()
+            .container()
+            .body(html! { "x" })
+            .render()
+            .into_string();
+        assert_eq!(m, r#"<div class="lui-container">x</div>"#);
+        let explicit = Ui::default().container().size(4).render().into_string();
+        assert!(!explicit.contains("data-size"), "{explicit}");
+    }
+
+    #[test]
+    fn a_smaller_size_is_written_as_data_size() {
+        for n in 1..=3 {
+            let m = Ui::default().container().size(n).render().into_string();
+            assert!(m.contains(&format!(r#"data-size="{n}""#)), "{m}");
+        }
+    }
+
+    #[test]
+    fn sizes_outside_one_to_four_are_clamped() {
+        let low = Ui::default().container().size(0).render().into_string();
+        assert!(low.contains(r#"data-size="1""#), "{low}");
+        let high = Ui::default().container().size(9).render().into_string();
+        assert!(!high.contains("data-size"), "{high}");
+    }
+}

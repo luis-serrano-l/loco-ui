@@ -139,3 +139,51 @@ pub const CSS: &str = r#"
   .lui-scroll-area-bottom { box-shadow: 0 0 0.625rem 0.375rem color-mix(in srgb, var(--lui-fg) 14%, transparent); }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_region_is_named_focusable_and_holds_the_body_between_two_edges() {
+        let m = Ui::default()
+            .scroll_area("Log")
+            .body(html! { p { "line" } })
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(
+                r#"<div class="lui-scroll-area" role="region" aria-label="Log" tabindex="0">"#
+            ),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<div class="lui-scroll-area-content"><p>line</p></div>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains("lui-scroll-area-top") && m.contains("lui-scroll-area-bottom"),
+            "{m}"
+        );
+        assert!(!m.contains("style="), "{m}");
+    }
+
+    #[test]
+    fn a_height_sets_the_custom_property() {
+        let m = Ui::default()
+            .scroll_area("Log")
+            .height("50vh")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"style="--lui-scroll-area-height: 50vh""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_label_is_escaped() {
+        let m = Ui::default().scroll_area("A \"b\"").render().into_string();
+        assert!(m.contains(r#"aria-label="A &quot;b&quot;""#), "{m}");
+    }
+}

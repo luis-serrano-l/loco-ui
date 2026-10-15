@@ -335,3 +335,107 @@ pub const CSS: &str = r#"
 }
 .lui-sidebar-rail:not([open]) .lui-sidebar a:is(:hover, :focus-visible) .lui-sidebar-text { opacity: 1; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_nav_lists_groups_under_headings_and_marks_the_current_link() {
+        let ui = Ui::from_request("/sent", "", "");
+        let m = ui
+            .sidebar("Mail")
+            .group("Folders")
+            .link("Inbox", "/inbox")
+            .link("Sent", "/sent")
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<nav class="lui-sidebar" aria-label="Mail">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<p class="lui-sidebar-heading" id="lui-sidebar-mail-1">Folders</p>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<ul aria-labelledby="lui-sidebar-mail-1">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<a href="/sent" aria-current="page">"#)
+                && !m.contains(r#"<a href="/inbox" aria-current"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn icon_and_badge_apply_to_the_last_link_and_a_bare_link_gets_an_initial() {
+        let m = Ui::default()
+            .sidebar("App")
+            .link("Inbox", "/i")
+            .icon(Icon::Mail)
+            .badge(7)
+            .link("Sent", "/s")
+            .render()
+            .into_string();
+        assert!(m.contains("lui-sidebar-badge\">7</span>"), "{m}");
+        assert_eq!(m.matches("lui-sidebar-initial").count(), 1, "{m}");
+        assert!(
+            m.contains("<span class=\"lui-sidebar-initial\" aria-hidden=\"true\">S</span>"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_id_prefixes_the_heading_ids_and_a_prefix_match_marks_a_parent_link() {
+        let ui = Ui::from_request("/projects/42", "", "");
+        let m = ui
+            .sidebar("App")
+            .id("nav")
+            .current_prefix()
+            .group("G")
+            .link("Home", "/")
+            .link("Projects", "/projects")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"id="nav-1""#), "{m}");
+        assert!(
+            m.contains(r#"<a href="/projects" aria-current="page">"#)
+                && !m.contains(r#"<a href="/" aria-current"#),
+            "{m}"
+        );
+        let plain = ui
+            .sidebar("App")
+            .link("Projects", "/projects")
+            .render()
+            .into_string();
+        assert!(!plain.contains("aria-current"), "{plain}");
+    }
+
+    #[test]
+    fn collapsible_wraps_in_a_details_rail_only_with_details_content() {
+        let on = Ui::from(Caps::all())
+            .sidebar("Mail")
+            .collapsible()
+            .link("Inbox", "/inbox")
+            .render()
+            .into_string();
+        assert!(
+            on.starts_with(r#"<details class="lui-sidebar-rail" open>"#)
+                && on.contains("lui-sidebar-toggle"),
+            "{on}"
+        );
+        assert!(on.contains(r#"<nav class="lui-sidebar""#), "{on}");
+        let off = Ui::from(Caps::NONE)
+            .sidebar("Mail")
+            .collapsible()
+            .link("Inbox", "/inbox")
+            .render()
+            .into_string();
+        assert!(
+            off.starts_with("<nav") && !off.contains("<details"),
+            "{off}"
+        );
+    }
+}

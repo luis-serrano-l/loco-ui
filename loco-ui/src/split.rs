@@ -115,3 +115,45 @@ pub const CSS: &str = r#"
 .lui-split-side { flex-basis: var(--lui-split-side, 15rem); flex-grow: 1; }
 .lui-split-main { flex-basis: 0; flex-grow: 999; min-inline-size: 50%; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parts() -> (Markup, Markup) {
+        (html! { nav { "Side" } }, html! { p { "Main" } })
+    }
+
+    #[test]
+    fn the_side_comes_first_by_default_and_each_part_has_its_wrapper() {
+        let (s, m) = parts();
+        let out = Ui::default().split(s, m).render().into_string();
+        assert_eq!(
+            out,
+            r#"<div class="lui-split"><div class="lui-split-side"><nav>Side</nav></div><div class="lui-split-main"><p>Main</p></div></div>"#,
+            "{out}"
+        );
+    }
+
+    #[test]
+    fn side_end_puts_the_side_after_the_main_part() {
+        let (s, m) = parts();
+        let out = Ui::default().split(s, m).side_end().render().into_string();
+        assert!(out.find("Main") < out.find("Side"), "{out}");
+    }
+
+    #[test]
+    fn width_and_gap_land_on_the_root() {
+        let (s, m) = parts();
+        let out = Ui::default()
+            .split(s, m)
+            .side_width("18rem")
+            .gap(3)
+            .render()
+            .into_string();
+        assert!(
+            out.starts_with(r#"<div class="lui-split lui-gap-3" style="--lui-split-side: 18rem">"#),
+            "{out}"
+        );
+    }
+}

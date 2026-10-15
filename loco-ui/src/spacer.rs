@@ -80,3 +80,23 @@ pub const CSS: &str = r#"
 /* A flex item that grows into the free space and shrinks to nothing (or to its minimum). */
 .lui-spacer { flex: 1 1 auto; align-self: stretch; min-width: 0; min-height: 0; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_spacer_is_an_empty_hidden_block() {
+        let m = Ui::default().spacer().render().into_string();
+        assert_eq!(
+            m, r#"<div class="lui-spacer" aria-hidden="true"></div>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_minimum_becomes_the_flex_basis() {
+        let m = Ui::default().spacer().min("3rem").render().into_string();
+        assert!(m.contains(r#"style="flex: 1 0 3rem""#), "{m}");
+    }
+}

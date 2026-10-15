@@ -102,3 +102,38 @@ pub const CSS: &str = r#"
 :where(.lui-grid) { gap: var(--lui-space-4); }
 .lui-grid > * { margin: 0; min-width: 0; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_minimum_travels_in_a_custom_property() {
+        let ui = Ui::default();
+        let m = ui.grid("240px").render().into_string();
+        assert_eq!(
+            m, r#"<div class="lui-grid" style="--lui-grid-min: 240px"></div>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_body_is_the_content_of_the_root() {
+        let ui = Ui::default();
+        let m = ui
+            .grid("10rem")
+            .body(html! { p { "A" } p { "B" } })
+            .render()
+            .into_string();
+        assert!(m.ends_with("<p>A</p><p>B</p></div>"), "{m}");
+    }
+
+    #[test]
+    fn a_gap_adds_the_spacing_class_to_the_root() {
+        let ui = Ui::default();
+        let m = ui.grid("10rem").gap(4).render().into_string();
+        assert!(m.contains(r#"class="lui-grid lui-gap-4""#), "{m}");
+        let none = ui.grid("10rem").render().into_string();
+        assert!(!none.contains("lui-gap"), "{none}");
+    }
+}

@@ -48,7 +48,7 @@ assert_eq!(a.into_string(), b.into_string());
   (`?dialog=confirm` for a derived `lui-dialog-confirm`) still opens it for one release
   (`UiState::dialog_is`).
 - A form control's id is `f-` and the slug of its name without trailing dashes (`#f-email`,
-  `#f-plan`; `user[email]` is `#f-user-email`, `tags[]` is `#f-tags`); the error summary links there.
+  `#f-plan`; `user[email]` is `#f-user-email`, `tags[]` is `#f-tags`); the error summary links there, and `loco_ui::field_id(name)` gives it to your own code.
 - `.id(..)` overrides a derived id wherever there is one (Menu, ContextMenu, Palette, Dialog,
   Drawer, Tooltip, Chart, Card, Button, Input, Form, Meter, Progress, Sidebar, NavMenu). Two
   components with the same label on one page need it, and so do two forms posting to the same

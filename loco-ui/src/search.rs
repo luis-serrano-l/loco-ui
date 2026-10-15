@@ -194,3 +194,82 @@ pub const CSS: &str = r#"
 .lui-search .lui-input-slots { flex: 1 1 12rem; width: auto; min-width: 0; }
 @container lui-search (width >= 30rem) { .lui-search form { flex-wrap: nowrap; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_search_is_a_get_form_in_a_search_landmark_back_to_this_page() {
+        let ui = Ui::from_request("/notes", "", "");
+        let m = ui.search("q", "Find").render().into_string();
+        assert!(
+            m.starts_with(r#"<search class="lui-search"><form method="get" action="/notes">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"name="q""#) && m.contains(r#"type="search""#),
+            "{m}"
+        );
+        assert!(m.contains("Find"), "{m}");
+    }
+
+    #[test]
+    fn clear_shows_only_when_there_is_a_query() {
+        let none = Ui::from_request("/notes", "view=list", "")
+            .search("q", "Find")
+            .render()
+            .into_string();
+        assert!(!none.contains(r#"href="/notes""#), "{none}");
+        let some = Ui::from_request("/notes", "q=rust", "")
+            .search("q", "Find")
+            .render()
+            .into_string();
+        assert!(
+            some.contains(r#"value="rust""#) && some.contains(r#"href="/notes""#),
+            "{some}"
+        );
+    }
+
+    #[test]
+    fn kept_parameters_ride_in_hidden_inputs_and_the_clear_link() {
+        let ui = Ui::from_request("/notes", "q=rust&view=list&empty=", "");
+        let m = ui
+            .search("q", "Find")
+            .keep("view")
+            .keep("empty")
+            .keep("absent")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<input type="hidden" name="view" value="list">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"href="/notes?view=list""#), "{m}");
+        assert!(
+            !m.contains(r#"name="empty""#) && !m.contains(r#"name="absent""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn action_placeholder_results_and_id_reach_the_markup() {
+        let ui = Ui::from_request("/notes", "", "");
+        let m = ui
+            .search("q", "Find")
+            .action("/find")
+            .placeholder("Type")
+            .results_id("hits")
+            .id("box")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"action="/find""#) && m.contains(r#"placeholder="Type""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"aria-controls="hits""#) && m.contains(r#"id="box""#),
+            "{m}"
+        );
+    }
+}

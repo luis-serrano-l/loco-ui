@@ -109,3 +109,56 @@ pub const CSS: &str = r#"
 .lui-dashboard h1 { margin: 0; }
 .lui-dashboard-description { margin: 0.25rem 0 0; color: var(--lui-muted); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_bare_dashboard_is_a_root_with_an_h1_and_no_stat_grid() {
+        let ui = Ui::default();
+        let m = ui.dashboard_page("Overview").render().into_string();
+        assert_eq!(
+            m, r#"<div class="lui-dashboard"><h1>Overview</h1></div>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn stats_are_rendered_in_order_inside_one_grid() {
+        let ui = Ui::default();
+        let m = ui
+            .dashboard_page("O")
+            .stat(ui.stat("Revenue", "$12,480"))
+            .stat(ui.stat("Customers", "312"))
+            .render()
+            .into_string();
+        assert_eq!(m.matches(r#"class="lui-stat-grid""#).count(), 1, "{m}");
+        let (a, b) = (m.find("$12,480").unwrap(), m.find("312").unwrap());
+        assert!(a < b, "{m}");
+        assert!(m.find("lui-stat-grid").unwrap() < a, "{m}");
+    }
+
+    #[test]
+    fn description_follows_the_title_and_the_body_comes_after_the_stats() {
+        let ui = Ui::default();
+        let m = ui
+            .dashboard_page("O")
+            .description("Last 30 days.")
+            .stat(ui.stat("Users", "9"))
+            .body(html! { p { "Recent orders" } })
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<p class="lui-dashboard-description">Last 30 days.</p>"#),
+            "{m}"
+        );
+        let (h1, d, grid, body) = (
+            m.find("<h1>").unwrap(),
+            m.find("Last 30 days.").unwrap(),
+            m.find("lui-stat-grid").unwrap(),
+            m.find("Recent orders").unwrap(),
+        );
+        assert!(h1 < d && d < grid && grid < body, "{m}");
+    }
+}

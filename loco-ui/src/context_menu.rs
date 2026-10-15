@@ -223,3 +223,71 @@ pub const CSS: &str = r#"
 .lui-context-menu-body > :first-child { margin-top: 0; }
 .lui-context-menu-body > :last-child { margin-bottom: 0; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    fn menu_of(ui: &Ui) -> String {
+        ui.context_menu("report.pdf")
+            .link("Open", "/files/1")
+            .shortcut("o")
+            .separator()
+            .action("Delete", "/files/1/delete")
+            .danger()
+            .body(html! { p { "report.pdf" } })
+            .render()
+            .into_string()
+    }
+
+    #[test]
+    fn the_root_holds_the_body_then_the_menu_with_its_items() {
+        let m = menu_of(&Ui::from(Caps::all()));
+        assert!(m.starts_with(r#"<div class="lui-context-menu"><div class="lui-context-menu-body"><p>report.pdf</p></div>"#), "{m}");
+        assert!(
+            m.contains(r#"href="/files/1""#) && m.contains(">Open<"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"action="/files/1/delete""#) && m.contains(">Delete<"),
+            "{m}"
+        );
+        assert!(m.find("Open").unwrap() < m.find("Delete").unwrap(), "{m}");
+    }
+
+    #[test]
+    fn the_button_is_named_after_the_label_and_the_id_comes_from_it() {
+        let ui = Ui::from(Caps::all());
+        let m = menu_of(&ui);
+        assert!(
+            m.contains(r#"aria-label="More actions: report.pdf""#),
+            "{m}"
+        );
+        assert!(m.contains("ctx-report-pdf"), "{m}");
+        let custom = ui
+            .context_menu("x")
+            .id("mine")
+            .link("A", "/a")
+            .render()
+            .into_string();
+        assert!(
+            custom.contains("mine") && !custom.contains("ctx-x"),
+            "{custom}"
+        );
+    }
+
+    #[test]
+    fn the_popover_variant_and_the_details_variant_exclude_each_other() {
+        let with = menu_of(&Ui::from(Caps::all()));
+        let without = menu_of(&Ui::from(Caps::NONE));
+        assert!(
+            with.contains("popover") && !with.contains("<details"),
+            "{with}"
+        );
+        assert!(
+            without.contains("<details") && !without.contains("popovertarget"),
+            "{without}"
+        );
+    }
+}

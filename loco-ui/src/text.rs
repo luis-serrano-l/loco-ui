@@ -241,3 +241,50 @@ pub const CSS: &str = r#"
 .lui-text[data-tone=danger] { color: color-mix(in srgb, var(--lui-danger) 85%, var(--lui-fg)); }
 .lui-text-truncate { display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_plain_text_is_a_span_with_the_root_class() {
+        let ui = Ui::default();
+        let m = ui.text("Hello").render().into_string();
+        assert_eq!(m, r#"<span class="lui-text">Hello</span>"#, "{m}");
+    }
+
+    #[test]
+    fn as_p_and_as_div_pick_the_element_and_the_text_is_escaped() {
+        let ui = Ui::default();
+        let p = ui.text("a < b").as_p().render().into_string();
+        assert!(p.starts_with("<p ") && p.ends_with("</p>"), "{p}");
+        assert!(p.contains("a &lt; b"), "{p}");
+        let d = ui.text("x").as_div().render().into_string();
+        assert!(d.starts_with("<div ") && d.ends_with("</div>"), "{d}");
+    }
+
+    #[test]
+    fn size_is_clamped_and_muted_and_truncate_add_their_classes() {
+        let ui = Ui::default();
+        let big = ui.text("x").size(42).render().into_string();
+        assert!(big.contains(r#"data-size="9""#), "{big}");
+        let small = ui.text("x").size(0).render().into_string();
+        assert!(small.contains(r#"data-size="1""#), "{small}");
+        let m = ui.text("x").muted().truncate().render().into_string();
+        assert!(
+            m.contains("lui-text-muted") && m.contains("lui-text-truncate"),
+            "{m}"
+        );
+        let plain = ui.text("x").render().into_string();
+        assert!(!plain.contains("data-"), "{plain}");
+    }
+
+    #[test]
+    fn a_text_key_gives_a_word_and_a_str_gives_a_builder() {
+        let ui = Ui::default();
+        let word: &str = ui.text(i18n::Text::Close);
+        assert!(!word.is_empty() && !word.contains('<'), "{word}");
+        let m = ui.text("Close").render().into_string();
+        assert!(m.contains("lui-text"), "{m}");
+    }
+}

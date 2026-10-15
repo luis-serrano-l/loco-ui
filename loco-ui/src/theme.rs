@@ -130,3 +130,58 @@ pub const CSS: &str = r#"
 .lui-theme .lui-button + .lui-button { border-inline-start: 1px solid var(--lui-input); }
 .lui-theme .lui-button[aria-pressed="true"] { background: var(--lui-accent); color: var(--lui-on-accent); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_toggle_is_a_swap_form_with_three_buttons_posting_to_the_action() {
+        let ui = Ui::default();
+        let m = ui.theme_toggle("/theme").render().into_string();
+        assert!(
+            m.contains(r#"class="lui-theme""#) && m.contains(r#"data-lui="swap""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"method="post""#) && m.contains(r#"action="/theme""#),
+            "{m}"
+        );
+        for value in ["auto", "light", "dark"] {
+            assert!(
+                m.contains(&format!(r#"name="theme" value="{value}""#)),
+                "{m}"
+            );
+        }
+        assert_eq!(m.matches("<button").count(), 3, "{m}");
+    }
+
+    #[test]
+    fn only_the_requests_theme_is_pressed() {
+        let ui = Ui::from_request("/", "", "theme=light");
+        let m = ui.theme_toggle("/theme").render().into_string();
+        assert!(m.contains(r#"value="light" aria-pressed="true""#), "{m}");
+        assert_eq!(m.matches(r#"aria-pressed="true""#).count(), 1, "{m}");
+        let auto = Ui::default().theme_toggle("/t").render().into_string();
+        assert!(
+            auto.contains(r#"value="auto" aria-pressed="true""#),
+            "{auto}"
+        );
+    }
+
+    #[test]
+    fn parse_round_trips_and_unknown_values_are_auto() {
+        for theme in [Theme::Auto, Theme::Light, Theme::Dark] {
+            assert_eq!(Theme::parse(theme.as_str()), theme);
+        }
+        assert_eq!(Theme::parse("purple"), Theme::Auto);
+        assert_eq!(Theme::parse(""), Theme::Auto);
+    }
+
+    #[test]
+    fn the_redirect_sets_the_theme_cookie() {
+        let ui = Ui::default();
+        let cookies = ui.redirect("/").theme(Theme::Dark).set_cookies();
+        assert!(cookies[0].starts_with("theme=dark;"), "{cookies:?}");
+    }
+}

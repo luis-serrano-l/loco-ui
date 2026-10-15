@@ -177,3 +177,62 @@ pub const CSS: &str = r#"
 .lui-indicator-dot[data-tone=neutral] { --lui-indicator-tone: var(--lui-gray-9); }
 [dir=rtl] .lui-indicator-dot { translate: -25% -25%; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_content_comes_first_then_a_hidden_badge_and_a_spoken_count() {
+        let ui = Ui::default();
+        let m = ui
+            .indicator(3)
+            .body(html! { "Inbox" })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<span class="lui-indicator">Inbox<span class="lui-indicator-badge" aria-hidden="true">"#), "{m}");
+        assert!(m.contains(r#"<span class="lui-sr">3 new</span>"#), "{m}");
+    }
+
+    #[test]
+    fn a_count_of_zero_shows_nothing() {
+        let m = Ui::default()
+            .indicator(0)
+            .body(html! { "Inbox" })
+            .render()
+            .into_string();
+        assert_eq!(m, r#"<span class="lui-indicator">Inbox</span>"#, "{m}");
+    }
+
+    #[test]
+    fn max_caps_the_shown_number_but_not_the_spoken_one() {
+        let ui = Ui::default();
+        let m = ui.indicator(120).max(99).render().into_string();
+        assert!(m.contains("99+") && !m.contains(">120<"), "{m}");
+        assert!(m.contains("120 new"), "{m}");
+        let m = ui.indicator(99).max(99).render().into_string();
+        assert!(!m.contains("99+"), "{m}");
+    }
+
+    #[test]
+    fn dot_tone_and_label_change_the_badge_and_the_words() {
+        let m = Ui::default()
+            .indicator(5)
+            .dot()
+            .tone(Tone::Ok)
+            .label("Online")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(
+                r#"<span class="lui-indicator-dot" data-tone="ok" aria-hidden="true"></span>"#
+            ),
+            "{m}"
+        );
+        assert!(m.contains(r#"<span class="lui-sr">Online</span>"#), "{m}");
+        assert!(
+            !m.contains("lui-indicator-badge") && !m.contains("5 new"),
+            "{m}"
+        );
+    }
+}

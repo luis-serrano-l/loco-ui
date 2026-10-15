@@ -3438,7 +3438,7 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
   forms with one action (`/blocks/settings`; M38 "Ids"), and ids repeated by the index
   previews and the props playground (M42). The test also fails when a listed bug is fixed
   and still listed. All three are fixed now (M38 and M42) and `CONFORMANCE_BUGS` is empty.
-- [ ] Unit tests for the 42 untested files: one `#[cfg(test)] mod tests` per file with at
+- [x] Unit tests for the 42 untested files: one `#[cfg(test)] mod tests` per file with at
   least: default render shape, each switch changes the class or attribute it claims
   (`PROPS` attr ↔ output, generated from `PROPS` where `attr` is set: a generic test in
   `lib.rs` renders each builder with each attr-setting prop through a small per-builder
@@ -3452,8 +3452,12 @@ Parallel: yes; `i18n.rs` `Text` enum is append-only for others.
   `.disabled()` on a link drops the `href` (no `disabled` attribute, as documented) and
   `Input::multiple()` only acts on a file input, so their examples use an action and a
   file.
-  Left: the per-file `#[cfg(test)] mod tests` modules (default shape, caps branch), now that
-  M38 and M40 have merged.
+  Done: every component and block file now has its own `#[cfg(test)] mod tests` (61 files
+  added on 2026-10-15, 242 tests, 2 to 4 each; the list had grown from 42 with M40). Each
+  checks the default render shape, the main setters' behaviour, and, where the header says
+  the markup depends on caps, that `Caps::all()` and `Caps::NONE` each render only their
+  own variant. They found no bugs. `stream.rs` tests run only with the `http` feature,
+  like the module. `blocks/mod.rs` holds only `pub mod` lines and has none.
 - [x] `insta` HTML snapshots (dev-dep): `loco-ui/tests/snapshots/<component>.snap` for
   the header example of every component under both caps, reviewed with `cargo insta`;
   M38/M39 changes then show as diffs rather than surprises. CI runs `cargo insta test

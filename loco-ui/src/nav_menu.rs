@@ -209,3 +209,102 @@ pub const CSS: &str = r#"
 .lui-nav-menu .lui-popover-item { border-radius: var(--lui-radius); }
 .lui-nav-menu .lui-popover-text { font-weight: 500; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ui_at(path: &str, caps: Caps) -> Ui {
+        let mut ui = Ui::from_request(path, "", "");
+        ui.caps = caps;
+        ui
+    }
+
+    #[test]
+    fn the_root_is_a_labelled_nav_with_one_list_item_per_entry() {
+        let ui = ui_at("/", Caps::all());
+        let m = ui
+            .nav_menu("Main")
+            .link("Pricing", "/pricing")
+            .link("Blog", "/blog")
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<nav class="lui-nav-menu" aria-label="Main"><ul>"#),
+            "{m}"
+        );
+        assert_eq!(m.matches("<li>").count(), 2, "{m}");
+        assert!(!m.contains("aria-current"), "{m}");
+    }
+
+    #[test]
+    fn only_the_link_to_the_current_path_is_marked_current() {
+        let ui = ui_at("/blog", Caps::all());
+        let m = ui
+            .nav_menu("Main")
+            .link("Pricing", "/pricing")
+            .link("Blog", "/blog")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"href="/blog" aria-current="page""#), "{m}");
+        assert_eq!(m.matches("aria-current").count(), 1, "{m}");
+        // Under the link's path: only with `current_prefix`.
+        let ui = ui_at("/blog/post", Caps::all());
+        let exact = ui
+            .nav_menu("Main")
+            .link("Blog", "/blog")
+            .render()
+            .into_string();
+        assert!(!exact.contains("aria-current"), "{exact}");
+        let prefix = ui
+            .nav_menu("Main")
+            .current_prefix()
+            .link("Blog", "/blog")
+            .render()
+            .into_string();
+        assert!(prefix.contains(r#"aria-current="page""#), "{prefix}");
+    }
+
+    #[test]
+    fn a_panel_gets_an_id_from_the_label_and_the_text_unless_id_overrides() {
+        let ui = ui_at("/", Caps::all());
+        let m = ui
+            .nav_menu("Main")
+            .panel("Products", [("Mail", "/mail")])
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"popovertarget="nav-main-products""#) && m.contains(r#"href="/mail""#),
+            "{m}"
+        );
+        let m = ui
+            .nav_menu("Main")
+            .id("site")
+            .panel("Products", [("Mail", "/mail")])
+            .render()
+            .into_string();
+        assert!(m.contains(r#"popovertarget="site-products""#), "{m}");
+    }
+
+    #[test]
+    fn panels_are_popovers_with_the_capability_and_details_without_it() {
+        let with = ui_at("/", Caps::all())
+            .nav_menu("Main")
+            .panel("Products", [("Mail", "/mail")])
+            .render()
+            .into_string();
+        assert!(
+            with.contains("popover") && !with.contains("<details"),
+            "{with}"
+        );
+        let without = ui_at("/", Caps::NONE)
+            .nav_menu("Main")
+            .panel("Products", [("Mail", "/mail")])
+            .render()
+            .into_string();
+        assert!(
+            without.contains("<details") && !without.contains("popovertarget"),
+            "{without}"
+        );
+    }
+}

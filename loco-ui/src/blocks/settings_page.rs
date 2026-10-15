@@ -114,3 +114,68 @@ pub const CSS: &str = r#"
 .lui-settings-page-section p { margin: 0.25rem 0 0; color: var(--lui-muted); font-size: var(--lui-text-2); }
 @container lui-settings-page (width >= 48rem) { .lui-settings-page-section { grid-template-columns: 16rem 1fr; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_page_has_one_h1_and_a_nav_named_by_the_title() {
+        let ui = Ui::default();
+        let m = ui.settings_page("Settings").render().into_string();
+        assert!(
+            m.starts_with(r#"<div class="lui-settings-page"><h1>Settings</h1>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<nav class="lui-settings-page-nav" aria-label="Settings">"#),
+            "{m}"
+        );
+        assert!(!m.contains("<section"), "{m}");
+    }
+
+    #[test]
+    fn each_section_has_a_slug_id_a_labelled_heading_and_a_nav_link() {
+        let ui = Ui::default();
+        let m = ui
+            .settings_page("S")
+            .section("Profile", "How others see you.", html! { p { "form1" } })
+            .section("Email address", "Where we write.", html! { p { "form2" } })
+            .render()
+            .into_string();
+        assert_eq!(m.matches("<section").count(), 2, "{m}");
+        assert!(
+            m.contains(r##"<a href="#settings-email-address">Email address</a>"##),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<section id="settings-email-address" class="lui-settings-page-section" aria-labelledby="settings-email-address-title">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<h2 id="settings-profile-title">Profile</h2>"#),
+            "{m}"
+        );
+        assert!(m.contains("<p>How others see you.</p>"), "{m}");
+    }
+
+    #[test]
+    fn the_body_sits_in_the_right_column_and_sections_keep_their_order() {
+        let ui = Ui::default();
+        let m = ui
+            .settings_page("S")
+            .section("A", "a", html! { i { "first" } })
+            .section("B", "b", html! { i { "second" } })
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<div class="lui-settings-page-body"><i>first</i></div>"#),
+            "{m}"
+        );
+        assert!(m.find("first").unwrap() < m.find("second").unwrap(), "{m}");
+        assert!(
+            m.find("settings-a\"").unwrap() < m.find("settings-b\"").unwrap(),
+            "{m}"
+        );
+    }
+}

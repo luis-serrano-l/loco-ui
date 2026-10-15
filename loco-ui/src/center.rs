@@ -110,3 +110,38 @@ pub const CSS: &str = r#"
 .lui-center > * { margin: 0; max-width: 100%; }
 .lui-center-text { text-align: center; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_plain_center_holds_its_body_with_no_style() {
+        let m = Ui::default()
+            .center()
+            .body(html! { b { "x" } })
+            .render()
+            .into_string();
+        assert_eq!(m, r#"<div class="lui-center"><b>x</b></div>"#);
+    }
+
+    #[test]
+    fn min_height_is_an_inline_style() {
+        let m = Ui::default()
+            .center()
+            .min_height("10rem")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"style="min-height: 10rem""#), "{m}");
+        assert!(!m.contains("lui-center-text"), "{m}");
+    }
+
+    #[test]
+    fn text_center_adds_the_text_class_only() {
+        let m = Ui::default().center().text_center().render().into_string();
+        assert!(
+            m.contains(r#"class="lui-center lui-center-text""#) && !m.contains("style="),
+            "{m}"
+        );
+    }
+}

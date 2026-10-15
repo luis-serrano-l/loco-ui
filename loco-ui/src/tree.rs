@@ -293,3 +293,108 @@ summary.lui-tree-row { padding-inline-start: calc(var(--lui-tree-depth, 0) * 1.2
 }
 @media (prefers-reduced-motion: reduce) { .lui-tree summary > .lui-icon { transition: none; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_tree_is_a_nav_of_lists_and_a_leaf_without_a_link_is_a_plain_row() {
+        let ui = Ui::default();
+        let m = ui
+            .tree("Docs")
+            .node("Intro")
+            .link("/docs")
+            .node("Plain")
+            .render()
+            .into_string();
+        assert!(
+            m.contains("<nav") && m.contains("lui-tree") && m.contains("Docs"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<a class="lui-tree-row" href="/docs">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<span class="lui-tree-row">"#), "{m}");
+        assert!(m.contains("--lui-tree-depth: 0"), "{m}");
+        assert!(!m.contains("<details"), "{m}");
+    }
+
+    #[test]
+    fn the_current_page_is_marked_and_its_folders_open() {
+        let ui = Ui::from_request("/docs/install", "", "");
+        let m = ui
+            .tree("Docs")
+            .node("Guide")
+            .children(|t| {
+                t.node("Install")
+                    .link("/docs/install")
+                    .node("Use")
+                    .link("/docs/use")
+            })
+            .node("Other")
+            .children(|t| t.node("X").link("/x"))
+            .render()
+            .into_string();
+        assert_eq!(m.matches(r#"aria-current="page""#).count(), 1, "{m}");
+        assert!(
+            m.contains(r#"href="/docs/install" aria-current="page""#),
+            "{m}"
+        );
+        assert_eq!(m.matches("<details open>").count(), 1, "{m}");
+        assert_eq!(m.matches("<details").count(), 2, "{m}");
+        assert!(m.contains("--lui-tree-depth: 1"), "{m}");
+    }
+
+    #[test]
+    fn open_true_and_the_query_open_folders_by_document_order() {
+        let ui = Ui::default();
+        let m = ui
+            .tree("T")
+            .node("A")
+            .children(|t| t.node("a"))
+            .open(true)
+            .node("B")
+            .children(|t| t.node("b"))
+            .render()
+            .into_string();
+        assert_eq!(m.matches("<details open>").count(), 1, "{m}");
+        let ui = Ui::from_request("/", "open.t=1", "");
+        let m = ui
+            .tree("T")
+            .node("A")
+            .children(|t| t.node("a"))
+            .node("B")
+            .children(|t| t.node("b"))
+            .render()
+            .into_string();
+        assert_eq!(m.matches("<details open>").count(), 1, "{m}");
+        assert!(
+            m.find("<details open>").unwrap() > m.find("B").unwrap(),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_folder_that_is_a_link_keeps_the_link_beside_its_summary() {
+        let ui = Ui::default();
+        let m = ui
+            .tree("T")
+            .node("src")
+            .link("/src")
+            .children(|t| t.node("lib").icon(Icon::File))
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<summary class="lui-tree-toggle">"#), "{m}");
+        assert!(!m.contains(r#"<summary class="lui-tree-toggle"><a"#), "{m}");
+        assert!(
+            m.contains(r#"class="lui-tree-icon" aria-hidden="true""#),
+            "{m}"
+        );
+        assert!(
+            m.find(r#"href="/src""#).unwrap() < m.find("<summary").unwrap(),
+            "{m}"
+        );
+    }
+}

@@ -149,3 +149,57 @@ pub const CSS: &str = r#"
 .lui-empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--lui-space) * 2); margin-top: var(--lui-space); }
 .lui-empty-actions form { margin: 0; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ui() -> Ui {
+        Ui::default()
+    }
+
+    #[test]
+    fn a_bare_empty_state_is_a_root_and_a_title() {
+        let m = ui().empty_state("Nothing here").render().into_string();
+        assert_eq!(
+            m, r#"<div class="lui-empty"><p class="lui-empty-title">Nothing here</p></div>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_icon_is_hidden_from_screen_readers_and_the_body_is_a_paragraph() {
+        let m = ui()
+            .empty_state("Empty")
+            .icon("?")
+            .body(html! { "Because." })
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<span class="lui-empty-icon" aria-hidden="true">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<p class="lui-empty-text">Because.</p>"#),
+            "{m}"
+        );
+        assert!(!m.contains("lui-empty-actions"), "{m}");
+    }
+
+    #[test]
+    fn the_action_is_a_post_form_and_the_link_is_an_anchor_in_the_actions_row() {
+        let m = ui()
+            .empty_state("Empty")
+            .link("Back", "/back")
+            .action("Create", "/new")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<div class="lui-empty-actions">"#), "{m}");
+        assert!(m.contains(r#"<form method="post" action="/new">"#), "{m}");
+        assert!(m.contains(r#"href="/back""#), "{m}");
+        assert!(
+            m.find("<form").unwrap() < m.find(r#"href="/back""#).unwrap(),
+            "{m}"
+        );
+    }
+}

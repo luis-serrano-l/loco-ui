@@ -255,3 +255,78 @@ pub const CSS: &str = r#"
 .lui-color-presets .lui-button[aria-pressed=true] { box-shadow: 0 0 0 2px var(--lui-primary); }
 @media (pointer: coarse) { .lui-color-presets .lui-button { width: var(--lui-hit); height: var(--lui-hit); } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_render_is_a_labelled_colour_input_with_a_swatch_and_code() {
+        let ui = Ui::default();
+        let m = ui.color("accent", "Accent").render().into_string();
+        assert!(m.contains(r##"<input type="color" class="lui-color-input" id="f-accent" name="accent" value="#000000">"##), "{m}");
+        assert!(m.contains(r#"<label for="f-accent">Accent</label>"#), "{m}");
+        assert!(
+            m.contains("lui-color-swatch") && m.contains("<code>#000000</code>"),
+            "{m}"
+        );
+        assert!(
+            !m.contains("class=\"lui-color-alpha\"") && !m.contains("lui-color-presets"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_value_comes_from_the_query_unless_set() {
+        let ui = Ui::from_request("/", "accent=%23112233", "");
+        let m = ui.color("accent", "A").render().into_string();
+        assert!(m.contains(r##"value="#112233""##), "{m}");
+        let m = ui
+            .color("accent", "A")
+            .value("#445566")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r##"value="#445566""##) && !m.contains("#112233"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn alpha_adds_a_slider_and_shows_the_hex_with_alpha_in_the_code() {
+        let m = Ui::default()
+            .color("c", "C")
+            .value("#2f5bea")
+            .alpha(80)
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"name="c-alpha""#) && m.contains(r#"value="80""#),
+            "{m}"
+        );
+        assert!(
+            m.contains("<code>#2f5beacc</code>") && m.contains("--lui-color-alpha: 80%"),
+            "{m}"
+        );
+        let over = Ui::default()
+            .color("c", "C")
+            .alpha(250)
+            .render()
+            .into_string();
+        assert!(over.contains(r#"value="100""#), "{over}");
+    }
+
+    #[test]
+    fn presets_are_named_buttons_and_the_current_one_is_pressed() {
+        let m = Ui::default()
+            .color("c", "C")
+            .value("#B3261E")
+            .presets(&["#1f6f5f", "#b3261e"])
+            .render()
+            .into_string();
+        assert!(m.contains(r##"name="c-preset" value="#1f6f5f""##), "{m}");
+        assert!(m.contains(r##"name="c-preset" value="#b3261e""##), "{m}");
+        assert_eq!(m.matches(r#"aria-pressed="true""#).count(), 1, "{m}");
+        assert!(m.contains(r#"role="group""#), "{m}");
+    }
+}

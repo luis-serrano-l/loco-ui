@@ -287,3 +287,55 @@ a.lui-badge.lui-badge-solid:hover { background: color-mix(in srgb, var(--lui-bad
   }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn html_of(b: Badge) -> String {
+        b.render().into_string()
+    }
+
+    #[test]
+    fn the_default_badge_is_a_plain_span_with_its_text() {
+        let m = html_of(Ui::default().badge("New"));
+        assert_eq!(m, r#"<span class="lui-badge">New</span>"#, "{m}");
+    }
+
+    #[test]
+    fn tone_and_variant_setters_add_classes_and_data_attributes() {
+        let ui = Ui::default();
+        let m = html_of(ui.badge("x").secondary());
+        assert!(
+            m.contains("lui-badge-secondary") && m.contains(r#"data-tone="neutral""#),
+            "{m}"
+        );
+        let m = html_of(ui.badge("x").warn().surface());
+        assert!(m.contains("lui-badge-warn lui-badge-surface"), "{m}");
+        assert!(m.contains(r#"data-variant="surface""#), "{m}");
+        let m = html_of(ui.badge("x").size(3).radius(Radius::Full));
+        assert!(
+            m.contains(r#"data-size="3""#) && m.contains(r#"data-radius="full""#),
+            "{m}"
+        );
+        assert!(!html_of(ui.badge("x")).contains("data-"));
+    }
+
+    #[test]
+    fn href_turns_the_badge_into_a_link() {
+        let m = html_of(Ui::default().badge("rust").href("/tags/rust"));
+        assert!(m.starts_with("<a "), "{m}");
+        assert!(
+            m.contains(r#"href="/tags/rust""#) && m.ends_with(">rust</a>"),
+            "{m}"
+        );
+        assert!(!m.contains("<span"), "{m}");
+    }
+
+    #[test]
+    fn shimmer_adds_its_class_and_text_is_escaped() {
+        let m = html_of(Ui::default().badge("<b>").shimmer());
+        assert!(m.contains("lui-badge lui-badge-shimmer"), "{m}");
+        assert!(m.contains("&lt;b&gt;"), "{m}");
+    }
+}

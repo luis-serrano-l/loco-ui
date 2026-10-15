@@ -351,3 +351,110 @@ pub const CSS: &str = r#"
 .lui-date-picker-panel > .lui-calendar { width: 17.5rem; box-shadow: var(--lui-shadow-md), var(--lui-highlight); }
 .lui-date-picker-range { display: flex; flex-wrap: wrap; gap: var(--lui-space-1) var(--lui-space-4); margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); line-height: var(--lui-leading-2); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    #[test]
+    fn with_popover_support_a_labelled_button_opens_a_calendar_popover() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .date_picker("due", "Due date")
+            .value("2026-09-24")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<label for="f-due">Due date</label>"#), "{m}");
+        assert!(
+            m.contains(r#"popovertarget="f-due-calendar""#)
+                && m.contains(r#"id="f-due-calendar" popover"#),
+            "{m}"
+        );
+        assert!(m.contains("24 September 2026"), "{m}");
+        assert!(
+            m.contains(r#"type="radio" name="due" value="2026-09-24" checked"#),
+            "{m}"
+        );
+        assert!(!m.contains(r#"role="group""#), "{m}");
+    }
+
+    #[test]
+    fn without_popover_support_the_calendar_sits_in_a_labelled_group_instead() {
+        let m = Ui::from(Caps::NONE)
+            .date_picker("due", "Due date")
+            .render()
+            .into_string();
+        assert!(!m.contains("popover"), "{m}");
+        assert!(
+            m.contains(r#"role="group""#) && m.contains(r#"aria-labelledby="f-due-label""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<span id="f-due-label" class="lui-date-picker-label">Due date</span>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"type="radio" name="due""#), "{m}");
+    }
+
+    #[test]
+    fn the_value_comes_from_the_query_unless_set_and_required_marks_the_label() {
+        let ui = Ui::from_request("/", "due=2026-01-05", "");
+        let m = ui.date_picker("due", "Due").render().into_string();
+        assert!(
+            m.contains("5 January 2026") && m.contains("2026-01-05"),
+            "{m}"
+        );
+        let m = ui
+            .date_picker("due", "Due")
+            .value("2026-02-06")
+            .required()
+            .render()
+            .into_string();
+        assert!(
+            m.contains("6 February 2026") && !m.contains("5 January"),
+            "{m}"
+        );
+        assert!(m.contains("Due *"), "{m}");
+    }
+
+    #[test]
+    fn native_is_a_date_input_and_disabled_or_readonly_post_nothing_or_the_value() {
+        let ui = Ui::from(Caps::all());
+        let native = ui
+            .date_picker("due", "Due")
+            .min("2026-01-01")
+            .native()
+            .render()
+            .into_string();
+        assert!(
+            native.contains(r#"type="date""#)
+                && native.contains(r#"min="2026-01-01""#)
+                && !native.contains("popover"),
+            "{native}"
+        );
+        let off = ui
+            .date_picker("due", "Due")
+            .value("2026-09-24")
+            .disabled()
+            .render()
+            .into_string();
+        assert!(
+            off.contains("24 September 2026")
+                && off.contains("disabled")
+                && !off.contains(r#"type="hidden""#)
+                && !off.contains("popover"),
+            "{off}"
+        );
+        let ro = ui
+            .date_picker("due", "Due")
+            .value("2026-09-24")
+            .readonly()
+            .render()
+            .into_string();
+        assert!(
+            ro.contains(r#"type="hidden" name="due" value="2026-09-24""#),
+            "{ro}"
+        );
+    }
+}

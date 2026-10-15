@@ -706,3 +706,162 @@ pub const CSS: &str = r#"
   .lui-popover nav[popover]:popover-open, .lui-popover-details[open] > nav { opacity: 0; translate: 0 -4px; }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_menu_is_a_trigger_and_a_popover_nav_with_a_menu_role_list() {
+        let m = Ui::from(Caps::all())
+            .menu("Account")
+            .link("Profile", "/profile")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"popovertarget="lui-menu-account""#)
+                && m.contains(r#"aria-haspopup="menu""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<nav id="lui-menu-account" popover"#), "{m}");
+        assert!(m.contains(r#"<ul role="menu">"#), "{m}");
+        assert!(
+            m.contains(r#"<a class="lui-popover-item" role="menuitem" href="/profile">"#),
+            "{m}"
+        );
+        let m = Ui::from(Caps::all())
+            .menu("Account")
+            .id("acct")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"id="acct""#) && !m.contains("lui-menu-account"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn items_render_as_links_post_forms_headings_and_separators() {
+        let m = Ui::from(Caps::all())
+            .menu("M")
+            .group("Section")
+            .link("Gone", "/gone")
+            .disabled()
+            .separator()
+            .action("Delete", "/del")
+            .danger()
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<li role="presentation" class="lui-popover-heading">Section</li>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"aria-disabled="true""#) && !m.contains(r#"href="/gone""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<li role="separator" class="lui-popover-sep">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<form method="post" action="/del">"#), "{m}");
+        assert!(m.contains("lui-popover-item lui-popover-danger"), "{m}");
+    }
+
+    #[test]
+    fn checkbox_and_radio_items_post_their_own_form_with_an_apply_button() {
+        let m = Ui::from(Caps::all())
+            .menu("View")
+            .checkbox("Grid", "/v", "grid")
+            .checked(true)
+            .radio("Compact", "/v", "density", "compact")
+            .render()
+            .into_string();
+        assert_eq!(m.matches(r#"data-lui="autosubmit""#).count(), 2, "{m}");
+        assert!(
+            m.contains(
+                r#"type="checkbox" role="menuitemcheckbox" name="grid" value="on" checked>"#
+            ),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"type="radio" role="menuitemradio" name="density" value="compact">"#),
+            "{m}"
+        );
+        assert_eq!(m.matches("lui-popover-apply").count(), 2, "{m}");
+    }
+
+    #[test]
+    fn icon_shortcut_and_a_submenu_add_their_parts() {
+        let m = Ui::from(Caps::all())
+            .menu("M")
+            .link("Open", "/o")
+            .icon("@")
+            .shortcut("g o")
+            .submenu("Theme", [("Light", "/l")])
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<span class="lui-popover-icon" aria-hidden="true">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<kbd class="lui-popover-kbd">g o</kbd>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"id="lui-menu-m-theme""#) && m.contains(r#"href="/l""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn placement_follows_anchor_support_and_the_align_setters() {
+        let anchored = Ui::from(Caps::all())
+            .menu("M")
+            .align_end()
+            .render()
+            .into_string();
+        assert!(
+            anchored.contains("lui-popover-anchored lui-popover-end"),
+            "{anchored}"
+        );
+        assert!(
+            anchored.contains("anchor-name: --lui-menu-m") && anchored.contains("position-area"),
+            "{anchored}"
+        );
+        let right = Ui::from(Caps::all())
+            .menu("M")
+            .open_right()
+            .render()
+            .into_string();
+        assert!(right.contains("lui-popover-right"), "{right}");
+        let plain = Ui::from(Caps::ASSUMED).menu("M").render().into_string();
+        assert!(
+            plain.contains(r#"class="lui-popover lui-popover-start""#),
+            "{plain}"
+        );
+        assert!(
+            plain.contains("popover")
+                && !plain.contains("anchor-name")
+                && !plain.contains("position-area"),
+            "{plain}"
+        );
+    }
+
+    #[test]
+    fn without_popover_the_menu_is_a_details_dropdown_with_nested_details() {
+        let m = Ui::from(Caps::NONE)
+            .menu("M")
+            .link("A", "/a")
+            .submenu("Sub", [("B", "/b")])
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<details class="lui-popover lui-popover-details lui-popover-start" id="lui-menu-m">"#), "{m}");
+        assert_eq!(m.matches("<details").count(), 2, "{m}");
+        assert!(
+            !m.contains("popovertarget") && !m.contains(" popover"),
+            "{m}"
+        );
+    }
+}

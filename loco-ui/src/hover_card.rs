@@ -201,3 +201,84 @@ pub const CSS: &str = r#"
   .lui-hover-card-link { display: inline-flex; align-items: center; }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn interest_invokers_open_a_hint_popover_from_hover_and_focus() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .hover_card("@ada", html! { "Bio" })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<span class="lui-hover-card">"#), "{m}");
+        assert!(m.contains(r#"interestfor="lui-hover-card-ada""#), "{m}");
+        assert!(
+            m.contains(r#"popover="hint""#) && !m.contains("<details"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"class="lui-hover-card-content">Bio</span>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn without_interest_invokers_a_click_opens_an_auto_popover() {
+        let ui = Ui::from(Caps::ASSUMED);
+        let m = ui
+            .hover_card("Notes", html! { "Bio" })
+            .render()
+            .into_string();
+        assert!(m.contains(r#"popovertarget="lui-hover-card-notes""#), "{m}");
+        assert!(m.contains(r#"popover="auto""#), "{m}");
+        assert!(!m.contains("interestfor") && !m.contains("<details"), "{m}");
+        // A link trigger gets a separate chevron button, named after the trigger.
+        let m = ui
+            .hover_card("Notes", html! { "Bio" })
+            .href("/n")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<a class="lui-hover-card-link" href="/n">Notes</a>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"popovertarget="lui-hover-card-notes""#), "{m}");
+        assert!(m.contains("aria-label="), "{m}");
+    }
+
+    #[test]
+    fn without_popover_the_card_is_a_details_disclosure() {
+        let ui = Ui::from(Caps::NONE);
+        let m = ui
+            .hover_card("Notes", html! { "Bio" })
+            .render()
+            .into_string();
+        assert!(m.contains("<details>") && m.contains("<summary"), "{m}");
+        assert!(!m.contains("popover") && !m.contains("interestfor"), "{m}");
+        assert!(
+            m.contains(
+                r#"<span id="lui-hover-card-notes" class="lui-hover-card-content">Bio</span>"#
+            ),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_link_trigger_with_interest_invokers_carries_interestfor_and_the_id_overrides() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .hover_card("Docs", html! { "Bio" })
+            .href("/docs")
+            .id("d")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<a class="lui-hover-card-link" href="/docs" interestfor="d">Docs</a>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"id="d" popover="hint""#), "{m}");
+    }
+}

@@ -142,3 +142,43 @@ pub const CSS: &str = r#"
 }
 @media (pointer: coarse) { .lui-collapsible > summary { min-height: var(--lui-hit); } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn html_of(c: Collapsible) -> String {
+        c.render().into_string()
+    }
+
+    #[test]
+    fn a_closed_collapsible_is_a_details_with_a_button_summary_and_a_body() {
+        let m = html_of(Ui::default().collapsible("More", html! { p { "rest" } }));
+        assert!(m.starts_with(r#"<details class="lui-collapsible"><summary class="lui-button lui-collapsible-trigger"><span>More</span>"#), "{m}");
+        assert!(
+            m.contains(r#"<div class="lui-collapsible-body"><p>rest</p></div>"#),
+            "{m}"
+        );
+        assert!(!m.contains(" open") && !m.contains("name="), "{m}");
+    }
+
+    #[test]
+    fn open_true_writes_the_attribute_and_open_false_does_not() {
+        let ui = Ui::default();
+        assert!(
+            html_of(ui.collapsible("t", html! {}).open(true))
+                .contains("<details class=\"lui-collapsible\" open>")
+        );
+        assert!(!html_of(ui.collapsible("t", html! {}).open(false)).contains("open"));
+    }
+
+    #[test]
+    fn ghost_and_name_change_the_summary_class_and_the_group() {
+        let m = html_of(Ui::default().collapsible("t", html! {}).ghost().name("faq"));
+        assert!(m.contains(r#"name="faq""#), "{m}");
+        assert!(
+            m.contains("lui-button lui-button-ghost lui-collapsible-trigger"),
+            "{m}"
+        );
+    }
+}

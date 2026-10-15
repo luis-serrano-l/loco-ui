@@ -66,6 +66,10 @@ M16 entries are older still and describe options structs that M18 replaced.
 
 #### M46 · Tests that would have caught the audit's bugs
 
+- A unit test module in every component and block file (242 new tests): the default render
+  shape, the setters' behaviour and the caps branches.
+- `loco_ui::field_id(name)` is public: the id a control posting `name` gets, which the
+  error summary links to. A component copied by `cargo lui add` calls it.
 - Keyboard fixes from the `KEYS` audit. Enter in a field presses the form's main button:
   the Wizard (not Skip), a `.typed()` Counter (Set, not decrement) and a `Form` whose
   `.body(..)` holds buttons start their form with a hidden copy of it. With the script,

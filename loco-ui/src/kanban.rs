@@ -296,3 +296,93 @@ pub const CSS: &str = r#"
 .lui-kanban-move { display: flex; margin: 0 -0.375rem 0 auto; }
 .lui-kanban-empty { margin: 0; padding: 1rem; text-align: center; font-size: var(--lui-text-2); color: var(--lui-muted); border: 1px dashed var(--lui-gray-6); border-radius: var(--lui-radius); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    fn board(ui: &Ui) -> String {
+        ui.kanban("/move")
+            .column("todo", "To do")
+            .card("c1", "First")
+            .description("Note")
+            .badge("Beta")
+            .column("doing", "Doing")
+            .limit(1)
+            .card("c2", "Second")
+            .card("c3", "Third")
+            .column("done", "Done")
+            .render()
+            .into_string()
+    }
+
+    #[test]
+    fn each_column_is_a_labelled_section_with_its_cards_in_an_ordered_list() {
+        let m = board(&Ui::from(Caps::all()));
+        assert!(
+            m.contains(r#"data-lui="swap""#) && m.contains(r#"class="lui-kanban""#),
+            "{m}"
+        );
+        assert_eq!(
+            m.matches("<section class=\"lui-kanban-column\"").count(),
+            3,
+            "{m}"
+        );
+        assert_eq!(
+            m.matches("<ol class=\"lui-kanban-cards\">").count(),
+            2,
+            "{m}"
+        );
+        assert!(
+            m.contains(">First</p>") && m.contains(r#"<p class="lui-kanban-note">Note</p>"#),
+            "{m}"
+        );
+        assert!(m.contains(">Beta</span>"), "{m}");
+        assert!(m.contains(r#"class="lui-kanban-empty""#), "{m}");
+    }
+
+    #[test]
+    fn cards_move_by_posting_to_the_neighbouring_columns_only() {
+        let m = board(&Ui::from(Caps::all()));
+        assert!(
+            m.contains(r#"<form method="post" action="/move" class="lui-kanban-move">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"name="card" value="c1""#), "{m}");
+        // The first column's card has only a right arrow; a middle column's cards have both.
+        assert!(m.contains(r#"aria-label="Move First to Doing""#), "{m}");
+        assert!(!m.contains(r#"aria-label="Move First to To do""#), "{m}");
+        assert!(m.contains(r#"aria-label="Move Second to To do""#), "{m}");
+        assert!(m.contains(r#"aria-label="Move Second to Done""#), "{m}");
+        assert_eq!(m.matches(r#"name="to" value="todo""#).count(), 2, "{m}");
+    }
+
+    #[test]
+    fn a_limit_shows_the_count_and_flags_an_overfull_column() {
+        let m = board(&Ui::from(Caps::all()));
+        assert!(m.contains("2/1") && m.contains("lui-kanban-over"), "{m}");
+        let ok = Ui::default()
+            .kanban("/m")
+            .column("a", "A")
+            .limit(2)
+            .card("x", "X")
+            .render()
+            .into_string();
+        assert!(
+            ok.contains("1/2") && !ok.contains("lui-kanban-over"),
+            "{ok}"
+        );
+    }
+
+    #[test]
+    fn view_transition_names_appear_only_with_the_capability() {
+        let with = board(&Ui::from(Caps::all()));
+        assert!(
+            with.contains("view-transition-name: lui-kanban-c1"),
+            "{with}"
+        );
+        let without = board(&Ui::from(Caps::NONE));
+        assert!(!without.contains("view-transition-name"), "{without}");
+    }
+}

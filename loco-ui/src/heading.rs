@@ -151,3 +151,50 @@ pub const CSS: &str = r#"
   .lui-heading-trim { text-box: trim-both cap alphabetic; }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_is_an_h1_at_size_six() {
+        let m = Ui::default().heading("Title").render().into_string();
+        assert!(m.starts_with("<h1 ") && m.ends_with(">Title</h1>"), "{m}");
+        assert!(
+            m.contains(r#"data-size="6""#) && !m.contains("data-weight"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_level_is_chosen_apart_from_the_size_and_both_are_clamped() {
+        let ui = Ui::default();
+        let m = ui.heading("T").as_h(3).size(9).render().into_string();
+        assert!(
+            m.starts_with("<h3 ") && m.contains(r#"data-size="9""#),
+            "{m}"
+        );
+        let m = ui.heading("T").as_h(0).size(0).render().into_string();
+        assert!(
+            m.starts_with("<h1 ") && m.contains(r#"data-size="1""#),
+            "{m}"
+        );
+        let m = ui.heading("T").as_h(9).size(200).render().into_string();
+        assert!(
+            m.starts_with("<h6 ") && m.contains(r#"data-size="9""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn weight_and_trim_show_up_as_an_attribute_and_a_class() {
+        let m = Ui::default()
+            .heading("T")
+            .weight(Weight::Light)
+            .trim()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"class="lui-heading lui-heading-trim""#), "{m}");
+        assert!(m.contains(r#"data-weight="light""#), "{m}");
+    }
+}

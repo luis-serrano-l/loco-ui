@@ -247,3 +247,68 @@ pub const CSS: &str = r#"
 @keyframes lui-progress-slide { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .lui-progress:indeterminate { animation: none; background-position: 50% 0; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_labelled_bar_ties_its_label_to_a_native_progress() {
+        let m = Ui::default()
+            .progress(25, 50)
+            .label("Disk")
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<div class="lui-progress-field">"#), "{m}");
+        assert!(m.contains(r#"<label for="lui-progress-disk">"#), "{m}");
+        assert!(m.contains(r#"<progress id="lui-progress-disk" class="lui-progress" value="25" max="50">50%</progress>"#), "{m}");
+    }
+
+    #[test]
+    fn the_value_is_capped_at_the_maximum_and_shown_on_request() {
+        let m = Ui::default()
+            .progress(80, 40)
+            .show_value()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"value="40" max="40""#), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-progress-value">100%</span>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<label for="lui-progress-bar">"#), "{m}");
+    }
+
+    #[test]
+    fn an_indeterminate_bar_has_no_value_and_no_percentage() {
+        let m = Ui::default()
+            .progress(30, 100)
+            .indeterminate()
+            .show_value()
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<progress id="lui-progress-bar" class="lui-progress"></progress>"#),
+            "{m}"
+        );
+        assert!(
+            !m.contains("lui-progress-value") && !m.contains("<label"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn an_id_overrides_the_one_derived_from_the_label() {
+        let m = Ui::default()
+            .progress(1, 2)
+            .label("Disk")
+            .id("mine")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<label for="mine">"#) && m.contains(r#"<progress id="mine""#),
+            "{m}"
+        );
+        assert!(!m.contains("lui-progress-disk"), "{m}");
+    }
+}

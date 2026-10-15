@@ -202,3 +202,74 @@ pub const CSS: &str = r#"
 .lui-sortable-move { display: flex; flex: none; }
 .lui-sortable-slot { width: var(--lui-control-h-sm); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    fn list(ui: &Ui) -> String {
+        ui.sortable("Tasks", "/order")
+            .item("a", "First")
+            .description("Note")
+            .item("b", "Second")
+            .item("c", "Third")
+            .render()
+            .into_string()
+    }
+
+    #[test]
+    fn the_list_is_a_labelled_swap_root_of_forms_posting_to_the_action() {
+        let m = list(&Ui::default());
+        assert!(
+            m.contains(r#"data-lui="swap""#)
+                && m.contains(r#"<ol class="lui-sortable-list" aria-label="Tasks">"#),
+            "{m}"
+        );
+        assert_eq!(
+            m.matches(r#"<form method="post" action="/order""#).count(),
+            3,
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"name="item" value="a""#)
+                && m.contains(r#"<p class="lui-sortable-note">Note</p>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_first_has_no_up_and_the_last_no_down_and_targets_are_indexes() {
+        let ui = Ui::default();
+        let m = list(&ui);
+        let up = |t: &str| ui.fill(Text::MoveUp, &[&t]);
+        let down = |t: &str| ui.fill(Text::MoveDown, &[&t]);
+        assert!(
+            !m.contains(&up("First")) && m.contains(&down("First")),
+            "{m}"
+        );
+        assert!(
+            m.contains(&up("Second")) && m.contains(&down("Second")),
+            "{m}"
+        );
+        assert!(
+            m.contains(&up("Third")) && !m.contains(&down("Third")),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"name="to" value="1""#)
+                && m.contains(r#"name="to" value="0""#)
+                && m.contains(r#"name="to" value="2""#),
+            "{m}"
+        );
+        assert_eq!(m.matches("lui-sortable-slot").count(), 2, "{m}");
+    }
+
+    #[test]
+    fn view_transition_names_need_the_capability() {
+        let on = list(&Ui::from(Caps::all()));
+        assert!(on.contains("view-transition-name: lui-sortable-a"), "{on}");
+        let off = list(&Ui::from(Caps::NONE));
+        assert!(!off.contains("view-transition-name"), "{off}");
+    }
+}

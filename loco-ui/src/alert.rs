@@ -313,3 +313,95 @@ pub const CSS: &str = r#"
 .lui-alert-dismiss { grid-column: 3 !important; grid-row: 1; margin: -0.375rem -0.5rem -0.375rem 0 !important; }
 .lui-alert-dismiss .lui-button { color: inherit; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn html_of(a: Alert) -> String {
+        a.render().into_string()
+    }
+
+    #[test]
+    fn the_default_alert_is_a_soft_info_status_with_a_title() {
+        let ui = Ui::default();
+        let m = html_of(ui.alert("Heads up").description("Some detail."));
+        assert!(
+            m.contains(r#"class="lui-alert lui-callout lui-callout-info""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"role="status""#) && !m.contains("role=\"alert\""),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<p class="lui-alert-title">Heads up</p>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<p class="lui-alert-description">Some detail.</p>"#),
+            "{m}"
+        );
+        assert!(!m.contains("<form"), "{m}");
+    }
+
+    #[test]
+    fn the_danger_tone_is_an_alert_role_and_other_tones_are_status() {
+        let ui = Ui::default();
+        let danger = html_of(ui.alert("Bad").danger());
+        assert!(
+            danger.contains(r#"role="alert""#) && danger.contains("lui-callout-danger"),
+            "{danger}"
+        );
+        for warn in [html_of(ui.alert("W").warn()), html_of(ui.alert("O").ok())] {
+            assert!(warn.contains(r#"role="status""#), "{warn}");
+        }
+        assert!(html_of(ui.alert("W").warn()).contains("lui-callout-warn"));
+        assert!(html_of(ui.alert("O").ok()).contains("lui-callout-ok"));
+    }
+
+    #[test]
+    fn variant_size_body_and_action_add_their_parts() {
+        let ui = Ui::default();
+        let m = html_of(
+            ui.alert("T")
+                .outline()
+                .size(3)
+                .body(html! { ul { li { "one" } } })
+                .action(ui.link_button("Go", "/go")),
+        );
+        assert!(
+            m.contains("lui-callout-outline") && m.contains(r#"data-size="3""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<div class="lui-alert-description"><ul><li>one</li></ul></div>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<div class="lui-alert-actions">"#) && m.contains(r#"href="/go""#),
+            "{m}"
+        );
+        let plain = html_of(ui.alert("T"));
+        assert!(
+            !plain.contains("data-size") && !plain.contains("lui-alert-actions"),
+            "{plain}"
+        );
+    }
+
+    #[test]
+    fn dismiss_adds_a_form_named_after_the_id_and_a_dismissed_alert_renders_nothing() {
+        let ui = Ui::from_request("/p", "", "");
+        let m = html_of(ui.alert("Trial ends").dismiss());
+        assert!(
+            m.contains("lui-alert-dismissible") && m.contains("<form"),
+            "{m}"
+        );
+        assert!(m.contains(r#"name="id" value="trial-ends""#), "{m}");
+        let custom = html_of(ui.alert("Trial ends").dismiss().id("trial"));
+        assert!(custom.contains(r#"name="id" value="trial""#), "{custom}");
+        let gone = Ui::from_request("/p", "", "lui-dismiss-trial=1");
+        assert_eq!(html_of(gone.alert("Trial ends").dismiss().id("trial")), "");
+        assert!(!html_of(gone.alert("Trial ends").id("trial")).is_empty());
+    }
+}

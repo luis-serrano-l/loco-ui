@@ -99,3 +99,39 @@ hr.lui-separator { height: 1px; background: var(--lui-line); }
 .lui-separator-label { display: flex; align-items: center; gap: 0.75rem; color: var(--lui-muted); font-size: var(--lui-text-1); text-transform: uppercase; letter-spacing: 0.05em; }
 .lui-separator-label::before, .lui-separator-label::after { content: ""; flex: 1; height: 1px; background: var(--lui-line); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_plain_separator_is_a_native_rule() {
+        let m = Ui::default().separator().render().into_string();
+        assert_eq!(m, r#"<hr class="lui-separator">"#, "{m}");
+    }
+
+    #[test]
+    fn a_label_makes_a_role_separator_with_the_word_inside() {
+        let m = Ui::default().separator().label("or").render().into_string();
+        assert_eq!(
+            m,
+            r#"<div class="lui-separator lui-separator-label" role="separator"><span>or</span></div>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn vertical_wins_over_a_label_and_is_empty() {
+        let m = Ui::default()
+            .separator()
+            .label("or")
+            .vertical()
+            .render()
+            .into_string();
+        assert!(
+            m.contains("lui-separator-vertical") && m.contains(r#"aria-orientation="vertical""#),
+            "{m}"
+        );
+        assert!(!m.contains("or<") && !m.contains("<hr"), "{m}");
+    }
+}

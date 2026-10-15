@@ -187,3 +187,79 @@ pub const CSS: &str = r#"
 @keyframes lui-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .lui-skeleton-line, .lui-skeleton-heading, .lui-skeleton-rect, .lui-skeleton-circle { animation: none; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_root_is_a_busy_status_with_a_hidden_label_and_aria_hidden_bars() {
+        let ui = Ui::default();
+        let m = ui.skeleton(3).render().into_string();
+        assert!(
+            m.starts_with(r#"<div class="lui-skeleton" role="status" aria-busy="true">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(&format!(
+                r#"<span class="lui-sr">{}</span>"#,
+                ui.text(Text::Loading)
+            )),
+            "{m}"
+        );
+        assert_eq!(m.matches(r#"class="lui-skeleton-line"#).count(), 3, "{m}");
+        assert_eq!(
+            m.matches("lui-skeleton-last").count(),
+            1,
+            "only the last of several lines is short: {m}"
+        );
+        assert!(
+            !ui.skeleton(1)
+                .render()
+                .into_string()
+                .contains("lui-skeleton-last")
+        );
+    }
+
+    #[test]
+    fn label_heading_rect_and_circle_add_their_parts() {
+        let m = Ui::default()
+            .skeleton(2)
+            .label("Wait")
+            .heading()
+            .rect("50%", "4rem")
+            .circle()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<span class="lui-sr">Wait</span>"#), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-skeleton-heading" aria-hidden="true"></span>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"style="width:50%;height:4rem""#), "{m}");
+        assert!(
+            m.contains(r#"<div class="lui-skeleton-media"><span class="lui-skeleton-circle""#),
+            "{m}"
+        );
+        assert!(
+            m.find("lui-skeleton-rect") < m.find("lui-skeleton-media"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn avatar_lines_make_a_circle_and_two_lines_per_row() {
+        let m = Ui::default()
+            .skeleton(0)
+            .avatar_lines(2)
+            .render()
+            .into_string();
+        assert_eq!(m.matches("lui-skeleton-media").count(), 2, "{m}");
+        assert_eq!(m.matches("lui-skeleton-circle").count(), 2, "{m}");
+        assert_eq!(
+            m.matches(r#"<span class="lui-skeleton-line"#).count(),
+            4,
+            "{m}"
+        );
+    }
+}

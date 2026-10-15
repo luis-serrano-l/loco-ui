@@ -272,3 +272,91 @@ pub const CSS: &str = r#"
    reads in tabular figures, aligned to the end like a column of amounts. */
 .lui-number { font-variant-numeric: tabular-nums; text-align: end; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_number_is_a_labelled_number_input_with_bounds_and_the_queried_value() {
+        let ui = Ui::from_request("/", "qty=4", "");
+        let m = ui
+            .number("qty", "Quantity")
+            .min(1)
+            .max(9)
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"name="qty" type="number" value="4" min="1" max="9""#),
+            "{m}"
+        );
+        assert!(m.contains("lui-number") && m.contains("Quantity"), "{m}");
+        assert!(!m.contains("<button"), "{m}");
+    }
+
+    #[test]
+    fn value_wins_over_the_query_and_prints_the_way_rust_does() {
+        let ui = Ui::from_request("/", "qty=4", "");
+        let m = ui.number("qty", "Q").value(2.0).render().into_string();
+        assert!(
+            m.contains(r#"value="2""#) && !m.contains(r#"value="4""#),
+            "{m}"
+        );
+        let m = ui
+            .number("qty", "Q")
+            .value(0.1 + 0.2)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"value="0.30000000000000004""#), "{m}");
+    }
+
+    #[test]
+    fn steppers_post_one_step_down_and_up_and_stop_at_the_bounds() {
+        let ui = Ui::default();
+        let m = ui
+            .number("n", "N")
+            .value(5)
+            .step(2)
+            .min(5)
+            .max(20)
+            .steppers()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"name="n" value="7""#), "{m}");
+        assert!(m.contains("disabled"), "{m}");
+        let free = ui
+            .number("n", "N")
+            .value(5)
+            .step(2)
+            .steppers()
+            .render()
+            .into_string();
+        assert!(
+            free.contains(r#"name="n" value="3""#) && free.contains(r#"name="n" value="7""#),
+            "{free}"
+        );
+    }
+
+    #[test]
+    fn prefix_suffix_help_and_error_sit_in_the_field() {
+        let m = Ui::default()
+            .number("w", "Weight")
+            .prefix("~")
+            .suffix("kg")
+            .help("In kilos.")
+            .error("Too heavy.")
+            .required()
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"class="lui-input-group-prefix""#) && m.contains(">~</span>"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"class="lui-input-group-suffix""#) && m.contains(">kg</span>"),
+            "{m}"
+        );
+        assert!(m.contains("In kilos.") && m.contains("Too heavy."), "{m}");
+        assert!(m.contains("required"), "{m}");
+    }
+}

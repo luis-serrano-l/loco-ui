@@ -211,3 +211,84 @@ pub const CSS: &str = r#"
 .lui-timeline-title { margin: 0; font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500; color: var(--lui-fg); max-width: none; }
 .lui-timeline-description { margin: 0; font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-muted); max-width: none; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Icon;
+
+    #[test]
+    fn each_event_is_a_list_item_with_a_hidden_dot_and_a_title() {
+        let ui = Ui::default();
+        let m = ui
+            .timeline()
+            .event("First")
+            .event("Second")
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<ol class="lui-timeline">"#), "{m}");
+        assert_eq!(m.matches("<li>").count(), 2, "{m}");
+        assert_eq!(
+            m.matches(r#"<span class="lui-timeline-dot" aria-hidden="true"></span>"#)
+                .count(),
+            2,
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<p class="lui-timeline-title">First</p>"#),
+            "{m}"
+        );
+        assert!(
+            !m.contains("lui-timeline-when") && !m.contains("lui-timeline-description"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn when_is_a_span_and_becomes_a_time_with_datetime() {
+        let ui = Ui::default();
+        let m = ui
+            .timeline()
+            .event("A")
+            .when("2019")
+            .event("B")
+            .when("12 October")
+            .datetime("2026-10-12")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<span class="lui-timeline-when">2019</span>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(
+                r#"<time class="lui-timeline-when" datetime="2026-10-12">12 October</time>"#
+            ),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn an_icon_replaces_the_dot_and_tone_and_description_are_set_on_that_event_only() {
+        let ui = Ui::default();
+        let m = ui
+            .timeline()
+            .event("Done")
+            .icon(Icon::Check)
+            .tone(Tone::Ok)
+            .description("All good.")
+            .event("Plain")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<li data-tone="ok">"#) && m.contains("<li>"),
+            "{m}"
+        );
+        assert!(m.contains("lui-timeline-dot lui-timeline-icon"), "{m}");
+        assert_eq!(m.matches("lui-timeline-icon").count(), 1, "{m}");
+        assert!(
+            m.contains(r#"<p class="lui-timeline-description">All good.</p>"#),
+            "{m}"
+        );
+    }
+}

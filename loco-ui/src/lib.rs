@@ -240,7 +240,7 @@ pub fn slug(key: &str) -> String {
 /// The id of the control posting `name` when the caller gives none: `f-` and the name's
 /// [`slug`] without trailing dashes, so `user[email]` is `f-user-email` and `tags[]` is
 /// `f-tags`.
-pub(crate) fn field_id(name: &str) -> String {
+pub fn field_id(name: &str) -> String {
     format!("f-{}", slug(name).trim_end_matches('-'))
 }
 

@@ -201,3 +201,73 @@ pub const CSS: &str = r#"
 .lui-tooltip[data-lui-dismissed] .lui-tooltip-text { opacity: 0; visibility: hidden; display: none; }
 @media (prefers-reduced-motion: reduce) { .lui-tooltip-text { transition: none; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_render_joins_trigger_and_text_by_id() {
+        let ui = Ui::default();
+        let m = ui
+            .tooltip("Copy the link", html! { button { "C" } })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<span class="lui-tooltip">"#), "{m}");
+        assert!(
+            m.contains(r#"<button aria-describedby="lui-tooltip-copy-the-link">C</button>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<span id="lui-tooltip-copy-the-link" role="tooltip" class="lui-tooltip-text">Copy the link</span>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn id_overrides_the_derived_id_in_both_places() {
+        let ui = Ui::default();
+        let m = ui
+            .tooltip("Hint", html! { a href="/" { "x" } })
+            .id("my-tip")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"aria-describedby="my-tip""#) && m.contains(r#"id="my-tip""#),
+            "{m}"
+        );
+        assert!(!m.contains("lui-tooltip-hint"), "{m}");
+    }
+
+    #[test]
+    fn side_below_and_delay_set_data_side_and_a_custom_property() {
+        let ui = Ui::default();
+        let top = ui.tooltip("T", html! { b { "x" } }).render().into_string();
+        assert!(
+            !top.contains("data-side") && !top.contains("style="),
+            "{top}"
+        );
+        let m = ui
+            .tooltip("T", html! { b { "x" } })
+            .below()
+            .delay(250)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"data-side="bottom""#), "{m}");
+        assert!(m.contains(r#"style="--lui-tooltip-delay: 250ms""#), "{m}");
+    }
+
+    #[test]
+    fn a_button_trigger_replaces_the_markup_trigger() {
+        let ui = Ui::default();
+        let b = ui.button("Save");
+        let m = ui
+            .tooltip("Saves", html! { span { "ignored" } })
+            .trigger(b)
+            .render()
+            .into_string();
+        assert!(!m.contains("ignored"), "{m}");
+        assert!(m.contains(r#"aria-describedby="lui-tooltip-saves""#), "{m}");
+        assert!(m.contains("lui-button") && m.contains("Save"), "{m}");
+    }
+}

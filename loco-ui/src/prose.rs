@@ -121,3 +121,38 @@ pub const CSS: &str = r#"
 :where(.lui-prose) :is(th) { font-weight: 600; }
 :where(.lui-prose) :where(tr:nth-child(even)) { background: var(--lui-gray-2); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_empty_prose_is_just_its_root() {
+        let m = Ui::default().prose().render().into_string();
+        assert_eq!(m, r#"<div class="lui-prose"></div>"#, "{m}");
+    }
+
+    #[test]
+    fn the_body_is_wrapped_unescaped_inside_the_root() {
+        let m = Ui::default()
+            .prose()
+            .body(html! { h2 { "Title" } p { "Text & more" } })
+            .render()
+            .into_string();
+        assert_eq!(
+            m, r#"<div class="lui-prose"><h2>Title</h2><p>Text &amp; more</p></div>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_later_body_replaces_the_earlier_one() {
+        let m = Ui::default()
+            .prose()
+            .body(html! { p { "first" } })
+            .body(html! { p { "second" } })
+            .render()
+            .into_string();
+        assert!(m.contains("second") && !m.contains("first"), "{m}");
+    }
+}

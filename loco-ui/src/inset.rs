@@ -127,3 +127,35 @@ pub const CSS: &str = r#"
 .lui-card-body > .lui-inset.lui-inset-top { margin-top: calc(-1 * var(--lui-inset-pad)); border-start-start-radius: calc(var(--lui-radius-lg) - 1px); border-start-end-radius: calc(var(--lui-radius-lg) - 1px); }
 .lui-card-body > .lui-inset.lui-inset-bottom { margin-bottom: calc(-1 * var(--lui-inset-pad)); border-end-start-radius: calc(var(--lui-radius-lg) - 1px); border-end-end-radius: calc(var(--lui-radius-lg) - 1px); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_inset_is_a_div_around_its_body() {
+        let m = Ui::default()
+            .inset()
+            .body(html! { p { "x" } })
+            .render()
+            .into_string();
+        assert_eq!(m, r#"<div class="lui-inset"><p>x</p></div>"#, "{m}");
+    }
+
+    #[test]
+    fn top_and_bottom_each_add_their_own_class() {
+        let ui = Ui::default();
+        let top = ui.inset().top().render().into_string();
+        assert!(top.contains(r#"class="lui-inset lui-inset-top""#), "{top}");
+        let bottom = ui.inset().bottom().render().into_string();
+        assert!(
+            bottom.contains(r#"class="lui-inset lui-inset-bottom""#),
+            "{bottom}"
+        );
+        let both = ui.inset().top().bottom().render().into_string();
+        assert!(
+            both.contains(r#"class="lui-inset lui-inset-top lui-inset-bottom""#),
+            "{both}"
+        );
+    }
+}

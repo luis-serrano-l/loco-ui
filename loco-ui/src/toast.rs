@@ -292,3 +292,81 @@ pub const CSS: &str = r#"
    out is the lui-toast-out animation above. */
 @starting-style { .lui-toast { opacity: 0; translate: 0 0.5rem; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn flashed() -> Ui {
+        Ui::from_request(
+            "/p",
+            "",
+            "lui-flash=ok%3AOne.%0Ainfo%3ATwo.%0Adanger%3AThree.",
+        )
+    }
+
+    #[test]
+    fn no_flash_renders_nothing_and_a_flash_renders_a_list_with_roles_by_level() {
+        assert_eq!(Ui::default().toasts().render().into_string(), "");
+        let m = flashed().toasts().render().into_string();
+        assert!(m.starts_with(r#"<ol class="lui-toasts">"#), "{m}");
+        assert_eq!(m.matches("<li").count(), 3, "{m}");
+        assert!(
+            m.contains("lui-toast lui-toast-ok") && m.contains("lui-toast-info"),
+            "{m}"
+        );
+        assert_eq!(m.matches(r#"role="alert""#).count(), 1, "{m}");
+        assert_eq!(m.matches(r#"role="status""#).count(), 2, "{m}");
+        assert!(
+            !m.contains("lui-toast-close") && !m.contains("lui-toast-action"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn max_keeps_the_newest_and_the_action_goes_on_the_last_toast_only() {
+        let ui = flashed();
+        let m = ui
+            .toasts()
+            .max(2)
+            .action("Undo", "/undo")
+            .render()
+            .into_string();
+        assert!(
+            !m.contains("One.") && m.contains("Two.") && m.contains("Three."),
+            "{m}"
+        );
+        assert_eq!(m.matches(r#"href="/undo""#).count(), 1, "{m}");
+        let last = m.find("Three.").unwrap();
+        assert!(m.find(r#"href="/undo""#).unwrap() > last, "{m}");
+    }
+
+    #[test]
+    fn position_and_duration_set_their_attributes_and_the_default_position_has_none() {
+        let ui = flashed();
+        let m = ui
+            .toasts()
+            .position(Position::TopStart)
+            .duration(1200)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"data-position="top-start""#), "{m}");
+        assert!(m.contains(r#"style="--lui-toast-duration: 1200ms""#), "{m}");
+        let d = ui
+            .toasts()
+            .position(Position::BottomEnd)
+            .render()
+            .into_string();
+        assert!(!d.contains("data-position") && !d.contains("style="), "{d}");
+    }
+
+    #[test]
+    fn dismiss_adds_a_close_link_per_toast_back_to_this_page() {
+        let m = flashed().toasts().dismiss().render().into_string();
+        assert_eq!(
+            m.matches(r#"class="lui-toast-close" href="/p""#).count(),
+            3,
+            "{m}"
+        );
+    }
+}

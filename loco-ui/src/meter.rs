@@ -163,3 +163,55 @@ pub const CSS: &str = r#"
 .lui-meter:-moz-meter-sub-optimum::-moz-meter-bar { background: var(--lui-warn); }
 .lui-meter:-moz-meter-sub-sub-optimum::-moz-meter-bar { background: var(--lui-danger); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_meter_without_a_label_is_just_the_element_with_its_range() {
+        let m = Ui::default().meter(3, 0, 10).render().into_string();
+        assert!(m.starts_with(r#"<div class="lui-progress-field"><meter id="lui-meter-meter" class="lui-meter" value="3" min="0" max="10""#), "{m}");
+        assert!(
+            !m.contains("<label") && !m.contains("low=") && !m.contains("optimum="),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_label_is_tied_to_the_meter_by_id_and_shows_the_value() {
+        let m = Ui::default()
+            .meter(7, 0, 10)
+            .label("Disk space")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<label for="lui-meter-disk-space">"#), "{m}");
+        assert!(m.contains(r#"<meter id="lui-meter-disk-space""#), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-progress-value">7 / 10</span>"#),
+            "{m}"
+        );
+        let m = Ui::default()
+            .meter(7, 0, 10)
+            .label("Disk")
+            .id("d")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"for="d""#) && m.contains(r#"<meter id="d""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn low_high_and_optimum_are_passed_to_the_browser() {
+        let m = Ui::default()
+            .meter(5, 0, 10)
+            .low(2)
+            .high(8)
+            .optimum(10)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"low="2" high="8" optimum="10""#), "{m}");
+    }
+}

@@ -393,3 +393,95 @@ pub const CSS: &str = r#"
 @media (prefers-reduced-motion: reduce) { .lui-drawer-panel, .lui-drawer-panel:modal { transition: none; } }
 @media (min-width: 60rem) { .lui-drawer-sidebar > .lui-drawer-panel:not(:modal) { translate: none; transition: none; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    #[test]
+    fn a_default_drawer_has_an_opener_a_panel_a_nav_and_content() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .drawer("Menu")
+            .nav(html! { ul { li { "Home" } } })
+            .body(html! { p { "Page" } })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<div class="lui-drawer">"#), "{m}");
+        assert!(
+            m.contains(r#"<dialog id="lui-drawer-menu" class="lui-drawer-panel""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"aria-labelledby="lui-drawer-menu-title""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<nav class="lui-drawer-nav""#), "{m}");
+        assert!(
+            m.contains(r#"<div class="lui-drawer-content"><p>Page</p></div>"#),
+            "{m}"
+        );
+        assert!(!m.contains(" open>") && !m.contains("data-side"), "{m}");
+    }
+
+    #[test]
+    fn the_title_description_footer_and_id_setters_shape_the_panel() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .drawer("Menu")
+            .id("nav-1")
+            .title("Browse")
+            .description("All pages.")
+            .footer(html! { a href="/out" { "Out" } })
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<dialog id="nav-1""#), "{m}");
+        assert!(
+            m.contains(r#"<p id="nav-1-title" class="lui-drawer-title">Browse</p>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"aria-describedby="nav-1-description""#), "{m}");
+        assert!(m.contains(">All pages.</p>"), "{m}");
+        assert!(
+            m.contains(r#"<div class="lui-drawer-foot"><a href="/out">Out</a></div>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn side_size_sidebar_open_and_no_trigger_change_the_structure() {
+        let ui = Ui::from(Caps::all());
+        let m = ui
+            .drawer("Menu")
+            .side(Side::End)
+            .size(3)
+            .sidebar()
+            .open(true)
+            .no_trigger()
+            .render()
+            .into_string();
+        assert!(m.contains("lui-drawer lui-drawer-sidebar"), "{m}");
+        assert!(m.contains(r#"data-side="end" data-size="3""#), "{m}");
+        assert!(m.contains(" open>"), "{m}");
+        assert!(!m.contains("lui-drawer-open"), "{m}");
+    }
+
+    #[test]
+    fn invokers_use_commands_and_no_invokers_use_fragment_links() {
+        let with = Ui::from(Caps::all()).drawer("Menu").render().into_string();
+        assert!(
+            with.contains(r#"command="show-modal" commandfor="lui-drawer-menu""#),
+            "{with}"
+        );
+        assert!(with.contains(r#"command="close""#), "{with}");
+        assert!(!with.contains(r##"href="#lui-drawer-menu""##), "{with}");
+        let without = Ui::from(Caps::NONE).drawer("Menu").render().into_string();
+        assert!(
+            without.contains(r##"href="#lui-drawer-menu""##),
+            "{without}"
+        );
+        assert!(without.contains(r##"href="#""##), "{without}");
+        assert!(!without.contains("command="), "{without}");
+    }
+}

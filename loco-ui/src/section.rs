@@ -110,3 +110,64 @@ pub const CSS: &str = r#"
 .lui-section[data-size="2"] { padding-block: 2.5rem; }
 .lui-section[data-size="4"] { padding-block: 5rem; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_section_carries_no_size_or_name() {
+        let m = Ui::default()
+            .section()
+            .body(html! { p { "x" } })
+            .render()
+            .into_string();
+        assert_eq!(
+            m, r#"<section class="lui-section"><p>x</p></section>"#,
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_size_other_than_three_is_written_and_clamped_to_one_through_four() {
+        let ui = Ui::default();
+        assert!(
+            ui.section()
+                .size(1)
+                .render()
+                .into_string()
+                .contains(r#"data-size="1""#)
+        );
+        assert!(
+            ui.section()
+                .size(9)
+                .render()
+                .into_string()
+                .contains(r#"data-size="4""#)
+        );
+        assert!(
+            ui.section()
+                .size(0)
+                .render()
+                .into_string()
+                .contains(r#"data-size="1""#)
+        );
+        assert!(
+            !ui.section()
+                .size(3)
+                .render()
+                .into_string()
+                .contains("data-size")
+        );
+    }
+
+    #[test]
+    fn a_label_names_the_region() {
+        let m = Ui::default()
+            .section()
+            .label("Pricing")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"aria-label="Pricing""#), "{m}");
+    }
+}

@@ -162,3 +162,48 @@ pub const CSS: &str = r#"
 .lui-link-muted:hover { color: var(--lui-fg); }
 .lui-link > .lui-icon { width: 0.875em; height: 0.875em; margin-inline-start: 0.2em; vertical-align: -0.05em; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_plain_link_is_an_anchor_with_no_new_tab_markup() {
+        let m = Ui::default().link("Home", "/").render().into_string();
+        assert_eq!(m, r#"<a class="lui-link" href="/">Home</a>"#, "{m}");
+    }
+
+    #[test]
+    fn an_external_link_opens_a_new_tab_and_says_so_to_screen_readers() {
+        let m = Ui::default()
+            .link("Site", "https://example.org")
+            .external()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"target="_blank" rel="noreferrer""#), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-sr"> (opens in a new tab)</span>"#),
+            "{m}"
+        );
+        assert!(m.contains("<svg"), "{m}");
+    }
+
+    #[test]
+    fn muted_and_underline_change_the_class_and_the_data_attribute() {
+        let ui = Ui::default();
+        let m = ui
+            .link("A", "/a")
+            .muted()
+            .underline(Underline::None)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"class="lui-link lui-link-muted""#), "{m}");
+        assert!(m.contains(r#"data-underline="none""#), "{m}");
+        let always = ui
+            .link("A", "/a")
+            .underline(Underline::Always)
+            .render()
+            .into_string();
+        assert!(!always.contains("data-underline"), "{always}");
+    }
+}

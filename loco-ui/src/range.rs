@@ -415,3 +415,105 @@ pub const CSS: &str = r#"
   .lui-range-input::-moz-range-thumb { width: 1.5rem; height: 1.5rem; }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_single_slider_has_a_label_an_output_a_datalist_and_takes_the_query_value() {
+        let m = Ui::default()
+            .range("vol", "Volume")
+            .value(30)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<label for="f-vol">Volume</label>"#), "{m}");
+        assert!(m.contains(r#"type="range" class="lui-range-input" id="f-vol" name="vol" min="0" max="100" step="1" value="30" list="vol-ticks""#), "{m}");
+        assert!(m.contains(r#"style="--lui-range-fill: 30%""#), "{m}");
+        assert!(m.contains(r#"<output for="f-vol">30</output>"#), "{m}");
+        assert!(m.contains(r#"<datalist id="vol-ticks">"#), "{m}");
+        assert!(
+            !m.contains("lui-range-ticks") && !m.contains("lui-range-pair"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_query_supplies_the_value_and_a_default_sits_in_the_middle() {
+        let q = Ui::from_request("/", "vol=75", "");
+        assert!(
+            q.range("vol", "Volume")
+                .render()
+                .into_string()
+                .contains(r#"value="75""#)
+        );
+        let m = Ui::default().range("vol", "Volume").render().into_string();
+        assert!(m.contains(r#"value="50""#), "{m}");
+    }
+
+    #[test]
+    fn ticks_mark_the_lowest_and_highest_values() {
+        let m = Ui::default()
+            .range("vol", "Volume")
+            .min(10)
+            .max(90)
+            .ticks()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<div class="lui-range-ticks" aria-hidden="true"><span>10</span><span></span><span>90</span></div>"#), "{m}");
+    }
+
+    #[test]
+    fn a_pair_is_put_in_order_and_names_its_thumbs() {
+        let m = Ui::default()
+            .range_pair("price", "Price")
+            .values(80, 20)
+            .render()
+            .into_string();
+        assert!(m.contains("lui-range-pair"), "{m}");
+        assert!(
+            m.contains(r#"name="price_min""#) && m.contains(r#"name="price_max""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"value="20" aria-label="#), "{m}");
+        assert!(
+            m.contains(r#"style="--lui-range-lo: 20%; --lui-range-hi: 80%""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(
+                r#"<output for="f-price_min">20</output> – <output for="f-price_max">80</output>"#
+            ),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<label for="f-price_min">Price</label>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn readonly_posts_a_hidden_value_and_disabled_does_not() {
+        let ro = Ui::default()
+            .range("vol", "Volume")
+            .value(40)
+            .readonly()
+            .render()
+            .into_string();
+        assert!(
+            ro.contains("disabled")
+                && ro.contains(r#"type="hidden""#)
+                && ro.contains(r#"name="vol""#),
+            "{ro}"
+        );
+        let dis = Ui::default()
+            .range("vol", "Volume")
+            .disabled()
+            .render()
+            .into_string();
+        assert!(
+            dis.contains(r#"aria-disabled="true""#) && !dis.contains(r#"type="hidden""#),
+            "{dis}"
+        );
+    }
+}

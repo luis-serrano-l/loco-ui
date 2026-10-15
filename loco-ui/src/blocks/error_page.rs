@@ -163,3 +163,69 @@ pub const CSS: &str = r#"
 .lui-error-page .lui-error-page-status { font-size: var(--lui-text-9); line-height: 1; font-weight: 700; color: var(--lui-fg); letter-spacing: -0.02em; }
 .lui-error-page .lui-button { margin-top: calc(var(--lui-space) * 2); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_page_shows_a_hidden_status_a_title_a_sentence_and_a_home_button() {
+        let ui = Ui::default();
+        let m = ui.error_page(404).render().into_string();
+        assert!(m.starts_with(r#"<div class="lui-error-page">"#), "{m}");
+        assert!(
+            m.contains(r#"<p class="lui-error-page-status" aria-hidden="true">404</p>"#),
+            "{m}"
+        );
+        assert_eq!(m.matches("<h1>").count(), 1, "{m}");
+        assert!(m.contains(r#"href="/""#) && m.contains("lui-button"), "{m}");
+    }
+
+    #[test]
+    fn each_known_status_has_its_own_title_and_others_share_one() {
+        let ui = Ui::default();
+        let title = |status| {
+            let m = ui.error_page(status).render().into_string();
+            let start = m.find("<h1>").unwrap() + 4;
+            m[start..m.find("</h1>").unwrap()].to_string()
+        };
+        let known = [401, 403, 404, 422, 503].map(title);
+        for (i, a) in known.iter().enumerate() {
+            for b in &known[i + 1..] {
+                assert_ne!(a, b);
+            }
+        }
+        assert_eq!(title(500), title(418));
+        assert!(!known.contains(&title(500)));
+    }
+
+    #[test]
+    fn title_description_and_home_override_the_defaults() {
+        let ui = Ui::default();
+        let m = ui
+            .error_page(404)
+            .title("Gone")
+            .description("It moved.")
+            .home("/dash")
+            .render()
+            .into_string();
+        assert!(
+            m.contains("<h1>Gone</h1>") && m.contains("<p>It moved.</p>"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"href="/dash""#) && !m.contains(r#"href="/""#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn page_uses_the_title_as_the_document_title() {
+        let ui = Ui::default();
+        let html = ui.error_page(404).title("Gone").page().into_string();
+        assert!(
+            html.contains("<title>Gone</title>") && html.contains("lui-error-page"),
+            "{html}"
+        );
+    }
+}

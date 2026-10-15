@@ -102,3 +102,31 @@ pub const CSS: &str = r#"
 .lui-kbd[data-size="1"] { font-size: 0.7em; }
 .lui-kbd[data-size="3"] { font-size: var(--lui-text-2); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_is_a_bare_kbd_element_with_the_keys() {
+        let m = Ui::default().kbd("Ctrl K").render().into_string();
+        assert_eq!(m, r#"<kbd class="lui-kbd">Ctrl K</kbd>"#, "{m}");
+    }
+
+    #[test]
+    fn a_size_other_than_the_default_is_a_data_attribute() {
+        let ui = Ui::default();
+        let big = ui.kbd("Esc").size(3).render().into_string();
+        assert!(big.contains(r#"data-size="3""#), "{big}");
+        let small = ui.kbd("Esc").size(1).render().into_string();
+        assert!(small.contains(r#"data-size="1""#), "{small}");
+        let same = ui.kbd("Esc").size(2).render().into_string();
+        assert!(!same.contains("data-size"), "{same}");
+    }
+
+    #[test]
+    fn the_keys_are_escaped() {
+        let m = Ui::default().kbd("<").render().into_string();
+        assert!(m.contains("&lt;</kbd>"), "{m}");
+    }
+}

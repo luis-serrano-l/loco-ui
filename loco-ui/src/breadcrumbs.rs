@@ -211,3 +211,110 @@ pub const CSS: &str = r#"
 .lui-breadcrumbs-fold ol a:hover { background: var(--lui-accent); color: var(--lui-on-accent); }
 @media (pointer: coarse) { .lui-breadcrumbs-fold ol a { min-height: var(--lui-hit); } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_short_trail_is_links_then_the_current_page_in_a_named_nav() {
+        let ui = Ui::default();
+        let m = ui
+            .breadcrumbs()
+            .link("Home", "/")
+            .link("Docs", "/docs")
+            .here("Page")
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<nav class="lui-breadcrumbs" aria-label="Breadcrumb"><ol>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<li><a href="/">Home</a></li>"#), "{m}");
+        assert!(
+            m.contains(r#"<span aria-current="page">Page</span>"#),
+            "{m}"
+        );
+        assert!(
+            !m.contains("<details") && !m.contains("lui-breadcrumbs-sep"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn a_trail_of_one_middle_crumb_shows_it_inline_and_folds_it_for_narrow_boxes() {
+        let ui = Ui::default();
+        let m = ui
+            .breadcrumbs()
+            .link("Home", "/")
+            .link("A", "/a")
+            .link("B", "/b")
+            .here("Here")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<li class="lui-breadcrumbs-mid"><a href="/a">A</a></li>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains("lui-breadcrumbs-fold lui-breadcrumbs-fold-narrow"),
+            "{m}"
+        );
+        assert!(m.contains("<details>") && m.contains("\u{2026}"), "{m}");
+    }
+
+    #[test]
+    fn a_long_trail_folds_its_middle_only_into_details_and_max_moves_the_limit() {
+        let ui = Ui::default();
+        let long = ui
+            .breadcrumbs()
+            .link("Home", "/")
+            .link("A", "/a")
+            .link("B", "/b")
+            .link("C", "/c")
+            .here("Here")
+            .render()
+            .into_string();
+        assert!(
+            long.contains("<details>") && !long.contains("lui-breadcrumbs-mid"),
+            "{long}"
+        );
+        assert!(
+            long.contains(r#"<li class="lui-breadcrumbs-fold">"#),
+            "{long}"
+        );
+        let pos = |s: &str| long.find(s).unwrap();
+        assert!(
+            pos(r#"href="/""#) < pos("<details") && pos("<details") < pos(r#"<li><a href="/c">"#),
+            "{long}"
+        );
+        let roomy = ui
+            .breadcrumbs()
+            .max(10)
+            .link("Home", "/")
+            .link("A", "/a")
+            .link("B", "/b")
+            .link("C", "/c")
+            .here("Here")
+            .render()
+            .into_string();
+        assert!(!roomy.contains("lui-breadcrumbs-fold\""), "{roomy}");
+    }
+
+    #[test]
+    fn a_custom_separator_is_hidden_from_assistive_tech_and_marks_the_root() {
+        let m = Ui::default()
+            .breadcrumbs()
+            .separator(">")
+            .link("Home", "/")
+            .here("Here")
+            .render()
+            .into_string();
+        assert!(m.contains("lui-breadcrumbs lui-breadcrumbs-custom"), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-breadcrumbs-sep" aria-hidden="true">&gt;</span>"#),
+            "{m}"
+        );
+        assert_eq!(m.matches("lui-breadcrumbs-sep").count(), 1, "{m}");
+    }
+}

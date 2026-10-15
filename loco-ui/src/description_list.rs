@@ -124,3 +124,59 @@ pub const CSS: &str = r#"
   }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn items_render_as_dt_dd_pairs_each_in_a_div() {
+        let m = Ui::default()
+            .description_list()
+            .item("Plan", "Team")
+            .item("Seats", "12")
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<dl class="lui-description-list">"#), "{m}");
+        assert!(
+            m.contains(
+                r#"<div class="lui-description-list-item"><dt>Plan</dt><dd>Team</dd></div>"#
+            ),
+            "{m}"
+        );
+        assert_eq!(m.matches("<dt>").count(), 2, "{m}");
+        assert!(m.find("Plan").unwrap() < m.find("Seats").unwrap(), "{m}");
+    }
+
+    #[test]
+    fn a_detail_can_be_markup_and_text_is_escaped() {
+        let ui = Ui::default();
+        let m = ui
+            .description_list()
+            .item("Status", ui.badge("Active").ok())
+            .item("<t>", "<d>")
+            .render()
+            .into_string();
+        assert!(
+            m.contains("<dd><span class=\"lui-badge lui-badge-ok\""),
+            "{m}"
+        );
+        assert!(m.contains("<dt>&lt;t&gt;</dt><dd>&lt;d&gt;</dd>"), "{m}");
+    }
+
+    #[test]
+    fn stacked_adds_its_class_and_an_empty_list_has_no_pairs() {
+        let ui = Ui::default();
+        let m = ui.description_list().stacked().render().into_string();
+        assert_eq!(
+            m,
+            r#"<dl class="lui-description-list lui-description-list-stacked"></dl>"#
+        );
+        assert!(
+            !ui.description_list()
+                .render()
+                .into_string()
+                .contains("stacked")
+        );
+    }
+}

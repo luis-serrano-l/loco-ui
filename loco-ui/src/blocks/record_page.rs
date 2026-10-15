@@ -160,3 +160,79 @@ pub const CSS: &str = r#"
 /* The fields are a description list in a card. */
 .lui-record-fields { padding: var(--lui-space-6); background: var(--lui-card); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-lg); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Caps;
+
+    #[test]
+    fn fields_are_term_and_detail_pairs_under_an_h1_with_no_actions_by_default() {
+        let ui = Ui::default();
+        let m = ui
+            .record_page("Invoice 42")
+            .field("Customer", "Ada")
+            .field("Total", html! { b { "€120" } })
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(
+                r#"<div class="lui-record"><div class="lui-record-head"><h1>Invoice 42</h1>"#
+            ),
+            "{m}"
+        );
+        assert!(m.contains("<dt>Customer</dt><dd>Ada</dd>"), "{m}");
+        assert!(m.contains("<dt>Total</dt><dd><b>€120</b></dd>"), "{m}");
+        assert!(
+            m.find("Customer").unwrap() < m.find("Total").unwrap(),
+            "{m}"
+        );
+        assert!(!m.contains("<dialog") && !m.contains("lui-button"), "{m}");
+    }
+
+    #[test]
+    fn edit_and_back_are_links_and_delete_asks_in_a_dialog_that_posts() {
+        let ui = Ui::default();
+        let m = ui
+            .record_page("Invoice 42")
+            .back("/invoices")
+            .edit("/invoices/42/edit")
+            .delete("/invoices/42/delete")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"href="/invoices""#) && m.contains(r#"href="/invoices/42/edit""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<h2 id="lui-record-delete-title" class="lui-dialog-title">Delete Invoice 42?</h2>"#), "{m}");
+        assert!(
+            m.contains(r#"method="post""#) && m.contains(r#"action="/invoices/42/delete""#),
+            "{m}"
+        );
+        assert!(
+            m.find("/invoices\"").unwrap() < m.find("/edit\"").unwrap(),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_delete_button_opens_by_invoker_or_by_target_depending_on_caps() {
+        let page = |caps| {
+            Ui::from(caps)
+                .record_page("R")
+                .delete("/d")
+                .render()
+                .into_string()
+        };
+        let (on, off) = (page(Caps::all()), page(Caps::NONE));
+        assert!(
+            on.contains("commandfor") && !off.contains("commandfor"),
+            "{on}\n{off}"
+        );
+        assert!(
+            off.contains(r##"href="#lui-record-delete""##)
+                && !on.contains(r##"href="#lui-record-delete""##),
+            "{on}\n{off}"
+        );
+    }
+}

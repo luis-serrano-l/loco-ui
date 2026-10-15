@@ -591,3 +591,200 @@ pub const CSS: &str = r#"
 .lui-select-icon { display: inline-block; width: 1.25em; text-align: center; }
 .lui-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 50%; vertical-align: -0.15em; margin-inline-end: 0.4em; border: 1px solid var(--lui-line); }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sizes() -> [(&'static str, &'static str); 2] {
+        [("s", "Small"), ("l", "Large")]
+    }
+
+    #[test]
+    fn the_rich_trigger_and_option_content_need_base_select_and_the_plain_select_has_neither() {
+        let rich = Ui::from(Caps::all())
+            .select("size", "Size")
+            .options(sizes())
+            .render()
+            .into_string();
+        assert!(
+            rich.contains("lui-select-trigger") && rich.contains("<selectedcontent>"),
+            "{rich}"
+        );
+        let plain = Ui::from(Caps::NONE)
+            .select("size", "Size")
+            .options(sizes())
+            .render()
+            .into_string();
+        assert!(
+            !plain.contains("selectedcontent") && !plain.contains("lui-select-trigger"),
+            "{plain}"
+        );
+        assert!(
+            plain.contains(r#"<label for="f-size">Size</label>"#)
+                && plain.contains("<option value=\"s\">Small</option>"),
+            "{plain}"
+        );
+    }
+
+    #[test]
+    fn rich_option_content_replaces_the_text_only_with_base_select() {
+        let opts = [SelectOption::new("k", "Kiwi").body(html! { b { "Kiwi!" } })];
+        let rich = Ui::from(Caps::all())
+            .select("f", "Fruit")
+            .options(opts.clone())
+            .render()
+            .into_string();
+        assert!(rich.contains("<b>Kiwi!</b>"), "{rich}");
+        let plain = Ui::from(Caps::NONE)
+            .select("f", "Fruit")
+            .options(opts)
+            .render()
+            .into_string();
+        assert!(
+            plain.contains(">Kiwi</option>") && !plain.contains("<b>"),
+            "{plain}"
+        );
+    }
+
+    #[test]
+    fn the_value_or_query_marks_the_selected_option_and_groups_become_optgroups() {
+        let ui = Ui::from(Caps::NONE);
+        let m = ui
+            .select("size", "Size")
+            .options(sizes())
+            .value("l")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<option value="l" selected>"#)
+                && !m.contains(r#"<option value="s" selected>"#),
+            "{m}"
+        );
+        let q = Ui::from_request("/", "size=s", "");
+        let m = q
+            .select("size", "Size")
+            .options(sizes())
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<option value="s" selected>"#), "{m}");
+        let ui = Ui::from(Caps::NONE);
+        let m = ui
+            .select("f", "Fruit")
+            .placeholder("Pick")
+            .group("Citrus", [("o", "Orange")])
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<option value="" selected>Pick</option>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<optgroup label="Citrus"><option value="o">Orange</option></optgroup>"#),
+            "{m}"
+        );
+        let m = ui
+            .select("f", "Fruit")
+            .placeholder("Pick")
+            .options([("o", "Orange")])
+            .value("o")
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<option value="">Pick</option>"#), "{m}");
+    }
+
+    #[test]
+    fn the_filter_box_appears_over_the_limit_and_keeps_matches_and_the_selection() {
+        let ui = Ui::from_request("/shop", "f=pear&f-q=ap", "");
+        let opts = [("apple", "Apple"), ("pear", "Pear"), ("fig", "Fig")];
+        let m = ui
+            .select("f", "Fruit")
+            .options(opts)
+            .search("/shop")
+            .search_over(2)
+            .render()
+            .into_string();
+        assert!(
+            m.contains("lui-select-search") && m.contains(r#"formaction="/shop""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(">Apple<") && m.contains(">Pear<") && !m.contains(">Fig<"),
+            "{m}"
+        );
+        let few = ui
+            .select("f", "Fruit")
+            .options(opts)
+            .search("/shop")
+            .search_over(3)
+            .render()
+            .into_string();
+        assert!(
+            !few.contains("lui-select-search") && few.contains(">Fig<"),
+            "{few}"
+        );
+    }
+
+    #[test]
+    fn error_help_hidden_label_readonly_and_multiple_shape_the_field() {
+        let ui = Ui::from(Caps::NONE);
+        let m = ui
+            .select("size", "Size")
+            .options(sizes())
+            .help("Hint")
+            .error("Bad")
+            .required()
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"aria-invalid="true""#)
+                && m.contains("f-size-help")
+                && m.contains("f-size-error"),
+            "{m}"
+        );
+        assert!(
+            m.contains("Hint") && m.contains("Bad") && m.contains("required"),
+            "{m}"
+        );
+        let bare = ui
+            .select("size", "Size")
+            .options(sizes())
+            .hide_label()
+            .render()
+            .into_string();
+        assert!(
+            bare.contains(r#"aria-label="Size""#)
+                && !bare.contains("<label")
+                && !bare.contains("lui-field\""),
+            "{bare}"
+        );
+    }
+
+    #[test]
+    fn readonly_posts_hidden_values_and_multiple_drops_the_rich_trigger() {
+        let ui = Ui::from(Caps::all());
+        let ro = ui
+            .select("size", "Size")
+            .options(sizes())
+            .value("l")
+            .readonly()
+            .render()
+            .into_string();
+        assert!(
+            ro.contains("disabled")
+                && ro.contains(r#"type="hidden""#)
+                && ro.contains(r#"value="l""#),
+            "{ro}"
+        );
+        let multi = ui
+            .select("size", "Size")
+            .options(sizes())
+            .multiple()
+            .render()
+            .into_string();
+        assert!(
+            multi.contains("multiple") && !multi.contains("selectedcontent"),
+            "{multi}"
+        );
+    }
+}

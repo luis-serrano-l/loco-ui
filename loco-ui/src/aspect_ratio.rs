@@ -103,3 +103,42 @@ pub const CSS: &str = r#"
   .lui-aspect-ratio > * { position: absolute; inset: 0; width: 100%; height: 100%; }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_box_has_no_inline_ratio_and_holds_its_body() {
+        let m = Ui::default()
+            .aspect_ratio()
+            .body(html! { span { "inside" } })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<div class="lui-aspect-ratio">"#), "{m}");
+        assert!(
+            m.contains("<span>inside</span>") && !m.contains("style="),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn ratio_sets_the_aspect_ratio_style() {
+        let m = Ui::default()
+            .aspect_ratio()
+            .ratio(4, 3)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"style="aspect-ratio: 4 / 3""#), "{m}");
+    }
+
+    #[test]
+    fn a_zero_ratio_side_is_raised_to_one() {
+        let m = Ui::default()
+            .aspect_ratio()
+            .ratio(0, 0)
+            .render()
+            .into_string();
+        assert!(m.contains("aspect-ratio: 1 / 1"), "{m}");
+    }
+}

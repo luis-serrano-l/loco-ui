@@ -260,3 +260,79 @@ pub const CSS: &str = r#"
 .lui-accordion .lui-accordion .lui-accordion-trigger { padding: 0.5rem 0; }
 .lui-accordion .lui-accordion .lui-accordion-body { padding: 0 0 0.75rem; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn render(ui: &Ui, group: &str) -> String {
+        ui.accordion(group)
+            .item("One", html! { p { "first" } })
+            .item("Two", html! { p { "second" } })
+            .render()
+            .into_string()
+    }
+
+    #[test]
+    fn items_render_closed_with_a_hidden_body_by_default() {
+        let m = render(&Ui::from_request("/p", "", ""), "g");
+        assert!(m.contains(r#"class="lui-accordion""#), "{m}");
+        assert!(
+            m.contains(r#"id="lui-accordion-g""#) && m.contains(r#"data-lui="swap""#),
+            "{m}"
+        );
+        assert_eq!(m.matches(r#"data-state="closed""#).count(), 6, "{m}");
+        assert!(m.contains(r#"id="lui-accordion-g-panel-0""#), "{m}");
+        assert!(
+            m.contains(r#"aria-controls="lui-accordion-g-panel-1""#),
+            "{m}"
+        );
+        assert_eq!(m.matches(" hidden").count(), 2, "{m}");
+    }
+
+    #[test]
+    fn the_open_item_comes_from_the_query_and_shows_its_body() {
+        let m = render(&Ui::from_request("/p", "open.g=1", ""), "g");
+        assert!(m.contains(r#"aria-expanded="true""#), "{m}");
+        assert!(m.contains(r#"aria-expanded="false""#), "{m}");
+        assert_eq!(m.matches(" hidden").count(), 1, "{m}");
+        assert!(m.contains(r#"href="/p?open.g=" data-state="open""#), "{m}");
+    }
+
+    #[test]
+    fn exclusive_titles_replace_and_multiple_titles_add() {
+        let ui = Ui::from_request("/p", "open.g=0", "");
+        let one = render(&ui, "g");
+        assert!(one.contains(r#"href="/p?open.g=1""#), "{one}");
+        let many = ui
+            .accordion("g")
+            .item("One", html! { "a" })
+            .item("Two", html! { "b" })
+            .multiple()
+            .controls()
+            .render()
+            .into_string();
+        assert!(many.contains(r#"href="/p?open.g=0%2C1""#), "{many}");
+        assert!(many.contains("lui-accordion-controls"), "{many}");
+        assert!(!one.contains("lui-accordion-controls"), "{one}");
+    }
+
+    #[test]
+    fn icon_and_description_apply_to_the_item_added_last() {
+        let ui = Ui::default();
+        let m = ui
+            .accordion("g")
+            .item("One", html! { "a" })
+            .item("Two", html! { "b" })
+            .icon("*")
+            .description("Hint")
+            .render()
+            .into_string();
+        assert_eq!(m.matches("lui-accordion-icon").count(), 1, "{m}");
+        assert!(m.contains(r#"class="lui-accordion-summary">Hint"#), "{m}");
+        assert!(
+            m.find("lui-accordion-icon").unwrap() > m.find("One").unwrap(),
+            "{m}"
+        );
+    }
+}

@@ -258,3 +258,75 @@ pub const CSS: &str = r#"
   }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_current_step_is_marked_and_a_done_step_has_a_check_and_a_hidden_note() {
+        let ui = Ui::default();
+        let m = ui
+            .steps()
+            .step("Cart")
+            .done()
+            .step("Address")
+            .current()
+            .step("Pay")
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<ol class="lui-steps">"#), "{m}");
+        assert!(
+            m.contains(r#"<li class="lui-steps-current" aria-current="step">"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<li class="lui-steps-done">"#), "{m}");
+        assert_eq!(m.matches("aria-current").count(), 1, "{m}");
+        assert!(m.contains(r#"class="lui-sr""#), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-steps-dot" aria-hidden="true">3</span>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn an_invalid_step_shows_a_bang_and_a_hidden_note() {
+        let ui = Ui::default();
+        let m = ui
+            .steps()
+            .step("Profile")
+            .current()
+            .invalid()
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"class="lui-steps-current lui-steps-error""#),
+            "{m}"
+        );
+        assert!(m.contains(r#"aria-hidden="true">!</span>"#), "{m}");
+        assert!(m.contains(r#"<span class="lui-sr">"#), "{m}");
+    }
+
+    #[test]
+    fn href_links_the_title_and_description_and_optional_add_their_parts() {
+        let ui = Ui::default();
+        let m = ui
+            .steps()
+            .step("Account")
+            .href("/back")
+            .step("Profile")
+            .optional()
+            .description("A photo.")
+            .vertical()
+            .render()
+            .into_string();
+        assert!(m.contains(r#"<a href="/back">Account</a>"#), "{m}");
+        assert!(m.contains("<small>"), "{m}");
+        assert!(
+            m.contains(r#"<span class="lui-steps-description">A photo.</span>"#),
+            "{m}"
+        );
+        assert!(m.contains("lui-steps lui-steps-vertical"), "{m}");
+        assert_eq!(m.matches("<small>").count(), 1, "{m}");
+    }
+}

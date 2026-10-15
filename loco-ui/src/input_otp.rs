@@ -190,3 +190,80 @@ pub const CSS: &str = r#"
     linear-gradient(var(--lui-ring) 0 0) calc(var(--lui-otp-cell) * var(--lui-otp-at)) 0 / var(--lui-otp-cell) 100% no-repeat;
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_is_one_numeric_six_digit_one_time_code_field() {
+        let m = Ui::default()
+            .input_otp("code", "Code")
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<div class="lui-otp" style="--lui-otp-cells: 6; --lui-otp-at: 0">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"name="code""#) && m.contains("lui-otp-input"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"autocomplete="one-time-code""#) && m.contains(r#"inputmode="numeric""#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"pattern="[0-9]{6}""#) && m.contains(r#"maxlength="6""#),
+            "{m}"
+        );
+        assert_eq!(m.matches("<input").count(), 1, "{m}");
+    }
+
+    #[test]
+    fn length_sets_the_pattern_and_group_adds_a_divider_property() {
+        let m = Ui::default()
+            .input_otp("code", "Code")
+            .length(8)
+            .group(4)
+            .render()
+            .into_string();
+        assert!(m.contains(r#"class="lui-otp lui-otp-grouped""#), "{m}");
+        assert!(
+            m.contains("--lui-otp-cells: 8") && m.contains("--lui-otp-group: 4"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"pattern="[0-9]{8}""#) && m.contains(r#"maxlength="8""#),
+            "{m}"
+        );
+        let m = Ui::default()
+            .input_otp("c", "C")
+            .length(0)
+            .group(0)
+            .render()
+            .into_string();
+        assert!(
+            m.contains("--lui-otp-cells: 1") && !m.contains("grouped"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_posted_value_is_refilled_and_the_ringed_cell_follows_it() {
+        let ui = Ui::from_request("/", "code=123", "");
+        let m = ui
+            .input_otp("code", "Code")
+            .id("otp")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"value="123""#) && m.contains(r#"id="otp""#),
+            "{m}"
+        );
+        assert!(m.contains("--lui-otp-at: 3"), "{m}");
+        let ui = Ui::from_request("/", "code=123456", "");
+        let m = ui.input_otp("code", "Code").render().into_string();
+        assert!(m.contains("--lui-otp-at: 5"), "{m}");
+    }
+}

@@ -7,8 +7,7 @@ the owner, as of 2026-10-15:
 1. The crates.io publish, as 0.2.0 (on hold until you say yes).
 2. Posting the announcement (M26) and asking Loco for a link (M29), both after the publish.
 3. Filing the Blitz and browser gaps that FINDINGS marks "the owner files it".
-4. The Dependabot pull requests that fail CI.
-5. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
+4. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
 
 ## Name, license and repository (M13, box 1), answered
 
@@ -124,14 +123,6 @@ CLAUDE.md convention 9 says each component copies one of Radix Themes, Origin UI
 Tremor or Dice UI. `loco-ui/src/timeline.rs` (M40b) copies the Flowbite Timeline, which is
 not on that list, as the M40b box asked. Answered 2026-10-15: restyle it. It now copies the
 Origin UI Timeline.
-
-## Dependabot pull requests fail CI, open
-
-The Dependabot pull requests were cut before the CI fixes on `main` (the latest is
-3383650), so they fail for reasons that are not theirs. Rebasing them (`@dependabot rebase`) is an action
-on GitHub, so it is yours. One may need code: `toml_edit` 0.22 to 0.25 (the `cli` feature,
-`loco-ui/src/bin/cargo-lui/`) changes its API, so that bump should be tried locally before
-it is merged.
 
 ## One snippet style: `/wizard` and `/palette` (M34, "One snippet style" box), open
 

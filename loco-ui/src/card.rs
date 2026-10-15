@@ -356,3 +356,84 @@ pub const CSS: &str = r#"
 }
 @keyframes lui-reveal { from { opacity: 0; translate: 0 1.5rem; } }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn html_of(c: Card) -> String {
+        c.render().into_string()
+    }
+
+    #[test]
+    fn an_empty_card_is_a_bare_root_and_the_parts_appear_only_when_set() {
+        let ui = Ui::default();
+        assert_eq!(html_of(ui.card()), r#"<div class="lui-card"></div>"#);
+        let m = html_of(ui.card().title("T").body(html! { "b" }));
+        assert!(m.contains(r#"<h3 class="lui-card-title">T</h3>"#), "{m}");
+        assert!(m.contains(r#"<div class="lui-card-body">b</div>"#), "{m}");
+        assert!(
+            !m.contains("lui-card-footer")
+                && !m.contains("lui-card-description")
+                && !m.contains("lui-card-action"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn header_description_and_footer_land_in_their_parts_in_order() {
+        let m = html_of(
+            Ui::default()
+                .card()
+                .title("T")
+                .description("D")
+                .header(html! { "act" })
+                .body(html! { "b" })
+                .footer(html! { "f" }),
+        );
+        assert!(
+            m.contains(r#"<p class="lui-card-description">D</p>"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<div class="lui-card-action">act</div>"#),
+            "{m}"
+        );
+        assert!(m.contains(r#"<div class="lui-card-footer">f</div>"#), "{m}");
+        let at = |s: &str| m.find(s).unwrap();
+        assert!(
+            at("lui-card-header") < at("lui-card-body")
+                && at("lui-card-body") < at("lui-card-footer"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn an_action_without_a_title_still_gets_a_header_but_no_heading() {
+        let m = html_of(Ui::default().card().header(html! { "act" }));
+        assert!(
+            m.contains("lui-card-header") && m.contains("lui-card-action"),
+            "{m}"
+        );
+        assert!(!m.contains("lui-card-heading"), "{m}");
+    }
+
+    #[test]
+    fn variant_classic_and_size_replace_each_other_and_effects_add_classes() {
+        let ui = Ui::default();
+        let m = html_of(ui.card().classic());
+        assert!(m.contains("lui-card lui-card-classic"), "{m}");
+        let m = html_of(ui.card().classic().ghost().size(3).id("c"));
+        assert!(
+            m.contains("lui-card-ghost") && !m.contains("classic"),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"data-size="3""#) && m.contains(r#"id="c""#),
+            "{m}"
+        );
+        let m = html_of(ui.card().classic().variant(Variant::Ghost).beam());
+        assert!(!m.contains("classic") && m.contains("lui-card-beam"), "{m}");
+        assert!(!html_of(ui.card()).contains("data-"));
+    }
+}

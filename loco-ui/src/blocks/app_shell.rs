@@ -212,3 +212,97 @@ pub const CSS: &str = r#"
 .lui-app-shell-user > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lui-app-shell-user > .lui-button { grid-column: 1 / -1; justify-self: start; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Caps, Icon};
+
+    #[test]
+    fn the_shell_holds_links_the_user_form_and_the_body() {
+        let ui = Ui::from_request("/", "", "");
+        let m = ui
+            .app_shell("Acme")
+            .link("Dashboard", "/")
+            .user("Ada", "/signout")
+            .body(html! { h1 { "Hello" } })
+            .render()
+            .into_string();
+        assert!(m.starts_with(r#"<div class="lui-app-shell">"#), "{m}");
+        assert!(m.contains(r#"<a href="/" aria-current="page">"#), "{m}");
+        assert!(
+            m.contains(r#"<form method="post" action="/signout" class="lui-app-shell-user">"#),
+            "{m}"
+        );
+        assert!(m.contains("<h1>Hello</h1>") && m.contains("Acme"), "{m}");
+        let none = ui.app_shell("Acme").render().into_string();
+        assert!(!none.contains("lui-app-shell-user"), "{none}");
+    }
+
+    #[test]
+    fn groups_icons_badges_and_the_banner_land_in_the_right_places() {
+        let ui = Ui::from_request("/", "", "");
+        let m = ui
+            .app_shell("Acme")
+            .banner(ui.banner("Down at 22:00.").render())
+            .link("Inbox", "/")
+            .icon(Icon::Mail)
+            .badge(3)
+            .group("Projects")
+            .link("Apollo", "/p/apollo")
+            .badge(12)
+            .render()
+            .into_string();
+        assert!(
+            m.starts_with(r#"<div class="lui-app-shell"><aside class="lui-banner""#),
+            "{m}"
+        );
+        assert!(m.contains(">Projects</p>"), "{m}");
+        assert!(
+            m.contains("lui-sidebar-badge\">3<") && m.contains("lui-sidebar-badge\">12<"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn current_prefix_marks_a_link_for_a_path_below_it() {
+        let ui = Ui::from_request("/p/apollo/settings", "", "");
+        let plain = ui
+            .app_shell("A")
+            .link("Apollo", "/p/apollo")
+            .render()
+            .into_string();
+        assert!(!plain.contains("aria-current"), "{plain}");
+        let m = ui
+            .app_shell("A")
+            .current_prefix()
+            .link("Apollo", "/p/apollo")
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"<a href="/p/apollo" aria-current="page">"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_menu_follows_the_drawer_capabilities() {
+        let page = |caps| {
+            Ui::from(caps)
+                .app_shell("Acme")
+                .link("Home", "/")
+                .render()
+                .into_string()
+        };
+        let (on, off) = (page(Caps::all()), page(Caps::NONE));
+        assert_ne!(on, off);
+        assert!(
+            on.contains("commandfor") && !off.contains("commandfor"),
+            "{on}\n{off}"
+        );
+        assert!(
+            off.contains(r##"href="#app""##) && !on.contains(r##"href="#app""##),
+            "{on}\n{off}"
+        );
+    }
+}

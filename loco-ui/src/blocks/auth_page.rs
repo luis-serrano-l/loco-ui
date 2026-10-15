@@ -116,3 +116,67 @@ pub const CSS: &str = r#"
 .lui-auth-card .lui-form { max-width: none; }
 .lui-auth-footer { font-size: var(--lui-text-2); color: var(--lui-muted); text-align: center; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_title_is_the_h1_in_a_card_and_nothing_optional_is_rendered_by_default() {
+        let ui = Ui::default();
+        let m = ui.auth_page("Sign in").render().into_string();
+        assert!(
+            m.starts_with(r#"<div class="lui-auth"><div class="lui-auth-card">"#),
+            "{m}"
+        );
+        assert!(
+            m.contains(r#"<h1 class="lui-auth-title">Sign in</h1>"#),
+            "{m}"
+        );
+        assert!(
+            !m.contains("lui-auth-description") && !m.contains("lui-auth-footer"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn description_and_body_go_inside_the_card_in_order() {
+        let ui = Ui::default();
+        let m = ui
+            .auth_page("T")
+            .description("Welcome back.")
+            .body(html! { form { "F" } })
+            .render()
+            .into_string();
+        let card_end = m.find("</form>").unwrap();
+        let (h1, d, f) = (
+            m.find("<h1").unwrap(),
+            m.find("Welcome back.").unwrap(),
+            m.find("<form>").unwrap(),
+        );
+        assert!(h1 < d && d < f && f < card_end, "{m}");
+        assert!(
+            m.contains(r#"<p class="lui-auth-description">Welcome back.</p>"#),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn the_footer_sits_after_the_card() {
+        let ui = Ui::default();
+        let m = ui
+            .auth_page("T")
+            .body(html! { i { "body" } })
+            .footer(html! { a href="/signup" { "Create" } })
+            .render()
+            .into_string();
+        assert!(
+            m.ends_with(r#"<div class="lui-auth-footer"><a href="/signup">Create</a></div></div>"#),
+            "{m}"
+        );
+        assert!(
+            m.find("body").unwrap() < m.find("lui-auth-footer").unwrap(),
+            "{m}"
+        );
+    }
+}

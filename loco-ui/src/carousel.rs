@@ -193,3 +193,82 @@ pub const CSS: &str = r#"
   .lui-carousel-item::scroll-marker:target-current { background: var(--lui-fg); }
 }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn three() -> String {
+        Ui::default()
+            .carousel("Photos")
+            .item(html! { "One" })
+            .item(html! { "Two" })
+            .item(html! { "Three" })
+            .render()
+            .into_string()
+    }
+
+    #[test]
+    fn the_root_is_a_labelled_carousel_section_with_a_focusable_viewport() {
+        let m = three();
+        assert!(m.starts_with(r#"<section class="lui-carousel" aria-roledescription="carousel" aria-label="Photos">"#), "{m}");
+        assert!(
+            m.contains(r#"class="lui-carousel-viewport" tabindex="0""#),
+            "{m}"
+        );
+        assert!(m.contains("data-prev=") && m.contains("data-next="), "{m}");
+    }
+
+    #[test]
+    fn every_slide_has_an_id_from_the_label_and_a_group_name_with_its_position() {
+        let m = three();
+        for i in 1..=3 {
+            assert!(
+                m.contains(&format!(r#"id="photos-{i}" class="lui-carousel-item""#)),
+                "{m}"
+            );
+            assert!(
+                m.contains(&format!(r#"aria-label="Slide {i} of 3""#)),
+                "{m}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_first_slide_has_no_previous_link_and_the_last_has_no_next() {
+        let m = three();
+        assert_eq!(m.matches("lui-carousel-prev").count(), 2, "{m}");
+        assert_eq!(m.matches("lui-carousel-next").count(), 2, "{m}");
+        let first = &m[m.find(r#"id="photos-1""#).unwrap()..m.find(r#"id="photos-2""#).unwrap()];
+        assert!(
+            !first.contains("lui-carousel-prev") && first.contains(r##"href="#photos-2""##),
+            "{first}"
+        );
+        let last = &m[m.find(r#"id="photos-3""#).unwrap()..m.find("lui-carousel-dots").unwrap()];
+        assert!(
+            !last.contains("lui-carousel-next") && last.contains(r##"href="#photos-2""##),
+            "{last}"
+        );
+        assert_eq!(m.matches("lui-carousel-dot\"").count(), 3, "{m}");
+    }
+
+    #[test]
+    fn id_overrides_the_slug_and_a_single_slide_has_no_links_or_dots() {
+        let m = Ui::default()
+            .carousel("Photos")
+            .id("trip")
+            .item(html! { "Only" })
+            .render()
+            .into_string();
+        assert!(
+            m.contains(r#"id="trip-1""#) && !m.contains("photos-1"),
+            "{m}"
+        );
+        assert!(
+            !m.contains("lui-carousel-dots")
+                && !m.contains("lui-carousel-prev")
+                && !m.contains("lui-carousel-next"),
+            "{m}"
+        );
+    }
+}

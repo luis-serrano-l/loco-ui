@@ -202,3 +202,52 @@ pub const CSS: &str = r#"
 .lui-cluster[data-justify=end] { justify-content: flex-end; }
 .lui-cluster[data-justify=between] { justify-content: space-between; }
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn html_of(c: Cluster) -> String {
+        c.render().into_string()
+    }
+
+    #[test]
+    fn a_plain_cluster_has_only_its_class_and_body() {
+        let m = html_of(Ui::default().cluster().body(html! { i { "x" } }));
+        assert_eq!(m, r#"<div class="lui-cluster"><i>x</i></div>"#);
+    }
+
+    #[test]
+    fn between_and_end_are_classes_and_other_justifies_are_data() {
+        let ui = Ui::default();
+        assert!(html_of(ui.cluster().between()).contains("lui-cluster lui-cluster-between"));
+        assert!(html_of(ui.cluster().end()).contains("lui-cluster-end"));
+        let m = html_of(ui.cluster().justify(Justify::Center));
+        assert!(
+            m.contains(r#"data-justify="center""#) && !m.contains("lui-cluster-"),
+            "{m}"
+        );
+        let m = html_of(ui.cluster().justify(Justify::Between));
+        assert!(
+            m.contains("lui-cluster-between") && !m.contains("data-justify"),
+            "{m}"
+        );
+    }
+
+    #[test]
+    fn gap_padding_nowrap_and_align_combine() {
+        let m = html_of(
+            Ui::default()
+                .cluster()
+                .gap(2)
+                .padding(3)
+                .nowrap()
+                .align(Align::Center),
+        );
+        assert!(
+            m.contains("lui-cluster lui-cluster-nowrap lui-gap-2 lui-pad-3"),
+            "{m}"
+        );
+        assert!(m.contains(r#"data-align="center""#), "{m}");
+    }
+}
