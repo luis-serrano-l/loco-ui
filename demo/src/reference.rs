@@ -306,13 +306,13 @@ pub(crate) fn sections(entry: &Entry, builders: &[&Component]) -> Markup {
                 h2 id="keyboard" { "Keyboard" }
                 @for (name, keys) in &keyboard {
                     @if several { h3 { (name) } }
-                    table {
+                    div class="lui-props-scroll" tabindex="0" role="region" aria-label={ (name) " keyboard" } { table {
                         thead { tr { th { "Keys" } th { "What they do" } } }
                         tbody { @for k in keys { tr {
                             td { (keys_markup(k.keys)) }
                             td { (crate::docs::inline(k.does)) @if k.script { " " span class="lui-badge" { "script" } } }
                         } } }
-                    }
+                    } }
                 }
             }
             (prose("without-script", "Without script", &without))
