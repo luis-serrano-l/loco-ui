@@ -6,10 +6,9 @@ the owner, as of 2026-10-15:
 
 1. The crates.io publish, as 0.2.0 (on hold until you say yes).
 2. Posting the announcement (M26) and asking Loco for a link (M29), both after the publish.
-3. The Timeline copies Flowbite, which is not on the list of reference libraries.
-4. Filing the Blitz and browser gaps that FINDINGS marks "the owner files it".
-5. The Dependabot pull requests that fail CI.
-6. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
+3. Filing the Blitz and browser gaps that FINDINGS marks "the owner files it".
+4. The Dependabot pull requests that fail CI.
+5. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
 
 ## Name, license and repository (M13, box 1), answered
 
@@ -119,12 +118,12 @@ one "motion features" issue if the maintainers prefer; item 9 may belong on serv
 phrase in FINDINGS.md with the links. Nothing in the library waits on it: every effect has
 its at-rest fallback proved in Blitz today.
 
-## The Timeline copies Flowbite (M40b), open
+## The Timeline copies Flowbite (M40b), answered
 
 CLAUDE.md convention 9 says each component copies one of Radix Themes, Origin UI, shadcn/ui,
 Tremor or Dice UI. `loco-ui/src/timeline.rs` (M40b) copies the Flowbite Timeline, which is
-not on that list, as the M40b box asked. Yours: add Flowbite to the list in CLAUDE.md, or
-have the Timeline restyled after one of the five.
+not on that list, as the M40b box asked. Answered 2026-10-15: restyle it. It now copies the
+Origin UI Timeline.
 
 ## Dependabot pull requests fail CI, open
 

@@ -38,7 +38,7 @@ pub(crate) const PAGES: &[super::Simple] = &[
     (
         "/timeline",
         timeline,
-        "From 30rem the dates move into a column of their own.",
+        "The date sits above each title at every width; a tone fills the ring or the icon.",
     ),
     (
         "/tree",

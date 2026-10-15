@@ -25,23 +25,22 @@
 |---|---|---|---|
 | `<ol>` | 1 | 1 | 1 |
 | `<time datetime>` | 62 | 22 | 7 |
-| `@container` | 105 | 110 | 16 |
+| `:has()` | 105 | 121 | 15.4 |
 
 - Fallback: none needed
 - Needs script: no
-- Responsive by: container
-- Look after: Flowbite Timeline
+- Responsive by: content
+- Look after: Origin UI Timeline
 
 ## Documentation
 
 What happened, in order: a vertical line with a dot (or an icon) per event, each with
-when it happened, a title and a line of description. From 30rem the dates move into a
-column of their own left of the line. After the Flowbite Timeline.
+when it happened, a title and a line of description. After the Origin UI Timeline.
 
 **Platform features:** an `<ol>` (baseline since HTML 2); the line is each item's
 `::before`; a date given with `.datetime(..)` is a `<time datetime>` (Chrome 62, Firefox
-22, Safari 7); a container query (`@container`, Chrome 105, Firefox 110, Safari 16) adds
-the date column from 30rem.
+22, Safari 7); `:has()` (Chrome 105, Firefox 121, Safari 15.4) starts the line below an
+icon.
 
 **Accessibility:** an ordered list read in order; each event's dot or icon is
 `aria-hidden`, so the date, title and description are what is read. Checked by axe-core in

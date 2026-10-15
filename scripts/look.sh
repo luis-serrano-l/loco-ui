@@ -85,7 +85,7 @@ popover-card|/popover-card|$radix/popover
 carousel|/carousel|$shadcn/carousel
 pagination|/pagination?page.posts=7|$shadcn/pagination
 steps|/steps|$origin/stepper
-timeline|/timeline|https://flowbite.com/docs/components/timeline/
+timeline|/timeline|https://originui.com/timeline
 tree|/tree?open.files=2|$origin/tree
 collapsible|/collapsible|$shadcn/collapsible
 hover-card|/hover-card|$radix/hover-card

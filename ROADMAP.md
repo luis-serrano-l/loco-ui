@@ -2742,9 +2742,11 @@ Each box = one file `loco-ui/src/<name>.rs`, one `pub mod`, one `COMPONENT_CSS` 
   `lui-steps-*`). Demo `/steps`.
 - [x] `ui.timeline()`: `.event(title).when(..).description(..).icon(..).tone(..)`,
   `<ol>`, line via `::before`, container query to two-column from 30rem (Flowbite Timeline).
-  Done: `loco-ui/src/timeline.rs`, Flowbite Timeline. Also `.datetime(iso)` for a `<time
-  datetime>`; `.tone()` colours the dot or the icon's ring. The dates move into an 8rem
-  column from 30rem. Demo `/timeline`.
+  Done: `loco-ui/src/timeline.rs`. Also `.datetime(iso)` for a `<time datetime>`. First
+  built after the Flowbite Timeline; restyled 2026-10-15 after the Origin UI Timeline
+  (Flowbite is not a listed reference): a 1rem ring per event on a 2px rail, a tone fills the
+  ring or the icon, and the date stays above the title at every width, so the 30rem date
+  column is gone. Demo `/timeline`.
 - [x] `ui.tree()`: nested `<details>`/`<summary>` with `.node(label).link(href)` adders and
   nesting via a closure or `lui!` block; `?open=` state through `UiState` like accordion;
   current node `aria-current`; indentation via `--lui-tree-depth`.

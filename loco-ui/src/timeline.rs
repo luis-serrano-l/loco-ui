@@ -1,13 +1,12 @@
 //! # Timeline
 //!
 //! What happened, in order: a vertical line with a dot (or an icon) per event, each with
-//! when it happened, a title and a line of description. From 30rem the dates move into a
-//! column of their own left of the line. After the Flowbite Timeline.
+//! when it happened, a title and a line of description. After the Origin UI Timeline.
 //!
 //! **Platform features:** an `<ol>` (baseline since HTML 2); the line is each item's
 //! `::before`; a date given with `.datetime(..)` is a `<time datetime>` (Chrome 62, Firefox
-//! 22, Safari 7); a container query (`@container`, Chrome 105, Firefox 110, Safari 16) adds
-//! the date column from 30rem.
+//! 22, Safari 7); `:has()` (Chrome 105, Firefox 121, Safari 15.4) starts the line below an
+//! icon.
 //!
 //! **Accessibility:** an ordered list read in order; each event's dot or icon is
 //! `aria-hidden`, so the date, title and description are what is read. Checked by axe-core in
@@ -173,44 +172,39 @@ impl Render for Timeline<'_> {
 
 /// Styles for this component; included in [`crate::stylesheet`].
 pub const CSS: &str = r#"
-/* After the Flowbite Timeline: a 1px line at the start, a 0.75rem dot on it per event (or a
-   1.5rem icon in a ring of the background), the date small and muted above a semibold title
-   and a muted description, 2rem between events. Its own container: from 30rem the dates
-   sit in an 8rem column, right-aligned, left of the line. */
-.lui-timeline { container: lui-timeline / inline-size; list-style: none; margin: 0; padding: 0; --lui-timeline-dot: var(--lui-gray-6); --lui-timeline-rail: 0rem; }
+/* After the Origin UI Timeline: each event 2rem in from a 2px rail, 3rem apart; a 1rem ring
+   (2px, the tone at 20%) on the rail per event, or a 1.5rem icon on a 10% wash; the date
+   small, medium and muted above a medium title and a muted description. A tone fills the
+   ring (Origin's "completed"). The rail is the tone at 10% and stops at the last event. */
+.lui-timeline { list-style: none; margin: 0; padding: 0; }
 .lui-timeline > li {
-  position: relative; display: flex; flex-direction: column; padding-inline-start: calc(var(--lui-timeline-rail) + 2.25rem);
-  padding-bottom: var(--lui-space-8); max-width: none; overflow-wrap: anywhere;
+  --lui-timeline-tone: var(--lui-primary);
+  position: relative; display: flex; flex-direction: column; gap: 0.125rem; margin-inline-start: 2rem;
+  padding-bottom: 3rem; max-width: none; overflow-wrap: anywhere;
 }
 .lui-timeline > li:last-child { padding-bottom: 0; }
-/* The line: from this event's dot down to the next one, under the dots. */
 .lui-timeline > li::before {
-  content: ""; position: absolute; inset-inline-start: calc(var(--lui-timeline-rail) + 0.75rem - 0.5px); top: 0; bottom: 0;
-  width: 1px; background: var(--lui-line);
+  content: ""; position: absolute; inset-inline-start: -1.5rem; margin-inline-start: -1px; top: 1.125rem;
+  width: 2px; height: calc(100% - 1.25rem); background: color-mix(in srgb, var(--lui-primary) 10%, transparent);
 }
-.lui-timeline > li:last-child::before { bottom: auto; height: 0.75rem; }
-.lui-timeline > li:first-child::before { top: 0.75rem; }
-.lui-timeline > li:only-child::before { display: none; }
+.lui-timeline > li:has(> .lui-timeline-icon)::before { top: 1.625rem; height: calc(100% - 1.75rem); }
+.lui-timeline > li:last-child::before { display: none; }
 .lui-timeline-dot {
-  position: absolute; inset-inline-start: calc(var(--lui-timeline-rail) + 0.375rem); top: 0.375rem;
-  width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--lui-timeline-dot); box-shadow: 0 0 0 3px var(--lui-bg);
+  position: absolute; inset-inline-start: -1.5rem; margin-inline-start: -0.5rem; top: 0; box-sizing: border-box;
+  width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--lui-timeline-tone) 20%, transparent);
 }
+.lui-timeline > li[data-tone] > .lui-timeline-dot { border-color: var(--lui-timeline-tone); }
 .lui-timeline-icon {
-  display: grid; place-items: center; inset-inline-start: var(--lui-timeline-rail); top: 0; width: 1.5rem; height: 1.5rem; font-size: var(--lui-text-1);
-  background: color-mix(in srgb, var(--lui-timeline-dot) 18%, var(--lui-bg)); color: var(--lui-timeline-dot);
-  box-shadow: 0 0 0 4px var(--lui-bg);
+  display: flex; align-items: center; justify-content: center; margin-inline-start: -0.75rem; width: 1.5rem; height: 1.5rem; border: 0;
+  background: color-mix(in srgb, var(--lui-timeline-tone) 10%, transparent); color: var(--lui-timeline-tone);
 }
+.lui-timeline > li[data-tone] > .lui-timeline-icon { background: var(--lui-timeline-tone); color: var(--lui-bg); }
 .lui-timeline-icon > .lui-icon { width: 0.875rem; height: 0.875rem; }
-.lui-timeline > li[data-tone=brand], .lui-timeline > li[data-tone=info] { --lui-timeline-dot: var(--lui-primary); }
-.lui-timeline > li[data-tone=ok] { --lui-timeline-dot: var(--lui-ok); }
-.lui-timeline > li[data-tone=warn] { --lui-timeline-dot: var(--lui-warn); }
-.lui-timeline > li[data-tone=danger] { --lui-timeline-dot: var(--lui-danger); }
-.lui-timeline > li[data-tone=neutral] { --lui-timeline-dot: var(--lui-gray-9); }
-.lui-timeline-when { margin-bottom: var(--lui-space-1); font-size: var(--lui-text-2); line-height: 1.5rem; color: var(--lui-muted); font-variant-numeric: tabular-nums; }
-.lui-timeline-title { margin: 0; font-size: var(--lui-text-3); line-height: 1.5rem; font-weight: 600; color: var(--lui-fg); max-width: none; }
-.lui-timeline-description { margin: var(--lui-space-1) 0 0; font-size: var(--lui-text-2); color: var(--lui-muted); max-width: none; }
-@container lui-timeline (width >= 30rem) {
-  .lui-timeline > li { --lui-timeline-rail: calc(8rem + var(--lui-space-3)); }
-  .lui-timeline-when { position: absolute; inset-inline-start: 0; top: 0; width: 8rem; margin: 0; text-align: end; }
-}
+.lui-timeline > li[data-tone=ok] { --lui-timeline-tone: var(--lui-ok); }
+.lui-timeline > li[data-tone=warn] { --lui-timeline-tone: var(--lui-warn); }
+.lui-timeline > li[data-tone=danger] { --lui-timeline-tone: var(--lui-danger); }
+.lui-timeline > li[data-tone=neutral] { --lui-timeline-tone: var(--lui-gray-9); }
+.lui-timeline-when { display: block; margin-bottom: var(--lui-space-1); font-size: var(--lui-text-1); line-height: 1rem; font-weight: 500; color: var(--lui-muted); font-variant-numeric: tabular-nums; }
+.lui-timeline-title { margin: 0; font-size: var(--lui-text-2); line-height: 1.25rem; font-weight: 500; color: var(--lui-fg); max-width: none; }
+.lui-timeline-description { margin: 0; font-size: var(--lui-text-2); line-height: 1.25rem; color: var(--lui-muted); max-width: none; }
 "#;

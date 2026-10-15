@@ -1138,12 +1138,12 @@ pub const SPECS: &[ComponentSpec] = &[
     ComponentSpec {
         name: "Timeline",
         module: "timeline",
-        look: "Flowbite Timeline",
-        responsive: Responsive::Container,
+        look: "Origin UI Timeline",
+        responsive: Responsive::Content,
         features: &[
             f("<ol>", ALWAYS),
             f("<time datetime>", b("62", "22", "7")),
-            f("@container", b("105", "110", "16")),
+            f(":has()", b("105", "121", "15.4")),
         ],
         fallback: "none needed",
         needs_js: NeedsJs::No,

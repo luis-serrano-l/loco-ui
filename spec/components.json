@@ -2390,12 +2390,12 @@
     {
       "name": "Timeline",
       "module": "timeline",
-      "look": "Flowbite Timeline",
-      "responsive": "container",
+      "look": "Origin UI Timeline",
+      "responsive": "content",
       "features": [
         { "name": "<ol>", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
         { "name": "<time datetime>", "baseline": { "chrome": "62", "firefox": "22", "safari": "7" } },
-        { "name": "@container", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } }
+        { "name": ":has()", "baseline": { "chrome": "105", "firefox": "121", "safari": "15.4" } }
       ],
       "fallback": "none needed",
       "needs_js": "no",

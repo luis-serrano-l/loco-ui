@@ -563,8 +563,8 @@ pub(crate) const COMPONENTS: &[Entry] = &[
         href: "/timeline",
         title: "Timeline",
         group: "Navigation",
-        built_on: "<ol>, <time datetime>, ::before, @container",
-        what: "What happened, in order, on a line with a dot or an icon per event.",
+        built_on: "<ol>, <time datetime>, ::before, :has()",
+        what: "What happened, in order, on a rail with a ring or an icon per event.",
         when: "Use a timeline for dated events in order, such as an activity log or a release history. For steps the reader still has to go through, use steps.",
     },
     Entry {

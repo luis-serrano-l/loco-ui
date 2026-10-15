@@ -250,7 +250,8 @@ M16 entries are older still and describe options structs that M18 replaced.
   that selected `.lui-wizard-steps`, `-dot`, `-label`, `-done`, `-current`, `-error`); a
   done step reads "completed" to assistive tech (`Text::Completed`).
 - `ui.timeline()`: `.event(title)` with `.when()`, `.datetime()` (a `<time datetime>`),
-  `.description()`, `.icon()` and `.tone()`; the dates take a column of their own from 30rem.
+  `.description()`, `.icon()` and `.tone()`, after the Origin UI Timeline (a ring per event on
+  a 2px rail, the date above the title; a tone fills the ring or the icon).
 - `ui.tree(label)`: nested `<details>` folders from `.node(label)` with `.link()`,
   `.icon()`, `.children(|t| ..)` and `.open(bool)`; `?open.<id>=` opens folders, and the
   folders around the current page open by themselves. A folder that is also a link keeps
