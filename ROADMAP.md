@@ -5,6 +5,11 @@ Rules: work top to bottom. A milestone is done only when every box is ticked, `c
 matrix and findings are updated, and the work is committed. Unknowns become entries in
 `FINDINGS.md`, never reasons to add script.
 
+**Where it stands (2026-10-16, paused).** Every box that does not wait on the owner is ticked,
+M1 to M46. 0.2.0 is prepared (versions, dated CHANGELOG, package and docs.rs checks) and on
+main with CI green; nothing is published. What is left is in `BLOCKED.md` and in the section
+"After the publish" at the end of this file.
+
 ## M1 · Capability beacons (server-side feature detection, no script)
 - [x] `loco_ui::caps`: `Caps` bitset (invokers, anchor, details_content, view_transitions, popover, light_dark, streaming_dsd)
 - [x] `caps::beacon_css()` emits `@supports` rules that request `/lui/caps?flag=1` as a background image
@@ -3521,4 +3526,12 @@ files. Mitigation: M46 writes the generic/`PROPS`-driven and conformance tests f
 (touching only `lib.rs` tests, `demo/src/tests.rs`, new test files), and the per-file
 modules after M38 and M40 merge.
 
-
+## After the publish (waits on the owner's `cargo publish`)
+- [ ] README "Install", `docs/loco.md` and the `cargo lui install` git `rev=` pin switch to
+  the crates.io version (`cargo add loco-ui --features …`); the "not on crates.io yet" line goes.
+- [ ] CI `semver` job checks against the published 0.2.0 (drop its `continue-on-error`).
+- [ ] Tick M13 box 4 (the publish); tag `v0.2.0`.
+- [ ] Launch (M26) and the Loco link (M29), both outward: the owner posts, from
+  `docs/launch-post.md` with the Pages link.
+- [ ] One snippet style for `/counter`, `/wizard`, `/palette` (the open box under M32's
+  follow-ups), once the owner answers the `lui!` builder-mode question in BLOCKED.md.

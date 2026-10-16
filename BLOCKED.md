@@ -2,9 +2,10 @@
 
 Questions only the owner can answer. The name, hosting and Loco questions were answered on
 2026-09-24, copy-paste mode and the first version on 2026-10-14 (below). What is still with
-the owner, as of 2026-10-15:
+the owner, as of 2026-10-16 (work paused here; main is at the 0.2.0 release commit, CI green):
 
-1. The crates.io publish, as 0.2.0 (on hold until you say yes).
+1. The crates.io publish, as 0.2.0: prepared and pushed, waiting on you to run the four
+   commands under "The publish itself" below.
 2. Posting the announcement (M26) and asking Loco for a link (M29), both after the publish.
 3. Filing the Blitz and browser gaps that FINDINGS marks "the owner files it".
 4. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
@@ -34,6 +35,20 @@ M37 made the three crates ready (`publish-dry-run` and `docsrs` jobs in CI). The
 skill bumped the manifests to 0.2.0 and dated the CHANGELOG on 2026-10-15, then stopped
 before `cargo publish`. Publish
 only on your yes; it is never run on your behalf.
+
+State on 2026-10-16: the release commit and a test fix (`f0c3c5c`) are on main and every CI
+job passed (semver skipped: nothing published to compare with). To publish, in order:
+
+```sh
+cargo publish -p loco-ui-caps
+cargo publish -p loco-ui-macros
+cargo publish -p loco-ui
+git tag v0.2.0 && git push --tags
+```
+
+After the publish: README "Install" and `docs/loco.md` switch from the git dependency to
+`cargo add loco-ui` (and the installer's `rev=` pin to the crates.io version); tick ROADMAP
+M13 box 4 and the "After the publish" section; turn on `semver` in CI against 0.2.0.
 
 ## Rename to `nojs-ui`? (M26, box 1), answered
 
