@@ -323,8 +323,8 @@ so. `examples/loco-app`'s `tasks` are owned, and its page test checks that a sec
 ## Blocks and the 404 page
 
 `loco_ui::blocks` has whole pages built from the components: `ui.app_shell(..)`,
-`ui.auth_page(..)`, `ui.settings_page(..)`, `ui.record_page(..)`, `ui.dashboard_page(..)` and
-`ui.error_page(status)` (the demo shows each under "Blocks"). The 404 page goes in as the
+`ui.auth_page(..)`, `ui.settings_page(..)`, `ui.record_page(..)`, `ui.dashboard_page(..)`,
+`ui.pricing_page(..)`, `ui.inbox_page(..)`, `ui.invoice_page(..)` and `ui.error_page(status)` (the demo shows each under "Blocks"). The 404 page goes in as the
 router's fallback, in `App::before_routes`:
 
 ```rust

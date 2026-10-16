@@ -1,8 +1,8 @@
 //! # Blocks
 //!
 //! Whole pages built from the components: an app shell with a sidebar, a sign-in or sign-up
-//! card, a settings page, a record's show page, a dashboard of numbers, and the 404 and 500
-//! pages. Each is a builder reached from `ui` like a component, so a route fills one in and
+//! card, a settings page, a record's show page, a dashboard of numbers, a pricing page, an
+//! inbox (a list beside the open item), an invoice, and the error pages. Each is a builder reached from `ui` like a component, so a route fills one in and
 //! wraps it in `ui.page(..)`; none adds a platform feature or a line of script of its own,
 //! and each is one file to read and copy when yours needs to differ.
 //!
@@ -24,6 +24,9 @@ pub mod app_shell;
 pub mod auth_page;
 pub mod dashboard_page;
 pub mod error_page;
+pub mod inbox_page;
+pub mod invoice_page;
+pub mod pricing_page;
 pub mod record_page;
 pub mod settings_page;
 
@@ -31,11 +34,14 @@ pub mod settings_page;
 pub use error_page::not_found;
 
 /// The blocks' styles, appended to the stylesheet after the components'.
-pub(crate) const CSS: [&str; 6] = [
+pub(crate) const CSS: [&str; 9] = [
     app_shell::CSS,
     auth_page::CSS,
     settings_page::CSS,
     record_page::CSS,
     dashboard_page::CSS,
     error_page::CSS,
+    pricing_page::CSS,
+    inbox_page::CSS,
+    invoice_page::CSS,
 ];

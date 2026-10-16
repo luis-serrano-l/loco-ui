@@ -98,6 +98,9 @@ Start a handler from `ui: Ui` (an Axum extractor, or `Ui::from_request(path, que
 - [DashboardPage](dashboard_page.md): A page of numbers: a title and a line, a row of stats that wraps to the width available, and whatever goes under them (a table, a chart, recent activity).
 - [ErrorPage](error_page.md): The page for an HTTP error: the status, what happened in a sentence, and a way home, in the site's look instead of the framework's plain text.
 - [RecordPage](record_page.md): One record: its title, its fields as a description list in a card, and the actions on it (edit, delete) beside the title.
+- [PricingPage](pricing_page.md): A title, a line, and the plans side by side: each a card with its name, price, who it is for, what it includes and a button.
+- [InboxPage](inbox_page.md): A list and the item open beside it: messages, tickets, orders.
+- [InvoicePage](invoice_page.md): A bill to read, pay or print: its title and status, who it is from and to, the dates, the lines with their quantities and amounts, the totals, a note and the actions.
 - [SettingsPage](settings_page.md): A page of settings in sections: each has a title and a line on the left and its form on the right (stacked on narrow screens), with a list of the sections at the top that jumps to each.
 
 ## Optional

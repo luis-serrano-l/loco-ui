@@ -1,0 +1,124 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-invoice">
+<div class="lui-invoice-head">
+<div class="lui-invoice-title">
+<h1>Invoice INV-042</h1>
+<span class="lui-badge lui-badge-ok" data-tone="ok">Paid</span>
+</div>
+</div>
+<div class="lui-card">
+<div class="lui-card-body">
+<div class="lui-invoice-sheet">
+<div class="lui-invoice-parties">
+<div class="lui-invoice-party">
+<h2>From</h2>
+<address>Acme Ltd</address>
+</div>
+<div class="lui-invoice-party">
+<h2>Billed to</h2>
+<address>Ada Lovelace</address>
+</div>
+<dl class="lui-invoice-meta">
+<div>
+<dt>Issued</dt>
+<dd>1 Oct 2026</dd>
+</div>
+</dl>
+</div>
+<table class="lui-invoice-lines">
+<thead>
+<tr>
+<th scope="col">Item</th>
+<th scope="col" class="lui-invoice-num lui-invoice-wide">Quantity</th>
+<th scope="col" class="lui-invoice-num lui-invoice-wide">Price</th>
+<th scope="col" class="lui-invoice-num">Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr class="lui-invoice-line">
+<td>Design review<span class="lui-invoice-each">2 × $400.00</span>
+</td>
+<td class="lui-invoice-num lui-invoice-wide">2</td>
+<td class="lui-invoice-num lui-invoice-wide">$400.00</td>
+<td class="lui-invoice-num">$800.00</td>
+</tr>
+</tbody>
+<tfoot>
+<tr class="lui-invoice-due">
+<th scope="row">Total</th>
+<td class="lui-invoice-wide">
+</td>
+<td class="lui-invoice-wide">
+</td>
+<td class="lui-invoice-num">$800.00</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+caps: none
+<div class="lui-invoice">
+<div class="lui-invoice-head">
+<div class="lui-invoice-title">
+<h1>Invoice INV-042</h1>
+<span class="lui-badge lui-badge-ok" data-tone="ok">Paid</span>
+</div>
+</div>
+<div class="lui-card">
+<div class="lui-card-body">
+<div class="lui-invoice-sheet">
+<div class="lui-invoice-parties">
+<div class="lui-invoice-party">
+<h2>From</h2>
+<address>Acme Ltd</address>
+</div>
+<div class="lui-invoice-party">
+<h2>Billed to</h2>
+<address>Ada Lovelace</address>
+</div>
+<dl class="lui-invoice-meta">
+<div>
+<dt>Issued</dt>
+<dd>1 Oct 2026</dd>
+</div>
+</dl>
+</div>
+<table class="lui-invoice-lines">
+<thead>
+<tr>
+<th scope="col">Item</th>
+<th scope="col" class="lui-invoice-num lui-invoice-wide">Quantity</th>
+<th scope="col" class="lui-invoice-num lui-invoice-wide">Price</th>
+<th scope="col" class="lui-invoice-num">Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr class="lui-invoice-line">
+<td>Design review<span class="lui-invoice-each">2 × $400.00</span>
+</td>
+<td class="lui-invoice-num lui-invoice-wide">2</td>
+<td class="lui-invoice-num lui-invoice-wide">$400.00</td>
+<td class="lui-invoice-num">$800.00</td>
+</tr>
+</tbody>
+<tfoot>
+<tr class="lui-invoice-due">
+<th scope="row">Total</th>
+<td class="lui-invoice-wide">
+</td>
+<td class="lui-invoice-wide">
+</td>
+<td class="lui-invoice-num">$800.00</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
+</div>

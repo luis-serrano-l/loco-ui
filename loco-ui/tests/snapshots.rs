@@ -497,6 +497,43 @@ const EXAMPLES: &[Example] = &[
             .delete("/invoices/42/delete")
             .render()
     }),
+    example("PricingPage", |ui| {
+        ui.pricing_page("Pricing")
+            .description("Start free, upgrade when you grow.")
+            .tier("Hobby", "$0")
+            .period("/month")
+            .feature("One project")
+            .cta("Start", "/signup")
+            .tier("Pro", "$12")
+            .period("/month")
+            .blurb("For small teams.")
+            .feature("Ten projects")
+            .cta("Upgrade", "/signup?plan=pro")
+            .featured()
+            .render()
+    }),
+    on("InboxPage", ("/inbox/2", "", ""), |ui| {
+        ui.inbox_page("Inbox", "/inbox")
+            .item("Ada Lovelace", "/inbox/1")
+            .description("The notes on the engine")
+            .when("09:12")
+            .unread(true)
+            .item("Charles Babbage", "/inbox/2")
+            .description("Lunch on Friday?")
+            .when("Mon")
+            .body(html! { h2 { "Lunch on Friday?" } })
+            .render()
+    }),
+    example("InvoicePage", |ui| {
+        ui.invoice_page("Invoice INV-042")
+            .status(ui.badge("Paid").ok())
+            .from("Acme Ltd")
+            .to("Ada Lovelace")
+            .meta("Issued", "1 Oct 2026")
+            .line_item("Design review", "2", "$400.00", "$800.00")
+            .total("Total", "$800.00")
+            .render()
+    }),
     example("SettingsPage", |ui| {
         ui.settings_page("Settings")
             .section("Profile", "How others see you.", html! { p { "form" } })

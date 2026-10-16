@@ -1,0 +1,134 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-pricing-page">
+<div class="lui-pricing-page-head">
+<h1>Pricing</h1>
+<p class="lui-pricing-page-description">Start free, upgrade when you grow.</p>
+</div>
+<div class="lui-grid" style="--lui-grid-min: 16rem">
+<div class="lui-pricing-page-tier">
+<div class="lui-card">
+<div class="lui-card-header">
+<div class="lui-card-heading">
+<h3 class="lui-card-title">Hobby</h3>
+</div>
+</div>
+<div class="lui-card-body">
+<p class="lui-pricing-page-price">
+<span class="lui-pricing-page-amount">$0</span>
+<span class="lui-pricing-page-period">/month</span>
+</p>
+<ul class="lui-pricing-page-features">
+<li>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+<span>One project</span>
+</li>
+</ul>
+</div>
+<div class="lui-card-footer">
+<a class="lui-button lui-pricing-page-cta" href="/signup">Start</a>
+</div>
+</div>
+</div>
+<div class="lui-pricing-page-tier" data-featured>
+<div class="lui-card">
+<div class="lui-card-header">
+<div class="lui-card-heading">
+<h3 class="lui-card-title">Pro</h3>
+<p class="lui-card-description">For small teams.</p>
+</div>
+<div class="lui-card-action">
+<span class="lui-badge">Popular</span>
+</div>
+</div>
+<div class="lui-card-body">
+<p class="lui-pricing-page-price">
+<span class="lui-pricing-page-amount">$12</span>
+<span class="lui-pricing-page-period">/month</span>
+</p>
+<ul class="lui-pricing-page-features">
+<li>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+<span>Ten projects</span>
+</li>
+</ul>
+</div>
+<div class="lui-card-footer">
+<a class="lui-button lui-button-primary lui-pricing-page-cta" data-tone="brand" data-variant="solid" href="/signup?plan=pro">Upgrade</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+caps: none
+<div class="lui-pricing-page">
+<div class="lui-pricing-page-head">
+<h1>Pricing</h1>
+<p class="lui-pricing-page-description">Start free, upgrade when you grow.</p>
+</div>
+<div class="lui-grid" style="--lui-grid-min: 16rem">
+<div class="lui-pricing-page-tier">
+<div class="lui-card">
+<div class="lui-card-header">
+<div class="lui-card-heading">
+<h3 class="lui-card-title">Hobby</h3>
+</div>
+</div>
+<div class="lui-card-body">
+<p class="lui-pricing-page-price">
+<span class="lui-pricing-page-amount">$0</span>
+<span class="lui-pricing-page-period">/month</span>
+</p>
+<ul class="lui-pricing-page-features">
+<li>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+<span>One project</span>
+</li>
+</ul>
+</div>
+<div class="lui-card-footer">
+<a class="lui-button lui-pricing-page-cta" href="/signup">Start</a>
+</div>
+</div>
+</div>
+<div class="lui-pricing-page-tier" data-featured>
+<div class="lui-card">
+<div class="lui-card-header">
+<div class="lui-card-heading">
+<h3 class="lui-card-title">Pro</h3>
+<p class="lui-card-description">For small teams.</p>
+</div>
+<div class="lui-card-action">
+<span class="lui-badge">Popular</span>
+</div>
+</div>
+<div class="lui-card-body">
+<p class="lui-pricing-page-price">
+<span class="lui-pricing-page-amount">$12</span>
+<span class="lui-pricing-page-period">/month</span>
+</p>
+<ul class="lui-pricing-page-features">
+<li>
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+<span>Ten projects</span>
+</li>
+</ul>
+</div>
+<div class="lui-card-footer">
+<a class="lui-button lui-button-primary lui-pricing-page-cta" data-tone="brand" data-variant="solid" href="/signup?plan=pro">Upgrade</a>
+</div>
+</div>
+</div>
+</div>
+</div>

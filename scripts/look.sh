@@ -73,6 +73,9 @@ blocks-shell|/blocks/shell|$shadcn/sidebar
 blocks-auth|/blocks/auth|
 blocks-record|/blocks/record|
 blocks-error|/no-such-page|
+blocks-pricing|/blocks/pricing|
+blocks-inbox|/blocks/inbox/2|
+blocks-invoice|/blocks/invoice|
 table-rows|/table/rows|https://www.tremor.so/docs/ui/table
 typography|/typography|$radix/heading
 code-block|/code-block|https://ui.shadcn.com/docs/installation

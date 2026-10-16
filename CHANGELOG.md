@@ -175,6 +175,11 @@ M16 entries are older still and describe options structs that M18 replaced.
 
 #### M42 · A docs site, not a demo
 
+- Three blocks: `ui.pricing_page(..)` (plans side by side, one featured), `ui.inbox_page(..)`
+  (a list beside the open item, which shows alone on a narrow screen) and `ui.invoice_page(..)`
+  (addresses, dates, line items, totals, print without the actions), each with a demo page.
+  New `Text` keys: `Popular`, `Unread`, `Item`, `Quantity`, `Price`, `Amount`, `Sender`,
+  `BilledTo`.
 - An examples gallery at `/examples`: ten pages of `examples/loco-app` as their Blitz
   screenshots, each linked to the view file that renders it.
 - `props::Key` and a `KEYS` const on every builder: the keys it answers to, what they do,

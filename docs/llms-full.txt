@@ -791,7 +791,6 @@ assert_eq!(lui! { Badge("Beta") tone="info" variant="surface" size=2 radius="ful
 | `.lui-card-heading` |  |
 | `.lui-card-title` | `--lui-text-3` |
 | `.lui-card-description` | `--lui-muted`, `--lui-text-2` |
-| `.lui-card-action` |  |
 | `.lui-card-classic` | `--lui-shadow-md`, `--lui-highlight` |
 | `.lui-card-ghost` |  |
 | `.lui-card-body` |  |
@@ -9112,6 +9111,268 @@ assert!(m.contains(r#"<h2 id="lui-record-delete-title" class="lui-dialog-title">
 // The same in `lui!`:
 let same = lui! { RecordPage("Invoice 42") edit="/invoices/42/edit" delete="/invoices/42/delete" {
     field "Customer" "Ada"; field "Total" "€120";
+} };
+assert_eq!(same.into_string(), m);
+```
+
+# PricingPage
+
+`loco_ui::blocks::pricing_page` · demo: `/blocks/pricing`
+
+## Constructors
+
+| `lui!` | Constructor | Status |
+|---|---|---|
+| `PricingPage` | `ui.pricing_page(title: &str)` | beta |
+
+## Props of `PricingPage`
+
+| Prop | Kind | Arguments | Default | HTML | What it does |
+|---|---|---|---|---|---|
+| `description` | value | `text: &'a str` |  |  | A line under the title. |
+| `tier` | item | `name: &'a str, price: &'a str` |  |  | A plan, after the ones added before it: its name and its price, formatted. |
+| `period` | modifier | `text: &'a str` |  |  | What the last plan's price is per (`/month`). |
+| `blurb` | modifier | `text: &'a str` |  |  | Who the last plan is for, under its name. |
+| `feature` | modifier | `text: &'a str` |  |  | One thing the last plan includes; call once per line. |
+| `cta` | modifier | `text: &'a str, href: &'a str` |  |  | The last plan's button: its text and where it goes. |
+| `featured` | modifier |  |  |  | The plan to steer people to: a badge, a stronger border, the primary button. |
+| `body` | value | `body: Markup` |  |  | What goes under the plans. |
+
+## Keyboard of `PricingPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Enter` | Moves between the plans' buttons and follows one. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-pricing-page` | `--lui-space-8` |
+| `.lui-pricing-page-head` |  |
+| `.lui-pricing-page-description` | `--lui-space-2`, `--lui-muted` |
+| `.lui-pricing-page-tier` |  |
+| `.lui-card-action` | `--lui-space-4` |
+| `.lui-pricing-page-price` | `--lui-space-1` |
+| `.lui-pricing-page-amount` | `--lui-text-8` |
+| `.lui-pricing-page-period` | `--lui-muted`, `--lui-text-2` |
+| `.lui-pricing-page-features` | `--lui-space-2`, `--lui-text-2` |
+| `.lui-pricing-page-cta` |  |
+
+## Documentation
+
+A title, a line, and the plans side by side: each a card with its name, price, who it is
+for, what it includes and a button. One plan can be featured: a "Popular" badge, a
+stronger border and the primary button. Fine print or questions go under them. Copied
+from the demo's own pricing card (`demo/src/pricing.rs`, the example of a component
+written outside the library), after the shadcn/ui pricing blocks.
+
+**Platform features:** those of `crate::card` and `crate::grid`: a CSS grid with
+`repeat(auto-fill, minmax(min(16rem, 100%), 1fr))` (`min()`: Chrome 79, Firefox 75,
+Safari 11.1), no media query; the plans wrap to one column in a narrow box.
+
+**Accessibility:** the title is the page's `<h1>`; each plan's name is its card's heading;
+the feature list is a `<ul>` whose check marks are decorative. Checked by axe-core with
+the demo routes.
+
+**What it does not do without script:** switch between monthly and yearly prices in place;
+link to the page again with a query (`?period=year`) and fill in the other prices.
+
+**Fallback:** none needed.
+
+```rust
+use loco_ui::prelude::*;
+let ui = Ui::default();
+let m = ui.pricing_page("Pricing").description("Start free, upgrade when you grow.")
+    .tier("Hobby", "$0").period("/month").feature("One project").cta("Start", "/signup")
+    .tier("Pro", "$12").period("/month").blurb("For small teams.")
+        .feature("Ten projects").feature("Email support").cta("Upgrade", "/signup?plan=pro").featured()
+    .render().into_string();
+assert!(m.contains(r#"<h1>Pricing</h1>"#) && m.contains(r#"data-featured"#));
+assert_eq!(m.matches("lui-pricing-page-tier").count(), 2);
+
+// The same in `lui!`:
+let same = lui! { PricingPage("Pricing") description="Start free, upgrade when you grow." {
+    tier "Hobby" "$0" period="/month" feature="One project" cta=("Start", "/signup");
+    tier "Pro" "$12" period="/month" blurb="For small teams."
+        feature="Ten projects" feature="Email support" cta=("Upgrade", "/signup?plan=pro") featured;
+} };
+assert_eq!(same.into_string(), m);
+```
+
+# InboxPage
+
+`loco_ui::blocks::inbox_page` · demo: `/blocks/inbox`
+
+## Constructors
+
+| `lui!` | Constructor | Status |
+|---|---|---|
+| `InboxPage` | `ui.inbox_page(title: &str, href: &str)` | beta |
+
+## Props of `InboxPage`
+
+| Prop | Kind | Arguments | Default | HTML | What it does |
+|---|---|---|---|---|---|
+| `item` | item | `title: &'a str, href: &'a str` |  |  | An item, after the ones added before it: its title and its page. |
+| `description` | modifier | `text: &'a str` |  |  | A preview line under the last item's title. |
+| `when` | modifier | `text: &'a str` |  |  | When the last item arrived, formatted (`09:12`, `Mon`). |
+| `unread` | condition | `on: bool` | `off` |  | Whether the last item is unread: a dot and the word for screen readers. |
+| `body` | value | `body: Markup` |  |  | The open item, in the detail pane. |
+
+## Keyboard of `InboxPage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Shift+Tab` | Moves between the items, top to bottom. | no |
+| `Enter` | Opens the focused item's page. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-inbox` |  |
+| `.lui-inbox-panes` | `--lui-space-6` |
+| `.lui-inbox-list` | `--lui-space-1` |
+| `.lui-inbox-title` | `--lui-space-3`, `--lui-text-6` |
+| `.lui-inbox-item` | `--lui-space-1`, `--lui-space-3`, `--lui-line`, `--lui-radius`, `--lui-gray-3`, `--lui-gray-4`, `--lui-gray-7`, `--lui-hit` |
+| `.lui-inbox-item-head` | `--lui-space-2` |
+| `.lui-inbox-item-title` | `--lui-text-2`, `--lui-space-2`, `--lui-primary` |
+| `.lui-inbox-item-when` | `--lui-muted`, `--lui-text-1` |
+| `.lui-inbox-item-description` | `--lui-muted`, `--lui-text-1` |
+| `.lui-inbox-detail` |  |
+| `.lui-inbox-back` | `--lui-space-1`, `--lui-space-4`, `--lui-text-2`, `--lui-hit` |
+
+## Documentation
+
+A list and the item open beside it: messages, tickets, orders. Each item is a link to its
+own page; the one whose `href` is the current path is marked and its page fills the detail
+pane. In a wide box the list and the detail sit side by side; in a narrow one an open item
+shows alone, with a Back link to the list. After the shadcn/ui Mail example: a column of
+rows with a sender line, a muted preview and the date at the end, the open row on the
+accent.
+
+**Platform features:** plain links and `aria-current="page"`; a container query
+(Chrome 105, Firefox 110, Safari 16) for the two columns from 48rem.
+
+**Accessibility:** the list is a `<nav>` named by the title, the open item's link has
+`aria-current="page"`, and an unread item says so in words after its title (the dot is
+decorative). The detail is an `<article>`.
+
+**What it does not do without script:** open an item without a page load; each item is a
+page of its own. With the enhancement script a swap root inside the detail still updates
+in place.
+
+**Fallback:** without container queries the narrow layout shows at every width.
+
+```rust
+use loco_ui::prelude::*;
+let ui = Ui::from_request("/inbox/2", "", "");
+let m = ui.inbox_page("Inbox", "/inbox")
+    .item("Ada Lovelace", "/inbox/1").description("The notes on the engine").when("09:12").unread(true)
+    .item("Charles Babbage", "/inbox/2").description("Lunch on Friday?").when("Mon")
+    .body(html! { h2 { "Lunch on Friday?" } })
+    .render().into_string();
+assert!(m.contains(r#"href="/inbox/2" aria-current="page""#) && m.contains("data-open"));
+assert!(m.contains(r#"<span class="lui-sr">unread</span>"#));
+
+// The same in `lui!`:
+let same = lui! { InboxPage("Inbox", "/inbox") {
+    item "Ada Lovelace" "/inbox/1" description="The notes on the engine" when="09:12" unread=(true);
+    item "Charles Babbage" "/inbox/2" description="Lunch on Friday?" when="Mon";
+    body { h2 { "Lunch on Friday?" } }
+} };
+assert_eq!(same.into_string(), m);
+```
+
+# InvoicePage
+
+`loco_ui::blocks::invoice_page` · demo: `/blocks/invoice`
+
+## Constructors
+
+| `lui!` | Constructor | Status |
+|---|---|---|
+| `InvoicePage` | `ui.invoice_page(title: &str)` | beta |
+
+## Props of `InvoicePage`
+
+| Prop | Kind | Arguments | Default | HTML | What it does |
+|---|---|---|---|---|---|
+| `status` | value | `badge: Badge<'a>` |  |  | A badge beside the title: paid, due, overdue. |
+| `from` | value | `address: impl Render` |  |  | Who the invoice is from: a name and address. |
+| `to` | value | `address: impl Render` |  |  | Who it is billed to: a name and address. |
+| `meta` | item | `label: &'a str, value: &'a str` |  |  | A date or reference beside the addresses (`Issued`, `Due`). |
+| `line_item` | item | `item: &'a str, quantity: &'a str, price: &'a str, amount: &'a str` |  |  | A line of the bill, every figure formatted by the app. |
+| `total` | item | `label: &'a str, value: &'a str` |  |  | A row under the lines; the last one is the amount due, in bold. |
+| `note` | value | `text: &'a str` |  |  | Payment terms or a thank-you under the totals. |
+| `actions` | value | `actions: Markup` |  |  | Buttons beside the title (pay, download); left off paper. |
+
+## Keyboard of `InvoicePage`
+
+| Keys | What they do | Needs the script |
+|---|---|---|
+| `Tab / Enter` | Moves between the actions and follows or presses one. | no |
+
+## Anatomy
+
+| Class | Tokens it reads |
+|---|---|
+| `.lui-invoice` | `--lui-space-6` |
+| `.lui-invoice-head` | `--lui-space-4` |
+| `.lui-invoice-title` | `--lui-space-3` |
+| `.lui-invoice-actions` | `--lui-space-2` |
+| `.lui-invoice-sheet` | `--lui-space-6` |
+| `.lui-invoice-parties` | `--lui-space-4` |
+| `.lui-invoice-party` | `--lui-space-1`, `--lui-text-1`, `--lui-muted` |
+| `.lui-invoice-meta` | `--lui-space-1`, `--lui-space-2`, `--lui-muted` |
+| `.lui-invoice-lines` | `--lui-text-2`, `--lui-space-2`, `--lui-muted`, `--lui-line` |
+| `.lui-invoice-num` |  |
+| `.lui-invoice-due` | `--lui-fg`, `--lui-text-4` |
+| `.lui-invoice-wide` |  |
+| `.lui-invoice-each` | `--lui-muted`, `--lui-text-1` |
+| `.lui-invoice-note` | `--lui-muted`, `--lui-text-2` |
+
+## Documentation
+
+A bill to read, pay or print: its title and status, who it is from and to, the dates, the
+lines with their quantities and amounts, the totals, a note and the actions. Every figure
+is text the app formats (currency, decimals, tax rules stay the app's). Built from the
+Radix Themes parts it uses (Card, Table, Badge, Data List); Radix has no invoice of its
+own.
+
+**Platform features:** a `<table>` with `<thead>` and `<tfoot>`; a container query
+(Chrome 105, Firefox 110, Safari 16) that shows the quantity and price columns from 30rem;
+`@media print` to drop the actions from paper.
+
+**Accessibility:** the title is the page's `<h1>`; the lines are a real table with column
+heads, the totals in its footer with row heads; the status is a badge in words.
+
+**What it does not do without script:** nothing is missing; printing is the browser's.
+
+**Fallback:** without container queries the quantity and price show under each line's
+name (the narrow layout) at every width.
+
+```rust
+use loco_ui::prelude::*;
+let ui = Ui::default();
+let m = ui.invoice_page("Invoice INV-042").status(ui.badge("Paid").ok())
+    .from(html! { "Acme Ltd" br; "1 Engine Row" }).to(html! { "Ada Lovelace" })
+    .meta("Issued", "1 Oct 2026").meta("Due", "31 Oct 2026")
+    .line_item("Design review", "2", "$400.00", "$800.00")
+    .line_item("Hosting", "1", "$40.00", "$40.00")
+    .total("Subtotal", "$840.00").total("Total", "$840.00")
+    .render().into_string();
+assert!(m.contains("<h1>Invoice INV-042</h1>") && m.contains("<th scope=\"row\">Total</th>"));
+assert_eq!(m.matches("lui-invoice-line\"").count(), 2);
+
+// The same in `lui!`:
+let same = lui! { InvoicePage("Invoice INV-042") status=(ui.badge("Paid").ok())
+    from={ "Acme Ltd" br; "1 Engine Row" } to={ "Ada Lovelace" } {
+    meta "Issued" "1 Oct 2026"; meta "Due" "31 Oct 2026";
+    line_item "Design review" "2" "$400.00" "$800.00";
+    line_item "Hosting" "1" "$40.00" "$40.00";
+    total "Subtotal" "$840.00"; total "Total" "$840.00";
 } };
 assert_eq!(same.into_string(), m);
 ```

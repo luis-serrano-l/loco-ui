@@ -2469,6 +2469,9 @@ mod tests {
             ("record_page", blocks::record_page::CSS),
             ("dashboard_page", blocks::dashboard_page::CSS),
             ("error_page", blocks::error_page::CSS),
+            ("pricing_page", blocks::pricing_page::CSS),
+            ("inbox_page", blocks::inbox_page::CSS),
+            ("invoice_page", blocks::invoice_page::CSS),
         ];
         // `stream::CSS` exists only with the `http` feature and sets no layout.
         let streamed = usize::from(cfg!(feature = "http"));
@@ -2498,6 +2501,10 @@ mod tests {
             ("counter", "one row that wraps: − value +"),
             ("auth_page", "one centred column of width min(24rem, 100%)"),
             ("error_page", "one centred column"),
+            (
+                "pricing_page",
+                "auto-fit cards of min(16rem, 100%): as many across as fit",
+            ),
             (
                 "select",
                 "a column of the filter row and the select; the row wraps",

@@ -1450,7 +1450,7 @@ async fn a_whole_app_flow_with_no_script() {
 /// Each block lays out as a page: its parts are there and visible without script.
 #[tokio::test]
 async fn blocks_lay_out() {
-    let checks: [(&str, &[&str]); 7] = [
+    let checks: [(&str, &[&str]); 11] = [
         (
             "/blocks/shell",
             &[
@@ -1496,6 +1496,32 @@ async fn blocks_lay_out() {
             "/no-such-page",
             &[".lui-error-page h1", ".lui-error-page-status"],
         ),
+        (
+            "/blocks/pricing",
+            &[
+                ".lui-pricing-page h1",
+                ".lui-pricing-page-tier[data-featured] .lui-badge",
+                ".lui-pricing-page-features li",
+                ".lui-pricing-page-cta",
+            ],
+        ),
+        (
+            "/blocks/inbox",
+            &[".lui-inbox-list nav", ".lui-inbox-item[data-unread]"],
+        ),
+        (
+            "/blocks/inbox/2",
+            &[".lui-inbox-detail h2", ".lui-inbox-back"],
+        ),
+        (
+            "/blocks/invoice",
+            &[
+                ".lui-invoice h1",
+                ".lui-invoice-party address",
+                ".lui-invoice-line .lui-invoice-each",
+                ".lui-invoice-due th",
+            ],
+        ),
     ];
     for (path, parts) in checks {
         let status = if path == "/no-such-page" { 404 } else { 200 };
@@ -1503,8 +1529,12 @@ async fn blocks_lay_out() {
         for part in parts {
             assert!(page.is_visible(part), "{path}: {part} is not visible");
         }
-        if path == "/no-such-page" {
-            shot(&mut page, "blocks-not-found");
+        match path {
+            "/no-such-page" => shot(&mut page, "blocks-not-found"),
+            "/blocks/pricing" => shot(&mut page, "blocks-pricing"),
+            "/blocks/inbox/2" => shot(&mut page, "blocks-inbox"),
+            "/blocks/invoice" => shot(&mut page, "blocks-invoice"),
+            _ => {}
         }
     }
 }

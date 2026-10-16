@@ -1,0 +1,84 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-inbox" data-open>
+<div class="lui-inbox-panes">
+<div class="lui-inbox-list">
+<h1 class="lui-inbox-title">Inbox</h1>
+<nav aria-label="Inbox">
+<ul>
+<li>
+<a class="lui-inbox-item" href="/inbox/1" data-unread>
+<span class="lui-inbox-item-head">
+<span class="lui-inbox-item-title">Ada Lovelace <span class="lui-sr">unread</span>
+</span>
+<span class="lui-inbox-item-when">09:12</span>
+</span>
+<span class="lui-inbox-item-description">The notes on the engine</span>
+</a>
+</li>
+<li>
+<a class="lui-inbox-item" href="/inbox/2" aria-current="page">
+<span class="lui-inbox-item-head">
+<span class="lui-inbox-item-title">Charles Babbage</span>
+<span class="lui-inbox-item-when">Mon</span>
+</span>
+<span class="lui-inbox-item-description">Lunch on Friday?</span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+<article class="lui-inbox-detail">
+<a class="lui-inbox-back" href="/inbox">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+<span>Back</span>
+</a>
+<h2>Lunch on Friday?</h2>
+</article>
+</div>
+</div>
+
+caps: none
+<div class="lui-inbox" data-open>
+<div class="lui-inbox-panes">
+<div class="lui-inbox-list">
+<h1 class="lui-inbox-title">Inbox</h1>
+<nav aria-label="Inbox">
+<ul>
+<li>
+<a class="lui-inbox-item" href="/inbox/1" data-unread>
+<span class="lui-inbox-item-head">
+<span class="lui-inbox-item-title">Ada Lovelace <span class="lui-sr">unread</span>
+</span>
+<span class="lui-inbox-item-when">09:12</span>
+</span>
+<span class="lui-inbox-item-description">The notes on the engine</span>
+</a>
+</li>
+<li>
+<a class="lui-inbox-item" href="/inbox/2" aria-current="page">
+<span class="lui-inbox-item-head">
+<span class="lui-inbox-item-title">Charles Babbage</span>
+<span class="lui-inbox-item-when">Mon</span>
+</span>
+<span class="lui-inbox-item-description">Lunch on Friday?</span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+<article class="lui-inbox-detail">
+<a class="lui-inbox-back" href="/inbox">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+<span>Back</span>
+</a>
+<h2>Lunch on Friday?</h2>
+</article>
+</div>
+</div>

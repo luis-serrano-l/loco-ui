@@ -197,7 +197,15 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::WeekShort, "Sem")
     .with(Text::WeekNumber, "Semana {}")
     .with(Text::StartDate, "Fecha de inicio")
-    .with(Text::EndDate, "Fecha de fin");
+    .with(Text::EndDate, "Fecha de fin")
+    .with(Text::Popular, "Recomendado")
+    .with(Text::Unread, "sin leer")
+    .with(Text::Item, "Concepto")
+    .with(Text::Quantity, "Cantidad")
+    .with(Text::Price, "Precio")
+    .with(Text::Amount, "Importe")
+    .with(Text::Sender, "De")
+    .with(Text::BilledTo, "Facturar a");
 
 /// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
 /// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as

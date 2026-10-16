@@ -3149,9 +3149,26 @@ what can I style" without leaving it, with script off, and feeds AI tools.
   `/examples/<name>.png`, so there is one copy and the gallery shows what the last test run
   drew. The static snapshot writes them to `examples/` and rewrites `src`. They are Blitz
   shots, so they show the narrow layout. A test checks every linked file exists.
-- [ ] Blocks gallery grows with M40's banner/steps/timeline and three new blocks (pricing
+- [x] Blocks gallery grows with M40's banner/steps/timeline and three new blocks (pricing
   page from `demo/src/pricing.rs` promoted into `blocks/`, inbox/list-detail,
   billing/invoice). Optional ("only if time allows"); split out of the gallery box above.
+  Done: `ui.pricing_page(title)` (`.tier(name, price)` with `.period`, `.blurb`,
+  `.feature`, `.cta`, `.featured()`; an auto-fit grid of cards, the featured one with a
+  "Popular" badge and the primary button), `ui.inbox_page(title, href)` (`.item(title,
+  href)` with `.description`, `.when`, `.unread(bool)`, and `.body` for the open item: the
+  item at the current path is `aria-current` and opens beside the list from 48rem, alone
+  with a Back link below it) and `ui.invoice_page(title)` (`.status(Badge)`, `.from`, `.to`,
+  `.meta`, `.line_item(item, quantity, price, amount)`, `.total`, `.note`, `.actions`; a
+  real table whose quantity and price columns show from 30rem and sit under each line's name
+  below it, the last total in bold, the actions left off paper). Demo pages
+  `/blocks/pricing`, `/blocks/inbox` (and `/blocks/inbox/2`), `/blocks/invoice`, Blitz
+  checks and shots, insta snapshots, eight `Text` keys with Spanish. Kept different: the
+  demo's `pricing.rs` stays as the example of a component written outside the library
+  (`docs/components.md` points at it) instead of moving; `.line` is `.line_item`, since
+  Chart's `.line` is a switch; every figure is text the app formats, so the blocks carry no
+  currency or tax rules. Not added to `cargo lui add`'s copyable list: they use the
+  crate-private `check_last` (and the inbox the current-path helper). M40's banner, steps
+  and timeline are components with pages of their own already.
 
 Key files: `demo/src/site.rs`, new `demo/src/docs.rs`, `demo/src/main.rs` (spec write),
 `demo/src/snapshot.rs`, `ui.rs`/`layout.rs` (head setters: coordinate with M39, which

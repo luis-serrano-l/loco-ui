@@ -36,7 +36,6 @@
 | `.lui-card-heading` |  |
 | `.lui-card-title` | `--lui-text-3` |
 | `.lui-card-description` | `--lui-muted`, `--lui-text-2` |
-| `.lui-card-action` |  |
 | `.lui-card-classic` | `--lui-shadow-md`, `--lui-highlight` |
 | `.lui-card-ghost` |  |
 | `.lui-card-body` |  |

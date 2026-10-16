@@ -430,6 +430,22 @@ pub enum Text {
     StartDate,
     /// "End date": date picker range, the last date's field.
     EndDate,
+    /// "Popular": pricing page: the featured tier's badge.
+    Popular,
+    /// "unread": inbox page: read after an unread item's title.
+    Unread,
+    /// "Item": invoice page: the lines' first column head.
+    Item,
+    /// "Quantity": invoice page: a column head.
+    Quantity,
+    /// "Price": invoice page: the unit price column head.
+    Price,
+    /// "Amount": invoice page: a column head.
+    Amount,
+    /// "From": invoice page: the sender's address heading.
+    Sender,
+    /// "Billed to": invoice page: the customer's address heading.
+    BilledTo,
 }
 
 /// How many texts there are.
@@ -437,7 +453,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 183] = [
+    pub const ALL: [Text; 191] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -621,6 +637,14 @@ impl Text {
         Text::WeekNumber,
         Text::StartDate,
         Text::EndDate,
+        Text::Popular,
+        Text::Unread,
+        Text::Item,
+        Text::Quantity,
+        Text::Price,
+        Text::Amount,
+        Text::Sender,
+        Text::BilledTo,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -837,6 +861,14 @@ const ENGLISH: [&str; N] = [
     "Week {}",
     "Start date",
     "End date",
+    "Popular",
+    "unread",
+    "Item",
+    "Quantity",
+    "Price",
+    "Amount",
+    "From",
+    "Billed to",
 ];
 
 /// Which way a language's text runs: `<html dir>`.
