@@ -1268,7 +1268,7 @@ mod tests {
             "{out}"
         );
         assert!(
-            out.contains(r#"loco-ui-caps = { path = "../loco-ui-caps", version = "0.1.0" }"#),
+            out.contains(r#"loco-ui-caps = { path = "../loco-ui-caps", version = "0.2.0" }"#),
             "{out}"
         );
         assert!(

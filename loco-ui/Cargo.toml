@@ -1,6 +1,6 @@
 [package]
 name = "loco-ui"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 # Let-chains (1.88). The `loco` feature needs 1.94: loco-rs 1.2 declares that.
 rust-version = "1.88"
@@ -13,9 +13,9 @@ documentation = "https://docs.rs/loco-ui"
 keywords = ["maud", "ssr", "components", "axum"]
 categories = ["web-programming", "template-engine", "gui"]
 # Leaves out `tests/fresh-loco-app`, the `loco new` copy `tests/install.rs` runs the installer on.
-include = ["src/**/*", "benches/**/*", "examples/**/*", "loco-templates/**/*", "tests/*.rs", "LICENSE", "NOTICE"]
-# The component template is not part of the package.
-exclude = ["src/_template.rs.txt"]
+include = ["src/**/*", "benches/**/*", "examples/**/*", "loco-templates/**/*", "tests/*.rs", "LICENSE", "NOTICE",
+    # The component template is not part of the package.
+    "!src/_template.rs.txt"]
 
 [features]
 default = []
@@ -34,8 +34,8 @@ loco = ["axum", "dep:loco-rs", "loco-rs/with-db", "dep:async-trait", "dep:serde_
 
 [dependencies]
 maud.workspace = true
-loco-ui-caps = { path = "../loco-ui-caps", version = "0.1.0" }
-loco-ui-macros = { path = "../loco-ui-macros", version = "0.1.0" }
+loco-ui-caps = { path = "../loco-ui-caps", version = "0.2.0" }
+loco-ui-macros = { path = "../loco-ui-macros", version = "0.2.0" }
 http = { version = "1", optional = true }
 axum = { workspace = true, optional = true, features = ["multipart"] }
 futures-util = { version = "0.3", optional = true, default-features = false, features = ["std"] }

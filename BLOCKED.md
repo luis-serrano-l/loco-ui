@@ -30,8 +30,9 @@ Answered 2026-09-24: **the repository is https://github.com/luis-serrano-l/loco-
 
 On hold at the owner's request (2026-09-24). The first publish is **0.2.0** (answered
 2026-10-14, below); nothing is on crates.io yet. The rename is done, `repository` is set, and
-M37 made the three crates ready (`publish-dry-run` and `docsrs` jobs in CI). The manifests
-still say 0.1.0: the `release` skill bumps them and stops before `cargo publish`. Publish
+M37 made the three crates ready (`publish-dry-run` and `docsrs` jobs in CI). The `release`
+skill bumped the manifests to 0.2.0 and dated the CHANGELOG on 2026-10-15, then stopped
+before `cargo publish`. Publish
 only on your yes; it is never run on your behalf.
 
 ## Rename to `nojs-ui`? (M26, box 1), answered

@@ -6,10 +6,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
-Nothing yet. 0.2.0 below is not published, so every change since the 0.1.0 prototype goes
-there.
-
-## [0.2.0] - unreleased
+## [0.2.0] - 2026-10-15
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached
 from `ui` (M18) instead of functions taking options structs, so this section lists changes
