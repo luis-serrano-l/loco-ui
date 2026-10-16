@@ -212,8 +212,8 @@ pub const CSS: &str = r#"
 .lui-inbox-panes { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-6); }
 .lui-inbox[data-open] .lui-inbox-list { display: none; }
 .lui-inbox-title { margin: 0 0 var(--lui-space-3); font-size: var(--lui-text-6); }
-.lui-inbox-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--lui-space-1); }
-.lui-inbox-item { display: grid; gap: var(--lui-space-1); padding: var(--lui-space-3); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); color: inherit; text-decoration: none; }
+.lui-inbox-list ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-1); }
+.lui-inbox-item { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-1); padding: var(--lui-space-3); border: 1px solid var(--lui-line); border-radius: var(--lui-radius); color: inherit; text-decoration: none; }
 .lui-inbox-item:hover { background: var(--lui-gray-3); }
 .lui-inbox-item[aria-current="page"] { background: var(--lui-gray-4); border-color: var(--lui-gray-7); }
 .lui-inbox-item-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--lui-space-2); }

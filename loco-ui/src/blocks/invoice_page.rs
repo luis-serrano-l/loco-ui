@@ -284,8 +284,8 @@ pub const CSS: &str = r#"
 .lui-invoice-lines thead th { color: var(--lui-muted); font-weight: 500; border-block-end: 1px solid var(--lui-line); }
 .lui-invoice-lines tbody tr { border-block-end: 1px solid var(--lui-line); }
 .lui-invoice-lines tfoot th { font-weight: 400; color: var(--lui-muted); }
-.lui-invoice-lines .lui-invoice-num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.lui-invoice-lines .lui-invoice-due th, .lui-invoice-lines .lui-invoice-due td { font-weight: 600; color: var(--lui-fg); font-size: var(--lui-text-4); }
+.lui-invoice-lines .lui-invoice-num { text-align: end; font-variant-numeric: tabular-nums; }
+.lui-invoice-lines .lui-invoice-due th, .lui-invoice-lines .lui-invoice-due td { font-weight: 600; color: var(--lui-fg); }
 .lui-invoice-wide { display: none; }
 .lui-invoice-each { display: block; color: var(--lui-muted); font-size: var(--lui-text-1); font-variant-numeric: tabular-nums; }
 .lui-invoice-note { margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); }
@@ -293,6 +293,8 @@ pub const CSS: &str = r#"
   .lui-invoice-parties { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
   .lui-invoice-wide { display: table-cell; }
   .lui-invoice-each { display: none; }
+  .lui-invoice-lines .lui-invoice-num { white-space: nowrap; }
+  .lui-invoice-lines .lui-invoice-due th, .lui-invoice-lines .lui-invoice-due td { font-size: var(--lui-text-4); }
 }
 @media print {
   .lui-invoice-actions { display: none; }
