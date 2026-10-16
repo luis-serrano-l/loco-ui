@@ -1189,12 +1189,12 @@ every Loco API named below against loco-rs 1.2 before relying on it, as M27 did.
   beta builder has a "beta" badge by its title and in the index (demo test). README
   "Component status" says what each promises (stable: breaking changes only in a breaking
   release with a note; beta: may change in any release until one release passes unchanged).
-- [ ] Copy-paste mode (shadcn, templUI), last: `cargo lui add <component>` vendors a
+- [x] Copy-paste mode (shadcn, templUI), last: `cargo lui add <component>` vendors a
   component's file into the app, from the spec JSON as the registry. Components read `ui`, so
   first decide whether a vendored file keeps `use loco_ui::…` for `Ui` or copies it; ask
   the owner before starting.
-  Blocked on the owner: the question and a suggested answer (keep `use loco_ui::…`) are in
-  BLOCKED.md; not started.
+  Done: answered by the owner on 2026-10-14 and built in M43 (`cargo lui add`, `list`,
+  `info`, `eject`); a vendored file keeps `use loco_ui::…`. See BLOCKED.md "Copy-paste mode".
 
 ### Positioning
 - [x] README and `docs/loco.md` lead with "server-rendered scaffolds for Loco 1.x, zero
