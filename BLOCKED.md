@@ -37,7 +37,7 @@ before `cargo publish`. Publish
 only on your yes; it is never run on your behalf.
 
 State on 2026-10-16: the release commit and a test fix (`f0c3c5c`) are on main and every CI
-job passed (semver skipped: nothing published to compare with). To publish, in order:
+job passed (`semver` runs only on pull requests, so it was skipped). To publish, in order:
 
 ```sh
 cargo publish -p loco-ui-caps
@@ -48,7 +48,8 @@ git tag v0.2.0 && git push --tags
 
 After the publish: README "Install" and `docs/loco.md` switch from the git dependency to
 `cargo add loco-ui` (and the installer's `rev=` pin to the crates.io version); tick ROADMAP
-M13 box 4 and the "After the publish" section; turn on `semver` in CI against 0.2.0.
+M13 box 4 and the "After the publish" section; point the `semver` CI job at the
+published 0.2.0 (`--baseline-version`) and drop its `continue-on-error`.
 
 ## Rename to `nojs-ui`? (M26, box 1), answered
 

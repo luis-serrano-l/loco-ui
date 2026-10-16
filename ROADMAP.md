@@ -3529,7 +3529,8 @@ modules after M38 and M40 merge.
 ## After the publish (waits on the owner's `cargo publish`)
 - [ ] README "Install", `docs/loco.md` and the `cargo lui install` git `rev=` pin switch to
   the crates.io version (`cargo add loco-ui --features …`); the "not on crates.io yet" line goes.
-- [ ] CI `semver` job checks against the published 0.2.0 (drop its `continue-on-error`).
+- [ ] CI `semver` job compares with the published 0.2.0 (`--baseline-version 0.2.0` instead
+  of the base branch) and loses its `continue-on-error`.
 - [ ] Tick M13 box 4 (the publish); tag `v0.2.0`.
 - [ ] Launch (M26) and the Loco link (M29), both outward: the owner posts, from
   `docs/launch-post.md` with the Pages link.
