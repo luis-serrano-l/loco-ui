@@ -1,14 +1,14 @@
 # Blocked
 
 Questions only the owner can answer. The name, hosting and Loco questions were answered on
-2026-09-24, copy-paste mode and the first version on 2026-10-14 (below). What is still with
-the owner, as of 2026-10-16 (work paused here; main is at the 0.2.0 release commit, CI green):
+2026-09-24, copy-paste mode and the first version on 2026-10-14, the `lui!` builder mode on
+2026-11-17 (below). What is still with the owner, as of 2026-11-17 (main is past the 0.2.0
+release commit by the M47 to M54 batch, not pushed):
 
 1. The crates.io publish, as 0.2.0: prepared and pushed, waiting on you to run the four
    commands under "The publish itself" below.
 2. Posting the announcement (M26) and asking Loco for a link (M29), both after the publish.
 3. Filing the Blitz and browser gaps that FINDINGS marks "the owner files it".
-4. The `lui!` builder mode for the `/wizard` and `/palette` snippets.
 
 ## Name, license and repository (M13, box 1), answered
 
@@ -141,23 +141,14 @@ Tremor or Dice UI. `loco-ui/src/timeline.rs` (M40b) copies the Flowbite Timeline
 not on that list, as the M40b box asked. Answered 2026-10-15: restyle it. It now copies the
 Origin UI Timeline.
 
-## One snippet style: `/wizard` and `/palette` (M34, "One snippet style" box), open
+## One snippet style: `/wizard` and `/palette` (M34, "One snippet style" box), answered and built
 
-`/counter` now shows `lui!` (its rules are three constants the post handler shares). The
-wizard and the palette cannot follow without a choice: their handlers call methods on the
-builder after building it (`wizard.at(step)`, `.is_last(..)`, `.link(..)`; `palette.exact()`),
-and `lui!` only returns `Markup`. The options:
-
-1. **A builder mode in `lui!`** (suggested): for example `lui!(build: Wizard("signup",
-   "/wizard") { step "Account" (..); .. })`, expanding to the same chain but returning the
-   builder instead of wrapping it in `html!`. The component functions keep one definition,
-   the snippets read like every other page, and the macro's `component()` already produces
-   that expression, so it is small. It is new macro syntax, which is why it is yours.
-2. Show `lui!` on the page and keep a second builder chain for the handler, from shared data.
-   No macro change, but each page defines its steps or links twice.
-3. Keep the chain on these two pages, and let the snippet test allow it.
-
-The demo test that stops snippets drifting back waits on this answer.
+The wizard's and the palette's handlers call methods on the builder after building it
+(`wizard.at(step)`, `.is_last(..)`, `.link(..)`; `palette.exact()`), and `lui!` only returned
+`Markup`. Answered 2026-11-17: **a builder mode in `lui!`**. M48 built it:
+`lui!(build: Wizard("signup", "/wizard") { step "Account" (..); .. })` expands to the same
+chain and returns the builder. Both snippets use it, and a demo test keeps snippets from
+going back to chains.
 
 ## Copy-paste mode (M29 / M43), answered and built
 

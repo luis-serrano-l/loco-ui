@@ -66,23 +66,14 @@ pub(crate) const PREVIEWS: &[super::Preview] = &[
 /// Every demo page as a command, plus a few deep links.
 fn palette(ui: &Ui) -> loco_ui::palette::Palette<'_> {
     // code: /palette
-    ui.palette("/palette")
-        .id("cmd")
-        .accesskey("j")
-        .group("Components")
-        .links(COMPONENTS.iter().map(|c| (c.title, c.href)))
-        .group("Shortcuts")
-        .link("Notification settings", "/settings?tab.settings=1")
-        .keywords("email releases")
-        .icon(Icon::Mail)
-        .shortcut("g n")
-        .link("Largest files", "/table?sort.files=-size")
-        .keywords("sort size big")
-        .icon(Icon::File)
-        .shortcut("g f")
-        .link("Open the delete dialog", "/dialog?dialog=confirm")
-        .keywords("account remove")
-        .icon(Icon::Trash)
+    lui!(build: Palette("/palette") id="cmd" accesskey="j" {
+        group "Components";
+        links (COMPONENTS.iter().map(|c| (c.title, c.href)));
+        group "Shortcuts";
+        link "Notification settings" "/settings?tab.settings=1" keywords="email releases" icon=(Icon::Mail) shortcut="g n";
+        link "Largest files" "/table?sort.files=-size" keywords="sort size big" icon=(Icon::File) shortcut="g f";
+        link "Open the delete dialog" "/dialog?dialog=confirm" keywords="account remove" icon=(Icon::Trash);
+    })
     // end code
 }
 
@@ -175,10 +166,7 @@ const POSTS: usize = 240;
 /// Page links for the posts: `?page.posts=n`, ten a page.
 fn pagination(ui: &Ui) -> Pagination<'_> {
     // code: /pagination
-    ui.pagination("/pagination")
-        .id("posts")
-        .total(POSTS)
-        .first_last()
+    lui!(build: Pagination("/pagination") id="posts" total=(POSTS) first_last;)
     // end code
 }
 

@@ -217,6 +217,31 @@ async fn pages_ship_only_the_enhancement_script() {
     }
 }
 
+/// A snippet shows a component in `lui!`, never as a bare builder chain: a block whose first
+/// line is `ui.<component>(..)` would read differently from every other page. Where the
+/// route needs the builder (to call `.exact()` or `.at(step)` on it) the block is
+/// `lui!(build: ..)`. Handler lines (`let query = ui.table_query(..)`) are not markup and stay.
+#[test]
+fn no_snippet_is_a_bare_builder_chain() {
+    for (path, source) in SOURCES {
+        let mut lines = source.lines().map(str::trim);
+        while let Some(line) = lines.next() {
+            let Some(href) = line.strip_prefix("// code: ") else {
+                continue;
+            };
+            let first = lines
+                .by_ref()
+                .find(|l| !l.is_empty() && !l.starts_with("//"))
+                .unwrap_or_default();
+            assert!(
+                !first.starts_with("ui.") && !first.starts_with("(ui.")
+                    || first.starts_with("(ui.slot("),
+                "{path}: the {href} snippet opens with a builder chain (`{first}`); write it in lui!, or lui!(build: ..) when the route needs the builder"
+            );
+        }
+    }
+}
+
 /// Every component page shows code cut from the route files, so the snippet cannot drift from
 /// what runs; every `// code:` marker is closed, names a component page, and a page's markers
 /// all sit in one file.

@@ -149,9 +149,11 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
    has none; the doc header's main doctest ends with the same call in `lui!` and an
    `assert_eq!` on the HTML. Tests fail when a setter is missing from `PROPS`, a builder or
    constructor from `props()`, or a header lacks its `lui!` twin. Demo snippets write the
-   component's markup in `lui!`; the builder chain stays only where the route calls a
-   method on it afterwards, and then the `lui!` render block sits beside it. Handler logic
-   in a snippet (a redirect, a toast, `ui.stream`) stays Rust.
+   component's markup in `lui!`; where the route calls a method on the builder afterwards
+   (`palette.exact()`, `wizard.at(step)`), the snippet is `lui!(build: Name(..) { .. })`,
+   which returns the builder (`no_snippet_is_a_bare_builder_chain` fails on a bare
+   `ui.<name>(..)` chain). Handler logic in a snippet (a redirect, a toast, `ui.stream`)
+   stays Rust.
 6. Server-held state (theme, counter, active tab) travels via cookie or `?query=`; mutations use
    `<form method="post">` + redirect (Post/Redirect/Get), never GET side effects.
 7. Update the README feature matrix and Findings when a component or its fallback changes.
@@ -181,7 +183,7 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
 wait on the owner. A milestone is done only when every box is ticked, clippy is clean, tests
 pass, and README is updated. Each ticked box carries a "Done:" note (what changed, new setters,
 what was kept different from the reference and why); write one when ticking. `BLOCKED.md`
-holds the questions only the owner can answer (the crates.io publish, posting the launch, the
-`lui!` builder mode for the `/wizard` and `/palette` snippets): never run `cargo publish`,
+holds the questions only the owner can answer (the crates.io publish, posting the launch,
+filing the upstream issues): never run `cargo publish`,
 push, or post anywhere without an explicit yes. `CHANGELOG.md` gets an Unreleased entry per
 milestone; `FINDINGS.md` gets every platform or Blitz gap with an issue link.

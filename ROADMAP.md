@@ -2085,7 +2085,7 @@ owner has seen them.
   full-width `lui-button` with a chevron that turns when open. Also fixed: the light strip
   beside the sidebar was the sticky nav's scrollbar track; it is now a thin scrollbar in the
   line colour. Kept different: nothing else moved.
-- [ ] One snippet style (asked by the owner on 2026-09-26): the `/counter` snippet still shows
+- [x] One snippet style (asked by the owner on 2026-09-26): the `/counter` snippet still shows
   the builder chain (`ui.counter("/counter", n).min(0).max(20).step(2).typed()`) where the
   other pages show `lui!`, so it reads differently. Go through every `// code:` block and make
   the component's markup `lui!`, as CLAUDE.md asks: today that is `/counter`, `/wizard` and
@@ -2099,6 +2099,12 @@ owner has seen them.
   typed;`, the post handler builds its rules from the same constants). `/wizard` and
   `/palette` wait on the owner (BLOCKED.md: a builder mode for `lui!` is suggested), and the
   drift test waits with them.
+  Done (M48, 2026-11-17): the owner chose the builder mode. `/wizard`, `/palette` and
+  `/pagination` are `lui!(build: ..)`; `no_snippet_is_a_bare_builder_chain` in
+  `demo/src/tests.rs` is the drift test. Kept different from the box: the test looks at
+  every block, not the first, and fails on a block that opens with `ui.<name>(..)` rather
+  than on one without `lui!`, because most blocks sit inside a `lui!` that opens above the
+  marker.
 - [x] Wrap-up:
   - Refresh `tests/shots/` on purpose, reviewing each changed PNG.
   - Re-measure the stylesheet size (gzipped) and write the growth in README. The budget is
@@ -3566,10 +3572,22 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M48 · `lui!` builder mode
 
-- [ ] `lui!(build: Name(..) attrs { items })` returns the builder instead of `Markup`
+- [x] `lui!(build: Name(..) attrs { items })` returns the builder instead of `Markup`
   (BLOCKED.md "One snippet style", option 1, answered 2026-11-17).
-- [ ] The `/wizard` and `/palette` snippets use it; a demo test keeps snippets from going
+  Done: `loco-ui-macros/src/lib.rs` reads a leading `build:` (after `ctx =>` when there is
+  one) and returns what `Cx::component` builds, without the `html!` wrapper, through the new
+  `Cx::build`. Anything after the component, or markup in its place, is a compile error
+  pinned in `tests/ui/build_extra.rs`. `build_returns_the_builder` in `loco-ui/tests/lui.rs`
+  compares a wizard, a palette (with `ctx =>`) and a badge with the chains; the rule is in
+  the macro's docs and in `docs/api.md` ("The builder from `lui!`", a doctest).
+- [x] The `/wizard` and `/palette` snippets use it; a demo test keeps snippets from going
   back to builder chains; the M34 "One snippet style" box and its BLOCKED entry close.
+  Done: `signup` in `demo/src/routes/input.rs` is `lui!(build: Wizard(..) values=(..)
+  errors=(..) { step .. })` with each step's fields a nested `lui!(build: Fields { .. })`;
+  `palette` and `pagination` in `routes/navigation.rs` are `lui!(build: ..)` too
+  (`/pagination` was a third chain the M34 scan missed). The test is
+  `no_snippet_is_a_bare_builder_chain`. The copy of this box under "After the publish" is
+  ticked with it.
 
 ## M49 · Languages: Arabic out, Spanish on the static site
 
@@ -3616,5 +3634,6 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 - [ ] Tick M13 box 4 (the publish); tag `v0.2.0`.
 - [ ] Launch (M26) and the Loco link (M29), both outward: the owner posts, from
   `docs/launch-post.md` with the Pages link.
-- [ ] One snippet style for `/counter`, `/wizard`, `/palette` (the open box under M32's
+- [x] One snippet style for `/counter`, `/wizard`, `/palette` (the open box under M32's
   follow-ups), once the owner answers the `lui!` builder-mode question in BLOCKED.md.
+  Done: M48.

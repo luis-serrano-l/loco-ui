@@ -215,6 +215,27 @@ let b = html! { (ui.grid("20rem").body(html! {
 assert_eq!(a.into_string(), b.into_string());
 ```
 
+## The builder from `lui!`
+
+`lui!` returns `Markup`. A route that calls a method on the builder before it renders (a
+palette's `.exact()`, a wizard's `.at(step)`, a pagination's `.range()`) writes `build:`
+before one component and gets the builder, from the same expansion:
+
+```rust
+use loco_ui::prelude::*;
+let ui = Ui::from_request("/search", "q=open+settings", "");
+let palette = lui!(build: Palette("/search") {
+    group "Go to";
+    link "Open settings" "/settings";
+});
+assert_eq!(palette.exact(), Some("/settings"));
+let by_hand = ui.palette("/search").group("Go to").link("Open settings", "/settings");
+assert_eq!(palette.render().into_string(), by_hand.render().into_string());
+```
+
+Only one component can follow `build:`; a second one, or plain markup, is a compile error
+that says so.
+
 A card's footer packs its buttons at its end, as a dialog's do, so it needs no cluster.
 
 ## Forms hold any control

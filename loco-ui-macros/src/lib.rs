@@ -59,6 +59,9 @@
 //! - **`@for`, `@if` / `@else`, `@match` and `@let`** work among items as they do in Maud, so
 //!   items built from data stay inline.
 //! - **`ui`** is taken from the scope by that name; `lui!(ctx => ..)` names another.
+//! - **`build:`** before a single component gives its builder instead of markup, for a route
+//!   that calls a method on it before rendering: `let wizard = lui!(build: Wizard("signup",
+//!   "/wizard") { step "Account" (fields); }).at(step);`. Nothing may follow the component.
 //!
 //! A misspelled attribute is rustc's own error at that attribute ("no method named `vertcal`
 //! … a method with a similar name exists: `vertical`"), since every expanded call keeps the
@@ -89,10 +92,22 @@ pub fn lui(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         tokens.drain(..3);
     }
     let cx = Cx { ui };
-    match cx.markup(&tokens) {
-        Ok(markup) => quote!(::maud::html! { #markup }).into(),
+    let expanded = if build_mode(&tokens) {
+        cx.build(&tokens[2..])
+    } else {
+        cx.markup(&tokens)
+            .map(|markup| quote!(::maud::html! { #markup }))
+    };
+    match expanded {
+        Ok(tokens) => tokens.into(),
         Err((span, message)) => quote_spanned!(span=> ::core::compile_error!(#message)).into(),
     }
+}
+
+/// Whether the input starts with `build:`, which asks for the builder, not its markup.
+fn build_mode(tokens: &[TokenTree]) -> bool {
+    matches!(tokens.first(), Some(TokenTree::Ident(word)) if word == "build")
+        && matches!(tokens.get(1), Some(TokenTree::Punct(colon)) if colon.as_char() == ':' && colon.spacing() == Spacing::Alone)
 }
 
 type Result<T> = std::result::Result<T, (Span, String)>;
@@ -332,6 +347,25 @@ impl Cx {
             index = end + 1;
         }
         Ok(out)
+    }
+
+    /// `build:` mode: the one component in `tokens` as its builder, not rendered.
+    fn build(&self, tokens: &[TokenTree]) -> Result<TokenStream> {
+        const ONE: &str = "`build:` takes one component, such as `lui!(build: Wizard(\"signup\", \"/wizard\") { .. })`";
+        match tokens.first() {
+            Some(TokenTree::Ident(name)) if starts_upper(name) => {
+                let (builder, next) = self.component(tokens, 0)?;
+                match tokens.get(next) {
+                    None => Ok(builder),
+                    Some(extra) => Err((
+                        extra.span(),
+                        "`build:` returns one builder, so nothing can follow the component; write the rest in its own `lui!`".to_string(),
+                    )),
+                }
+            }
+            Some(other) => Err((other.span(), ONE.to_string())),
+            None => Err((Span::call_site(), ONE.to_string())),
+        }
     }
 
     /// A component at `tokens[at]`: the builder expression and the index after it.

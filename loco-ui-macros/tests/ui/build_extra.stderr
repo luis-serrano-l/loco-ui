@@ -1,0 +1,11 @@
+error: `build:` returns one builder, so nothing can follow the component; write the rest in its own `lui!`
+ --> tests/ui/build_extra.rs:6:39
+  |
+6 |     let _ = lui!(build: Badge("New"); Badge("Old"););
+  |                                       ^^^^^
+
+error: `build:` takes one component, such as `lui!(build: Wizard("signup", "/wizard") { .. })`
+ --> tests/ui/build_extra.rs:8:25
+  |
+8 |     let _ = lui!(build: p { "text" });
+  |                         ^

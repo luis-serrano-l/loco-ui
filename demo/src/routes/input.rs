@@ -111,27 +111,18 @@ impl Signup {
 
 fn signup<'a>(ui: &'a Ui, answers: &'a Signup, errors: &'a [(&'a str, &'a str)]) -> Wizard<'a> {
     // code: /wizard
-    ui.wizard("signup", "/wizard")
-        .step(
-            "Account",
-            ui.fields()
-                .text("name", "Name")
-                .required()
-                .email("email", "Email")
-                .required(),
-        )
-        .step(
-            "Newsletter",
-            ui.fields()
-                .select("digest", "Digest", ["daily", "weekly", "never"])
-                .text("topics", "Topics")
-                .placeholder("rust, html"),
-        )
-        .optional()
-        .review("Review")
-        .values(&answers.0)
-        .errors(errors)
-        .finish("Create account")
+    lui!(build: Wizard("signup", "/wizard") values=(&answers.0) errors=(errors) {
+        step "Account" (lui!(build: Fields {
+            text "name" "Name" required;
+            email "email" "Email" required;
+        }));
+        step "Newsletter" (lui!(build: Fields {
+            select "digest" "Digest" (["daily", "weekly", "never"]);
+            text "topics" "Topics" placeholder="rust, html";
+        })) optional;
+        review "Review";
+        finish "Create account";
+    })
     // end code
 }
 

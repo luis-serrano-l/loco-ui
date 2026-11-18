@@ -278,3 +278,29 @@ fn choices_take_a_number_a_name_or_an_expression() {
         html! { (ui.input("q", "Search").placeholder("tone").size(1)) },
     );
 }
+
+/// `build:` gives the builder, so a route can call a method on it before rendering; with
+/// `ctx =>` it reads that `Ui`.
+#[test]
+fn build_returns_the_builder() {
+    let ui = ui();
+    let wizard = lui!(build: Wizard("signup", "/wizard") {
+        step "Account" (ui.fields().email("email", "Email").required());
+        step "Newsletter" (ui.fields().text("topics", "Topics")) optional;
+        finish "Create account";
+    });
+    assert!(wizard.is_last(1) && !wizard.is_last(0));
+    let by_hand = ui
+        .wizard("signup", "/wizard")
+        .step("Account", ui.fields().email("email", "Email").required())
+        .step("Newsletter", ui.fields().text("topics", "Topics"))
+        .optional()
+        .finish("Create account");
+    same(html! { (wizard.at(1)) }, html! { (by_hand.at(1)) });
+
+    let ctx = Ui::from_request("/search", "q=open+settings", "");
+    let palette = lui!(ctx => build: Palette("/search") { link "Open settings" "/settings"; });
+    assert_eq!(palette.exact(), Some("/settings"));
+    let badge = lui!(build: Badge("New") tone="info";);
+    same(html! { (badge) }, lui! { Badge("New") tone="info"; });
+}

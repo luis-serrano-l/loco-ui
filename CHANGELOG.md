@@ -6,6 +6,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
+#### M48
+
+- `lui!(build: Name(..) { .. })` returns the component's builder instead of `Markup`, for a
+  route that calls a method on it before rendering (`palette.exact()`, `wizard.at(step)`).
+  One component only; `lui!(ctx => build: ..)` reads another `Ui`.
+
 #### M47
 
 - **Breaking**: the stylesheet no longer styles a bare `<table>`, `<th>` or `<td>`. `ui.table`,
