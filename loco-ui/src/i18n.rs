@@ -32,8 +32,8 @@
 //! (`LOCALES.try_lookup(&lang, key)`): [`Strings::from_lookup`] asks for each [`Text::key`]
 //! (`lui-next`, `lui-load-more`, …) and keeps English for what the lookup does not have.
 //!
-//! A table is more than words. Its tag brings CLDR data for en, es, fr, de, ar, he, ru and
-//! pl (English's for any other tag), each part overridden by a setter:
+//! A table is more than words. Its tag brings CLDR data for en, es, fr, de, he, ru and pl
+//! (English's for any other tag), each part overridden by a setter:
 //!
 //! - direction, [`Strings::dir`], written as `<html dir>`; `?dir=rtl` or `?dir=ltr` on any
 //!   page overrides it ([`crate::Ui::dir`]);
@@ -877,7 +877,7 @@ pub enum Dir {
     /// Left to right.
     #[default]
     Ltr,
-    /// Right to left: Arabic, Hebrew.
+    /// Right to left: Hebrew.
     Rtl,
 }
 
@@ -904,18 +904,19 @@ impl Dir {
 }
 
 /// A CLDR plural category: which form of a counted text a number takes in a language
-/// (English has `One` and `Other`, Russian `One`, `Few` and `Many`, Arabic all six).
+/// (English has `One` and `Other`, Russian `One`, `Few` and `Many`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Plural {
-    /// Arabic 0.
+    /// A form for zero. None of the built-in rules gives it; an app's own rule
+    /// ([`Strings::with_plural`]) can.
     Zero,
     /// 1 in most languages; 21, 31 in Russian.
     One,
-    /// Arabic and Hebrew 2.
+    /// Hebrew 2.
     Two,
-    /// Russian and Polish 2 to 4, Arabic 3 to 10.
+    /// Russian and Polish 2 to 4.
     Few,
-    /// Russian and Polish 5 to 20, Arabic 11 to 99, Spanish and French a million.
+    /// Russian and Polish 5 to 20, Spanish and French a million.
     Many,
     /// Everything else.
     Other,
@@ -963,17 +964,6 @@ fn french(n: u64) -> Plural {
     match n {
         0 | 1 => Plural::One,
         n if n % 1_000_000 == 0 => Plural::Many,
-        _ => Plural::Other,
-    }
-}
-
-fn arabic(n: u64) -> Plural {
-    match (n, n % 100) {
-        (0, _) => Plural::Zero,
-        (1, _) => Plural::One,
-        (2, _) => Plural::Two,
-        (_, 3..=10) => Plural::Few,
-        (_, 11..=99) => Plural::Many,
         _ => Plural::Other,
     }
 }
@@ -1036,13 +1026,12 @@ const fn locale(
 }
 
 const NBSP: &str = "\u{a0}";
-const LOCALES: [Locale; 9] = [
+const LOCALES: [Locale; 8] = [
     locale("en", Dir::Ltr, one_other, (",", ".", 1), 0),
     locale("en-US", Dir::Ltr, one_other, (",", ".", 1), 6),
     locale("es", Dir::Ltr, spanish, (".", ",", 2), 0),
     locale("fr", Dir::Ltr, french, ("\u{202f}", ",", 1), 0),
     locale("de", Dir::Ltr, one_other, (".", ",", 1), 0),
-    locale("ar", Dir::Rtl, arabic, (",", ".", 1), 5),
     locale("he", Dir::Rtl, hebrew, (",", ".", 1), 6),
     locale("ru", Dir::Ltr, russian, (NBSP, ",", 1), 0),
     locale("pl", Dir::Ltr, polish, (NBSP, ",", 2), 0),
@@ -1094,7 +1083,7 @@ const fn locale_for(tag: &str) -> Locale {
 
 /// One language's texts, and how it writes numbers, counts, dates and direction. Start
 /// from [`Strings::new`] (English words, and the CLDR data of the tag when it is one of en,
-/// es, fr, de, ar, he, ru, pl) and set what you translate with [`Strings::with`], in a
+/// es, fr, de, he, ru, pl) and set what you translate with [`Strings::with`], in a
 /// `static`; or fill one at run time with [`Strings::from_lookup`].
 ///
 /// ```rust
@@ -1105,7 +1094,7 @@ const fn locale_for(tag: &str) -> Locale {
 /// assert_eq!(RUSSIAN.count(Text::Matches, 3), "3 совпадения");
 /// assert_eq!(RUSSIAN.count(Text::Matches, 12), "12 совпадений");
 /// assert_eq!(RUSSIAN.number(1234567.5), "1\u{a0}234\u{a0}567,5");
-/// assert_eq!(Strings::new("ar").dir(), Dir::Rtl);
+/// assert_eq!(Strings::new("he").dir(), Dir::Rtl);
 /// assert_eq!(Strings::ENGLISH.plural(1), Plural::One);
 /// ```
 #[derive(Clone, Copy, Debug)]
@@ -1183,7 +1172,7 @@ impl Strings {
 
     /// English texts under the language tag `lang` (`"es"`, `"pt-BR"`), to translate with
     /// [`Strings::with`]. Direction, plural rule, number separators and the first day of
-    /// the week come from the tag (CLDR, for en, es, fr, de, ar, he, ru and pl; English's for
+    /// the week come from the tag (CLDR, for en, es, fr, de, he, ru and pl; English's for
     /// any other), each overridden by its own setter.
     pub const fn new(lang: &'static str) -> Strings {
         let l = locale_for(lang);
@@ -1574,25 +1563,11 @@ mod tests {
     #[test]
     fn plural_categories_follow_cldr() {
         use Plural::*;
-        let cases: [(&str, &[(u64, Plural)]); 7] = [
+        let cases: [(&str, &[(u64, Plural)]); 6] = [
             ("en", &[(0, Other), (1, One), (2, Other), (21, Other)]),
             ("es", &[(0, Other), (1, One), (2, Other), (1_000_000, Many)]),
             ("fr", &[(0, One), (1, One), (2, Other), (2_000_000, Many)]),
             ("de", &[(0, Other), (1, One), (5, Other)]),
-            (
-                "ar",
-                &[
-                    (0, Zero),
-                    (1, One),
-                    (2, Two),
-                    (3, Few),
-                    (110, Few),
-                    (11, Many),
-                    (199, Many),
-                    (100, Other),
-                    (102, Other),
-                ],
-            ),
             (
                 "ru",
                 &[
@@ -1668,11 +1643,11 @@ mod tests {
 
     #[test]
     fn tags_bring_direction_and_first_day() {
-        assert_eq!(Strings::new("ar-EG").dir(), Dir::Rtl);
+        assert_eq!(Strings::new("he-IL").dir(), Dir::Rtl);
         assert_eq!(Strings::new("es").dir(), Dir::Ltr);
         assert_eq!(Strings::new("en").first_day(), 0);
         assert_eq!(Strings::new("en_us").first_day(), 6);
-        assert_eq!(Strings::new("ar").first_day(), 5);
+        assert_eq!(Strings::new("he").first_day(), 6);
         assert_eq!(Strings::new("zz").first_day(), 0);
         assert_eq!(Strings::new("es").with_first_day(13).first_day(), 6);
         assert_eq!(Dir::parse(" RTL "), Some(Dir::Rtl));

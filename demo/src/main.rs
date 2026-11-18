@@ -85,7 +85,11 @@ async fn write_snapshot(dir: &Path) {
     std::fs::create_dir_all(dir).unwrap();
     let pages = demo::snapshot::pages().await;
     for page in &pages {
-        std::fs::write(dir.join(&page.name), &page.html).unwrap();
+        let path = dir.join(&page.name);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(path, &page.html).unwrap();
     }
     std::fs::create_dir_all(dir.join("examples")).unwrap();
     for (name, png) in demo::examples::images() {

@@ -244,8 +244,9 @@ The words components write themselves ("Next", "Load more", "Rows per page", mon
 come from one table, `i18n::Strings`, picked per request from the `lui-lang` cookie or
 `Accept-Language`; `<html lang>` follows. English is built in; an app adds a language with
 `Strings::new("es").with(Text::Next, "Siguiente")…` or fills one from Loco's fluent files
-(`Strings::from_lookup`). The demo has Spanish (the switch beside the theme toggle), and a
-test fails when a component writes English outside the table.
+(`Strings::from_lookup`). The demo has Spanish (the switch beside the theme toggle; the
+static snapshot holds a Spanish copy of every page under `es/`), and a test fails when a
+component writes English outside the table.
 
 ## Use with any server
 

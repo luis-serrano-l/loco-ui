@@ -875,8 +875,8 @@ async fn components_speak_the_visitors_language() {
     assert!(set.starts_with("lui-lang=es;"), "{set}");
 }
 
-/// `?dir=rtl` turns any page right to left; the Arabic table brings `dir="rtl"` itself, its
-/// own week start, and English for the texts it does not translate.
+/// `?dir=rtl` turns any page right to left (a table whose tag is right to left, such as
+/// `Strings::new("he")`, brings it itself: `i18n`'s own tests).
 #[tokio::test]
 async fn pages_run_right_to_left() {
     let page = |uri: &'static str, accept: &'static str| async move {
@@ -892,12 +892,6 @@ async fn pages_run_right_to_left() {
     };
     let flipped = page("/calendar?dir=rtl", "en").await;
     assert!(flipped.contains(r#"<html lang="en" dir="rtl""#));
-    let arabic = page("/calendar?month.day=2026-09", "ar").await;
-    assert!(arabic.contains(r#"<html lang="ar" dir="rtl""#));
-    assert!(arabic.contains(
-        "\u{627}\u{644}\u{634}\u{647}\u{631} \u{627}\u{644}\u{62a}\u{627}\u{644}\u{64a}"
-    ));
-    assert!(arabic.contains(r#"abbr="Saturday""#));
     let english = page("/calendar", "en").await;
     assert!(english.contains(r#"<html lang="en" dir="ltr""#));
 }

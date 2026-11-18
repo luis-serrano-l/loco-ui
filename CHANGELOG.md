@@ -6,6 +6,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
+#### M49
+
+- **Breaking**: the `ar` locale is gone. `Strings::new("ar")` gets English's direction,
+  plural rule, separators and first day; set them with `with_dir`, `with_plural`,
+  `with_number` and `with_first_day`. Hebrew (`he`) is the built-in right-to-left locale.
+- The demo offers English and Spanish, and its static snapshot holds both (`es/`), with
+  the language buttons as links.
+
 #### M48
 
 - `lui!(build: Name(..) { .. })` returns the component's builder instead of `Markup`, for a

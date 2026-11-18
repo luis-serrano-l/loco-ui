@@ -345,7 +345,7 @@ impl<'a> Calendar<'a> {
     }
 
     /// Weeks start on Sunday, whatever the language's first day ([`Strings::first_day`]:
-    /// Monday in English and Spanish, Sunday in `en-US` and Hebrew, Saturday in Arabic).
+    /// Monday in English and Spanish, Sunday in `en-US` and Hebrew).
     pub fn sunday_first(mut self) -> Self {
         self.sunday_first = true;
         self

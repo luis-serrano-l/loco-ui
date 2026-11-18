@@ -207,27 +207,8 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Sender, "De")
     .with(Text::BilledTo, "Facturar a");
 
-/// A few texts in Arabic, the rest falling back to English: enough to show a right-to-left
-/// page (`Strings::new("ar")` brings `dir="rtl"`, the Arabic plural rule and Saturday as
-/// the first day of the week).
-pub static ARABIC: Strings = Strings::new("ar")
-    .with(Text::Next, "التالي")
-    .with(Text::Previous, "السابق")
-    .with(Text::Close, "إغلاق")
-    .with(Text::Cancel, "إلغاء")
-    .with(Text::Search, "بحث")
-    .with(Text::Submit, "إرسال")
-    .with(Text::LoadMore, "تحميل المزيد")
-    .with(Text::RowsPerPage, "صفوف في الصفحة")
-    .with(Text::PreviousMonth, "الشهر السابق")
-    .with(Text::NextMonth, "الشهر التالي")
-    .with(
-        Text::Matches,
-        "zero:لا نتائج|one:نتيجة واحدة|two:نتيجتان|few:{} نتائج|many:{} نتيجة|other:{} نتيجة",
-    );
-
 /// The languages the demo offers, English first (the default).
-pub static LANGUAGES: [&Strings; 3] = [&Strings::ENGLISH, &SPANISH, &ARABIC];
+pub static LANGUAGES: [&Strings; 2] = [&Strings::ENGLISH, &SPANISH];
 
 #[cfg(test)]
 mod tests {

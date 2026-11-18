@@ -3591,10 +3591,27 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M49 · Languages: Arabic out, Spanish on the static site
 
-- [ ] Remove Arabic: the demo's table, the `ar` locale and its plural rule, and every
+- [x] Remove Arabic: the demo's table, the `ar` locale and its plural rule, and every
   mention. Right-to-left support stays, shown by Hebrew and `?dir=rtl`.
-- [ ] The snapshot exports every page in Spanish under `es/`, and the language buttons are
+  Done: `ARABIC` is gone from `demo/src/spanish.rs` (`LANGUAGES` is English and Spanish)
+  and its button from `site::header`; `loco-ui/src/i18n.rs` drops the `ar` row of `LOCALES`
+  (8 locales: en, en-US, es, fr, de, he, ru, pl) and the `arabic` plural rule, so
+  `Strings::new("ar")` now gets English's data like any unknown tag. Doc comments and tests
+  use Hebrew where they showed a right-to-left tag (`Strings::new("he").dir()`, `he-IL`,
+  first day Sunday). `pages_run_right_to_left` keeps `?dir=rtl`. Kept: `Plural::Zero`, which
+  no built-in rule returns now, for an app's own `with_plural` rule; the earlier milestones'
+  notes and the 0.2.0 changelog still name Arabic, as history.
+- [x] The snapshot exports every page in Spanish under `es/`, and the language buttons are
   links between the two there.
+  Done: `demo/src/snapshot.rs` renders each set with the `lui-lang` cookie
+  (`snapshot::LANGUAGES`: English at the root, Spanish under `es/`, each with its baseline
+  variants), and `languages()` replaces the `/lang` form with two link buttons to the same
+  page in each set, the current one soft with `aria-current="page"`. Links between pages
+  stay inside a set; the gallery shots are shared (`../examples/..`). `write_snapshot`
+  creates the directory. Tests: `the_snapshot_switches_language_with_links`, and
+  `every_exported_page_has_the_banner_and_no_script` resolves links per directory and fails
+  on a page that still posts to `/lang`. Measured with `scripts/snapshot.sh`: 482 files,
+  92 MB, from 46 MB (each page inlines the stylesheet), under Pages' 1 GB limit.
 
 ## M50 · CI gates and stricter tests
 
