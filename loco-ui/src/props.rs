@@ -1041,6 +1041,14 @@ pub(crate) const COMPONENTS: &[Component] = &[
         status: Status::Beta,
     },
     Component {
+        module: "resizable",
+        builder: "Resizable",
+        calls: &["ui.resizable(label: &str)"],
+        props: crate::resizable::Resizable::PROPS,
+        keys: crate::resizable::Resizable::KEYS,
+        status: Status::Beta,
+    },
+    Component {
         module: "blocks/list_page",
         builder: "ListPage",
         calls: &["ui.list_page(title: &str)"],

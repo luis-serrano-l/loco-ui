@@ -46,7 +46,7 @@
 | `.lui-schedule-aside` |  |
 | `.lui-schedule-days` |  |
 | `.lui-schedule-day` | `--lui-space-2`, `--lui-space-4`, `--lui-line` |
-| `.lui-schedule-day-title` | `--lui-text-2`, `--lui-leading-2`, `--lui-muted`, `--lui-primary` |
+| `.lui-schedule-day-title` | `--lui-text-2`, `--lui-leading-2`, `--lui-muted`, `--lui-brand-11` |
 | `.lui-schedule-empty` | `--lui-muted`, `--lui-text-2` |
 | `.lui-schedule-events` | `--lui-space-2` |
 | `.lui-schedule-event` | `--lui-primary`, `--lui-space-3`, `--lui-space-2`, `--lui-schedule-tone`, `--lui-radius-sm`, `--lui-radius`, `--lui-gray-2`, `--lui-text-2`, `--lui-gray-3`, `--lui-ok`, `--lui-warn`, `--lui-danger`, `--lui-info`, `--lui-gray-9`, `--lui-hit` |

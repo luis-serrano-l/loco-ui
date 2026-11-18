@@ -647,6 +647,14 @@ pub(crate) const COMPONENTS: &[Entry] = &[
         what: "An agenda: the period with its links, each day and its events.",
         when: "Use it for a week or a month of events, bookings or shifts.",
     },
+    Entry {
+        href: "/resizable",
+        title: "Resizable panes",
+        group: "Primitives",
+        built_on: "grid, role=separator, state in the query and a cookie, dragging with the script",
+        what: "Two panes whose divider moves by links, or by dragging with the script; the server remembers the size.",
+        when: "Use it when two views share a width and the visitor decides how: a list beside a preview, a navigation beside a page. For a fixed split, use the split layout.",
+    },
 ];
 
 /// The index's layers, bottom up, each with the groups it holds (as in `docs/layers.svg`).

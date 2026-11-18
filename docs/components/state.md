@@ -19,9 +19,10 @@
 
 Where UI state lives when there is no script: in the URL and in a cookie.
 
-`UiState` is a small string map with five kinds of keys: `tab.<name>` (open tab index),
+`UiState` is a small string map with six kinds of keys: `tab.<name>` (open tab index),
 `open.<group>` (open accordion indexes, a comma list), `step.<wizard>` (current wizard step),
-`per.<table>` (rows per page of a paged table) and `dialog` (id of a dialog to render open). It is
+`per.<table>` (rows per page of a paged table), `size.<id>` (the first pane's share of a
+resizable pair, in percent) and `dialog` (id of a dialog to render open). It is
 read from the query string first and a `lui-ui` cookie second, so a link can change one key
 while everything else is remembered. In Axum it is an extractor, and returning it as part
 of the response writes the cookie back when the query changed something.

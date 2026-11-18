@@ -1748,6 +1748,29 @@ async fn typography_and_layout_primitives() {
     let area = page.bbox(".lui-stage .lui-scroll-area").unwrap();
     assert!((area.height - 192.0).abs() < 2.0, "12rem tall: {area:?}");
 
+    // Blitz has no container queries, so the panes are stacked (the narrow base) and the
+    // divider is not shown; the size the query asks for is in the markup all the same.
+    let page = Page::render(demo::router(), "/resizable?size.files=70", OLD).await;
+    assert_eq!(page.count(".lui-stage .lui-resizable-pane"), 2);
+    assert!(!page.is_visible(".lui-stage .lui-resizable-divider"));
+    let root = page.bbox(".lui-stage .lui-resizable").unwrap();
+    let first = page.bbox(".lui-stage .lui-resizable-pane").unwrap();
+    assert!(
+        first.width > root.width - 4.0,
+        "stacked: a pane takes the width: {first:?} {root:?}"
+    );
+    assert!(
+        page.exists(
+            r#".lui-stage .lui-resizable[style*="70%"] .lui-resizable-handle[aria-valuenow="70"]"#
+        ),
+        "the query sets the size"
+    );
+    assert!(
+        page.exists(r#".lui-stage a.lui-resizable-step[href*="size.files=60"]"#)
+            && page.exists(r#".lui-stage a.lui-resizable-step[href*="size.files=80"]"#),
+        "a link each way, one step"
+    );
+
     let page = Page::render(demo::router(), "/spinner", MODERN).await;
     assert_eq!(page.count(".lui-stage .lui-spinner"), 4);
     assert_eq!(page.count(".lui-stage .lui-indicator-badge"), 2);

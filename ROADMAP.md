@@ -3716,8 +3716,25 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M53 · Resizable panes
 
-- [ ] `resizable.rs`: a split whose size the server keeps and a form post changes; the
+- [x] `resizable.rs`: a split whose size the server keeps and a form post changes; the
   script adds dragging and arrow keys on the separator.
+  Done: `ui.resizable(label)` with `.first(..)`, `.second(..)`, `.value(..)` (50),
+  `.min(..)` (20), `.max(..)` (80), `.step(..)` (10) and `.id(..)`; demo at `/resizable`.
+  The size is a new `UiState` key, `size.<id>`: read from the query, then remembered by
+  the `lui-ui` cookie. Without the script two links on the divider move it one step
+  (omitted at a limit). With it the `role="separator"` takes the focus, drags by pointer
+  capture and answers the arrow keys, Home and End; letting go puts the size in the URL
+  with `history.replaceState` and requests that page (`keepalive`, one request at a time)
+  so the cookie has it. Kept different from the plan: links, not a form post. A size is
+  view state like an open tab, which the library already changes by a GET link through
+  `UiState`; a post would have needed a route in every app. Kept different from shadcn/ui
+  Resizable: two panes and a vertical divider only (no nesting, no horizontal divider),
+  and under 30rem the panes stack with no divider. The script grew by 1.9 KB, so its
+  budgets went from 16 to 18 KB served and 20 to 22 KB of source. `.start`/`.end` were
+  taken by Cluster's switches, hence `.first`/`.second`. Also fixed here: today's title
+  on the schedule block failed contrast in dark mode (axe), now `--lui-brand-11`. The
+  root is not a swap root (the reviewer's point): the script sets the size itself, and a
+  swap root would have taken over every link and form inside the panes.
 
 ## M54 · `examples/admin`, an Axum-only admin panel
 

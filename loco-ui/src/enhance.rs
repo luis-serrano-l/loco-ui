@@ -61,7 +61,10 @@
 //! A tab title opens its panel and slides the underline on the click itself; the server's
 //! answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 //! sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
-//! own move form with its new index. A table's "select all matching" box ticks the row
+//! own move form with its new index. A resizable pair's separator drags (pointer events,
+//! `setPointerCapture`) and answers the arrow keys, Home and End; letting go puts
+//! `size.<id>` in the URL with `history.replaceState` and asks for that page so the
+//! `lui-ui` cookie remembers it. A table's "select all matching" box ticks the row
 //! boxes on the page as well. A code block's copy button (`data-lui="copy"`, rendered
 //! `hidden`) is shown where `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1) can
 //! write, and copies the block on a click. A number field's steppers (`data-lui="steppers"`)
@@ -83,7 +86,7 @@ use maud::{Markup, html};
 /// Path the script is served from. [`script_url`] appends a content hash.
 pub const SCRIPT_PATH: &str = "/lui/enhance.js";
 
-/// The whole enhancement script. Plain ES2020, no build step, about 14 KB as [`served`].
+/// The whole enhancement script. Plain ES2020, no build step, about 18 KB as [`served`].
 pub const JS: &str = r##"(function () {
 "use strict";
 var roots = "[data-lui=swap]", queue = {}, cache = {};
@@ -434,6 +437,45 @@ document.addEventListener("dragend", function () {
   f.append(b); f.requestSubmit(b); b.remove();
 });
 
+// Resizable panes: the separator drags and answers the arrow keys, Home and End. The size is a
+// custom property while it moves; letting go names it in the URL and asks for that page,
+// whose only effect is the lui-ui cookie remembering it (one request at a time, so the
+// last size is the one the cookie ends with).
+var sized, bar = ".lui-resizable-handle", bars = function () { document.querySelectorAll(bar).forEach(function (h) { h.tabIndex = 0; }); };
+bars(); document.addEventListener("lui:swap", bars);
+var at = function (h, k) { return +h.getAttribute("aria-value" + k); }, rtl = function (h) { return getComputedStyle(h).direction === "rtl"; };
+var size = function (h, v) {
+  v = Math.round(Math.min(at(h, "max"), Math.max(at(h, "min"), v)));
+  h.setAttribute("aria-valuenow", v);
+  h.closest(".lui-resizable").style.setProperty("--lui-resizable-size", v + "%");
+};
+var kept = Promise.resolve(), keep = function (h) {
+  var u = new URL(location.href), o = init("low");
+  o.keepalive = true; // a navigation right after does not drop it
+  u.searchParams.set(h.dataset.luiKey, at(h, "now"));
+  history.replaceState(snapshot(), "", u);
+  kept = kept.then(function () { return fetch(u, o); }).catch(function () {});
+};
+document.addEventListener("pointerdown", function (e) {
+  var h = e.target.closest && e.target.closest(bar);
+  if (!h || e.button) return;
+  e.preventDefault(); h.focus(); h.setPointerCapture(e.pointerId); sized = h;
+});
+document.addEventListener("pointermove", function (e) {
+  var r = sized && sized.parentNode.parentNode.getBoundingClientRect();
+  if (r) size(sized, (rtl(sized) ? r.right - e.clientX : e.clientX - r.left) * 100 / r.width);
+});
+["pointerup", "pointercancel", "keydown", "keyup"].forEach(function (on) {
+  document.addEventListener(on, function (e) {
+    var h = e.target, by = { ArrowLeft: -1, ArrowRight: 1, Home: -100, End: 100 }[e.key];
+    if (on[0] === "p") { if (sized) keep(sized); sized = null; return; }
+    if (!by || !h.matches || !h.matches(bar)) return;
+    if (on === "keyup") return keep(h);
+    e.preventDefault();
+    size(h, at(h, "now") + (rtl(h) ? -by : by) * h.dataset.luiStep);
+  });
+});
+
 // Copy buttons (a code block's .copy()): rendered hidden, shown when the clipboard can be
 // written; a click copies the block its commandfor names and says "Copied" for 2s.
 var copies = function () { if (navigator.clipboard) document.querySelectorAll("[data-lui=copy][hidden]").forEach(function (s) { s.hidden = false; }); };
@@ -469,7 +511,7 @@ addEventListener("popstate", function (e) {
 "##;
 
 /// [`JS`] as served: comment lines and indentation dropped, nothing else touched. The budget
-/// (15 KB) applies to this; the source keeps its comments for the reader.
+/// (18 KB) applies to this; the source keeps its comments for the reader.
 pub fn served() -> &'static str {
     static SERVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     SERVED.get_or_init(|| {
@@ -798,12 +840,12 @@ mod tests {
         // 13 KB served and 16 KB of source until M41's select-all box; +384 served (+640 source) for M40c's
         // number steppers and password reveal.
         assert!(
-            served().len() < 16384, // 15.5 KB until the keyboard fixes (Escape on fallbacks and tooltips, focus after a move)
+            served().len() < 18432, // 15.5 KB until the keyboard fixes (Escape on fallbacks and tooltips, focus after a move); 16 KB until M53's separator (drag and keys, +1.7 KB)
             "enhance.js is {} bytes served",
             served().len()
         );
         assert!(
-            JS.len() < 20480, // 19 KB until the keyboard fixes
+            JS.len() < 22528, // 19 KB until the keyboard fixes; 20 KB until M53
             "enhance.js source is {} bytes; trim before adding comments",
             JS.len()
         );

@@ -10,7 +10,8 @@
         { "name": "history.pushState", "baseline": { "chrome": "5", "firefox": "4", "safari": "5" } },
         { "name": "document.startViewTransition", "baseline": { "chrome": "111", "firefox": "144", "safari": "18" } },
         { "name": "CustomEvent", "baseline": { "chrome": "15", "firefox": "11", "safari": "6" } },
-        { "name": "HTML drag and drop", "baseline": { "chrome": "4", "firefox": "3.5", "safari": "3.1" } }
+        { "name": "HTML drag and drop", "baseline": { "chrome": "4", "firefox": "3.5", "safari": "3.1" } },
+        { "name": "setPointerCapture", "baseline": { "chrome": "55", "firefox": "59", "safari": "13" } }
       ],
       "fallback": "none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert",
       "needs_js": "no"
@@ -2961,6 +2962,42 @@
             { "keys": "Enter", "does": "Adds the typed tag when the Add button is the first submit button in its form; inside a `Form`, Enter submits the form instead.", "script": false },
             { "keys": "Enter / Space", "does": "Adds the typed tag from the focused Add button.", "script": false },
             { "keys": "Enter", "does": "Removes the tag from its focused remove link.", "script": false }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Resizable panes",
+      "module": "resizable",
+      "look": "shadcn/ui Resizable",
+      "responsive": "container",
+      "features": [
+        { "name": "role=\"separator\"", "baseline": { "chrome": "1", "firefox": "1", "safari": "1" } },
+        { "name": "container query", "baseline": { "chrome": "105", "firefox": "110", "safari": "16" } },
+        { "name": "setPointerCapture", "baseline": { "chrome": "55", "firefox": "59", "safari": "13" } }
+      ],
+      "fallback": "under 30rem the panes stack and there is no divider",
+      "needs_js": "partial",
+      "needs_js_note": "the size changes a step at a time by links; dragging and the arrow keys need script",
+      "builders": [
+        {
+          "builder": "Resizable",
+          "lui": "Resizable",
+          "status": "beta",
+          "calls": ["ui.resizable(label: &str)"],
+          "props": [
+            { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "Replace the key derived from the label: the state is `size.<id>`, the element `lui-resizable-<id>`." },
+            { "name": "first", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The first pane, the one the size is of." },
+            { "name": "second", "kind": "value", "args": "body: Markup", "default": "", "attr": "", "doc": "The second pane, which takes the rest." },
+            { "name": "value", "kind": "number", "args": "value: impl Into<f64>", "default": "50", "attr": "", "doc": "The first pane's share in percent until the visitor changes it." },
+            { "name": "min", "kind": "number", "args": "min: impl Into<f64>", "default": "20", "attr": "", "doc": "The smallest share, in percent." },
+            { "name": "max", "kind": "number", "args": "max: impl Into<f64>", "default": "80", "attr": "", "doc": "The largest share, in percent." },
+            { "name": "step", "kind": "number", "args": "step: impl Into<f64>", "default": "10", "attr": "", "doc": "How far a link or an arrow key moves the divider, in percent." }
+          ],
+          "keys": [
+            { "keys": "Enter", "does": "Follows the smaller or larger link.", "script": false },
+            { "keys": "ArrowLeft / ArrowRight", "does": "Moves the divider one step.", "script": true },
+            { "keys": "Home / End", "does": "Moves the divider to its minimum or maximum.", "script": true }
           ]
         }
       ]

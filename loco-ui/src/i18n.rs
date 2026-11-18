@@ -458,6 +458,10 @@ pub enum Text {
     Today,
     /// "Nothing planned": schedule page: a day with no event.
     NoEvents,
+    /// "Make {} smaller": resizable panes: the link that takes a step off the first pane.
+    MakeSmaller,
+    /// "Make {} larger": resizable panes: the link that adds a step to the first pane.
+    MakeLarger,
 }
 
 /// How many texts there are.
@@ -465,7 +469,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 197] = [
+    pub const ALL: [Text; 199] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -663,6 +667,8 @@ impl Text {
         Text::Invoices,
         Text::Today,
         Text::NoEvents,
+        Text::MakeSmaller,
+        Text::MakeLarger,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -893,6 +899,8 @@ const ENGLISH: [&str; N] = [
     "Invoices",
     "Today",
     "Nothing planned",
+    "Make {} smaller",
+    "Make {} larger",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

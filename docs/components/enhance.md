@@ -11,6 +11,7 @@
 | `document.startViewTransition` | 111 | 144 | 18 |
 | `CustomEvent` | 15 | 11 | 6 |
 | `HTML drag and drop` | 4 | 3.5 | 3.1 |
+| `setPointerCapture` | 55 | 59 | 13 |
 
 - Fallback: none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert
 - Needs script: no
@@ -80,7 +81,10 @@ A swap that changed the URL or the title says the new `document.title` through a
 A tab title opens its panel and slides the underline on the click itself; the server's
 answer replaces the strip quietly once the slide ends (a lazy panel fills in then). A
 sortable list's item drags by its grip (HTML drag and drop); the drop posts the item's
-own move form with its new index. A table's "select all matching" box ticks the row
+own move form with its new index. A resizable pair's separator drags (pointer events,
+`setPointerCapture`) and answers the arrow keys, Home and End; letting go puts
+`size.<id>` in the URL with `history.replaceState` and asks for that page so the
+`lui-ui` cookie remembers it. A table's "select all matching" box ticks the row
 boxes on the page as well. A code block's copy button (`data-lui="copy"`, rendered
 `hidden`) is shown where `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1) can
 write, and copies the block on a click. A number field's steppers (`data-lui="steppers"`)

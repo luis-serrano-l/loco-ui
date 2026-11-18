@@ -22,6 +22,11 @@ pub(crate) const PAGES: &[super::Simple] = &[
     ("/prose", prose, ""),
     ("/container", containers, ""),
     ("/scroll-area", scroll_areas, ""),
+    (
+        "/resizable",
+        resizables,
+        "The size is `size.files` in the address and then in the `lui-ui` cookie, so it is still there on the next visit. Without the script two links on the divider move it a step.",
+    ),
     ("/spinner", spinners, ""),
 ];
 
@@ -240,6 +245,16 @@ fn scroll_areas(ui: &Ui) -> Markup {
                 Stack gap=2 { @for v in (1..=24).rev() { p { "v0." (v) ": fixes and small things." } } }
             }
         }
+        // end code
+    }
+}
+
+fn resizables(ui: &Ui) -> Markup {
+    lui! {
+        // code: /resizable
+        Resizable("Files") value=40
+            first={ Stack gap=2 { strong { "Files" } @for f in ["README.md", "Cargo.toml", "src/lib.rs", "src/main.rs"] { span { (f) } } } }
+            second={ Stack gap=2 { strong { "README.md" } p { "Two panes and a divider. Drag it, or focus it and press the arrow keys." } } };
         // end code
     }
 }

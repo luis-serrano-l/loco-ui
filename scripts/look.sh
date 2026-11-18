@@ -80,6 +80,7 @@ blocks-list|/blocks/list|https://ui.shadcn.com/examples/tasks
 blocks-onboarding|/blocks/onboarding|
 blocks-billing|/blocks/billing|
 blocks-schedule|/blocks/schedule|
+resizable|/resizable|https://ui.shadcn.com/docs/components/resizable
 table-rows|/table/rows|https://www.tremor.so/docs/ui/table
 typography|/typography|$radix/heading
 code-block|/code-block|https://ui.shadcn.com/docs/installation

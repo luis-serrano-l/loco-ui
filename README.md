@@ -469,7 +469,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 <!-- matrix:start -->
 | Component | Look after | Responsive by | Platform features | Chrome / Firefox / Safari | Fallback | Needs JS? |
 |---|---|---|---|---|---|---|
-| Enhancement script | - | - | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent`, `HTML drag and drop` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6; 4 / 3.5 / 3.1 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
+| Enhancement script | - | - | `fetch`, `history.pushState`, `document.startViewTransition`, `CustomEvent`, `HTML drag and drop`, `setPointerCapture` | 42 / 39 / 10.1; 5 / 4 / 5; 111 / 144 / 18; 15 / 11 / 6; 4 / 3.5 / 3.1; 55 / 59 / 13 | none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert | No |
 | Layout | Radix Themes scales and depth, a Linear / Magic UI finish | content | `@view-transition`, `prefers-color-scheme`, `custom properties`, `@layer`, `light-dark()`, `forced-colors` | 126 / no / 18.2; 76 / 67 / 12.1; 49 / 31 / 9.1; 99 / 97 / 15.4; 123 / 120 / 17.5; 89 / 89 / 16 | plain navigations (root never cross-fades); without light-dark() the page is unthemed black on white | No |
 | Capability beacons | - | - | `@supports`, `selector()`, `background images`, `cookies` | 28 / 22 / 9; 83 / 69 / 14.1; 1 / 1 / 1; 1 / 1 / 1 | unknown browser gets every fallback; the first view always does | No |
 | Button | Radix Themes Button | content | `invoker commands`, `popovertarget`, `aria-busy`, `prefers-reduced-motion`, `translate` | 135 / 144 / 26.2; 114 / 125 / 17; 1 / 1 / 1; 74 / 63 / 10.1; 104 / 72 / 14.1 | a popover command becomes popovertarget; other commands need the component's own fallback; a shimmer button is at rest without translate | No |
@@ -556,6 +556,7 @@ browser-compat-data; `no` means unshipped, so that browser gets the fallback.
 | Search | Radix Themes TextField, shadcn search form | container | `<search>`, `type="search"`, `aria-controls` | 118 / 118 / 17; 5 / 4 / 5; 1 / 1 / 1 | none needed: an unknown <search> is a block holding the same GET form | Partly: searching as you type needs script |
 | Rating | Origin UI star rating | content | `type="radio"`, `:has()` | 1 / 1 / 1; 105 / 121 / 15.4 | only the picked star is filled, and hovering fills nothing, without :has() | No |
 | Tag input | Origin UI tag input, shadcn Badge | content | `formmethod`, `formnovalidate`, `:has()` | 9 / 4 / 5.1; 4 / 4 / 5; 105 / 121 / 15.4 | none needed: Add and remove are page loads that keep the tags in the URL | Partly: a chip on Enter or a comma, and removing one in place, need script |
+| Resizable panes | shadcn/ui Resizable | container | `role="separator"`, `container query`, `setPointerCapture` | 1 / 1 / 1; 105 / 110 / 16; 55 / 59 / 13 | under 30rem the panes stack and there is no divider | Partly: the size changes a step at a time by links; dragging and the arrow keys need script |
 <!-- matrix:end -->
 
 ## Findings

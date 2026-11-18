@@ -8,6 +8,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### Since 0.2.0
 
+#### M53
+
+- Resizable panes: `ui.resizable(label).first(..).second(..)` with `.value`, `.min`,
+  `.max`, `.step` and `.id`. The first pane's share is `size.<id>` in `UiState` (query,
+  then the `lui-ui` cookie). Two links move the divider a step; with the script it drags
+  and answers the arrow keys, Home and End. Demo at `/resizable`.
+- The enhancement script is 17.9 KB served (budget 18 KB, was 16).
+- Fixed: today's title on the schedule page met contrast in light mode only.
+
 #### M52
 
 - Four page blocks: `ui.list_page(..)` (search box, filter links, count, the list),

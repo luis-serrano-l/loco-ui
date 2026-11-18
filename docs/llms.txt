@@ -93,6 +93,7 @@ Start a handler from `ui: Ui` (an Axum extractor, or `Ui::from_request(path, que
 - [Search](search.md): A search box for a page's results: a GET form in a `<search>` landmark, the query in the URL (`?q=`), so the answer is a page that can be bookmarked, shared and reloaded.
 - [Rating](rating.md): A row of stars to pick a score from 1 to 5 (or `.max(n)`), part of the form around it: each star is a radio button, so the form posts the number and the arrow keys move it.
 - [Tag input](tag_input.md): A field that collects several short values (labels, keywords, emails) as removable chips.
+- [Resizable panes](resizable.md): Two panes side by side with a divider between them, and a size the server remembers: a file list beside a preview, a navigation beside a page.
 - [AppShell](app_shell.md): The frame of a signed-in app: its name and navigation in a sidebar (a drawer on narrow screens), in groups with icons and counts as a `crate::sidebar`, who is signed in with a sign-out button at the foot, and the page's content beside it.
 - [AuthPage](auth_page.md): A sign-in, sign-up or reset page: a narrow card in the middle of the page with a title, a line under it, the form, and the links to the other account pages below.
 - [DashboardPage](dashboard_page.md): A page of numbers: a title and a line, a row of stats that wraps to the width available, and whatever goes under them (a table, a chart, recent activity).

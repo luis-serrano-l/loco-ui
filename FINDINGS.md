@@ -1210,3 +1210,21 @@ gaps found, and what came of them:
   a constant in under a nanosecond and says nothing either way.
 - **Full graph rebuild.** The code-review-graph's full rebuild gave no answer for 30
   minutes on this repository and was dropped; the incremental graph is what the tools read.
+
+### M53 · Resizable panes, 2026-11-17
+
+- **Dragging a divider needs script.** CSS `resize` puts a handle in a box's corner, not
+  on the edge between two panes, cannot be reached by keyboard, has no minimum or maximum
+  beyond `min-width`/`max-width`, and its result cannot reach the server. There is no
+  splitter element in HTML (the Open UI group has discussed one; nothing has shipped, and
+  no issue was filed from here). So
+  the no-script path is two links that move the divider a step, and the script adds the
+  drag and the keys on the `role="separator"`.
+- **Blitz shows the stacked panes only.** No `@container` in Blitz
+  ([servo#43346](https://github.com/servo/servo/issues/43346)), so
+  `tests/shots/resizable-*.png` show the narrow base; the side-by-side layout and the
+  drag are checked in Firefox by `scripts/browser-check.mjs`.
+- **A save lost to a navigation.** The request that lets the cookie remember a dragged
+  size was dropped when a navigation followed at once; it is sent with `keepalive`
+  (Firefox 133) now. In older Firefox the size is still in the URL, only the cookie may
+  miss the last change. No issue: it is the browser doing what `fetch` says.

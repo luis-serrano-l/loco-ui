@@ -120,6 +120,7 @@ pub mod props;
 pub mod prose;
 pub mod range;
 pub mod rating;
+pub mod resizable;
 #[cfg(feature = "axum")]
 pub mod saved;
 pub mod scroll_area;
@@ -467,6 +468,7 @@ pub enum Component {
     Search,
     Rating,
     TagInput,
+    Resizable,
     Blocks,
 }
 
@@ -558,6 +560,7 @@ impl Component {
         Component::Search,
         Component::Rating,
         Component::TagInput,
+        Component::Resizable,
         Component::Blocks,
     ];
 
@@ -669,6 +672,7 @@ impl Component {
             Component::Search => search::CSS,
             Component::Rating => rating::CSS,
             Component::TagInput => tag_input::CSS,
+            Component::Resizable => resizable::CSS,
             Component::Blocks => "",
         }
     }
@@ -823,6 +827,7 @@ pub const COMPONENT_CSS: &[&str] = &[
     search::CSS,
     rating::CSS,
     tag_input::CSS,
+    resizable::CSS,
 ];
 
 #[cfg(test)]
@@ -2503,6 +2508,7 @@ mod tests {
             ("search", search::CSS),
             ("rating", rating::CSS),
             ("tag_input", tag_input::CSS),
+            ("resizable", resizable::CSS),
             ("app_shell", blocks::app_shell::CSS),
             ("auth_page", blocks::auth_page::CSS),
             ("settings_page", blocks::settings_page::CSS),

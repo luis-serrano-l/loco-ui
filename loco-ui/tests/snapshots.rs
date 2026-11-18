@@ -585,6 +585,13 @@ const EXAMPLES: &[Example] = &[
             .day("Tuesday 17 November")
             .render()
     }),
+    example("Resizable", |ui| {
+        ui.resizable("Files")
+            .first(html! { p { "list" } })
+            .second(html! { p { "preview" } })
+            .value(40)
+            .render()
+    }),
     example("SettingsPage", |ui| {
         ui.settings_page("Settings")
             .section("Profile", "How others see you.", html! { p { "form" } })

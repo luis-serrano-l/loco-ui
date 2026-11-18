@@ -393,7 +393,7 @@ pub const CSS: &str = r#"
 .lui-schedule-day { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-2); padding-block: var(--lui-space-4); border-block-start: 1px solid var(--lui-line); }
 .lui-schedule-day:first-child { border-block-start: 0; padding-block-start: 0; }
 .lui-schedule-day-title { margin: 0; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); letter-spacing: 0; font-weight: 500; color: var(--lui-muted); overflow-wrap: anywhere; }
-.lui-schedule-day[aria-current="date"] .lui-schedule-day-title { color: var(--lui-primary); font-weight: 600; }
+.lui-schedule-day[aria-current="date"] .lui-schedule-day-title { color: var(--lui-brand-11); font-weight: 600; }
 .lui-schedule-empty { margin: 0; color: var(--lui-muted); font-size: var(--lui-text-2); }
 .lui-schedule-events > li { max-width: none; }
 .lui-schedule-events { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--lui-space-2); }

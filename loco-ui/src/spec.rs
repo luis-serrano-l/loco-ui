@@ -129,6 +129,7 @@ pub const SPECS: &[ComponentSpec] = &[
             f("document.startViewTransition", b("111", "144", "18")),
             f("CustomEvent", b("15", "11", "6")),
             f("HTML drag and drop", b("4", "3.5", "3.1")),
+            f("setPointerCapture", b("55", "59", "13")),
         ],
         fallback: "none needed: without the script every form and link is a normal navigation and every data-lui-* attribute is inert",
         needs_js: NeedsJs::No,
@@ -1260,6 +1261,21 @@ pub const SPECS: &[ComponentSpec] = &[
             "a chip on Enter or a comma, and removing one in place, need script",
         ),
     },
+    ComponentSpec {
+        name: "Resizable panes",
+        module: "resizable",
+        look: "shadcn/ui Resizable",
+        responsive: Responsive::Container,
+        features: &[
+            f("role=\"separator\"", ALWAYS),
+            f("container query", b("105", "110", "16")),
+            f("setPointerCapture", b("55", "59", "13")),
+        ],
+        fallback: "under 30rem the panes stack and there is no divider",
+        needs_js: NeedsJs::Partial(
+            "the size changes a step at a time by links; dragging and the arrow keys need script",
+        ),
+    },
 ];
 
 fn json_str(s: &str) -> String {
@@ -1510,6 +1526,7 @@ mod tests {
         ("search", include_str!("search.rs")),
         ("rating", include_str!("rating.rs")),
         ("tag_input", include_str!("tag_input.rs")),
+        ("resizable", include_str!("resizable.rs")),
     ];
 
     fn header(source: &str) -> String {

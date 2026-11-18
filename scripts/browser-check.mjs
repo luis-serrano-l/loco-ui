@@ -396,6 +396,31 @@ try {
   await until(async () => (await order()).startsWith("api,design,tests"), "sortable: the up arrow moved it one place");
   assert(true, "sortable: and one place up with the arrow");
 
+  // Resizable panes: the separator drags with the pointer and moves with the arrow keys; the
+  // size lands in the URL without a load, and the cookie has it on the next visit.
+  await wd("POST", S + "/window/rect", { width: 1280, height: 800 });
+  await go("/resizable");
+  const share = () => js("return document.querySelector('.lui-stage .lui-resizable-handle').getAttribute('aria-valuenow')");
+  const pane = () => js("const r = document.querySelector('.lui-stage .lui-resizable'), p = r.querySelector('.lui-resizable-pane'); return Math.round(p.getBoundingClientRect().width * 100 / r.getBoundingClientRect().width)");
+  assert(await share() === "40", "resizable: starts at the value the route gave");
+  assert(await js("const h = document.querySelector('.lui-stage .lui-resizable-handle'); return h.tabIndex === 0 && getComputedStyle(document.querySelector('.lui-stage .lui-resizable-step')).display === 'none'"), "resizable: with the script the separator takes the focus and the step links are hidden");
+  const [bx, by, bw] = await js("const h = document.querySelector('.lui-stage .lui-resizable-handle').getBoundingClientRect(), r = document.querySelector('.lui-stage .lui-resizable').getBoundingClientRect(); return [Math.round(h.x + h.width / 2), Math.round(h.y + h.height / 2), r.width]");
+  await wd("POST", S + "/actions", { actions: [{ type: "pointer", id: "mouse", parameters: { pointerType: "mouse" }, actions: [
+    { type: "pointerMove", x: bx, y: by }, { type: "pointerDown", button: 0 },
+    { type: "pointerMove", x: Math.round(bx + bw * 0.2), y: by, duration: 50 }, { type: "pointerUp", button: 0 }] }] });
+  await until(async () => Math.abs((await share()) - 60) <= 1 && Math.abs((await pane()) - 60) <= 2, "resizable: dragging the separator a fifth of the width makes the first pane 60%");
+  await until(async () => /size\.files=(59|60|61)/.test(await js("return location.search")), "resizable: the size is in the URL");
+  assert(await navigations() === 1, "resizable: dragged in place, no reload");
+  const arrow = (key) => wd("POST", S + "/actions", { actions: [{ type: "key", id: "kb", actions: [{ type: "keyDown", value: key }, { type: "keyUp", value: key }] }] });
+  await arrow("\ue011"); // Home
+  assert(await share() === "20", "resizable: Home goes to the minimum");
+  await arrow("\ue014"); // ArrowRight
+  assert(await share() === "30", "resizable: ArrowRight adds a step");
+  await until(async () => (await js("return location.search")).includes("size.files=30"), "resizable: the keys name the size in the URL");
+  await until(async () => (await js("return document.cookie")).includes("size.files=30"), "resizable: the cookie has the size");
+  await go("/resizable");
+  assert(await share() === "30", "resizable: the size survives a visit without the query");
+
   // Calendar: the next-month link swaps the calendar in place; picking a day follows.
   await go("/calendar?month.day=2026-09");
   await click("#lui-calendar-day a[aria-label='Next month']");
