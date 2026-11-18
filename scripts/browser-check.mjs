@@ -527,9 +527,12 @@ try {
   // the shadow root the page streams into, where axe does not take it for a skip link.
   // Entry transitions (M30 motion) are jumped to their end first, so contrast is read on the
   // settled page, not mid-fade; long or looping animations (toast timers, marquee) are left.
+  // A scroll-driven one (.reveal(), where the browser has view timelines) is cancelled: it
+  // has no end to jump to, and without it the tile is as it is once scrolled into view.
   function audit(source, done) {
     (0, eval)(source);
     for (const a of document.getAnimations()) {
+      if (a.timeline && a.timeline !== document.timeline) { a.cancel(); continue; }
       const end = a.effect && a.effect.getComputedTiming().endTime;
       if (end !== undefined && end < 1000) a.finish();
     }

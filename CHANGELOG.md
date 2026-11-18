@@ -17,6 +17,9 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 - The demo's `/examples` gallery shows both example apps, each under its own heading.
 - Fixed: `list_page` marks the current filter when its href's value is encoded
   (`?action=signed+in`); it compared the encoded text with the decoded parameter.
+- Fixed: a `.reveal()` card or stat tile ends its fade once it is fully in view
+  (`animation-range: entry 0% entry 100%`, was `cover 30%`), so one near the end of a page
+  that cannot scroll further is no longer left half faded.
 
 #### M53
 

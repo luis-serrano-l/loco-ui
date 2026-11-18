@@ -291,7 +291,7 @@ pub const CSS: &str = r#"
 /* .reveal(): @keyframes lui-reveal is the card's (card.rs). */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    .lui-stat-reveal { animation: lui-reveal linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+    .lui-stat-reveal { animation: lui-reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
   }
 }
 "#;

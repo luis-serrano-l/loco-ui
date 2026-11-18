@@ -364,7 +364,7 @@ pub const CSS: &str = r#"
    keyframes are shared with the stat tile's .reveal(). */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    .lui-card-reveal { animation: lui-reveal linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+    .lui-card-reveal { animation: lui-reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
   }
 }
 @keyframes lui-reveal { from { opacity: 0; translate: 0 1.5rem; } }
