@@ -497,7 +497,9 @@ try {
   await go("/pricing?billing=yearly");
   assert(await sideBySide("#demo-pricing-hobby", "#demo-pricing-pro"), "pricing: tiers side by side, equal height");
   await go("/dashboard");
-  assert(await js("const [p, q] = ['.lui-stat-grid > :nth-child(1)', '.lui-stat-grid > :nth-child(2)'].map((s) => document.querySelector(s).getBoundingClientRect()); return Math.abs(p.top - q.top) < 1 && q.left > p.left"), "stat: cards side by side when there is room");
+  // offsetTop, not the painted box: the first tile has .reveal(), which a Firefox with
+  // animation-timeline: view() draws part-way through its rise.
+  assert(await js("const [p, q] = ['.lui-stat-grid > :nth-child(1)', '.lui-stat-grid > :nth-child(2)'].map((s) => document.querySelector(s)); return p.offsetTop === q.offsetTop && q.offsetLeft > p.offsetLeft"), "stat: cards side by side when there is room");
   // The form is its own container (M34): side labels and an end-aligned button once it is
   // 30rem wide, which Blitz cannot show (no @container).
   await go("/form?layout=inline");

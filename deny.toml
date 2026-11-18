@@ -12,6 +12,12 @@ exclude-dev = true
 # Unmaintained crates deep in loco-rs are not ours to replace; vulnerabilities still fail.
 unmaintained = "workspace"
 yanked = "warn"
+ignore = [
+    # chrono, declared unmaintained on 2026-11 with no replacement release. The `loco` feature
+    # names it only because loco-rs and SeaORM put its types in their API (model timestamps);
+    # it goes when they move off it.
+    { id = "RUSTSEC-2026-0543", reason = "loco-rs and SeaORM expose chrono types; no upgrade exists" },
+]
 
 [licenses]
 # Permissive licences only, so an app built on loco-ui stays MIT-compatible.

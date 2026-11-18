@@ -121,8 +121,9 @@ impl<'a> Heading<'a> {
 
 /// A component's own title as `<h1>` to `<h6>` with the component's class: `level` comes from
 /// its `.as_h(..)` setter (a title is an `<h2>` unless told otherwise, the level that never
-/// skips one under a page's `<h1>`).
-pub(crate) fn title(level: u8, class: &str, id: Option<&str>, text: &str) -> Markup {
+/// skips one under a page's `<h1>`). Public because a component copied into an app with
+/// `cargo lui add` (the card, the Kanban board) still calls it.
+pub fn title(level: u8, class: &str, id: Option<&str>, text: &str) -> Markup {
     html! {
         @match level {
             1 => h1 class=(class) id=[id] { (text) },

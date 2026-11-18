@@ -20,5 +20,7 @@ error[E0277]: the trait bound `f64: From<&str>` is not satisfied
 note: required by a bound in `loco_ui::counter::Counter::<'_>::step`
  --> $WORKSPACE/loco-ui/src/counter.rs
   |
+  | impl Counter<'_> {
+...
   |     pub fn step(mut self, step: impl Into<f64>) -> Self {
   |                                      ^^^^^^^^^ required by this bound in `Counter::<'_>::step`
