@@ -1080,12 +1080,6 @@ code {
   background: var(--lui-surface); border: 1px solid var(--lui-line); border-radius: var(--lui-radius-sm); padding: 0.05em 0.35em;
 }
 details > summary { cursor: pointer; font-weight: 500; }
-table { border-collapse: collapse; width: 100%; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-variant-numeric: tabular-nums; }
-/* shadcn Table: h-10 heads in the muted colour, p-2 cells, a rule under each row, muted/50 hover. */
-th, td { text-align: start; padding: 0.5rem; border-bottom: 1px solid var(--lui-line); vertical-align: middle; }
-th { height: 2.5rem; color: var(--lui-muted); font-weight: 500; white-space: nowrap; }
-tbody tr { transition: background-color 0.15s; }
-tbody tr:hover { background: color-mix(in srgb, var(--lui-accent) 50%, transparent); }
 "#;
 
 /// The layout's own rules, first in the `lui.components` layer; included in [`crate::stylesheet`].

@@ -279,8 +279,9 @@ pub const CSS: &str = r#"
 .lui-invoice-meta div { display: flex; flex-wrap: wrap; gap: var(--lui-space-2); }
 .lui-invoice-meta dt { color: var(--lui-muted); }
 .lui-invoice-meta dd { margin: 0; font-weight: 500; }
-.lui-invoice-lines { width: 100%; border-collapse: collapse; font-size: var(--lui-text-2); }
-.lui-invoice-lines th, .lui-invoice-lines td { padding: var(--lui-space-2) var(--lui-space-2); text-align: start; vertical-align: top; overflow-wrap: anywhere; }
+.lui-invoice-lines { width: 100%; border-collapse: collapse; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-variant-numeric: tabular-nums; }
+.lui-invoice-lines th, .lui-invoice-lines td { padding: var(--lui-space-2) var(--lui-space-2); text-align: start; vertical-align: top; overflow-wrap: anywhere; border-block-end: 1px solid var(--lui-line); }
+.lui-invoice-lines th { height: 2.5rem; white-space: nowrap; }
 .lui-invoice-lines thead th { color: var(--lui-muted); font-weight: 500; border-block-end: 1px solid var(--lui-line); }
 .lui-invoice-lines tbody tr { border-block-end: 1px solid var(--lui-line); }
 .lui-invoice-lines tfoot th { font-weight: 400; color: var(--lui-muted); }

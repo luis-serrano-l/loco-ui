@@ -6,6 +6,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ## [Unreleased]
 
+#### M47
+
+- **Breaking**: the stylesheet no longer styles a bare `<table>`, `<th>` or `<td>`. `ui.table`,
+  the calendar and the invoice block carry their own cell rules and look the same; a table
+  an app writes by hand is unstyled unless it sits in `ui.prose()` or the app styles it.
+- Rows outside `ui.table` no longer tint on hover (the reset gave every `tbody tr` one).
+
 ## [0.2.0] - 2026-10-15
 
 The first publish. The API of the 0.1.0 prototype is gone: components are builders reached

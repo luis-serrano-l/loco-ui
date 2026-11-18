@@ -1543,6 +1543,11 @@ pub const CSS: &str = r#"
 .lui-table-scroll :is(th, td):first-child { position: sticky; inset-inline-start: 0; z-index: 1; background: var(--lui-bg); }
 .lui-table-has-select :is(th, td):nth-child(2) { position: sticky; inset-inline-start: 2.5rem; z-index: 1; background: var(--lui-bg); }
 .lui-table-scroll thead th:is(:first-child, :nth-child(2)) { background: var(--lui-gray-2); }
+/* shadcn Table: h-10 heads in the muted colour, p-2 cells, a rule under each row. The
+   scope adds no weight (:where), so a cell's own class (.lui-table-num) still wins. */
+:where(.lui-table) table { width: 100%; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-variant-numeric: tabular-nums; }
+:where(.lui-table) :is(th, td) { text-align: start; padding: 0.5rem; border-bottom: 1px solid var(--lui-line); vertical-align: middle; }
+:where(.lui-table) th { height: 2.5rem; color: var(--lui-muted); font-weight: 500; white-space: nowrap; }
 .lui-table table { table-layout: auto; border-collapse: separate; border-spacing: 0; }
 .lui-table tbody tr:last-child > * { border-bottom: 0; }
 .lui-table thead th { background: var(--lui-gray-2); color: var(--lui-muted); font-size: var(--lui-text-2); font-weight: 500; white-space: nowrap; }

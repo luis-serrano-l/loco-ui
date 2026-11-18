@@ -39,7 +39,7 @@
 | `.lui-invoice-parties` | `--lui-space-4` |
 | `.lui-invoice-party` | `--lui-space-1`, `--lui-text-1`, `--lui-muted` |
 | `.lui-invoice-meta` | `--lui-space-1`, `--lui-space-2`, `--lui-muted` |
-| `.lui-invoice-lines` | `--lui-text-2`, `--lui-space-2`, `--lui-muted`, `--lui-line` |
+| `.lui-invoice-lines` | `--lui-text-2`, `--lui-leading-2`, `--lui-space-2`, `--lui-line`, `--lui-muted` |
 | `.lui-invoice-num` |  |
 | `.lui-invoice-due` | `--lui-fg`, `--lui-text-4` |
 | `.lui-invoice-wide` |  |

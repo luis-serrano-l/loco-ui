@@ -1202,6 +1202,11 @@ pub const CSS: &str = r#"
   .lui-doc-toc { grid-column: 2; grid-row: 1; position: sticky; top: var(--lui-space-4); max-height: calc(100vh - var(--lui-space-8)); overflow-y: auto; }
   .lui-doc-body { grid-column: 1; grid-row: 1; }
 }
+/* The docs' own tables (props, reference, markdown, tokens, capabilities): the base every
+   one shares, with no weight (:where) so the rules below adjust it. */
+:where(.lui-doc-table, .lui-reference, .lui-props, .lui-theme-tokens, .lui-caps-scroll) table { border-collapse: collapse; width: 100%; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-variant-numeric: tabular-nums; }
+:where(.lui-doc-table, .lui-reference, .lui-props, .lui-theme-tokens, .lui-caps-scroll) :is(th, td) { text-align: start; padding: 0.5rem; border-bottom: 1px solid var(--lui-line); vertical-align: middle; }
+:where(.lui-doc-table, .lui-reference, .lui-props, .lui-theme-tokens, .lui-caps-scroll) th { height: 2.5rem; color: var(--lui-muted); font-weight: 500; white-space: nowrap; }
 .lui-doc-table { overflow-x: auto; margin-block: var(--lui-space-4); }
 .lui-doc-table table { border-collapse: collapse; font-size: 0.875rem; }
 .lui-doc-table th, .lui-doc-table td { text-align: left; vertical-align: top; padding: 0.375rem 0.75rem; border-bottom: 1px solid var(--lui-line); }

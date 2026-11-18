@@ -212,7 +212,8 @@ remaining work is one `TreeSink::attach_declarative_shadow` implementation in `h
 (html5ever 0.39 already routes the template's children through `get_template_contents`),
 so the fix will reach a crates.io release only after both land. Until then `/stream` stays
 tested through Firefox screenshots, not Blitz. Blitz's `svg`
-feature is off: `usvg 0.48` wants `base64 ^0.23`, which the local index did not resolve.
+feature was off at first (`usvg 0.48` wants `base64 ^0.23`, which the local index did not
+resolve); `loco-ui-test` has had it on since M21 (`blitz-paint` with `features = ["svg"]`).
 
 ### M6 · Polish
 
@@ -945,7 +946,9 @@ is not drawn only because it sits behind the motion query.
 
 - **`Tone::Info` is the brand scale for now.** The palette has one colour each for ok, warn
   and danger and full scales only for gray and the brand, so `tone="info"` paints like
-  `tone="brand"` until M39 adds `--lui-info-*`. Ok, warn and danger tints are
+  `tone="brand"` until M39 adds `--lui-info-*`. (M39 added one colour, `--lui-info`, with
+  `--lui-on-info`; no component reads it yet, so info still paints as brand, and only the
+  toast differs, with `--lui-link`.) Ok, warn and danger tints are
   `color-mix(in srgb, ..)` of their one colour, as the alert's callout already did.
 - **`Size` has three values; Radix gives Dialog four and Avatar five.** `Dialog::size` and
   `Avatar::size` keep their `u8` (1 to 4 and 1 to 5), so `size=4` on a dialog still means
@@ -1044,11 +1047,14 @@ is not drawn only because it sits behind the motion query.
   the `<pre>` that nothing handles (https://open-ui.org/components/invokers.explainer/).
 - **Blitz paints a positioned element with a `z-index` at the page origin** (the M36 entry):
   the indicator's badge has no `z-index` and stays on its corner by source order.
-- **Bare-element styles that can now leave `layout::RESET`.** `ui.prose()` scopes them:
-  `p, li { max-width }`, `h1`, `h2`, `h3`, `p { margin }`, `a` and `code`. The bare `table`,
-  `th, td`, `th` and `tbody tr` rules stay until `table.rs` (M41's) carries its own cell
-  padding and rules. Until the delete both apply, and prose wins inside `.lui-prose`: its
-  layer comes after the reset.
+- **Bare-element styles that left `layout::RESET`.** `ui.prose()` scopes `p, li { max-width }`,
+  `h1`, `h2`, `h3`, `p { margin }`, `a` and `code`. The bare `table`, `th, td`, `th` and
+  `tbody tr` rules went in M47: `table.rs` carries them under `:where(.lui-table)`, the
+  calendar and the invoice set what they used, and a bare `<table>` in an app is unstyled
+  outside `ui.prose()`. Two things changed with it: a prose table's headers are no longer
+  muted, 2.5rem tall and unwrapped (prose's own bold, bordered cells show), and rows outside
+  `ui.table` lost the accent hover tint the reset gave every `tbody tr` (the invoice lines,
+  and the table's "no rows" row, which had asked for no hover).
 ### M40d · Feedback and overlays
 
 - **Anchor positioning with `position-try-fallbacks`** (Chrome 128, Firefox 147, Safari 26,

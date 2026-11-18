@@ -69,7 +69,7 @@
 
 | Class | Tokens it reads |
 |---|---|
-| `.lui-table` | `--lui-gray-2`, `--lui-muted`, `--lui-text-2`, `--lui-duration-fast`, `--lui-fg` |
+| `.lui-table` | `--lui-text-2`, `--lui-leading-2`, `--lui-line`, `--lui-muted`, `--lui-gray-2`, `--lui-duration-fast`, `--lui-fg` |
 | `.lui-table-toolbar` | `--lui-space` |
 | `.lui-table-filter` | `--lui-space` |
 | `.lui-table-filter-input` |  |

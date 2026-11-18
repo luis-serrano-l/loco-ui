@@ -40,7 +40,7 @@
 | `.lui-calendar` | `--lui-space-3`, `--lui-card`, `--lui-fg`, `--lui-line`, `--lui-radius-lg`, `--lui-shadow-xs` |
 | `.lui-calendar-head` | `--lui-space-2`, `--lui-space-4` |
 | `.lui-calendar-title` | `--lui-text-2` |
-| `.lui-calendar-grid` | `--lui-text-2`, `--lui-space-2`, `--lui-text-1`, `--lui-muted` |
+| `.lui-calendar-grid` | `--lui-text-2`, `--lui-leading-2`, `--lui-space-2`, `--lui-text-1`, `--lui-muted` |
 | `.lui-calendar-day` | `--lui-radius-sm`, `--lui-duration-fast`, `--lui-accent`, `--lui-on-accent` |
 | `.lui-calendar-off` | `--lui-accent`, `--lui-on-accent`, `--lui-gray-9` |
 | `.lui-calendar-outside` | `--lui-muted` |

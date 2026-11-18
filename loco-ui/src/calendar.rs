@@ -583,10 +583,9 @@ pub const CSS: &str = r#"
 .lui-calendar-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--lui-space-2); margin-bottom: var(--lui-space-4); }
 .lui-calendar-title { margin: 0; text-align: center; font-size: var(--lui-text-2); font-weight: 500; }
 .lui-calendar-head .lui-button[aria-disabled=true] { visibility: hidden; }
-.lui-calendar-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0 0.125rem; font-size: var(--lui-text-2); margin: 0; }
-.lui-calendar-grid th { height: auto; padding: 0 0 var(--lui-space-2); text-align: center; font-size: var(--lui-text-1); font-weight: 400; color: var(--lui-muted); border: 0; }
-.lui-calendar-grid td { padding: 0; border: 0; text-align: center; }
-.lui-calendar-grid tbody tr:hover { background: none; }
+.lui-calendar-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0 0.125rem; font-size: var(--lui-text-2); line-height: var(--lui-leading-2); font-variant-numeric: tabular-nums; margin: 0; }
+.lui-calendar-grid th { padding: 0 0 var(--lui-space-2); text-align: center; vertical-align: middle; font-size: var(--lui-text-1); font-weight: 400; color: var(--lui-muted); white-space: nowrap; }
+.lui-calendar-grid td { padding: 0; text-align: center; vertical-align: middle; }
 .lui-calendar-day {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
   width: 100%; aspect-ratio: 1; box-sizing: border-box; border-radius: var(--lui-radius-sm);

@@ -3526,6 +3526,88 @@ files. Mitigation: M46 writes the generic/`PROPS`-driven and conformance tests f
 (touching only `lib.rs` tests, `demo/src/tests.rs`, new test files), and the per-file
 modules after M38 and M40 merge.
 
+## M47 to M54 · The next batch
+Planned on 2026-11-17 from a survey of the code after 0.2.0 was prepared. The owner chose the
+same day: run the cleanup, CI, accessibility-test and example-test batches; build the `lui!`
+builder mode (BLOCKED.md, option 1); remove Arabic and keep Spanish only if the static
+snapshot can switch to it; add four page blocks, resizable panes and an Axum-only admin
+example. Worked top to bottom, one commit per milestone, nothing pushed.
+
+## M47 · Cleanup
+
+- [x] The bare `table`, `th, td`, `th` and `tbody tr` rules leave `layout::RESET` (the
+  FINDINGS M40 note that they stay "until `table.rs` carries its own").
+  Done: `table.rs` has them as `:where(.lui-table) table`, `:is(th, td)` and `th`, with no
+  added weight, so `.lui-table-num` and the density rules win as before. `calendar.rs` and
+  `blocks/invoice_page.rs` set the line height, tabular numbers, cell rules and header
+  height they took from the reset; the demo's own tables (`.lui-props`, `.lui-reference`,
+  `.lui-doc-table`, `.lui-theme-tokens`, `.lui-caps-scroll`) get the same base in
+  `demo/src/site.rs`. Checked with `cargo test -p loco-ui-test`: no shot of a page with a
+  table, the calendar or the capability table moved outside the site header. Kept
+  different: the `tbody tr:hover` tint is not carried over (the table has its own on the
+  cells; invoice lines and the table's empty row no longer tint), and a prose table's
+  headers lose the reset's muted colour, 2.5rem height and `nowrap`. A bare `<table>` in an
+  app is now unstyled outside `ui.prose()`.
+- [x] Stale notes found by the survey.
+  Done: FINDINGS said Blitz's `svg` feature is off; `loco-ui-test` has had it on since M21
+  (`blitz-paint` with `features = ["svg"]`), and the entry says so. The survey also read
+  `Tone::Info` "the brand scale for now" as stale because `--lui-info` exists; it is not:
+  M39 added the token and no component reads it (only the toast differs, with
+  `--lui-link`). The FINDINGS M38 entry now says that. Painting info with its own colour
+  is a look change in eight components and is left for the owner to ask for.
+- [x] `KEYS` on `paged_table`, `select`, `pagination`, `table`.
+  Done: nothing to change. `paged_table.rs` has no builder (it returns a `Table`); the empty
+  `KEYS` in `select.rs` and `table.rs` belong to `SelectOption` and `Row`, which render no
+  control of their own, and `Select` and `Table` list theirs; `Pagination` is links, which
+  M46 decided not to claim keys for.
+- [x] The code-review-graph pointed at older checkouts (`axum-nojs`,
+  `~/Documents/Rust/loco-ui`).
+  Done: rebuilt in full for this path.
+
+## M48 · `lui!` builder mode
+
+- [ ] `lui!(build: Name(..) attrs { items })` returns the builder instead of `Markup`
+  (BLOCKED.md "One snippet style", option 1, answered 2026-11-17).
+- [ ] The `/wizard` and `/palette` snippets use it; a demo test keeps snippets from going
+  back to builder chains; the M34 "One snippet style" box and its BLOCKED entry close.
+
+## M49 · Languages: Arabic out, Spanish on the static site
+
+- [ ] Remove Arabic: the demo's table, the `ar` locale and its plural rule, and every
+  mention. Right-to-left support stays, shown by Hebrew and `?dir=rtl`.
+- [ ] The snapshot exports every page in Spanish under `es/`, and the language buttons are
+  links between the two there.
+
+## M50 · CI gates and stricter tests
+
+- [ ] CI runs the `examples/loco-app` tests, a link check and a benchmark gate.
+- [ ] `clippy::unwrap_used` and `expect_used` are denied in library code.
+- [ ] `every_route_is_conforming_html` checks heading order, one `main` landmark and a label
+  for every visible control.
+- [ ] axe fails on moderate violations too.
+
+## M51 · Example app tests
+
+- [ ] Real model tests in `examples/loco-app/tests/models/`.
+- [ ] `every_page_works_without_script` split by area.
+
+## M52 · Four page blocks
+
+- [ ] `list_page`: a filterable, sortable, paged list with a toolbar and an empty state.
+- [ ] `onboarding_page`: a first-run flow on the wizard and steps.
+- [ ] `billing_page`: plan, usage, payment method, invoice history.
+- [ ] `schedule_page`: a month with events and a day list.
+
+## M53 · Resizable panes
+
+- [ ] `resizable.rs`: a split whose size the server keeps and a form post changes; the
+  script adds dragging and arrow keys on the separator.
+
+## M54 · `examples/admin`, an Axum-only admin panel
+
+- [ ] Users, roles and an audit log over SQLite, on the blocks; `tests/pages.rs`; in CI,
+  the examples gallery and README.
+
 ## After the publish (waits on the owner's `cargo publish`)
 - [ ] README "Install", `docs/loco.md` and the `cargo lui install` git `rev=` pin switch to
   the crates.io version (`cargo add loco-ui --features …`); the "not on crates.io yet" line goes.
