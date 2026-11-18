@@ -234,7 +234,9 @@ Whole pages from the components, each a builder like any component and one file 
 `loco-ui/src/blocks/` to copy when yours differs: `ui.app_shell(..)` (sidebar navigation that
 is a drawer on narrow screens, who is signed in), `ui.auth_page(..)`, `ui.settings_page(..)`,
 `ui.record_page(..)`, `ui.dashboard_page(..)`, `ui.pricing_page(..)`, `ui.inbox_page(..)` (a
-list beside the open item), `ui.invoice_page(..)` and `ui.error_page(404 | 500)`.
+list beside the open item), `ui.invoice_page(..)`, `ui.list_page(..)` (search, filter links,
+the list), `ui.onboarding_page(..)`, `ui.billing_page(..)`, `ui.schedule_page(..)` (an agenda)
+and `ui.error_page(404 | 500)`.
 `loco_ui::blocks::not_found` is a `Router::fallback` handler, so unknown paths get the 404
 page in the site's look (the demo and `examples/loco-app` use it).
 

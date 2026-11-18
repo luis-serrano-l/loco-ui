@@ -183,7 +183,8 @@ async fn pages_ship_only_the_enhancement_script() {
             // in the sidebar, about 12 KB on every page, and on a component page its reference
             // sections (platform tables, anatomy). The longest guide (`/docs/api`) is 75 KB.
             let budget = match path {
-                "/" => 300,
+                // Every component live; M52's four page blocks took it from under 300 to 319 KB.
+                "/" => 328,
                 // The stage drawn twice, in each theme.
                 p if p.contains("themes=both") => 112,
                 // The whole CHANGELOG, which grows with every milestone.

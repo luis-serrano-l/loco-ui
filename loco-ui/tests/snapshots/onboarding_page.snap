@@ -1,0 +1,86 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-onboarding">
+<div class="lui-onboarding-head">
+<p class="lui-onboarding-progress">Step 2 of 3</p>
+<h1>Set up your workspace</h1>
+<p class="lui-onboarding-description">About two minutes.</p>
+</div>
+<ol class="lui-steps">
+<li class="lui-steps-done">
+<span class="lui-steps-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">
+<a href="/welcome/1">Profile</a>
+<span class="lui-sr"> completed</span>
+</span>
+</span>
+</li>
+<li class="lui-steps-current" aria-current="step">
+<span class="lui-steps-dot" aria-hidden="true">2</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Team</span>
+</span>
+</li>
+<li>
+<span class="lui-steps-dot" aria-hidden="true">3</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Invite</span>
+</span>
+</li>
+</ol>
+<div class="lui-card">
+<div class="lui-card-body">
+<p>form</p>
+</div>
+</div>
+<a class="lui-onboarding-skip" href="/app">Skip</a>
+</div>
+
+caps: none
+<div class="lui-onboarding">
+<div class="lui-onboarding-head">
+<p class="lui-onboarding-progress">Step 2 of 3</p>
+<h1>Set up your workspace</h1>
+<p class="lui-onboarding-description">About two minutes.</p>
+</div>
+<ol class="lui-steps">
+<li class="lui-steps-done">
+<span class="lui-steps-dot" aria-hidden="true">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="check">
+<path d="M20 6 9 17l-5-5"/>
+</svg>
+</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">
+<a href="/welcome/1">Profile</a>
+<span class="lui-sr"> completed</span>
+</span>
+</span>
+</li>
+<li class="lui-steps-current" aria-current="step">
+<span class="lui-steps-dot" aria-hidden="true">2</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Team</span>
+</span>
+</li>
+<li>
+<span class="lui-steps-dot" aria-hidden="true">3</span>
+<span class="lui-steps-label">
+<span class="lui-steps-title">Invite</span>
+</span>
+</li>
+</ol>
+<div class="lui-card">
+<div class="lui-card-body">
+<p>form</p>
+</div>
+</div>
+<a class="lui-onboarding-skip" href="/app">Skip</a>
+</div>

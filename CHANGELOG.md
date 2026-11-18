@@ -8,6 +8,17 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### Since 0.2.0
 
+#### M52
+
+- Four page blocks: `ui.list_page(..)` (search box, filter links, count, the list),
+  `ui.onboarding_page(..)` (position, steps, the current step in a card, Skip),
+  `ui.billing_page(..)` (plan, usage bars, payment method, invoices) and
+  `ui.schedule_page(..)` (an agenda by day with previous, today and next links and room for
+  a month calendar). Demo pages under `/blocks/`.
+- New `Text` entries: `CurrentPlan`, `Usage`, `PaymentMethod`, `Invoices`, `Today`,
+  `NoEvents`. An app with its own `Strings` table adds them.
+- A test fails when a `--lui-*` token is used without a fallback and never defined.
+
 #### M51
 
 - The Loco example's model tests assert on tags, the listing, `updated_at` and the foreign

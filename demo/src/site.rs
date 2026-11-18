@@ -615,6 +615,38 @@ pub(crate) const COMPONENTS: &[Entry] = &[
         what: "A preview card on hover and focus, or on click where hover cannot open it.",
         when: "Use a hover card for a preview of what a link leads to (a profile, a page), shown on hover or focus. It must only repeat what the link's destination says, since a touch reader may never see it.",
     },
+    Entry {
+        href: "/blocks/list",
+        title: "List page",
+        group: "Blocks",
+        built_on: "<search>, links, aria-current, container query",
+        what: "A title, a search box, filter links, the count and the list.",
+        when: "Use it for the index page of a resource: customers, orders, tickets.",
+    },
+    Entry {
+        href: "/blocks/onboarding",
+        title: "Onboarding page",
+        group: "Blocks",
+        built_on: "<ol>, aria-current=step, links",
+        what: "Where you are, the steps, the current step in a card, and Skip.",
+        when: "Use it for the first run of an app: a few steps, each a page of its own.",
+    },
+    Entry {
+        href: "/blocks/billing",
+        title: "Billing page",
+        group: "Blocks",
+        built_on: "<progress>, <section>, container query",
+        what: "The plan, what is used of each allowance, the card and past invoices.",
+        when: "Use it for the billing tab of an account.",
+    },
+    Entry {
+        href: "/blocks/schedule",
+        title: "Schedule page",
+        group: "Blocks",
+        built_on: "<time>, links, aria-current=date, container query",
+        what: "An agenda: the period with its links, each day and its events.",
+        when: "Use it for a week or a month of events, bookings or shifts.",
+    },
 ];
 
 /// The index's layers, bottom up, each with the groups it holds (as in `docs/layers.svg`).

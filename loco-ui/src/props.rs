@@ -1040,6 +1040,38 @@ pub(crate) const COMPONENTS: &[Component] = &[
         keys: crate::tag_input::TagInput::KEYS,
         status: Status::Beta,
     },
+    Component {
+        module: "blocks/list_page",
+        builder: "ListPage",
+        calls: &["ui.list_page(title: &str)"],
+        props: crate::blocks::list_page::ListPage::PROPS,
+        keys: crate::blocks::list_page::ListPage::KEYS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "blocks/onboarding_page",
+        builder: "OnboardingPage",
+        calls: &["ui.onboarding_page(title: &str)"],
+        props: crate::blocks::onboarding_page::OnboardingPage::PROPS,
+        keys: crate::blocks::onboarding_page::OnboardingPage::KEYS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "blocks/billing_page",
+        builder: "BillingPage",
+        calls: &["ui.billing_page(title: &str)"],
+        props: crate::blocks::billing_page::BillingPage::PROPS,
+        keys: crate::blocks::billing_page::BillingPage::KEYS,
+        status: Status::Beta,
+    },
+    Component {
+        module: "blocks/schedule_page",
+        builder: "SchedulePage",
+        calls: &["ui.schedule_page(title: &str)"],
+        props: crate::blocks::schedule_page::SchedulePage::PROPS,
+        keys: crate::blocks::schedule_page::SchedulePage::KEYS,
+        status: Status::Beta,
+    },
 ];
 
 /// A modifier after the wrong item panics in a debug build, naming the builder and the method;

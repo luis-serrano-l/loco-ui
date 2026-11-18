@@ -2,7 +2,8 @@
 //!
 //! Whole pages built from the components: an app shell with a sidebar, a sign-in or sign-up
 //! card, a settings page, a record's show page, a dashboard of numbers, a pricing page, an
-//! inbox (a list beside the open item), an invoice, and the error pages. Each is a builder reached from `ui` like a component, so a route fills one in and
+//! inbox (a list beside the open item), an invoice, a list page (search, filters, the list),
+//! an onboarding page, a billing page, a schedule, and the error pages. Each is a builder reached from `ui` like a component, so a route fills one in and
 //! wraps it in `ui.page(..)`; none adds a platform feature or a line of script of its own,
 //! and each is one file to read and copy when yours needs to differ.
 //!
@@ -22,19 +23,23 @@
 
 pub mod app_shell;
 pub mod auth_page;
+pub mod billing_page;
 pub mod dashboard_page;
 pub mod error_page;
 pub mod inbox_page;
 pub mod invoice_page;
+pub mod list_page;
+pub mod onboarding_page;
 pub mod pricing_page;
 pub mod record_page;
+pub mod schedule_page;
 pub mod settings_page;
 
 #[cfg(feature = "axum")]
 pub use error_page::not_found;
 
 /// The blocks' styles, appended to the stylesheet after the components'.
-pub(crate) const CSS: [&str; 9] = [
+pub(crate) const CSS: [&str; 13] = [
     app_shell::CSS,
     auth_page::CSS,
     settings_page::CSS,
@@ -44,4 +49,8 @@ pub(crate) const CSS: [&str; 9] = [
     pricing_page::CSS,
     inbox_page::CSS,
     invoice_page::CSS,
+    list_page::CSS,
+    onboarding_page::CSS,
+    billing_page::CSS,
+    schedule_page::CSS,
 ];

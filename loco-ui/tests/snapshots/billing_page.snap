@@ -1,0 +1,100 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-billing">
+<h1>Billing</h1>
+<div class="lui-billing-top">
+<section class="lui-billing-section" id="lui-billing-plan" aria-labelledby="lui-billing-plan-title">
+<h2 id="lui-billing-plan-title">Current plan</h2>
+<p class="lui-billing-plan-name">Team</p>
+<p class="lui-billing-plan-price">$12 per seat / month</p>
+<p class="lui-billing-note">Renews on 1 December 2026.</p>
+</section>
+<section class="lui-billing-section" id="lui-billing-method" aria-labelledby="lui-billing-method-title">
+<h2 id="lui-billing-method-title">Payment method</h2>
+<p class="lui-billing-method-text">Visa ending 4242</p>
+<div class="lui-billing-actions">
+<a class="lui-button" href="/billing/card">Edit</a>
+</div>
+</section>
+</div>
+<section class="lui-billing-section" id="lui-billing-usage" aria-labelledby="lui-billing-usage-title">
+<h2 id="lui-billing-usage-title">Usage</h2>
+<div class="lui-billing-usage-list">
+<div class="lui-billing-usage-item">
+<div class="lui-progress-field">
+<label for="lui-billing-usage-1">
+<span>Seats</span>
+</label>
+<progress id="lui-billing-usage-1" class="lui-progress" value="8" max="10">80%</progress>
+</div>
+<span class="lui-billing-usage-value">8 / 10</span>
+</div>
+</div>
+</section>
+<section class="lui-billing-section" id="lui-billing-invoices" aria-labelledby="lui-billing-invoices-title">
+<h2 id="lui-billing-invoices-title">Invoices</h2>
+<ul class="lui-billing-invoice-list">
+<li class="lui-billing-invoice">
+<span class="lui-billing-invoice-number">
+<a href="/invoices/42">INV-0042</a>
+</span>
+<span class="lui-billing-invoice-date">1 Oct 2026</span>
+<span class="lui-billing-invoice-status">
+<span class="lui-badge lui-badge-ok" data-tone="ok">Paid</span>
+</span>
+<span class="lui-billing-invoice-amount">$96.00</span>
+</li>
+</ul>
+</section>
+</div>
+
+caps: none
+<div class="lui-billing">
+<h1>Billing</h1>
+<div class="lui-billing-top">
+<section class="lui-billing-section" id="lui-billing-plan" aria-labelledby="lui-billing-plan-title">
+<h2 id="lui-billing-plan-title">Current plan</h2>
+<p class="lui-billing-plan-name">Team</p>
+<p class="lui-billing-plan-price">$12 per seat / month</p>
+<p class="lui-billing-note">Renews on 1 December 2026.</p>
+</section>
+<section class="lui-billing-section" id="lui-billing-method" aria-labelledby="lui-billing-method-title">
+<h2 id="lui-billing-method-title">Payment method</h2>
+<p class="lui-billing-method-text">Visa ending 4242</p>
+<div class="lui-billing-actions">
+<a class="lui-button" href="/billing/card">Edit</a>
+</div>
+</section>
+</div>
+<section class="lui-billing-section" id="lui-billing-usage" aria-labelledby="lui-billing-usage-title">
+<h2 id="lui-billing-usage-title">Usage</h2>
+<div class="lui-billing-usage-list">
+<div class="lui-billing-usage-item">
+<div class="lui-progress-field">
+<label for="lui-billing-usage-1">
+<span>Seats</span>
+</label>
+<progress id="lui-billing-usage-1" class="lui-progress" value="8" max="10">80%</progress>
+</div>
+<span class="lui-billing-usage-value">8 / 10</span>
+</div>
+</div>
+</section>
+<section class="lui-billing-section" id="lui-billing-invoices" aria-labelledby="lui-billing-invoices-title">
+<h2 id="lui-billing-invoices-title">Invoices</h2>
+<ul class="lui-billing-invoice-list">
+<li class="lui-billing-invoice">
+<span class="lui-billing-invoice-number">
+<a href="/invoices/42">INV-0042</a>
+</span>
+<span class="lui-billing-invoice-date">1 Oct 2026</span>
+<span class="lui-billing-invoice-status">
+<span class="lui-badge lui-badge-ok" data-tone="ok">Paid</span>
+</span>
+<span class="lui-billing-invoice-amount">$96.00</span>
+</li>
+</ul>
+</section>
+</div>

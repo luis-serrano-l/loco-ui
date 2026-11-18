@@ -102,6 +102,10 @@ Start a handler from `ui: Ui` (an Axum extractor, or `Ui::from_request(path, que
 - [InboxPage](inbox_page.md): A list and the item open beside it: messages, tickets, orders.
 - [InvoicePage](invoice_page.md): A bill to read, pay or print: its title and status, who it is from and to, the dates, the lines with their quantities and amounts, the totals, a note and the actions.
 - [SettingsPage](settings_page.md): A page of settings in sections: each has a title and a line on the left and its form on the right (stacked on narrow screens), with a list of the sections at the top that jumps to each.
+- [ListPage](list_page.md): The index page of a resource: a title with its actions, a search box and filter links, how many there are, the list itself (a table, cards, an empty state) and what goes under it (the page links).
+- [OnboardingPage](onboarding_page.md): The first-run page of an app: where the person is ("Step 2 of 3"), a title and a line, the steps as a row, the current step's form in a card, and a way to skip.
+- [BillingPage](billing_page.md): An account's billing: the plan it is on and what it costs, how much of each allowance is used, the payment method, and the past invoices.
+- [SchedulePage](schedule_page.md): An agenda: the period shown with links to the one before, the one after and today, then each day with its events in time order, and room beside it for a month calendar.
 
 ## Optional
 

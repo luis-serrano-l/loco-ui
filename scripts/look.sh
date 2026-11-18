@@ -76,6 +76,10 @@ blocks-error|/no-such-page|
 blocks-pricing|/blocks/pricing|
 blocks-inbox|/blocks/inbox/2|
 blocks-invoice|/blocks/invoice|
+blocks-list|/blocks/list|https://ui.shadcn.com/examples/tasks
+blocks-onboarding|/blocks/onboarding|
+blocks-billing|/blocks/billing|
+blocks-schedule|/blocks/schedule|
 table-rows|/table/rows|https://www.tremor.so/docs/ui/table
 typography|/typography|$radix/heading
 code-block|/code-block|https://ui.shadcn.com/docs/installation

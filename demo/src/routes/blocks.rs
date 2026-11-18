@@ -13,6 +13,7 @@ pub(crate) fn routes() -> Router {
     super::pages(PAGES)
         .route("/blocks/settings", post(saved))
         .route("/blocks/record/delete", post(deleted))
+        .route("/blocks/onboarding", post(onboarded))
         .route("/blocks/inbox/{n}", get(inbox_open))
 }
 
@@ -30,6 +31,22 @@ pub(crate) const PAGES: &[super::Simple] = &[
         "Each item is a page of its own, [like this one](/blocks/inbox/2). In a narrow box the open item shows alone, with a link back to the list.",
     ),
     ("/blocks/invoice", invoice, ""),
+    (
+        "/blocks/list",
+        list,
+        "The search and the filters are links and a GET form: [open customers named a](/blocks/list?status=open&q=a) is an address.",
+    ),
+    (
+        "/blocks/onboarding",
+        onboarding,
+        "Each step is a page: [the first](/blocks/onboarding?step=1), [the last](/blocks/onboarding?step=3).",
+    ),
+    ("/blocks/billing", billing, ""),
+    (
+        "/blocks/schedule",
+        schedule,
+        "From 30rem a day's name sits beside its events; from 48rem the month sits beside the agenda.",
+    ),
     (
         "/blocks/error",
         error,
@@ -208,6 +225,112 @@ fn invoice(ui: &Ui) -> Markup {
             line_item "Hosting, October" "1" "£40.00" "£40.00";
             line_item "Support hours" "3.5" "£60.00" "£210.00";
             total "Subtotal" "£1,050.00"; total "VAT 20%" "£210.00"; total "Amount due" "£1,260.00";
+        }
+        // end code
+    }
+}
+
+/// The demo customers: name, plan, whether the account is open.
+const CUSTOMERS: [(&str, &str, bool); 6] = [
+    ("Ada Lovelace", "Team", true),
+    ("Charles Babbage", "Hobby", false),
+    ("Mary Somerville", "Company", true),
+    ("Michael Faraday", "Team", true),
+    ("Caroline Herschel", "Hobby", false),
+    ("George Boole", "Team", true),
+];
+
+/// The customers, narrowed by `?status=` and `?q=`.
+fn list(ui: &Ui) -> Markup {
+    let query = ui.param("q").unwrap_or("").to_lowercase();
+    let open = match ui.param("status") {
+        Some("open") => Some(true),
+        Some("closed") => Some(false),
+        _ => None,
+    };
+    let shown: Vec<_> = (CUSTOMERS.iter())
+        .filter(|(name, _, is_open)| {
+            open.is_none_or(|o| o == *is_open) && name.to_lowercase().contains(&query)
+        })
+        .collect();
+    let count = format!("{} of {} customers", shown.len(), CUSTOMERS.len());
+    let rows = shown
+        .iter()
+        .map(|(name, plan, is_open)| (*name, *plan, if *is_open { "Open" } else { "Closed" }));
+    lui! {
+        // code: /blocks/list
+        ListPage("Customers") description="Everyone with an account." search="Search customers" count=(&count)
+            actions={ LinkButton("New customer", "/form") primary; } {
+            filter "All" "/blocks/list" badge=(CUSTOMERS.len());
+            filter "Open" "/blocks/list?status=open"; filter "Closed" "/blocks/list?status=closed";
+            body {
+                @if shown.is_empty() { EmptyState("No customer matches") { link "Show everyone" "/blocks/list"; } }
+                @else { Table("customers", "") hide_search caption="Customers" {
+                    column "name" "Name"; column "plan" "Plan"; column "status" "Status"; rows (rows);
+                } }
+            }
+        }
+        // end code
+    }
+}
+
+/// A three-step set-up; `?step=` picks the step.
+fn onboarding(ui: &Ui) -> Markup {
+    let step = ui.param("step").and_then(|s| s.parse().ok());
+    let at: usize = step.unwrap_or(2).clamp(1, 3);
+    let next = format!("/blocks/onboarding?step={}", (at + 1).min(3));
+    let (name, label) = [
+        ("name", "Your name"),
+        ("team", "Team name"),
+        ("invite", "A colleague's email"),
+    ][at - 1];
+    lui! {
+        // code: /blocks/onboarding
+        OnboardingPage("Set up your workspace") description="Three steps, about two minutes."
+            at=(at - 1) skip="/blocks/dashboard" {
+            step "Profile" href="/blocks/onboarding?step=1"; step "Team" href="/blocks/onboarding?step=2"; step "Invite";
+            body { Form(&next) id="onboarding" submit="Continue" { text (name) (label); } }
+        }
+        // end code
+    }
+}
+
+/// A step's form posts to the next step's address: on to that page.
+async fn onboarded(ui: Ui) -> Redirect {
+    let step = ui.param("step").unwrap_or("1");
+    ui.redirect(&format!("/blocks/onboarding?step={step}"))
+}
+
+fn billing(ui: &Ui) -> Markup {
+    lui! {
+        // code: /blocks/billing
+        BillingPage("Billing") plan=("Team", "$12 per seat / month") renews="Renews on 1 December 2026."
+            actions={ LinkButton("Change plan", "/blocks/pricing"); }
+            method=("Visa ending 4242, expires 08/28", "/form") {
+            usage "Seats" 8 10; usage "Storage (GB)" 42 100; usage "Projects" 5 5;
+            invoice "INV-0042" "1 November 2026" "$96.00" href="/blocks/invoice" status=(ui.badge("Due").warn());
+            invoice "INV-0041" "1 October 2026" "$96.00" href="/blocks/invoice" status=(ui.badge("Paid").ok());
+            invoice "INV-0040" "1 September 2026" "$84.00" href="/blocks/invoice" status=(ui.badge("Paid").ok());
+        }
+        // end code
+    }
+}
+
+fn schedule(ui: &Ui) -> Markup {
+    lui! {
+        // code: /blocks/schedule
+        SchedulePage("Schedule") period="16 to 22 November 2026"
+            prev="/blocks/schedule?week=46" next="/blocks/schedule?week=48" today="/blocks/schedule"
+            actions={ LinkButton("New event", "/form") primary; }
+            aside={ Calendar("day") today="2026-11-17" value="2026-11-17" event=("2026-11-16", "Stand-up") event=("2026-11-18", "Offsite"); } {
+            day "Monday 16 November" datetime="2026-11-16";
+            event "09:00" "Stand-up" description="15 minutes, room 2";
+            event "14:00" "Release review" description="Version 0.3" href="/timeline" tone=(Tone::Warn);
+            day "Tuesday 17 November" datetime="2026-11-17" current;
+            event "11:30" "Lunch with Charles" tone=(Tone::Ok);
+            day "Wednesday 18 November" datetime="2026-11-18";
+            event "All day" "Offsite" description="Greenwich" tone=(Tone::Neutral);
+            day "Thursday 19 November" datetime="2026-11-19";
         }
         // end code
     }

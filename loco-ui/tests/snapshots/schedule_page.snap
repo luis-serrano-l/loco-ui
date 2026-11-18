@@ -1,0 +1,116 @@
+---
+source: loco-ui/tests/snapshots.rs
+---
+caps: all
+<div class="lui-schedule">
+<div class="lui-schedule-head">
+<div class="lui-schedule-title">
+<h1>Schedule</h1>
+<p class="lui-schedule-period">16 to 22 November 2026</p>
+</div>
+<div class="lui-schedule-tools">
+<nav class="lui-schedule-nav" aria-label="Schedule">
+<a class="lui-button lui-button-icon" href="/schedule?week=46" aria-label="Previous" rel="prev">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+</a>
+<a class="lui-button" href="/schedule">Today</a>
+<a class="lui-button lui-button-icon" href="/schedule?week=48" aria-label="Next" rel="next">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</nav>
+</div>
+</div>
+<div class="lui-schedule-panes">
+<div class="lui-schedule-days">
+<section class="lui-schedule-day" aria-current="date">
+<h2 class="lui-schedule-day-title">
+<time datetime="2026-11-16">Monday 16 November</time>
+</h2>
+<ul class="lui-schedule-events">
+<li>
+<div class="lui-schedule-event">
+<time class="lui-schedule-event-time" datetime="2026-11-16T09:00">09:00</time>
+<span class="lui-schedule-event-text">
+<span class="lui-schedule-event-title">Stand-up</span>
+<span class="lui-schedule-event-description">15 minutes, room 2</span>
+</span>
+</div>
+</li>
+<li>
+<a class="lui-schedule-event" href="/events/7" data-tone="warn">
+<time class="lui-schedule-event-time" datetime="2026-11-16T14:00">14:00</time>
+<span class="lui-schedule-event-text">
+<span class="lui-schedule-event-title">Release review</span>
+</span>
+</a>
+</li>
+</ul>
+</section>
+<section class="lui-schedule-day">
+<h2 class="lui-schedule-day-title">Tuesday 17 November</h2>
+<p class="lui-schedule-empty">Nothing planned</p>
+</section>
+</div>
+</div>
+</div>
+
+caps: none
+<div class="lui-schedule">
+<div class="lui-schedule-head">
+<div class="lui-schedule-title">
+<h1>Schedule</h1>
+<p class="lui-schedule-period">16 to 22 November 2026</p>
+</div>
+<div class="lui-schedule-tools">
+<nav class="lui-schedule-nav" aria-label="Schedule">
+<a class="lui-button lui-button-icon" href="/schedule?week=46" aria-label="Previous" rel="prev">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-left">
+<path d="m15 18-6-6 6-6"/>
+</svg>
+</a>
+<a class="lui-button" href="/schedule">Today</a>
+<a class="lui-button lui-button-icon" href="/schedule?week=48" aria-label="Next" rel="next">
+<svg class="lui-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-icon="chevron-right">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</nav>
+</div>
+</div>
+<div class="lui-schedule-panes">
+<div class="lui-schedule-days">
+<section class="lui-schedule-day" aria-current="date">
+<h2 class="lui-schedule-day-title">
+<time datetime="2026-11-16">Monday 16 November</time>
+</h2>
+<ul class="lui-schedule-events">
+<li>
+<div class="lui-schedule-event">
+<time class="lui-schedule-event-time" datetime="2026-11-16T09:00">09:00</time>
+<span class="lui-schedule-event-text">
+<span class="lui-schedule-event-title">Stand-up</span>
+<span class="lui-schedule-event-description">15 minutes, room 2</span>
+</span>
+</div>
+</li>
+<li>
+<a class="lui-schedule-event" href="/events/7" data-tone="warn">
+<time class="lui-schedule-event-time" datetime="2026-11-16T14:00">14:00</time>
+<span class="lui-schedule-event-text">
+<span class="lui-schedule-event-title">Release review</span>
+</span>
+</a>
+</li>
+</ul>
+</section>
+<section class="lui-schedule-day">
+<h2 class="lui-schedule-day-title">Tuesday 17 November</h2>
+<p class="lui-schedule-empty">Nothing planned</p>
+</section>
+</div>
+</div>
+</div>

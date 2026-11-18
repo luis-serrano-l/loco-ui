@@ -1450,7 +1450,7 @@ async fn a_whole_app_flow_with_no_script() {
 /// Each block lays out as a page: its parts are there and visible without script.
 #[tokio::test]
 async fn blocks_lay_out() {
-    let checks: [(&str, &[&str]); 11] = [
+    let checks: [(&str, &[&str]); 15] = [
         (
             "/blocks/shell",
             &[
@@ -1522,6 +1522,43 @@ async fn blocks_lay_out() {
                 ".lui-invoice-due th",
             ],
         ),
+        (
+            "/blocks/list",
+            &[
+                ".lui-list-page h1",
+                ".lui-list-page .lui-search",
+                ".lui-list-page-filter[aria-current]",
+                ".lui-list-page-count",
+                ".lui-list-page-body table",
+            ],
+        ),
+        (
+            "/blocks/onboarding",
+            &[
+                ".lui-onboarding-progress",
+                ".lui-onboarding .lui-steps",
+                ".lui-onboarding .lui-card form",
+                ".lui-onboarding-skip",
+            ],
+        ),
+        (
+            "/blocks/billing",
+            &[
+                ".lui-billing-plan-name",
+                ".lui-billing-usage-item progress",
+                ".lui-billing-invoice a",
+                ".lui-billing-invoice-amount",
+            ],
+        ),
+        (
+            "/blocks/schedule",
+            &[
+                ".lui-schedule-nav a",
+                ".lui-schedule-day[aria-current] h2",
+                ".lui-schedule-event-time",
+                ".lui-schedule-empty",
+            ],
+        ),
     ];
     for (path, parts) in checks {
         let status = if path == "/no-such-page" { 404 } else { 200 };
@@ -1534,6 +1571,10 @@ async fn blocks_lay_out() {
             "/blocks/pricing" => shot(&mut page, "blocks-pricing"),
             "/blocks/inbox/2" => shot(&mut page, "blocks-inbox"),
             "/blocks/invoice" => shot(&mut page, "blocks-invoice"),
+            "/blocks/list" => shot(&mut page, "blocks-list"),
+            "/blocks/onboarding" => shot(&mut page, "blocks-onboarding"),
+            "/blocks/billing" => shot(&mut page, "blocks-billing"),
+            "/blocks/schedule" => shot(&mut page, "blocks-schedule"),
             _ => {}
         }
     }

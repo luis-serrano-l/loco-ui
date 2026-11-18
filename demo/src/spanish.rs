@@ -205,7 +205,13 @@ pub static SPANISH: Strings = Strings::new("es")
     .with(Text::Price, "Precio")
     .with(Text::Amount, "Importe")
     .with(Text::Sender, "De")
-    .with(Text::BilledTo, "Facturar a");
+    .with(Text::BilledTo, "Facturar a")
+    .with(Text::CurrentPlan, "Plan actual")
+    .with(Text::Usage, "Uso")
+    .with(Text::PaymentMethod, "Método de pago")
+    .with(Text::Invoices, "Facturas")
+    .with(Text::Today, "Hoy")
+    .with(Text::NoEvents, "Nada previsto");
 
 /// The languages the demo offers, English first (the default).
 pub static LANGUAGES: [&Strings; 2] = [&Strings::ENGLISH, &SPANISH];

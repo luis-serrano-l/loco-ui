@@ -3672,10 +3672,47 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M52 · Four page blocks
 
-- [ ] `list_page`: a filterable, sortable, paged list with a toolbar and an empty state.
-- [ ] `onboarding_page`: a first-run flow on the wizard and steps.
-- [ ] `billing_page`: plan, usage, payment method, invoice history.
-- [ ] `schedule_page`: a month with events and a day list.
+- [x] `list_page`: a title, a search box, filter links, the count and the list.
+  Done: `ui.list_page(title)` with `.description`, `.actions`, `.search(label)`,
+  `.filter(label, href)` + `.badge(text)`, `.count`, `.body`, `.footer`. The search is a
+  GET form named `q` inside `<search>` that keeps the current filter's query keys; the
+  current filter is the one whose path and query keys match the request
+  (`aria-current="page"`). After the shadcn/ui Tasks page. Kept different from the plan
+  line: the block does not own the table, sorting or paging; the body takes a `Table`
+  (which sorts and pages itself) or an `EmptyState`, and the footer a `Pagination`, so the
+  block works over any list and adds no second way to sort.
+- [x] `onboarding_page`: a first-run flow on the steps.
+  Done: `ui.onboarding_page(title)` with `.description`, `.at(n)`, `.step(title)` +
+  `.href(href)`, `.skip(href)`, `.body`. "Step 2 of 3" before the `<h1>`, `ui.steps()`,
+  the current step's form in a card, a Skip link. Steps before `at` are done and link back
+  when they have an `href`; one past the last shows all done and no position. After the
+  Origin UI stepper in an onboarding card. Kept different from the plan line: each step is
+  a page of the app's own, not a `Wizard` (which holds every step's fields in one form);
+  the demo posts each step and redirects to the next.
+- [x] `billing_page`: plan, usage, payment method, invoice history.
+  Done: `ui.billing_page(title)` with `.plan(name, price)`, `.renews`, `.actions`,
+  `.usage(label, value, max)`, `.method(text, href)`, `.invoice(number, date, amount)` +
+  `.href` + `.status(badge)`. Four sections, each with an `<h2>`; an allowance is a
+  `<progress>` that turns to the danger tone when full, with "8 / 10" under it; invoices
+  are a list that stacks under 30rem and is four columns from there. After the Tremor
+  billing and usage blocks.
+- [x] `schedule_page`: an agenda with room for a month.
+  Done: `ui.schedule_page(title)` with `.period`, `.prev` / `.next` / `.today` (links),
+  `.actions`, `.day(label)` + `.datetime` + `.current`, `.event(time, title)` +
+  `.description` + `.href` + `.tone`, `.aside`. Each day is a `<section>` with an `<h2>`
+  and `<time>`; today carries `aria-current="date"`; a day with no event says "Nothing
+  planned". The aside (the demo passes a `Calendar`) sits above the days and beside them
+  from 48rem. After the Origin UI event calendar's agenda view. Kept different: no week or
+  month grid with events drawn by hour, which needs positions the server would have to
+  compute per event; the month view is the existing `Calendar`.
+
+  Also in M52: new words `Text::{CurrentPlan, Usage, PaymentMethod, Invoices, Today,
+  NoEvents}` with Spanish; the stylesheet budget went from 180 to 184 KB and the demo
+  index's from 300 to 328 KB (it shows each block live). The look check found the four
+  blocks without gaps or paddings: they used `--lui-space-5`, which is not a step. Test
+  `every_token_used_without_a_fallback_is_defined` now fails on that. The onboarding
+  column also needed `width: 100%`: a size container with auto margins has no width of its
+  own inside a grid.
 
 ## M53 · Resizable panes
 

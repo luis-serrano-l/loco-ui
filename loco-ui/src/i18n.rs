@@ -446,6 +446,18 @@ pub enum Text {
     Sender,
     /// "Billed to": invoice page: the customer's address heading.
     BilledTo,
+    /// "Current plan": billing page: the plan section's heading.
+    CurrentPlan,
+    /// "Usage": billing page: the allowances section's heading.
+    Usage,
+    /// "Payment method": billing page: the payment method section's heading.
+    PaymentMethod,
+    /// "Invoices": billing page: the past invoices section's heading.
+    Invoices,
+    /// "Today": schedule page: the link to the period that holds today.
+    Today,
+    /// "Nothing planned": schedule page: a day with no event.
+    NoEvents,
 }
 
 /// How many texts there are.
@@ -453,7 +465,7 @@ const N: usize = Text::ALL.len();
 
 impl Text {
     /// Every text, in table order.
-    pub const ALL: [Text; 191] = [
+    pub const ALL: [Text; 197] = [
         Text::Next,
         Text::Previous,
         Text::Back,
@@ -645,6 +657,12 @@ impl Text {
         Text::Amount,
         Text::Sender,
         Text::BilledTo,
+        Text::CurrentPlan,
+        Text::Usage,
+        Text::PaymentMethod,
+        Text::Invoices,
+        Text::Today,
+        Text::NoEvents,
     ];
 
     /// The month `number`, 1 to 12 (0 is January, 13 January again).
@@ -869,6 +887,12 @@ const ENGLISH: [&str; N] = [
     "Amount",
     "From",
     "Billed to",
+    "Current plan",
+    "Usage",
+    "Payment method",
+    "Invoices",
+    "Today",
+    "Nothing planned",
 ];
 
 /// Which way a language's text runs: `<html dir>`.

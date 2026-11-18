@@ -534,6 +534,57 @@ const EXAMPLES: &[Example] = &[
             .total("Total", "$800.00")
             .render()
     }),
+    example("ListPage", |ui| {
+        ui.list_page("Customers")
+            .description("Everyone who bought something.")
+            .search("Search customers")
+            .filter("All", "/customers")
+            .filter("Open", "/customers?status=open")
+            .badge(3)
+            .count("3 customers")
+            .body(html! { ul { li { "Ada" } } })
+            .render()
+    }),
+    example("OnboardingPage", |ui| {
+        ui.onboarding_page("Set up your workspace")
+            .description("About two minutes.")
+            .at(1)
+            .step("Profile")
+            .href("/welcome/1")
+            .step("Team")
+            .step("Invite")
+            .skip("/app")
+            .body(html! { p { "form" } })
+            .render()
+    }),
+    example("BillingPage", |ui| {
+        ui.billing_page("Billing")
+            .plan("Team", "$12 per seat / month")
+            .renews("Renews on 1 December 2026.")
+            .usage("Seats", 8, 10)
+            .method("Visa ending 4242", "/billing/card")
+            .invoice("INV-0042", "1 Oct 2026", "$96.00")
+            .href("/invoices/42")
+            .status(ui.badge("Paid").ok())
+            .render()
+    }),
+    example("SchedulePage", |ui| {
+        ui.schedule_page("Schedule")
+            .period("16 to 22 November 2026")
+            .prev("/schedule?week=46")
+            .next("/schedule?week=48")
+            .today("/schedule")
+            .day("Monday 16 November")
+            .datetime("2026-11-16")
+            .current()
+            .event("09:00", "Stand-up")
+            .description("15 minutes, room 2")
+            .event("14:00", "Release review")
+            .href("/events/7")
+            .tone(Tone::Warn)
+            .day("Tuesday 17 November")
+            .render()
+    }),
     example("SettingsPage", |ui| {
         ui.settings_page("Settings")
             .section("Profile", "How others see you.", html! { p { "form" } })

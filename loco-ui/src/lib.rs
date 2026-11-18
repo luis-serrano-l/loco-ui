@@ -902,6 +902,35 @@ mod tests {
 
     /// Theming is tokens only: every colour in component CSS is a `var(--lui-*)`, so a palette
     /// passed to `Page::tokens` reaches everything. Literals live in `layout::Tokens` alone.
+    /// A `var(--lui-x)` with no fallback and no definition drops its whole declaration
+    /// (M52: `--lui-space-5` does not exist, so four blocks lost their gaps and paddings).
+    #[test]
+    fn every_token_used_without_a_fallback_is_defined() {
+        // Set per element in a `style` attribute by the component that reads them.
+        const INLINE: &[&str] = &[
+            "--lui-color-value",
+            "--lui-otp-at",
+            "--lui-otp-cells",
+            "--lui-otp-group",
+            "--lui-swatch",
+        ];
+        let page = Ui::default().page("T", maud::html! {}).into_string();
+        let name = |s: &str| -> String {
+            s.chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '-')
+                .collect()
+        };
+        for (i, _) in page.match_indices("var(--lui-") {
+            let token = name(&page[i + 4..]);
+            if page[i + 4 + token.len()..].starts_with(')') && !INLINE.contains(&token.as_str()) {
+                assert!(
+                    page.contains(&format!("{token}:")),
+                    "{token} is used but never defined"
+                );
+            }
+        }
+    }
+
     #[test]
     fn no_colour_literal_outside_tokens() {
         for css in COMPONENT_CSS.iter().chain(&[layout::RESET, layout::MODES]) {
@@ -1818,6 +1847,13 @@ mod tests {
         ("RecordPage::edit", "the edit link's `href`"),
         ("RecordPage::back", "the back link's `href`"),
         ("RecordPage::delete", "the delete form's `action`"),
+        ("OnboardingPage::skip", "the Skip link's `href`"),
+        (
+            "SchedulePage::prev",
+            "the previous period's link, its `href`",
+        ),
+        ("SchedulePage::next", "the next period's link, its `href`"),
+        ("SchedulePage::today", "the Today link's `href`"),
         (
             "ToggleGroup::option",
             "an adder: the option's `value` and text",
@@ -2283,8 +2319,10 @@ mod tests {
         // M40d together, until M39's sweep trims the literals.
         // M40c added the number, search, rating, tag input and checkbox group components and
         // the input group (addons, steppers, reveal): 176 KB with every M40 branch merged.
+        // 184 KB from M52's four page blocks (list, onboarding, billing, schedule): 181 460
+        // bytes with them.
         assert!(
-            stylesheet().len() < 176 * 1024,
+            stylesheet().len() < 184 * 1024,
             "stylesheet() is {} bytes",
             stylesheet().len()
         );
@@ -2474,6 +2512,10 @@ mod tests {
             ("pricing_page", blocks::pricing_page::CSS),
             ("inbox_page", blocks::inbox_page::CSS),
             ("invoice_page", blocks::invoice_page::CSS),
+            ("list_page", blocks::list_page::CSS),
+            ("onboarding_page", blocks::onboarding_page::CSS),
+            ("billing_page", blocks::billing_page::CSS),
+            ("schedule_page", blocks::schedule_page::CSS),
         ];
         // `stream::CSS` exists only with the `http` feature and sets no layout.
         let streamed = usize::from(cfg!(feature = "http"));
@@ -3267,6 +3309,60 @@ mod tests {
             [
                 ui.error_page(404).render(),
                 ui.error_page(404).home("/dashboard").render(),
+            ]
+        }),
+        ("OnboardingPage", "href", |ui| {
+            [
+                ui.onboarding_page("O").at(1).step("A").step("B").render(),
+                (ui.onboarding_page("O").at(1).step("A").href("/a").step("B")).render(),
+            ]
+        }),
+        ("OnboardingPage", "skip", |ui| {
+            [
+                ui.onboarding_page("O").render(),
+                ui.onboarding_page("O").skip("/app").render(),
+            ]
+        }),
+        ("BillingPage", "href", |ui| {
+            [
+                ui.billing_page("B").invoice("I", "d", "a").render(),
+                ui.billing_page("B")
+                    .invoice("I", "d", "a")
+                    .href("/i")
+                    .render(),
+            ]
+        }),
+        ("SchedulePage", "prev", |ui| {
+            [
+                ui.schedule_page("S").render(),
+                ui.schedule_page("S").prev("/p").render(),
+            ]
+        }),
+        ("SchedulePage", "next", |ui| {
+            [
+                ui.schedule_page("S").render(),
+                ui.schedule_page("S").next("/n").render(),
+            ]
+        }),
+        ("SchedulePage", "today", |ui| {
+            [
+                ui.schedule_page("S").render(),
+                ui.schedule_page("S").today("/t").render(),
+            ]
+        }),
+        ("SchedulePage", "datetime", |ui| {
+            [
+                ui.schedule_page("S").day("D").render(),
+                ui.schedule_page("S")
+                    .day("D")
+                    .datetime("2026-11-16")
+                    .render(),
+            ]
+        }),
+        ("SchedulePage", "href", |ui| {
+            [
+                ui.schedule_page("S").day("D").event("9", "E").render(),
+                (ui.schedule_page("S").day("D").event("9", "E").href("/e")).render(),
             ]
         }),
         ("RecordPage", "edit", |ui| {
