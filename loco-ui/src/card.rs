@@ -21,9 +21,9 @@
 //! - `.reveal()`: fades and rises as it scrolls into view, a scroll-driven animation with
 //!   `animation-timeline: view()` (Chrome 115, Firefox no, Safari 26).
 //!
-//! **Accessibility:** a `<div>` of ordinary markup; its title is an `<h3>`, so it shows in the
-//! outline. Checked by axe-core in headless Firefox on every
-//! demo route, both capability variants, light and dark (no serious or critical violation).
+//! **Accessibility:** a `<div>` of ordinary markup; its title is an `<h2>` (`.as_h(3)` under a
+//! section that has its own `<h2>`), so it shows in the outline. Checked by axe-core in headless Firefox on every
+//! demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** nothing is missing.
 //!
@@ -36,7 +36,7 @@
 //! use loco_ui::prelude::*;
 //! let ui = Ui::default();
 //! let m = ui.card().title("Team").body(html! { p { "3 members" } }).render().into_string();
-//! assert!(m.contains(r#"<h3 class="lui-card-title">Team</h3>"#) && m.contains("3 members"));
+//! assert!(m.contains(r#"<h2 class="lui-card-title">Team</h2>"#) && m.contains("3 members"));
 //! // The same in `lui!`:
 //! let same = lui! { Card title="Team" { p { "3 members" } } };
 //! assert_eq!(same.into_string(), m);
@@ -67,12 +67,13 @@ use crate::variant::{Size, Variant};
 
 /// A card, made by [`Ui::card`].
 ///
-/// **Setters.** Values and items: `.title(..)`, `.description(..)`, `.header(..)`, `.body(..)`,
+/// **Setters.** Values and items: `.title(..)`, `.as_h(..)`, `.description(..)`, `.header(..)`, `.body(..)`,
 /// `.footer(..)`, `.id(..)`, `.size(..)`, `.variant(..)`; switches: `.classic()`, `.ghost()`, `.beam()`, `.glow()`,
 /// `.gradient_border()`, `.reveal()`.
 #[derive(Clone, Debug, Default)]
 pub struct Card<'a> {
     title: Option<&'a str>,
+    level: Option<u8>,
     description: Option<&'a str>,
     header: Option<Markup>,
     body: Option<Markup>,
@@ -94,7 +95,11 @@ impl Card<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
-        Prop::new("title", PropKind::Value, "title: &'a str").doc("The heading at the top (`h3`)."),
+        Prop::new("title", PropKind::Value, "title: &'a str")
+            .doc("The heading at the top (an `<h2>`; see `as_h`)."),
+        Prop::new("as_h", PropKind::Number, "level: u8")
+            .default("2")
+            .doc("The title's element, `<h1>` to `<h6>`: its level in the page's outline."),
         Prop::new("description", PropKind::Value, "text: &'a str")
             .doc("Muted text under the title."),
         Prop::new("header", PropKind::Value, "markup: Markup")
@@ -141,9 +146,17 @@ impl Ui {
 }
 
 impl<'a> Card<'a> {
-    /// The heading at the top (`h3`).
+    /// The heading at the top (an `<h2>`; see `as_h`).
     pub fn title(mut self, title: &'a str) -> Self {
         self.title = Some(title);
+        self
+    }
+
+    /// The title's element, `<h1>` to `<h6>` (clamped): its level in the page's outline.
+    /// `<h2>` by default, right under a page's `<h1>`; a card inside a section with its own
+    /// `<h2>` takes 3.
+    pub fn as_h(mut self, level: u8) -> Self {
+        self.level = Some(level.clamp(1, 6));
         self
     }
 
@@ -265,7 +278,7 @@ impl Render for Card<'_> {
                     div class="lui-card-header" {
                         @if self.title.is_some() || self.description.is_some() {
                             div class="lui-card-heading" {
-                                @if let Some(t) = self.title { h3 class="lui-card-title" { (t) } }
+                                @if let Some(t) = self.title { (crate::heading::title(self.level.unwrap_or(2), "lui-card-title", None, t)) }
                                 @if let Some(d) = self.description { p class="lui-card-description" { (d) } }
                             }
                         }
@@ -370,7 +383,7 @@ mod tests {
         let ui = Ui::default();
         assert_eq!(html_of(ui.card()), r#"<div class="lui-card"></div>"#);
         let m = html_of(ui.card().title("T").body(html! { "b" }));
-        assert!(m.contains(r#"<h3 class="lui-card-title">T</h3>"#), "{m}");
+        assert!(m.contains(r#"<h2 class="lui-card-title">T</h2>"#), "{m}");
         assert!(m.contains(r#"<div class="lui-card-body">b</div>"#), "{m}");
         assert!(
             !m.contains("lui-card-footer")

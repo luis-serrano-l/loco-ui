@@ -15,7 +15,7 @@
 //! **Accessibility:** a `role="region"` named by the label; the items are read once, in order,
 //! since the copy is `aria-hidden` and `inert`; the motion stops on hover and focus, and does
 //! not start under `prefers-reduced-motion: reduce`. Checked by axe-core in headless Firefox
-//! on every demo route, both capability variants, light and dark (no serious or critical
+//! on every demo route, both capability variants, light and dark (no moderate, serious or critical
 //! violation).
 //!
 //! **What it does not do without script:** nothing is missing.

@@ -272,7 +272,7 @@ pub(crate) fn render(file: &str, source: &str) -> Rendered {
             }
             Event::Start(Tag::Table(_)) => {
                 out.push(Event::Html(
-                    r#"<div class="lui-doc-table" tabindex="0" role="region" aria-label="Table">"#
+                    r#"<div class="lui-doc-table" tabindex="0" role="group" aria-label="Table">"#
                         .into(),
                 ));
                 out.push(events[i].clone());
@@ -351,7 +351,7 @@ fn code_block(lang: &str, code: &str) -> Markup {
     };
     html! {
         figure class="lui-doc-code" {
-            div tabindex="0" role="region" aria-label={ (label) " example" } {
+            div tabindex="0" role="group" aria-label={ (label) " example" } {
                 pre id=(id) { code { (crate::code::highlight_as(shown.trim_end(), token)) } }
             }
             (crate::code::copy_button(&loco_ui::Ui::default(), &id))

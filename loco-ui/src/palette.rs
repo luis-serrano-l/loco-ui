@@ -20,7 +20,7 @@
 //!
 //! **Accessibility:** a labelled search field with `aria-keyshortcuts`, results in a section
 //! named by its heading, every command a link. Checked by axe-core in headless Firefox on every
-//! demo route, both capability variants, light and dark (no serious or critical violation).
+//! demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** arrow-key navigation through a live results list
 //! and the global Ctrl+K shortcut (the access key stands in for it).

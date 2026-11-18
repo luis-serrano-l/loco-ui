@@ -12,7 +12,8 @@
 
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
-| `title` | value | `title: &'a str` |  |  | The heading at the top (`h3`). |
+| `title` | value | `title: &'a str` |  |  | The heading at the top (an `<h2>`; see `as_h`). |
+| `as_h` | number | `level: u8` | `2` |  | The title's element, `<h1>` to `<h6>`: its level in the page's outline. |
 | `description` | value | `text: &'a str` |  |  | Muted text under the title. |
 | `header` | value | `markup: Markup` |  |  | More header content, placed at the top right beside the title. |
 | `body` | value | `markup: Markup` |  |  | The main content. |
@@ -85,9 +86,9 @@ effects, CSS only, each off under `prefers-reduced-motion: reduce` where it move
 - `.reveal()`: fades and rises as it scrolls into view, a scroll-driven animation with
   `animation-timeline: view()` (Chrome 115, Firefox no, Safari 26).
 
-**Accessibility:** a `<div>` of ordinary markup; its title is an `<h3>`, so it shows in the
-outline. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+**Accessibility:** a `<div>` of ordinary markup; its title is an `<h2>` (`.as_h(3)` under a
+section that has its own `<h2>`), so it shows in the outline. Checked by axe-core in headless Firefox on every
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -100,7 +101,7 @@ no glow, and shown in place from the start (a `.reveal()` card is never left hid
 use loco_ui::prelude::*;
 let ui = Ui::default();
 let m = ui.card().title("Team").body(html! { p { "3 members" } }).render().into_string();
-assert!(m.contains(r#"<h3 class="lui-card-title">Team</h3>"#) && m.contains("3 members"));
+assert!(m.contains(r#"<h2 class="lui-card-title">Team</h2>"#) && m.contains("3 members"));
 // The same in `lui!`:
 let same = lui! { Card title="Team" { p { "3 members" } } };
 assert_eq!(same.into_string(), m);

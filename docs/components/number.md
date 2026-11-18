@@ -76,7 +76,7 @@ focus ring.
 **Accessibility:** a labelled number field; a text addon is read out with it
 (`aria-describedby`), an icon is decoration; the steppers are named "increment" and
 "decrement" and disabled at the bounds. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** step in place. Without the script a stepper
 submits the form around it with the stepped value as the first `name` posted (the buttons

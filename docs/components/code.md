@@ -75,10 +75,11 @@ lines scroll inside the block, never the page; `tab-size` (Chrome 21, Firefox 91
 Safari 7). `.copy()` adds a button for the enhancement script, which writes the code with
 `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1).
 
-**Accessibility:** the block is a `role="region"` named by its title, or by "Code", with
-`tabindex="0"` so a keyboard can scroll a long line. The copy button is a real button
+**Accessibility:** the block is a `role="group"` named by its title, or by "Code", with
+`tabindex="0"` so a keyboard can scroll a long line (a group and not a region: a page of
+examples would fill the landmark list with blocks of the same name). The copy button is a real button
 reading "Copy", then "Copied" for two seconds. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** copy. The button is rendered `hidden` and only the
@@ -100,7 +101,7 @@ assert_eq!(lui! { Code("Ok(())") tone="brand" variant="outline"; }.into_string()
 // A block with a file name and a copy button (shown by the script only).
 let block = ui.code_block("[dependencies]\nloco-ui = \"0.2\"").language("toml").title("Cargo.toml").copy();
 let block = block.render().into_string();
-assert!(block.contains(r#"<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="region" aria-label="Cargo.toml"><code class="lui-code-block-code language-toml">[dependencies]"#));
+assert!(block.contains(r#"<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="group" aria-label="Cargo.toml"><code class="lui-code-block-code language-toml">[dependencies]"#));
 assert!(block.contains(r#"data-lui="copy" hidden"#));
 let same = lui! { CodeBlock("[dependencies]\nloco-ui = \"0.2\"") language="toml" title="Cargo.toml" copy; };
 assert_eq!(same.into_string(), block);

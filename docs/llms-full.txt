@@ -377,7 +377,7 @@ tone and `--lui-shimmer-surface` over the others, the pace `--lui-shimmer-durati
 **Accessibility:** a native `<button>` or `<a>` (Enter and Space, or Enter for a link); an
 icon button carries `aria-label`, a busy one `aria-busy` and `aria-disabled`, a toggle
 `aria-pressed`, a menu trigger `aria-haspopup`. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** turn itself into a loading button while its form
@@ -593,7 +593,7 @@ padding-box layer over a border-box one, behind `@supports` for
 **Accessibility:** every field has a `<label for>`; help, counter and error are joined by
 `aria-describedby`, a server error sets `aria-invalid` and is `role="alert"`; the switch is
 a checkbox with `role="switch"`. Checked by axe-core in headless Firefox on every demo
-route, both capability variants, light and dark (no serious or critical violation).
+route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** keep the counter live while typing (the
 enhancement script does; without it the counter shows the length the server rendered).
@@ -720,7 +720,7 @@ the `translate` property (Chrome 104, Firefox 72, Safari 14.1) under
 
 **Accessibility:** plain text in a `<span>`; the tone colours are mixed with the text colour
 so they pass AA on their tint. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -767,7 +767,8 @@ assert_eq!(lui! { Badge("Beta") tone="info" variant="surface" size=2 radius="ful
 
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
-| `title` | value | `title: &'a str` |  |  | The heading at the top (`h3`). |
+| `title` | value | `title: &'a str` |  |  | The heading at the top (an `<h2>`; see `as_h`). |
+| `as_h` | number | `level: u8` | `2` |  | The title's element, `<h1>` to `<h6>`: its level in the page's outline. |
 | `description` | value | `text: &'a str` |  |  | Muted text under the title. |
 | `header` | value | `markup: Markup` |  |  | More header content, placed at the top right beside the title. |
 | `body` | value | `markup: Markup` |  |  | The main content. |
@@ -840,9 +841,9 @@ effects, CSS only, each off under `prefers-reduced-motion: reduce` where it move
 - `.reveal()`: fades and rises as it scrolls into view, a scroll-driven animation with
   `animation-timeline: view()` (Chrome 115, Firefox no, Safari 26).
 
-**Accessibility:** a `<div>` of ordinary markup; its title is an `<h3>`, so it shows in the
-outline. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+**Accessibility:** a `<div>` of ordinary markup; its title is an `<h2>` (`.as_h(3)` under a
+section that has its own `<h2>`), so it shows in the outline. Checked by axe-core in headless Firefox on every
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -855,7 +856,7 @@ no glow, and shown in place from the start (a `.reveal()` card is never left hid
 use loco_ui::prelude::*;
 let ui = Ui::default();
 let m = ui.card().title("Team").body(html! { p { "3 members" } }).render().into_string();
-assert!(m.contains(r#"<h3 class="lui-card-title">Team</h3>"#) && m.contains("3 members"));
+assert!(m.contains(r#"<h2 class="lui-card-title">Team</h2>"#) && m.contains("3 members"));
 // The same in `lui!`:
 let same = lui! { Card title="Team" { p { "3 members" } } };
 assert_eq!(same.into_string(), m);
@@ -917,7 +918,7 @@ text around them: the ones buttons, menus, tables and alerts need. The shapes ar
 
 **Accessibility:** decorative icons are `aria-hidden`; a meaningful one is `role="img"` with
 `aria-label`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -1012,7 +1013,7 @@ The root is `role="img"` named after the person, so a screen reader says the nam
 
 **Accessibility:** `role="img"` named by the person's name; the initials inside are
 `aria-hidden`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -1096,7 +1097,7 @@ the gap is a step of the `--lui-space-*` scale. `.align(..)` and `.justify(..)` 
 of the same scale, as Radix Themes Flex's props do.
 
 **Accessibility:** layout only: no roles, reading order is source order. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
@@ -1177,7 +1178,7 @@ wrapped line keeps the same spacing and no child carries a margin. `.align(..)` 
 `.padding(n)` a step of the space scale, as Radix Themes Flex's props do.
 
 **Accessibility:** layout only: no roles, reading order is source order. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
@@ -1255,7 +1256,7 @@ Taffy, Blitz's layout engine, lays out a single column whenever a track minimum 
 `min()`: FINDINGS, M21.)
 
 **Accessibility:** layout only: no roles, reading order is source order. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
@@ -1323,7 +1324,7 @@ the main part growing with `flex-grow: 999` and `min-inline-size: 50%`, so the s
 one column happens by container width, with no media query.
 
 **Accessibility:** layout only: no roles, reading order is source order. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
@@ -1429,7 +1430,7 @@ travels in `?month.<name>=YYYY-MM`, the picked day in `?<name>=YYYY-MM-DD`.
 is a link or radio whose hidden text says the whole date, today is `aria-current="date"`,
 the month title is `aria-live`; arrow keys are not wired (Tab moves through days). Checked
 by axe-core in headless Firefox on every demo route, both capability variants, light and
-dark (no serious or critical violation).
+dark (no moderate, serious or critical violation).
 
 A range is links only: the first click sets the first day, the second the last, a third
 starts again; the days between are shaded.
@@ -1543,7 +1544,7 @@ places it under the button; inside, the `crate::calendar` in radio mode. `.nativ
 
 **Accessibility:** a button naming the picked date that opens the calendar popover, the days
 a radio group labelled by the field's legend; Escape closes the popover. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** write the picked day onto the button before the form
@@ -1865,7 +1866,7 @@ shortcut and be disabled or destructive.
 **Accessibility:** a `popover` menu: `aria-haspopup="menu"` on the trigger, `role="menu"`
 and `menuitem` on the items, Escape and a click outside close it; the script adds arrow
 keys. Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** position itself against the opener where anchor
 positioning is missing; it is centred instead.
@@ -2008,7 +2009,7 @@ morphs to the next one on switch.
 **Accessibility:** each tab is a link, the open one `aria-current="true"` (one tab stop
 each, Enter follows it); the narrow select is named "Tab"; not the ARIA tablist pattern,
 which needs script (FINDINGS, M29 · axe-core over every route). Checked by axe-core in
-headless Firefox on every demo route, both capability variants, light and dark (no
+headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** arrow keys between tabs (the WAI-ARIA tabs
@@ -2252,7 +2253,7 @@ re-filter because it travels in the form as hidden fields.
 **Accessibility:** a `<search>` form: a labelled search input with a datalist, results a
 plain list of links named "Results" in an `aria-live` region, chips removable by named
 links. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** filter as you type against the server or move
 through results with arrow keys and a live `aria-activedescendant`; suggestions come from
@@ -2347,7 +2348,7 @@ A long list delivered a page at a time with a "Load more" link, no script.
 
 **Accessibility:** a real link for "Load more"; the new rows land after an anchor so focus
 and reading continue there. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** infinite scroll or keeping the scroll position
 across pages.
@@ -2551,7 +2552,7 @@ it as text boxes posting to one form, Post/Redirect/Get).
 `<caption>`, `aria-sort` on the first sort key, labelled filter and page-size controls,
 visually hidden names for the select, edit, actions and link columns, `aria-disabled` on
 a disabled row. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** resize or reorder columns by dragging (the
 "Columns" chooser and `?cols.<id>=` choose and order them), collapse a group, or keep row
@@ -2748,7 +2749,7 @@ page can be bookmarked, and the sort, filter and columns survive paging.
 **Accessibility:** the pages are a `<nav>` named "Pages" of links with `rel=prev/next` and
 `aria-current` on the current page; the page jump and page size are labelled forms. Checked
 by axe-core in headless Firefox on every demo route, both capability variants, light and
-dark (no serious or critical violation).
+dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** load the next page on scroll; paging, sorting and
 filtering are each a navigation.
@@ -2865,7 +2866,7 @@ narrow container, a row from 30rem.
 **Accessibility:** an ordered list of steps with `aria-current="step"`, a labelled
 `<progress>`, one `<fieldset>` per step with the step in its `<legend>`, `aria-invalid` on a
 step with errors. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** keep the step inputs when the browser drops the form
 on back; state travels in hidden fields and the query.
@@ -3038,7 +3039,7 @@ fills a narrower form and sits at the end of a wider one.
 **Accessibility:** labelled fields grouped in `<fieldset>`/`<legend>`, native constraint
 validation, and an error summary that takes the focus when the server sends the form back.
 Checked by axe-core in headless Firefox on every demo route, both capability variants, light
-and dark (no serious or critical violation).
+and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** validate against the server as you type, or warn
 about unsaved changes on leaving the page.
@@ -3177,7 +3178,7 @@ has messages; `ui.error_summary(..)` is for a form built from loose inputs.
 
 **Accessibility:** `role="alert"` named by its heading; the heading link has `autofocus`,
 each item links to its field by id. Checked by axe-core in headless Firefox on every demo
-route, both capability variants, light and dark (no serious or critical violation).
+route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** move the focus into the field a link points to;
 the page scrolls to it, and Tab goes on from there.
@@ -3350,7 +3351,7 @@ in a cookie and sets `data-theme` on `<html>`.
 
 **Accessibility:** three native buttons with `aria-pressed` on the current theme. Checked by
 axe-core in headless Firefox on every demo route, both capability variants, light and dark
-(no serious or critical violation).
+(no moderate, serious or critical violation).
 
 **What it does not do without script:** follow a change of the OS preference while a cookie
 choice is set; the cookie wins until reset to auto.
@@ -3447,7 +3448,7 @@ without it; with `/lui/enhance.js` inside a swap root it updates in place.
 
 **Accessibility:** `role="status"` for information, `role="alert"` for errors; the dismiss
 link is named with the message. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** it cannot vanish in place when dismissed; the
 dismiss link is a navigation.
@@ -3643,7 +3644,7 @@ come in labelled groups and can carry an icon; a long list gets a filter box.
 
 **Accessibility:** a native `<select>` with its `<label>`; the filter box is a labelled
 search field. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** type-ahead search beyond what the browser offers;
 long lists get a server-side filter box instead.
@@ -3768,7 +3769,7 @@ can be dragged. Each has its own `<output>`.
 
 **Accessibility:** native range inputs, each named (the pair's thumbs as "Minimum" and
 "Maximum"); the value is shown in an `<output>`. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** show the value while dragging (the `<output>` holds
@@ -3877,7 +3878,7 @@ colour. Opacity is an `<input type="range">` named `<name>-alpha` (0 to 100).
 
 **Accessibility:** a native colour input with its label; presets are named buttons in a
 labelled group with `aria-pressed`. Checked by axe-core in headless Firefox on every demo
-route, both capability variants, light and dark (no serious or critical violation).
+route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** a live preview of the chosen colour before the form
 is sent, and an eyedropper.
@@ -3948,7 +3949,7 @@ chunk into its placeholder. No script.
 
 **Accessibility:** the page is complete HTML in document order however the slots arrive;
 placeholders are ordinary text until filled. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** fill slots out of order where declarative shadow DOM
@@ -4107,6 +4108,7 @@ assert_eq!(same.into_string(), m);
 
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
+| `as_h` | number | `level: u8` | `2` |  | The column titles' element, `<h1>` to `<h6>`: their level in the page's outline. |
 | `column` | item | `key: &'a str, title: &'a str` |  |  | A column. |
 | `limit` | modifier | `limit: usize` |  |  | A work-in-progress limit for the column added last. |
 | `card` | modifier | `key: &'a str, title: &'a str` |  |  | A card in the column added last. |
@@ -4129,11 +4131,11 @@ assert_eq!(same.into_string(), m);
 | `.lui-kanban` |  |
 | `.lui-kanban-board` |  |
 | `.lui-kanban-column` | `--lui-gray-3`, `--lui-radius-lg` |
-| `.lui-kanban-head` | `--lui-text-2` |
+| `.lui-kanban-head` |  |
+| `.lui-kanban-title` | `--lui-text-2` |
 | `.lui-kanban-count` |  |
 | `.lui-kanban-cards` |  |
 | `.lui-kanban-card` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
-| `.lui-kanban-title` | `--lui-text-2` |
 | `.lui-kanban-note` | `--lui-text-1`, `--lui-muted` |
 | `.lui-kanban-meta` |  |
 | `.lui-kanban-move` |  |
@@ -4377,7 +4379,7 @@ cookie and redirects back; the next page renders nothing for it.
 
 **Accessibility:** `role="alert"` for the danger tone, `role="status"` for the others; the
 icon is decorative. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** close in place: closing is a round trip.
 
@@ -4620,7 +4622,7 @@ it with `aria-describedby` so a screen reader says it too. `@media (hover: none)
 
 **Accessibility:** `role="tooltip"` joined to its trigger by `aria-describedby`; shown on
 hover and on keyboard focus. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 `.side(..)` puts it on any side of the trigger (the same `Side` as the popover's) and
 `.delay(ms)` waits before showing it on hover: a `transition-delay` on the way in, none
@@ -4704,7 +4706,7 @@ break); a labelled or vertical one is a `role="separator"` element with
 
 **Accessibility:** a native `<hr>` or `role="separator"` with `aria-orientation`. Checked by
 axe-core in headless Firefox on every demo route, both capability variants, light and dark
-(no serious or critical violation).
+(no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -4800,7 +4802,7 @@ swap like the flash.
 
 **Accessibility:** `role="status"` (errors `role="alert"`) in a live list; dismiss links are
 named with the message. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** it cannot appear without a request (a toast is the
 answer to a round trip), and dismissing one is a navigation, not an instant removal.
@@ -4843,6 +4845,7 @@ assert_eq!(same.into_string(), m);
 | `here` | item | `label: &'a str` |  |  | The current page, last in the trail and not a link. |
 | `max` | number | `n: usize` | `4` |  | The most crumbs shown, the current page included, before the middle folds into a menu. |
 | `separator` | value | `glyph: impl Into<Glyph<'a>>` |  |  | A glyph or an icon between the crumbs instead of the chevron. |
+| `aria_label` | value | `text: &'a str` | `Breadcrumb` | `aria-label` | The landmark's name, for a page with two trails. |
 
 ## Keyboard of `Breadcrumbs`
 
@@ -4988,7 +4991,7 @@ shimmer drawn with `@keyframes` over a `linear-gradient` that
 
 **Accessibility:** `role="status"` with `aria-busy` and a "Loading" name; the bars are
 `aria-hidden`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** it cannot be removed by the client; it is replaced
 when the real content arrives (a streamed slot, a swap, the next page).
@@ -5070,7 +5073,7 @@ data, a `<form method="post">` button, so it works with nothing else.
 
 **Accessibility:** a heading, a sentence and a real action; the illustration is
 `aria-hidden`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing; it is static content.
 
@@ -5167,7 +5170,7 @@ Safari 26), off under `prefers-reduced-motion: reduce`.
 
 **Accessibility:** a label and a value in text; trend arrows are `aria-hidden` and the
 change is in words. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** update live; the number is as fresh as the page.
 
@@ -5285,7 +5288,7 @@ the series in the primary colour, a dark value chip on each mark.
 **Accessibility:** the SVG is a group named by the chart's title and description, each
 mark an image named "label: value" that takes the focus; the data is also a table (row headers are the labels) hidden visually but read by screen
 readers; a sparkline, which sits in a sentence, lists its values as hidden text instead. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** zoom, pan, or a crosshair that follows the pointer;
 the value shows on the mark under the pointer or the focus.
@@ -5379,7 +5382,7 @@ path, compared on the server.
 **Accessibility:** a `<nav>` named by its label; each group is a list labelled by its
 heading; the current page's link has `aria-current="page"`; icons are decorative, counts are
 text. Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 The look follows the shadcn Sidebar block: muted group labels, 2rem rows with icons and
 counts, the current row on gray-4. `.collapsible()` adds a toggle that folds it to an icon
@@ -5485,7 +5488,7 @@ path.
 **Accessibility:** a `<nav>` named by its label; plain links are links, and a panel's button
 says it opens a menu (`aria-haspopup`); the current page's link has `aria-current="page"`.
 Checked by axe-core in headless Firefox on every demo route, both capability variants, light
-and dark (no serious or critical violation).
+and dark (no moderate, serious or critical violation).
 
 The look follows shadcn NavigationMenu: quiet triggers, and panels that are a grid of links,
 each a title over a line of description (`(text, href, description)` items), two across
@@ -5661,7 +5664,7 @@ input style the face next to it (every browser).
 **Accessibility:** a `<fieldset>` named by its visually hidden `<legend>`; arrow keys move
 between radios and Space toggles a checkbox, as the platform does; an icon-only option has
 its text as a hidden label. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** apply a choice the moment it is pressed; the
 surrounding form sends it (a submit button, or the enhancement script's in-place post).
@@ -5989,7 +5992,7 @@ rule shows the drawer; its close control is a link to `#`. `?dialog=<id>` in the
 
 **Accessibility:** a native modal `<dialog>` named by its title: focus moves in, Escape
 closes it. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** swipe to close; focus is not trapped in the
 `:target` fallback.
@@ -6110,7 +6113,7 @@ page still works.
 
 **Accessibility:** a labelled search field with `aria-keyshortcuts`, results in a section
 named by its heading, every command a link. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** arrow-key navigation through a live results list
 and the global Ctrl+K shortcut (the access key stands in for it).
@@ -6207,7 +6210,7 @@ on `:hover` and `:focus-within`. The edges fade out with `mask-image` (Chrome 12
 **Accessibility:** a `role="region"` named by the label; the items are read once, in order,
 since the copy is `aria-hidden` and `inert`; the motion stops on hover and focus, and does
 not start under `prefers-reduced-motion: reduce`. Checked by axe-core in headless Firefox
-on every demo route, both capability variants, light and dark (no serious or critical
+on every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** nothing is missing.
@@ -6293,7 +6296,7 @@ Firefox 121, Safari 17.5) so a long title breaks into even lines; `.trim()` uses
 
 **Accessibility:** a real heading element, so screen readers list it and jump to it; the
 level is `.as_h(..)`, never implied by the size. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** nothing is missing.
@@ -6374,7 +6377,7 @@ and a `<p>` or `<div>` on request, `.truncate()` for one line.
 **Accessibility:** plain text, read in place; colour is never the only signal (a danger
 text says what went wrong). A truncated text keeps its whole content in the DOM, so a
 screen reader reads all of it. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -6456,7 +6459,7 @@ scale, a thin underline offset below the baseline in a paler step, and the three
 **Accessibility:** a real link, so it is in the tab order and listed as one. Underlined by
 default so it never relies on colour alone in a paragraph; an external link says "(opens
 in a new tab)" to a screen reader and draws its arrow `aria-hidden`. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 A link in running text keeps the text's height under a coarse pointer: WCAG 2.5.8
 exempts inline targets, and a 44px link would break the line spacing.
@@ -6528,7 +6531,7 @@ Safari 5.1).
 
 **Accessibility:** `<kbd>` is user input, read as its text ("⌘K" is read as the
 characters it holds; write `Ctrl K` where the symbol would be unclear). Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing; it shows a shortcut, it does
@@ -6627,10 +6630,11 @@ lines scroll inside the block, never the page; `tab-size` (Chrome 21, Firefox 91
 Safari 7). `.copy()` adds a button for the enhancement script, which writes the code with
 `navigator.clipboard` (Chrome 66, Firefox 63, Safari 13.1).
 
-**Accessibility:** the block is a `role="region"` named by its title, or by "Code", with
-`tabindex="0"` so a keyboard can scroll a long line. The copy button is a real button
+**Accessibility:** the block is a `role="group"` named by its title, or by "Code", with
+`tabindex="0"` so a keyboard can scroll a long line (a group and not a region: a page of
+examples would fill the landmark list with blocks of the same name). The copy button is a real button
 reading "Copy", then "Copied" for two seconds. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** copy. The button is rendered `hidden` and only the
@@ -6652,7 +6656,7 @@ assert_eq!(lui! { Code("Ok(())") tone="brand" variant="outline"; }.into_string()
 // A block with a file name and a copy button (shown by the script only).
 let block = ui.code_block("[dependencies]\nloco-ui = \"0.2\"").language("toml").title("Cargo.toml").copy();
 let block = block.render().into_string();
-assert!(block.contains(r#"<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="region" aria-label="Cargo.toml"><code class="lui-code-block-code language-toml">[dependencies]"#));
+assert!(block.contains(r#"<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="group" aria-label="Cargo.toml"><code class="lui-code-block-code language-toml">[dependencies]"#));
 assert!(block.contains(r#"data-lui="copy" hidden"#));
 let same = lui! { CodeBlock("[dependencies]\nloco-ui = \"0.2\"") language="toml" title="Cargo.toml" copy; };
 assert_eq!(same.into_string(), block);
@@ -6710,7 +6714,7 @@ moves to the right in a right-to-left page.
 **Accessibility:** a `<blockquote>` inside a `<figure>` whose `<figcaption>` holds the
 source, the pattern the HTML standard gives for a quotation with its attribution. Checked by
 axe-core in headless Firefox on every demo route, both capability variants, light and dark
-(no serious or critical violation).
+(no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -6781,7 +6785,7 @@ of the app's own, wins; `text-wrap: pretty` (Chrome 117, Safari 26) where presen
 
 **Accessibility:** styles only; the HTML it wraps keeps its own headings, lists and
 tables. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -6847,7 +6851,7 @@ size 4 by default, centred by auto margins, as wide as its parent below that.
 
 **Accessibility:** layout only: a `<div>` with no role; reading order is source order.
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -6915,7 +6919,7 @@ Firefox 66, Safari 14.1).
 **Accessibility:** a `<section>` with no name is a generic block to assistive tech; give it
 a heading inside (a `ui.heading(..)`) and `.label(..)` to make it a named region in the
 page's landmarks. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -7058,7 +7062,7 @@ picture to the box.
 
 **Accessibility:** layout only: a `<div>` with no role; an `<img>` inside keeps its own
 `alt`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -7145,7 +7149,7 @@ edges.
 **Accessibility:** a `role="region"` named by its label, with `tabindex="0"` so a keyboard
 user can focus it and scroll with the arrow keys (axe's scrollable-region-focusable).
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -7213,7 +7217,7 @@ Safari 11).
 
 **Accessibility:** layout only: a `<div>` with no role; reading order is source order.
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -7346,7 +7350,7 @@ down rather than stopping it, so it still reads as busy.
 **Accessibility:** `role="status"` named "Loading" (or `.label(..)`), so a screen reader
 announces it once without moving the focus. The ring inside a busy button is
 `aria-hidden`, since the button says `aria-busy`. Checked by axe-core in headless Firefox
-on every demo route, both capability variants, light and dark (no serious or critical
+on every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** nothing is missing; it turns while it is on the
@@ -7422,7 +7426,7 @@ Safari 14.1), so the badge moves to the left corner in a right-to-left page;
 **Accessibility:** the visible number is `aria-hidden` and a visually hidden text says the
 count in words ("3 new", in the visitor's language, or `.label(..)`), so a screen reader
 reads "Inbox, 3 new" on a wrapped button. A count of 0 shows nothing. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing; the count is the server's, as
@@ -7512,7 +7516,7 @@ answers it with `dismiss_cookie`.
 
 **Accessibility:** a complementary landmark named by its text; the close button is named
 "Dismiss: &lt;text&gt;". Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** close in place: closing is a round trip (with the
 enhancement script too, since the answer is a redirect).
@@ -7608,7 +7612,7 @@ for, with an optional arrow.
 **Accessibility:** the button says `aria-haspopup="dialog"` and the platform reports it
 expanded while the panel is open; the panel is `role="dialog"` named by the button's text.
 Tab moves from the button into the panel. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** turn the arrow when a fallback flips the panel
 (that needs anchored container queries, Chrome-only); the arrow points the asked-for way.
@@ -7704,7 +7708,7 @@ of a script.
 **Accessibility:** a `<section>` with `aria-roledescription="carousel"` named by its
 label; each slide a `role="group"` "slide" named "Slide n of N". The fallback links are
 named the same way. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** play on its own, loop from the last slide to the
 first, or mark the current dot in the link fallback (the `::scroll-marker` dots show it
@@ -7742,6 +7746,7 @@ assert_eq!(lui! { Carousel("Photos") id="trip" { item (html! { "One" }); } }.int
 
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
+| `aria_label` | value | `text: &'a str` | `Pages` | `aria-label` | The landmark's name, for a page with two paged lists. |
 | `id` | value | `id: &'a str` |  |  | Read and write `?page.<id>=` instead of `?page=`, so two lists on one page page on their own. |
 | `page` | number | `page: usize` |  |  | Show page `page` (1-based) whatever the request says. |
 | `total` | number | `total: usize` | `0` |  | How many items the list holds. |
@@ -7795,7 +7800,7 @@ Previous and Next keep their icons.
 **Accessibility:** a `<nav>` named "Pages" around a list of links; the current page has
 `aria-current="page"`; the ellipses are `aria-hidden`; at either end Previous or Next is a
 disabled link (`aria-disabled`, no `href`) so the row keeps its shape. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing: each page is a navigation.
@@ -7886,7 +7891,7 @@ row.
 **Accessibility:** an ordered list, so a screen reader announces "step 2 of 4"; the
 current step has `aria-current="step"`; a done step is followed by a hidden "completed",
 a step in error by "has errors"; the dots are `aria-hidden`. Checked by axe-core in
-headless Firefox on every demo route, both capability variants, light and dark (no
+headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing; it is a list of links.
@@ -7972,7 +7977,7 @@ icon.
 
 **Accessibility:** an ordered list read in order; each event's dot or icon is
 `aria-hidden`, so the date, title and description are what is read. Checked by axe-core in
-headless Firefox on every demo route, both capability variants, light and dark (no
+headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
@@ -8065,7 +8070,7 @@ indent is `--lui-tree-depth`, a custom property on each item.
 Space opens it); a folder that is also a link has its link beside the summary, never in
 it, and the summary is named by the folder's label; icons and chevrons are `aria-hidden`.
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** arrow keys between nodes (the WAI-ARIA tree
 pattern) and remembering a folder opened by hand on the next page: the server opens the
@@ -8163,7 +8168,7 @@ button look; `<details name>` (baseline 2024) makes several collapsibles exclusi
 
 **Accessibility:** a `<summary>` is a button with an expanded state; Enter or Space
 toggles it; the chevron is `aria-hidden`. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 
@@ -8250,7 +8255,7 @@ opens the card on click and light dismiss closes it.
 document, so a screen reader reaches it after the trigger. A button trigger toggles the card
 with Enter or Space; a link trigger gets a separate button, named "More about …", where
 hover cannot open the card. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** wait before opening (the platform's
 `interest-delay` decides) or open on hover where `interestfor` is missing.
@@ -8351,7 +8356,7 @@ Firefox 110, Safari 16) lays cards 1, 2 or 3 across.
 **Accessibility:** the legend names the group; each checkbox has its `<label>`, a choice's
 description is joined by `aria-describedby`, help and the server's error describe the
 fieldset, which gets `aria-invalid` with an error. Checked by axe-core in headless Firefox
-on every demo route, both capability variants, light and dark (no serious or critical
+on every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** require at least one tick (HTML has no
@@ -8464,7 +8469,7 @@ focus ring.
 **Accessibility:** a labelled number field; a text addon is read out with it
 (`aria-describedby`), an icon is decoration; the steppers are named "increment" and
 "decrement" and disabled at the bounds. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** step in place. Without the script a stepper
 submits the form around it with the stepped value as the first `name` posted (the buttons
@@ -8561,7 +8566,7 @@ updates.
 **Accessibility:** a `search` landmark; the field is named by its label (visually
 hidden, as `aria-label`), the magnifier is decoration, Clear is a link named "Clear".
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** search as you type; each search is a page load.
 With the enhancement script, a search inside a swap root replaces only that root.
@@ -8659,7 +8664,7 @@ checked one and the ones up to the hovered star.
 **Accessibility:** a `<fieldset>` named by its legend, each radio named "3 stars"
 (visually hidden text), arrow keys move the pick as in any radio group; a read-only rating
 is an image named "3 out of 5". Checked by axe-core in headless Firefox on every demo
-route, both capability variants, light and dark (no serious or critical violation).
+route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing: picking a star is choosing a
 radio, and the surrounding form sends it.
@@ -8755,7 +8760,7 @@ for remove, and `:has()` (Chrome 105, Firefox 121, Safari 15.4) for the box's fo
 **Accessibility:** the text box has the field's `<label>`; the chips are a list named
 "Selected", each × a link named "Remove rust"; help and error describe the text box.
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** turn a tag into a chip on Enter or a comma, or
 remove one without a round trip. Without script Add and × are page loads that keep the

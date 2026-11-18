@@ -104,12 +104,12 @@ fn drawer(ui: &Ui) -> Markup {
                     Breadcrumbs { link "Home" "/"; link "Projects" "/nav"; link "loco-ui" "/nav"; here "Docs"; }
                     p { "Wider than 60rem the navigation is a sidebar; narrower, the menu button opens it as a drawer. Escape or a click outside closes it." }
                     p { "A long trail folds its middle so both ends stay readable:" }
-                    Breadcrumbs {
+                    Breadcrumbs aria_label="Long trail" {
                         link "Home" "/"; link "Projects" "/nav"; link "loco-ui" "/nav";
                         link "Components" "/"; link "Navigation" "/nav"; here "Breadcrumbs";
                     }
                     p { "At most three before the fold, a slash between:" }
-                    Breadcrumbs max=3 separator="/" {
+                    Breadcrumbs max=3 separator="/" aria_label="Short trail" {
                         link "Home" "/"; link "Projects" "/nav"; link "loco-ui" "/nav"; here "Docs";
                     }
             // end code

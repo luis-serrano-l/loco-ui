@@ -50,7 +50,7 @@ moves to the right in a right-to-left page.
 **Accessibility:** a `<blockquote>` inside a `<figure>` whose `<figcaption>` holds the
 source, the pattern the HTML standard gives for a quotation with its attribution. Checked by
 axe-core in headless Firefox on every demo route, both capability variants, light and dark
-(no serious or critical violation).
+(no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

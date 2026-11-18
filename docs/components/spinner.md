@@ -46,7 +46,7 @@ down rather than stopping it, so it still reads as busy.
 **Accessibility:** `role="status"` named "Loading" (or `.label(..)`), so a screen reader
 announces it once without moving the focus. The ring inside a busy button is
 `aria-hidden`, since the button says `aria-busy`. Checked by axe-core in headless Firefox
-on every demo route, both capability variants, light and dark (no serious or critical
+on every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** nothing is missing; it turns while it is on the

@@ -64,7 +64,7 @@ opens the card on click and light dismiss closes it.
 document, so a screen reader reaches it after the trigger. A button trigger toggles the card
 with Enter or Space; a link trigger gets a separate button, named "More about …", where
 hover cannot open the card. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** wait before opening (the platform's
 `interest-delay` decides) or open on hover where `interestfor` is missing.

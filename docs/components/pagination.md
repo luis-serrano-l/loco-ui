@@ -12,6 +12,7 @@
 
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
+| `aria_label` | value | `text: &'a str` | `Pages` | `aria-label` | The landmark's name, for a page with two paged lists. |
 | `id` | value | `id: &'a str` |  |  | Read and write `?page.<id>=` instead of `?page=`, so two lists on one page page on their own. |
 | `page` | number | `page: usize` |  |  | Show page `page` (1-based) whatever the request says. |
 | `total` | number | `total: usize` | `0` |  | How many items the list holds. |
@@ -65,7 +66,7 @@ Previous and Next keep their icons.
 **Accessibility:** a `<nav>` named "Pages" around a list of links; the current page has
 `aria-current="page"`; the ellipses are `aria-hidden`; at either end Previous or Next is a
 disabled link (`aria-disabled`, no `href`) so the row keeps its shape. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing: each page is a navigation.

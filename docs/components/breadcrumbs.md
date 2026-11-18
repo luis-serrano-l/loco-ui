@@ -16,6 +16,7 @@
 | `here` | item | `label: &'a str` |  |  | The current page, last in the trail and not a link. |
 | `max` | number | `n: usize` | `4` |  | The most crumbs shown, the current page included, before the middle folds into a menu. |
 | `separator` | value | `glyph: impl Into<Glyph<'a>>` |  |  | A glyph or an icon between the crumbs instead of the chevron. |
+| `aria_label` | value | `text: &'a str` | `Breadcrumb` | `aria-label` | The landmark's name, for a page with two trails. |
 
 ## Keyboard of `Breadcrumbs`
 

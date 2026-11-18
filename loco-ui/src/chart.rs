@@ -21,7 +21,7 @@
 //! **Accessibility:** the SVG is a group named by the chart's title and description, each
 //! mark an image named "label: value" that takes the focus; the data is also a table (row headers are the labels) hidden visually but read by screen
 //! readers; a sparkline, which sits in a sentence, lists its values as hidden text instead. Checked by axe-core in headless Firefox on every demo route, both capability
-//! variants, light and dark (no serious or critical violation).
+//! variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** zoom, pan, or a crosshair that follows the pointer;
 //! the value shows on the mark under the pointer or the focus.

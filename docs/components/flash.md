@@ -70,7 +70,7 @@ without it; with `/lui/enhance.js` inside a swap root it updates in place.
 
 **Accessibility:** `role="status"` for information, `role="alert"` for errors; the dismiss
 link is named with the message. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** it cannot vanish in place when dismissed; the
 dismiss link is a navigation.

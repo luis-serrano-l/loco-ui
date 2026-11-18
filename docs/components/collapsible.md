@@ -55,7 +55,7 @@ button look; `<details name>` (baseline 2024) makes several collapsibles exclusi
 
 **Accessibility:** a `<summary>` is a button with an expanded state; Enter or Space
 toggles it; the chevron is `aria-hidden`. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

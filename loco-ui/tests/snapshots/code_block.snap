@@ -4,7 +4,7 @@ source: loco-ui/tests/snapshots.rs
 caps: all
 <div class="lui-code-block">
 <div class="lui-code-block-title">Cargo.toml</div>
-<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="region" aria-label="Cargo.toml">
+<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="group" aria-label="Cargo.toml">
 <code class="lui-code-block-code language-toml">[dependencies]
 loco-ui = &quot;0.2&quot;</code>
 </pre>
@@ -21,7 +21,7 @@ loco-ui = &quot;0.2&quot;</code>
 caps: none
 <div class="lui-code-block">
 <div class="lui-code-block-title">Cargo.toml</div>
-<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="region" aria-label="Cargo.toml">
+<pre class="lui-code-block-pre" id="code-cargo-toml" tabindex="0" role="group" aria-label="Cargo.toml">
 <code class="lui-code-block-code language-toml">[dependencies]
 loco-ui = &quot;0.2&quot;</code>
 </pre>

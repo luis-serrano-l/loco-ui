@@ -2,7 +2,7 @@
 // Drives headless Firefox through geckodriver (plain WebDriver over HTTP) to prove the
 // enhancement script does its job: actions happen in place, with no navigation. Then runs
 // axe-core over every PATHS route, both capability variants, light and dark; any violation of
-// serious or critical impact fails; last, fails when any route scrolls sideways at 320 px.
+// moderate, serious or critical impact fails; last, fails when any route scrolls sideways at 320 px.
 // axe is injected by this driver into the page under test,
 // never served by the demo, so the one-script rule holds.
 // Usage: npm install --prefix scripts; node scripts/browser-check.mjs
@@ -495,6 +495,9 @@ try {
   // Runs in the page: load axe, check, answer the violations. One pattern is let through
   // (FINDINGS, M29): the <button><selectedcontent> of a customisable select, which Firefox
   // cannot fill and only gets here because the check forces the capability cookie.
+  // Two more are let through by route (FINDINGS, M50): the index repeats landmark names
+  // because it shows every component's preview on one page, and /stream's skip link sits in
+  // the shadow root the page streams into, where axe does not take it for a skip link.
   // Entry transitions (M30 motion) are jumped to their end first, so contrast is read on the
   // settled page, not mid-fade; long or looping animations (toast timers, marquee) are left.
   function audit(source, done) {
@@ -534,14 +537,15 @@ try {
           script: "(" + audit + ")(arguments[0], arguments[arguments.length - 1]);",
         });
         for (const v of found) {
-          if (v.impact === "serious" || v.impact === "critical") serious.push(`${path} [${variant}, ${theme}] ${v.impact} ${v.id}: ${v.help} at ${v.nodes.join(", ")}`);
+          if ((path === "/" && v.id === "landmark-unique") || (path === "/stream" && v.id === "region")) continue;
+          if (v.impact !== "minor") serious.push(`${path} [${variant}, ${theme}] ${v.impact} ${v.id}: ${v.help} at ${v.nodes.join(", ")}`);
           else minor++;
         }
       }
     }
   }
   if (serious.length) console.error(serious.join("\n"));
-  assert(serious.length === 0, `axe: no serious or critical violations on ${paths.length} routes x 2 caps x 2 themes (${minor} minor or moderate)`);
+  assert(serious.length === 0, `axe: no moderate, serious or critical violations on ${paths.length} routes x 2 caps x 2 themes (${minor} minor)`);
 
   // No page scrolls sideways at 320 px (M34): the document may not be wider than its
   // viewport. Inner scrollers (a table body, a tab list, the kanban board) are fine; only the

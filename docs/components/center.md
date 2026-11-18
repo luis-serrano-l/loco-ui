@@ -45,7 +45,7 @@ Safari 11).
 
 **Accessibility:** layout only: a `<div>` with no role; reading order is source order.
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

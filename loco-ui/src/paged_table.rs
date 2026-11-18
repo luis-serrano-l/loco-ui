@@ -21,7 +21,7 @@
 //! **Accessibility:** the pages are a `<nav>` named "Pages" of links with `rel=prev/next` and
 //! `aria-current` on the current page; the page jump and page size are labelled forms. Checked
 //! by axe-core in headless Firefox on every demo route, both capability variants, light and
-//! dark (no serious or critical violation).
+//! dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** load the next page on scroll; paging, sorting and
 //! filtering are each a navigation.

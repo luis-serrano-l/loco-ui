@@ -70,7 +70,7 @@ of a script.
 **Accessibility:** a `<section>` with `aria-roledescription="carousel"` named by its
 label; each slide a `role="group"` "slide" named "Slide n of N". The fallback links are
 named the same way. Checked by axe-core in headless Firefox on every demo route, both
-capability variants, light and dark (no serious or critical violation).
+capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** play on its own, loop from the last slide to the
 first, or mark the current dot in the link fallback (the `::scroll-marker` dots show it

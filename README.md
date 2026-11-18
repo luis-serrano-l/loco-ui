@@ -12,7 +12,7 @@ GitHub Pages) · **[Source on GitHub](https://github.com/luis-serrano-l/loco-ui)
 **HTML first, script optional** · every page works with JavaScript off, checked in CI by a
 script-less renderer ([Blitz](loco-ui-test/tests/demo.rs)) and
 [a test that allows one optional script and nothing inline](demo/src/tests.rs) · strict CSP ·
-axe-clean: no serious or critical violation on any demo route, both capability variants,
+axe-clean: no moderate, serious or critical violation on any demo route, both capability variants,
 light and dark ([browser check](scripts/browser-check.mjs), in CI)
 
 **Server-rendered scaffolds for Loco 1.x, zero JavaScript required.** Loco 1.0 replaced its

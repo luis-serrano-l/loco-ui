@@ -83,7 +83,7 @@ travels in `?month.<name>=YYYY-MM`, the picked day in `?<name>=YYYY-MM-DD`.
 is a link or radio whose hidden text says the whole date, today is `aria-current="date"`,
 the month title is `aria-live`; arrow keys are not wired (Tab moves through days). Checked
 by axe-core in headless Firefox on every demo route, both capability variants, light and
-dark (no serious or critical violation).
+dark (no moderate, serious or critical violation).
 
 A range is links only: the first click sets the first day, the second the last, a third
 starts again; the days between are shaded.

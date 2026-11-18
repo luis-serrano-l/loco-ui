@@ -69,7 +69,7 @@ places it under the button; inside, the `crate::calendar` in radio mode. `.nativ
 
 **Accessibility:** a button naming the picked date that opens the calendar popover, the days
 a radio group labelled by the field's legend; Escape closes the popover. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** write the picked day onto the button before the form

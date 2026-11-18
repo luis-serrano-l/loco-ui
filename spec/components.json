@@ -280,7 +280,8 @@
           "status": "stable",
           "calls": ["ui.card()"],
           "props": [
-            { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "The heading at the top (`h3`)." },
+            { "name": "title", "kind": "value", "args": "title: &'a str", "default": "", "attr": "", "doc": "The heading at the top (an `<h2>`; see `as_h`)." },
+            { "name": "as_h", "kind": "number", "args": "level: u8", "default": "2", "attr": "", "doc": "The title's element, `<h1>` to `<h6>`: its level in the page's outline." },
             { "name": "description", "kind": "value", "args": "text: &'a str", "default": "", "attr": "", "doc": "Muted text under the title." },
             { "name": "header", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "More header content, placed at the top right beside the title." },
             { "name": "body", "kind": "value", "args": "markup: Markup", "default": "", "attr": "", "doc": "The main content." },
@@ -1343,6 +1344,7 @@
           "status": "stable",
           "calls": ["ui.kanban(action: &str)"],
           "props": [
+            { "name": "as_h", "kind": "number", "args": "level: u8", "default": "2", "attr": "", "doc": "The column titles' element, `<h1>` to `<h6>`: their level in the page's outline." },
             { "name": "column", "kind": "item", "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A column." },
             { "name": "limit", "kind": "modifier", "applies_to": ["column", "card"], "args": "limit: usize", "default": "", "attr": "", "doc": "A work-in-progress limit for the column added last." },
             { "name": "card", "kind": "modifier", "applies_to": ["column", "card"], "args": "key: &'a str, title: &'a str", "default": "", "attr": "", "doc": "A card in the column added last." },
@@ -1600,7 +1602,8 @@
             { "name": "link", "kind": "item", "args": "label: &'a str, href: &'a str", "default": "", "attr": "", "doc": "One step from the root towards this page." },
             { "name": "here", "kind": "item", "args": "label: &'a str", "default": "", "attr": "", "doc": "The current page, last in the trail and not a link." },
             { "name": "max", "kind": "number", "args": "n: usize", "default": "4", "attr": "", "doc": "The most crumbs shown, the current page included, before the middle folds into a menu." },
-            { "name": "separator", "kind": "value", "args": "glyph: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "A glyph or an icon between the crumbs instead of the chevron." }
+            { "name": "separator", "kind": "value", "args": "glyph: impl Into<Glyph<'a>>", "default": "", "attr": "", "doc": "A glyph or an icon between the crumbs instead of the chevron." },
+            { "name": "aria_label", "kind": "value", "args": "text: &'a str", "default": "Breadcrumb", "attr": "aria-label", "doc": "The landmark's name, for a page with two trails." }
           ],
           "keys": [
             { "keys": "Enter / Space", "does": "Shows or hides the folded middle crumbs from the ellipsis button.", "script": false },
@@ -2604,6 +2607,7 @@
           "status": "beta",
           "calls": ["ui.pagination(href: &str)"],
           "props": [
+            { "name": "aria_label", "kind": "value", "args": "text: &'a str", "default": "Pages", "attr": "aria-label", "doc": "The landmark's name, for a page with two paged lists." },
             { "name": "id", "kind": "value", "args": "id: &'a str", "default": "", "attr": "", "doc": "Read and write `?page.<id>=` instead of `?page=`, so two lists on one page page on their own." },
             { "name": "page", "kind": "number", "args": "page: usize", "default": "", "attr": "", "doc": "Show page `page` (1-based) whatever the request says." },
             { "name": "total", "kind": "number", "args": "total: usize", "default": "0", "attr": "", "doc": "How many items the list holds." },

@@ -62,7 +62,7 @@ shimmer drawn with `@keyframes` over a `linear-gradient` that
 
 **Accessibility:** `role="status"` with `aria-busy` and a "Loading" name; the bars are
 `aria-hidden`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** it cannot be removed by the client; it is replaced
 when the real content arrives (a streamed slot, a swap, the next page).

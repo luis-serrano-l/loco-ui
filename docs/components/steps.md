@@ -62,7 +62,7 @@ row.
 **Accessibility:** an ordered list, so a screen reader announces "step 2 of 4"; the
 current step has `aria-current="step"`; a done step is followed by a hidden "completed",
 a step in error by "has errors"; the dots are `aria-hidden`. Checked by axe-core in
-headless Firefox on every demo route, both capability variants, light and dark (no
+headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing; it is a list of links.

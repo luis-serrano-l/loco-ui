@@ -3568,7 +3568,9 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
   M46 decided not to claim keys for.
 - [x] The code-review-graph pointed at older checkouts (`axum-nojs`,
   `~/Documents/Rust/loco-ui`).
-  Done: rebuilt in full for this path.
+  Done: the graph follows this path and updates on each change (the hook reports it built
+  at the current commit). A full rebuild through the MCP tool gave no answer for 30 minutes
+  and was dropped; the incremental one covers 16 files, so it is thinner than a full one.
 
 ## M48 · `lui!` builder mode
 
@@ -3615,11 +3617,39 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M50 · CI gates and stricter tests
 
-- [ ] CI runs the `examples/loco-app` tests, a link check and a benchmark gate.
-- [ ] `clippy::unwrap_used` and `expect_used` are denied in library code.
-- [ ] `every_route_is_conforming_html` checks heading order, one `main` landmark and a label
+- [x] CI runs the `examples/loco-app` tests, a link check and a benchmark gate.
+  Done: the `test` job already ran the example's tests (`cargo test --workspace`; the
+  crate is a workspace member), so nothing changed there. New job `links`: lychee over the
+  README, CHANGELOG, FINDINGS, ROADMAP and `docs/*.md`, outside `pages`' needs, with
+  crates.io, docs.rs and the Pages address left out. New job `bench` on pull requests:
+  `cargo bench -p loco-ui --bench render` on the target branch as a criterion baseline,
+  again on the PR, then `scripts/bench-gate.sh 25`, which reads the median change criterion
+  wrote and fails over 25%. Kept different from the plan: the job is `continue-on-error`,
+  because two runs of one commit differed by up to 52% here (FINDINGS). Neither job has run:
+  nothing is pushed, so the YAML was only parsed and read, and the gate script was run
+  locally.
+- [x] `clippy::unwrap_used` and `expect_used` are denied in library code.
+  Done: `#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]` in the
+  three published crates' `lib.rs`, in place of workspace `[lints]`, which would also cover
+  the tests, benches and examples. Five unwraps came out of `loco-ui-macros`
+  (`until_brace` now returns the block it found); `loco-ui` and `loco-ui-caps` had none
+  outside tests. The `cargo-lui` binary and the demo are not covered.
+- [x] `every_route_is_conforming_html` checks heading order, one `main` landmark and a label
   for every visible control.
-- [ ] axe fails on moderate violations too.
+  Done: three checks in `demo/src/tests.rs::conformance`, each proved by
+  `conformance_finds_what_it_checks`. Labels and `<main>` passed on every route. Heading
+  order failed on 14 pages, all an `<h3>` right under the page's `<h1>`: `Card`'s title and
+  `Kanban`'s column titles are now `<h2>`, with a new `.as_h(level)` on both (the name
+  `Heading` uses); the demo's own `<h3>`s became `<h2>`, and the changelog's Unreleased
+  entries sit under a `### Since 0.2.0` heading.
+- [x] axe fails on moderate violations too.
+  Done: `scripts/browser-check.mjs` fails on anything above minor (8 minor remain). It
+  found repeated landmark names and one page with content outside landmarks. Fixed: a code
+  block's `<pre>` and the docs pages' scrollers are `role="group"`, no longer a region;
+  `Breadcrumbs` and `Pagination` got `.aria_label(text)` for a page with two of them, which
+  `/nav` uses. Let through by route, with the reason in FINDINGS: `landmark-unique` on the
+  index (it shows every preview on one page) and `region` on `/stream`. The component
+  headers and the README say "no moderate, serious or critical violation".
 
 ## M51 · Example app tests
 

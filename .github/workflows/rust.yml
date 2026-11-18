@@ -108,7 +108,7 @@ jobs:
       run: cargo test -p loco-ui --features cli --test install -- --include-ignored
 
   # The enhancement script in headless Firefox, then axe-core on every route (fails on any
-  # serious or critical violation). The runner image has Firefox and geckodriver.
+  # moderate, serious or critical violation). The runner image has Firefox and geckodriver.
   browser:
     runs-on: ubuntu-latest
     steps:
@@ -207,6 +207,51 @@ jobs:
         tool: cargo-semver-checks
     - name: cargo semver-checks
       run: cargo semver-checks -p loco-ui -p loco-ui-caps --baseline-rev origin/${{ github.base_ref }}
+
+  # Links in the README, the docs and the changelog: local paths must exist and outside
+  # addresses must answer. It stays out of `pages`' needs: a site that is down for an hour
+  # should not hold back the demo. crates.io refuses automated clients, and the docs.rs and
+  # Pages addresses of this crate do not exist before the first publish.
+  links:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: lycheeverse/lychee-action@v2
+      with:
+        fail: true
+        args: >-
+          --no-progress --max-retries 3 --accept 200..=299,429
+          --exclude '^https?://(127\.0\.0\.1|localhost)'
+          --exclude '^https://crates\.io/'
+          --exclude '^https://docs\.rs/loco-ui'
+          --exclude '^https://luis-serrano-l\.github\.io/loco-ui'
+          README.md CHANGELOG.md FINDINGS.md ROADMAP.md docs/*.md
+
+  # Render speed against the branch a PR targets: both sides run on this runner, one after
+  # the other, and scripts/bench-gate.sh fails when a bench's median is over 25% slower.
+  # It only reports for now: two runs of one commit differed by more than that on a laptop
+  # (FINDINGS, M50). Take `continue-on-error` out once a few runs show the runners are steadier.
+  bench:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ github.job }}
+    - name: Baseline (the target branch)
+      run: |
+        git checkout --quiet origin/${{ github.base_ref }}
+        cargo bench -p loco-ui --bench render -- --save-baseline base
+    - name: This branch against it
+      run: |
+        git checkout --quiet ${{ github.sha }}
+        cargo bench -p loco-ui --bench render -- --baseline base
+        scripts/bench-gate.sh 25
 
   # The static snapshot of the demo (scripts/snapshot.sh) on GitHub Pages. Pages serves files
   # only: every page renders and <dialog>, popover, <details> and tooltips work, while forms,

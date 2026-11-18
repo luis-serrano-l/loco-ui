@@ -11,7 +11,7 @@
 //! **Accessibility:** a `<nav>` named by its label; plain links are links, and a panel's button
 //! says it opens a menu (`aria-haspopup`); the current page's link has `aria-current="page"`.
 //! Checked by axe-core in headless Firefox on every demo route, both capability variants, light
-//! and dark (no serious or critical violation).
+//! and dark (no moderate, serious or critical violation).
 //!
 //! The look follows shadcn NavigationMenu: quiet triggers, and panels that are a grid of links,
 //! each a title over a line of description (`(text, href, description)` items), two across

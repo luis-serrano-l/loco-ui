@@ -69,6 +69,8 @@
 
 #![forbid(unsafe_code)]
 #![deny(rustdoc::broken_intra_doc_links)]
+// A library never panics on what a caller or a request hands it; tests may unwrap.
+#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
@@ -190,9 +192,9 @@ fn stream(tokens: &[TokenTree]) -> TokenStream {
 }
 
 /// `tokens` up to (not including) the first top-level brace group, and its index.
-fn until_brace(tokens: &[TokenTree], from: usize, what: &str) -> Result<usize> {
+fn until_brace<'t>(tokens: &'t [TokenTree], from: usize, what: &str) -> Result<(usize, &'t Group)> {
     (from..tokens.len())
-        .find(|&i| brace(tokens.get(i)).is_some())
+        .find_map(|i| brace(tokens.get(i)).map(|group| (i, group)))
         .ok_or_else(|| {
             (
                 tokens[from.min(tokens.len() - 1)].span(),
@@ -270,9 +272,8 @@ impl Cx {
                         index = end + 1;
                         continue;
                     }
-                    let at = until_brace(tokens, index, &format!("@{kw}"))?;
+                    let (at, g) = until_brace(tokens, index, &format!("@{kw}"))?;
                     out.extend(stream(&tokens[index..at]));
-                    let g = brace(tokens.get(at)).unwrap();
                     let inner: Vec<TokenTree> = g.stream().into_iter().collect();
                     let body = if kw == "match" {
                         self.arms(&inner)?
@@ -681,9 +682,9 @@ impl Cx {
                 Ok(end + 1)
             }
             "for" => {
-                let open = until_brace(tokens, at, "@for")?;
+                let (open, block) = until_brace(tokens, at, "@for")?;
                 let head = stream(&tokens[at + 2..open]);
-                let body = scoped(self, brace(tokens.get(open)).unwrap())?;
+                let body = scoped(self, block)?;
                 steps.push(quote!(let mut #builder = #builder; for #head { #builder = #body; } let #builder = #builder;));
                 Ok(open + 1)
             }
@@ -692,9 +693,9 @@ impl Cx {
                 let mut index = at + 1;
                 let mut closed = false;
                 loop {
-                    let open = until_brace(tokens, index, "@if")?;
+                    let (open, block) = until_brace(tokens, index, "@if")?;
                     let head = stream(&tokens[index..open]);
-                    let body = scoped(self, brace(tokens.get(open)).unwrap())?;
+                    let body = scoped(self, block)?;
                     chain.extend(quote!(#head #body));
                     index = open + 1;
                     if keyword(tokens.get(index)).is_none()
@@ -706,8 +707,8 @@ impl Cx {
                         if keyword(tokens.get(index)).as_deref() == Some("if") {
                             continue;
                         }
-                        let open = until_brace(tokens, index, "@else")?;
-                        chain.extend(scoped(self, brace(tokens.get(open)).unwrap())?);
+                        let (open, block) = until_brace(tokens, index, "@else")?;
+                        chain.extend(scoped(self, block)?);
                         index = open + 1;
                         closed = true;
                     }
@@ -720,13 +721,9 @@ impl Cx {
                 Ok(index)
             }
             "match" => {
-                let open = until_brace(tokens, at, "@match")?;
+                let (open, block) = until_brace(tokens, at, "@match")?;
                 let scrutinee = stream(&tokens[at + 2..open]);
-                let arms: Vec<TokenTree> = brace(tokens.get(open))
-                    .unwrap()
-                    .stream()
-                    .into_iter()
-                    .collect();
+                let arms: Vec<TokenTree> = block.stream().into_iter().collect();
                 let mut out = TokenStream::new();
                 let mut index = 0;
                 while index < arms.len() {

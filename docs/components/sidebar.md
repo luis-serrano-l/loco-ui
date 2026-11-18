@@ -63,7 +63,7 @@ path, compared on the server.
 **Accessibility:** a `<nav>` named by its label; each group is a list labelled by its
 heading; the current page's link has `aria-current="page"`; icons are decorative, counts are
 text. Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 The look follows the shadcn Sidebar block: muted group labels, 2rem rows with icons and
 counts, the current row on gray-4. `.collapsible()` adds a toggle that folds it to an icon

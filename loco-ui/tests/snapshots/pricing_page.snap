@@ -12,7 +12,7 @@ caps: all
 <div class="lui-card">
 <div class="lui-card-header">
 <div class="lui-card-heading">
-<h3 class="lui-card-title">Hobby</h3>
+<h2 class="lui-card-title">Hobby</h2>
 </div>
 </div>
 <div class="lui-card-body">
@@ -38,7 +38,7 @@ caps: all
 <div class="lui-card">
 <div class="lui-card-header">
 <div class="lui-card-heading">
-<h3 class="lui-card-title">Pro</h3>
+<h2 class="lui-card-title">Pro</h2>
 <p class="lui-card-description">For small teams.</p>
 </div>
 <div class="lui-card-action">
@@ -78,7 +78,7 @@ caps: none
 <div class="lui-card">
 <div class="lui-card-header">
 <div class="lui-card-heading">
-<h3 class="lui-card-title">Hobby</h3>
+<h2 class="lui-card-title">Hobby</h2>
 </div>
 </div>
 <div class="lui-card-body">
@@ -104,7 +104,7 @@ caps: none
 <div class="lui-card">
 <div class="lui-card-header">
 <div class="lui-card-heading">
-<h3 class="lui-card-title">Pro</h3>
+<h2 class="lui-card-title">Pro</h2>
 <p class="lui-card-description">For small teams.</p>
 </div>
 <div class="lui-card-action">

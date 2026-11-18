@@ -14,7 +14,7 @@
 //!
 //! **Accessibility:** `role="alert"` named by its heading; the heading link has `autofocus`,
 //! each item links to its field by id. Checked by axe-core in headless Firefox on every demo
-//! route, both capability variants, light and dark (no serious or critical violation).
+//! route, both capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** move the focus into the field a link points to;
 //! the page scrolls to it, and Tab goes on from there.

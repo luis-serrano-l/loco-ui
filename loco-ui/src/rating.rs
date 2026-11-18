@@ -14,7 +14,7 @@
 //! **Accessibility:** a `<fieldset>` named by its legend, each radio named "3 stars"
 //! (visually hidden text), arrow keys move the pick as in any radio group; a read-only rating
 //! is an image named "3 out of 5". Checked by axe-core in headless Firefox on every demo
-//! route, both capability variants, light and dark (no serious or critical violation).
+//! route, both capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** nothing is missing: picking a star is choosing a
 //! radio, and the surrounding form sends it.

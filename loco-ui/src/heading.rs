@@ -12,7 +12,7 @@
 //!
 //! **Accessibility:** a real heading element, so screen readers list it and jump to it; the
 //! level is `.as_h(..)`, never implied by the size. Checked by axe-core in headless Firefox on
-//! every demo route, both capability variants, light and dark (no serious or critical
+//! every demo route, both capability variants, light and dark (no moderate, serious or critical
 //! violation).
 //!
 //! **What it does not do without script:** nothing is missing.
@@ -116,6 +116,22 @@ impl<'a> Heading<'a> {
     pub fn trim(mut self) -> Self {
         self.trim = true;
         self
+    }
+}
+
+/// A component's own title as `<h1>` to `<h6>` with the component's class: `level` comes from
+/// its `.as_h(..)` setter (a title is an `<h2>` unless told otherwise, the level that never
+/// skips one under a page's `<h1>`).
+pub(crate) fn title(level: u8, class: &str, id: Option<&str>, text: &str) -> Markup {
+    html! {
+        @match level {
+            1 => h1 class=(class) id=[id] { (text) },
+            2 => h2 class=(class) id=[id] { (text) },
+            3 => h3 class=(class) id=[id] { (text) },
+            4 => h4 class=(class) id=[id] { (text) },
+            5 => h5 class=(class) id=[id] { (text) },
+            _ => h6 class=(class) id=[id] { (text) },
+        }
     }
 }
 

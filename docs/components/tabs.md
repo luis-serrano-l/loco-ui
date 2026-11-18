@@ -75,7 +75,7 @@ morphs to the next one on switch.
 **Accessibility:** each tab is a link, the open one `aria-current="true"` (one tab stop
 each, Enter follows it); the narrow select is named "Tab"; not the ARIA tablist pattern,
 which needs script (FINDINGS, M29 · axe-core over every route). Checked by axe-core in
-headless Firefox on every demo route, both capability variants, light and dark (no
+headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** arrow keys between tabs (the WAI-ARIA tabs

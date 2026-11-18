@@ -50,7 +50,7 @@ Firefox 121, Safari 17.5) so a long title breaks into even lines; `.trim()` uses
 
 **Accessibility:** a real heading element, so screen readers list it and jump to it; the
 level is `.as_h(..)`, never implied by the size. Checked by axe-core in headless Firefox on
-every demo route, both capability variants, light and dark (no serious or critical
+every demo route, both capability variants, light and dark (no moderate, serious or critical
 violation).
 
 **What it does not do without script:** nothing is missing.

@@ -69,7 +69,7 @@ for remove, and `:has()` (Chrome 105, Firefox 121, Safari 15.4) for the box's fo
 **Accessibility:** the text box has the field's `<label>`; the chips are a list named
 "Selected", each × a link named "Remove rust"; help and error describe the text box.
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** turn a tag into a chip on Enter or a comma, or
 remove one without a round trip. Without script Add and × are page loads that keep the

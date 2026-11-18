@@ -61,7 +61,7 @@ updates.
 **Accessibility:** a `search` landmark; the field is named by its label (visually
 hidden, as `aria-label`), the magnifier is decoration, Clear is a link named "Clear".
 Checked by axe-core in headless Firefox on every demo route, both capability variants,
-light and dark (no serious or critical violation).
+light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** search as you type; each search is a page load.
 With the enhancement script, a search inside a swap root replaces only that root.

@@ -10,7 +10,7 @@
 //!
 //! **Accessibility:** `role="tooltip"` joined to its trigger by `aria-describedby`; shown on
 //! hover and on keyboard focus. Checked by axe-core in headless Firefox on every demo route,
-//! both capability variants, light and dark (no serious or critical violation).
+//! both capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! `.side(..)` puts it on any side of the trigger (the same [`Side`] as the popover's) and
 //! `.delay(ms)` waits before showing it on hover: a `transition-delay` on the way in, none

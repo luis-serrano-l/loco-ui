@@ -8,7 +8,7 @@
 //! one column happens by container width, with no media query.
 //!
 //! **Accessibility:** layout only: no roles, reading order is source order. Checked by axe-core
-//! in headless Firefox on every demo route, both capability variants, light and dark (no
+//! in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 //! serious or critical violation).
 //!
 //! **What it does not do without script:** nothing is missing.

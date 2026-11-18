@@ -44,7 +44,7 @@ Safari 5.1).
 
 **Accessibility:** `<kbd>` is user input, read as its text ("⌘K" is read as the
 characters it holds; write `Ctrl K` where the symbol would be unclear). Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing; it shows a shortcut, it does

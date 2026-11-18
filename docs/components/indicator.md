@@ -52,7 +52,7 @@ Safari 14.1), so the badge moves to the left corner in a right-to-left page;
 **Accessibility:** the visible number is `aria-hidden` and a visually hidden text says the
 count in words ("3 new", in the visitor's language, or `.label(..)`), so a screen reader
 reads "Inbox, 3 new" on a wrapped button. A count of 0 shows nothing. Checked by axe-core
-in headless Firefox on every demo route, both capability variants, light and dark (no
+in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 serious or critical violation).
 
 **What it does not do without script:** nothing is missing; the count is the server's, as

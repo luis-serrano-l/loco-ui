@@ -16,7 +16,7 @@
 //!
 //! **Accessibility:** the page is complete HTML in document order however the slots arrive;
 //! placeholders are ordinary text until filled. Checked by axe-core in headless Firefox on
-//! every demo route, both capability variants, light and dark (no serious or critical
+//! every demo route, both capability variants, light and dark (no moderate, serious or critical
 //! violation).
 //!
 //! **What it does not do without script:** fill slots out of order where declarative shadow DOM

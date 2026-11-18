@@ -165,7 +165,7 @@ padding-box layer over a border-box one, behind `@supports` for
 **Accessibility:** every field has a `<label for>`; help, counter and error are joined by
 `aria-describedby`, a server error sets `aria-invalid` and is `role="alert"`; the switch is
 a checkbox with `role="switch"`. Checked by axe-core in headless Firefox on every demo
-route, both capability variants, light and dark (no serious or critical violation).
+route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** keep the counter live while typing (the
 enhancement script does; without it the counter shows the length the server rendered).

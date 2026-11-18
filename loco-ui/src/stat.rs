@@ -12,7 +12,7 @@
 //!
 //! **Accessibility:** a label and a value in text; trend arrows are `aria-hidden` and the
 //! change is in words. Checked by axe-core in headless Firefox on every demo route, both
-//! capability variants, light and dark (no serious or critical violation).
+//! capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** update live; the number is as fresh as the page.
 //!

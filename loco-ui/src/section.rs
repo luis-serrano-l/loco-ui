@@ -10,7 +10,7 @@
 //! **Accessibility:** a `<section>` with no name is a generic block to assistive tech; give it
 //! a heading inside (a `ui.heading(..)`) and `.label(..)` to make it a named region in the
 //! page's landmarks. Checked by axe-core in headless Firefox on every demo route, both
-//! capability variants, light and dark (no serious or critical violation).
+//! capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** nothing is missing.
 //!

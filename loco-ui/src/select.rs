@@ -18,7 +18,7 @@
 //!
 //! **Accessibility:** a native `<select>` with its `<label>`; the filter box is a labelled
 //! search field. Checked by axe-core in headless Firefox on every demo route, both capability
-//! variants, light and dark (no serious or critical violation).
+//! variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** type-ahead search beyond what the browser offers;
 //! long lists get a server-side filter box instead.

@@ -56,7 +56,7 @@ use crate::props::{Key, Prop, PropKind};
 
 /// A trail of links ending in the current page, made by [`Ui::breadcrumbs`].
 ///
-/// **Setters.** Values and items: `.link(..)`, `.here(..)`, `.max(..)`, `.separator(..)`.
+/// **Setters.** Values and items: `.link(..)`, `.here(..)`, `.max(..)`, `.separator(..)`, `.aria_label(..)`.
 #[derive(Clone, Debug, Default)]
 pub struct Breadcrumbs<'a> {
     trail: Vec<(&'a str, &'a str)>,
@@ -64,6 +64,7 @@ pub struct Breadcrumbs<'a> {
     strings: &'static Strings,
     max: usize,
     separator: Option<Glyph<'a>>,
+    label: Option<&'a str>,
 }
 
 impl Breadcrumbs<'_> {
@@ -88,6 +89,10 @@ impl Breadcrumbs<'_> {
             .doc("The most crumbs shown, the current page included, before the middle folds into a menu."),
         Prop::new("separator", PropKind::Value, "glyph: impl Into<Glyph<'a>>")
             .doc("A glyph or an icon between the crumbs instead of the chevron."),
+        Prop::new("aria_label", PropKind::Value, "text: &'a str")
+            .attr("aria-label")
+            .default("Breadcrumb")
+            .doc("The landmark's name, for a page with two trails."),
     ];
 }
 
@@ -113,6 +118,13 @@ impl<'a> Breadcrumbs<'a> {
     /// The current page, last in the trail and not a link.
     pub fn here(mut self, label: &'a str) -> Self {
         self.here = label;
+        self
+    }
+
+    /// The landmark's name instead of "Breadcrumb", for a page with two trails: two
+    /// landmarks of one kind need names that tell them apart.
+    pub fn aria_label(mut self, text: &'a str) -> Self {
+        self.label = Some(text);
         self
     }
 
@@ -151,7 +163,7 @@ impl Render for Breadcrumbs<'_> {
         // is CSS and needs none.
         let sep = html! { @if let Some(g) = self.separator { span class="lui-breadcrumbs-sep" aria-hidden="true" { (g) } } };
         html! {
-            nav class={ "lui-breadcrumbs" @if self.separator.is_some() { " lui-breadcrumbs-custom" } } aria-label=(self.strings.get(Text::Breadcrumb)) {
+            nav class={ "lui-breadcrumbs" @if self.separator.is_some() { " lui-breadcrumbs-custom" } } aria-label=(self.label.unwrap_or_else(|| self.strings.get(Text::Breadcrumb))) {
                 ol {
                     @for (i, (label, href)) in head.iter().enumerate() { li { @if i > 0 { (sep) } a href=(href) { (label) } } }
                     @if narrow_fold {

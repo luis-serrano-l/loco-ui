@@ -12,7 +12,7 @@
 //! **Accessibility:** a real link, so it is in the tab order and listed as one. Underlined by
 //! default so it never relies on colour alone in a paragraph; an external link says "(opens
 //! in a new tab)" to a screen reader and draws its arrow `aria-hidden`. Checked by axe-core
-//! in headless Firefox on every demo route, both capability variants, light and dark (no
+//! in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 //! serious or critical violation).
 //! A link in running text keeps the text's height under a coarse pointer: WCAG 2.5.8
 //! exempts inline targets, and a 44px link would break the line spacing.

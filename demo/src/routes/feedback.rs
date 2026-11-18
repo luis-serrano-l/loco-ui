@@ -190,7 +190,7 @@ fn description_list(ui: &Ui) -> Markup {
             item "Invoices" (ui.link_button("Download", "/description-list").small());
             item "Billing contact for receipts" "ada@example.com"; item "Notes" "";
         }
-        h3 { "Stacked" }
+        h2 { "Stacked" }
         DescriptionList stacked {
             item "Billing email" "ada@example.com"; item "Tax id" "ES-B12345678";
         }

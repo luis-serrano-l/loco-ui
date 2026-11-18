@@ -95,7 +95,7 @@ rule shows the drawer; its close control is a link to `#`. `?dialog=<id>` in the
 
 **Accessibility:** a native modal `<dialog>` named by its title: focus moves in, Escape
 closes it. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** swipe to close; focus is not trapped in the
 `:target` fallback.

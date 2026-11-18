@@ -68,7 +68,7 @@ the `translate` property (Chrome 104, Firefox 72, Safari 14.1) under
 
 **Accessibility:** plain text in a `<span>`; the tone colours are mixed with the text colour
 so they pass AA on their tint. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

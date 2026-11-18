@@ -17,7 +17,7 @@
 //! **Accessibility:** the legend names the group; each checkbox has its `<label>`, a choice's
 //! description is joined by `aria-describedby`, help and the server's error describe the
 //! fieldset, which gets `aria-invalid` with an error. Checked by axe-core in headless Firefox
-//! on every demo route, both capability variants, light and dark (no serious or critical
+//! on every demo route, both capability variants, light and dark (no moderate, serious or critical
 //! violation).
 //!
 //! **What it does not do without script:** require at least one tick (HTML has no

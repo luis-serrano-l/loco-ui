@@ -30,7 +30,7 @@
 //! **Accessibility:** an ordered list of steps with `aria-current="step"`, a labelled
 //! `<progress>`, one `<fieldset>` per step with the step in its `<legend>`, `aria-invalid` on a
 //! step with errors. Checked by axe-core in headless Firefox on every demo route, both
-//! capability variants, light and dark (no serious or critical violation).
+//! capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** keep the step inputs when the browser drops the form
 //! on back; state travels in hidden fields and the query.

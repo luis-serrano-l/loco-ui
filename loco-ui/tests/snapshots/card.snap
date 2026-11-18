@@ -5,7 +5,7 @@ caps: all
 <div class="lui-card">
 <div class="lui-card-header">
 <div class="lui-card-heading">
-<h3 class="lui-card-title">Team</h3>
+<h2 class="lui-card-title">Team</h2>
 </div>
 </div>
 <div class="lui-card-body">
@@ -17,7 +17,7 @@ caps: none
 <div class="lui-card">
 <div class="lui-card-header">
 <div class="lui-card-heading">
-<h3 class="lui-card-title">Team</h3>
+<h2 class="lui-card-title">Team</h2>
 </div>
 </div>
 <div class="lui-card-body">

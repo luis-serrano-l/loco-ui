@@ -76,12 +76,13 @@ struct Column<'a> {
 /// A board, made by [`Ui::kanban`]. Add columns with [`Kanban::column`] and cards, into the
 /// column added last, with [`Kanban::card`].
 ///
-/// **Setters.** Values and items: `.column(..)`, `.limit(..)`, `.card(..)`, `.description(..)`,
+/// **Setters.** Values and items: `.as_h(..)`, `.column(..)`, `.limit(..)`, `.card(..)`, `.description(..)`,
 /// `.badge(..)`.
 #[derive(Clone, Debug)]
 pub struct Kanban<'a> {
     ui: &'a Ui,
     action: &'a str,
+    level: u8,
     columns: Vec<Column<'a>>,
 }
 
@@ -110,6 +111,11 @@ impl Kanban<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
+        Prop::new("as_h", PropKind::Number, "level: u8")
+            .default("2")
+            .doc(
+                "The column titles' element, `<h1>` to `<h6>`: their level in the page's outline.",
+            ),
         Prop::new("column", PropKind::Item, "key: &'a str, title: &'a str").doc("A column."),
         Prop::new("limit", PropKind::Modifier, "limit: usize")
             .applies_to(&["column", "card"])
@@ -132,6 +138,7 @@ impl Ui {
         Kanban {
             ui: self,
             action,
+            level: 2,
             columns: Vec::new(),
         }
     }
@@ -144,6 +151,13 @@ impl<'a> Kanban<'a> {
         let last =
             (self.columns.last()).map(|c| if c.cards.is_empty() { "column" } else { "card" });
         crate::props::check_last::<Self>(Kanban::PROPS, method, last);
+    }
+
+    /// The column titles' element, `<h1>` to `<h6>` (clamped): their level in the page's
+    /// outline. `<h2>` by default, right under a page's `<h1>`.
+    pub fn as_h(mut self, level: u8) -> Self {
+        self.level = level.clamp(1, 6);
+        self
     }
 
     /// A column: `key` is what a move to it posts as `to`, `title` its heading.
@@ -220,7 +234,7 @@ impl Render for Kanban<'_> {
                         @let count = match col.limit { Some(l) => format!("{}/{l}", col.cards.len()), None => col.cards.len().to_string() };
                         section class="lui-kanban-column" aria-labelledby=(heading) {
                             header class="lui-kanban-head" {
-                                h3 id=(heading) { (col.title) }
+                                (crate::heading::title(self.level, "lui-kanban-title", Some(&heading), col.title))
                                 span class={ "lui-kanban-count" @if over { " lui-kanban-over" } } {
                                     @if over { (self.ui.badge(&count).danger()) span class="lui-sr" { (self.ui.text(Text::OverLimit)) } }
                                     @else { (self.ui.badge(&count).secondary()) }
@@ -283,7 +297,7 @@ pub const CSS: &str = r#"
   background: var(--lui-gray-3); border-radius: var(--lui-radius-lg);
 }
 .lui-kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 0.25rem 0.25rem; }
-.lui-kanban-head h3 { margin: 0; font-size: var(--lui-text-2); font-weight: 600; }
+.lui-kanban-title { margin: 0; font-size: var(--lui-text-2); font-weight: 600; }
 .lui-kanban-count { font-variant-numeric: tabular-nums; }
 .lui-kanban-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .lui-kanban-card {

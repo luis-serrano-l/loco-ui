@@ -51,6 +51,8 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 #![deny(rustdoc::broken_intra_doc_links)]
+// A library never panics on what a caller or a request hands it; tests may unwrap.
+#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 use maud::{Markup, html};
 

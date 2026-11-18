@@ -6,7 +6,7 @@ caps: all
 <div class="lui-kanban-board">
 <section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-todo">
 <header class="lui-kanban-head">
-<h3 id="lui-kanban--board-move-todo">To do</h3>
+<h2 class="lui-kanban-title" id="lui-kanban--board-move-todo">To do</h2>
 <span class="lui-kanban-count">
 <span class="lui-badge lui-badge-secondary" data-tone="neutral">1</span>
 </span>
@@ -30,7 +30,7 @@ caps: all
 </section>
 <section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-doing">
 <header class="lui-kanban-head">
-<h3 id="lui-kanban--board-move-doing">Doing</h3>
+<h2 class="lui-kanban-title" id="lui-kanban--board-move-doing">Doing</h2>
 <span class="lui-kanban-count">
 <span class="lui-badge lui-badge-secondary" data-tone="neutral">2/2</span>
 </span>
@@ -82,7 +82,7 @@ caps: all
 </section>
 <section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-done">
 <header class="lui-kanban-head">
-<h3 id="lui-kanban--board-move-done">Done</h3>
+<h2 class="lui-kanban-title" id="lui-kanban--board-move-done">Done</h2>
 <span class="lui-kanban-count">
 <span class="lui-badge lui-badge-secondary" data-tone="neutral">0</span>
 </span>
@@ -97,7 +97,7 @@ caps: none
 <div class="lui-kanban-board">
 <section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-todo">
 <header class="lui-kanban-head">
-<h3 id="lui-kanban--board-move-todo">To do</h3>
+<h2 class="lui-kanban-title" id="lui-kanban--board-move-todo">To do</h2>
 <span class="lui-kanban-count">
 <span class="lui-badge lui-badge-secondary" data-tone="neutral">1</span>
 </span>
@@ -121,7 +121,7 @@ caps: none
 </section>
 <section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-doing">
 <header class="lui-kanban-head">
-<h3 id="lui-kanban--board-move-doing">Doing</h3>
+<h2 class="lui-kanban-title" id="lui-kanban--board-move-doing">Doing</h2>
 <span class="lui-kanban-count">
 <span class="lui-badge lui-badge-secondary" data-tone="neutral">2/2</span>
 </span>
@@ -173,7 +173,7 @@ caps: none
 </section>
 <section class="lui-kanban-column" aria-labelledby="lui-kanban--board-move-done">
 <header class="lui-kanban-head">
-<h3 id="lui-kanban--board-move-done">Done</h3>
+<h2 class="lui-kanban-title" id="lui-kanban--board-move-done">Done</h2>
 <span class="lui-kanban-count">
 <span class="lui-badge lui-badge-secondary" data-tone="neutral">0</span>
 </span>

@@ -47,7 +47,7 @@ of the app's own, wins; `text-wrap: pretty` (Chrome 117, Safari 26) where presen
 
 **Accessibility:** styles only; the HTML it wraps keeps its own headings, lists and
 tables. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

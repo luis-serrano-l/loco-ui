@@ -46,7 +46,7 @@ break); a labelled or vertical one is a `role="separator"` element with
 
 **Accessibility:** a native `<hr>` or `role="separator"` with `aria-orientation`. Checked by
 axe-core in headless Firefox on every demo route, both capability variants, light and dark
-(no serious or critical violation).
+(no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

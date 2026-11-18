@@ -37,7 +37,7 @@ text around them: the ones buttons, menus, tables and alerts need. The shapes ar
 
 **Accessibility:** decorative icons are `aria-hidden`; a meaningful one is `role="img"` with
 `aria-label`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing is missing.
 

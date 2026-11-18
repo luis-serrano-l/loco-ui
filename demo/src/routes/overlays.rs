@@ -185,7 +185,7 @@ fn carousel(ui: &Ui) -> Markup {
             // code: /carousel
             Carousel("Steps") {
                 @for (title, text) in slides {
-                    item (lui! { Card { h3 { (title) } p { (text) } } });
+                    item (lui! { Card { h2 { (title) } p { (text) } } });
                 }
             }
             // end code

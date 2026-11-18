@@ -51,6 +51,8 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 #![deny(rustdoc::broken_intra_doc_links)]
+// A library never panics on what a caller or a request hands it; tests may unwrap.
+#![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 
 pub mod accordion;
 pub mod alert;
@@ -2644,6 +2646,18 @@ mod tests {
     type AttrExample = (&'static str, &'static str, fn(&Ui) -> [Markup; 2]);
 
     const ATTR_EXAMPLES: &[AttrExample] = &[
+        ("Breadcrumbs", "aria_label", |ui| {
+            [
+                ui.breadcrumbs().here("A").render(),
+                ui.breadcrumbs().here("A").aria_label("Trail").render(),
+            ]
+        }),
+        ("Pagination", "aria_label", |ui| {
+            [
+                ui.pagination("/p").total(30).render(),
+                ui.pagination("/p").total(30).aria_label("Posts").render(),
+            ]
+        }),
         ("Button", "interestfor", |ui| {
             [
                 ui.button("Go").render(),

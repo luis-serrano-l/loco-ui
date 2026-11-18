@@ -1104,7 +1104,9 @@ fn tables_render_their_golden_markup() {
 /// Every route parses as HTML without errors, in both capability variants and both themes,
 /// and its markup holds together: ids are unique, every id an attribute points at exists, no
 /// interactive element sits inside a link, a button or a `<summary>`, no form inside a form,
-/// every `<img>` has an `alt`. Known bugs are listed in [`CONFORMANCE_BUGS`] with the
+/// every `<img>` has an `alt`, headings never skip a level on the way down, there is one
+/// `<main>`, and every visible control has a name (a `<label>`, `aria-label`,
+/// `aria-labelledby` or `title`). Known bugs are listed in [`CONFORMANCE_BUGS`] with the
 /// milestone that fixes them; anything else fails.
 #[tokio::test]
 async fn every_route_is_conforming_html() {
@@ -1195,7 +1197,12 @@ fn conformance_finds_what_it_checks() {
     let page = |body: &str| format!("<!DOCTYPE html><html lang=en><title>t</title>{body}</html>");
     let problems = |body: &str| conformance::check(&page(body));
     assert_eq!(
-        problems("<p id=a>x</p><label for=a>y</label>"),
+        problems(
+            "<main><h1>t</h1><h2>u</h2><h3>v</h3><h2>w</h2><p id=a>x</p><label for=a>y</label>\
+             <label>n <input name=n></label><label for=b>b</label><input id=b>\
+             <input aria-label=c><input type=hidden name=h><input type=submit value=Go>\
+             <textarea title=d></textarea></main>"
+        ),
         Vec::<String>::new()
     );
     let found = [
@@ -1213,6 +1220,14 @@ fn conformance_finds_what_it_checks() {
         ("<form><div><form></form></div></form>", "parse error"),
         ("<img src=x.png>", "<img> without alt"),
         ("<p></div>", "parse error"),
+        ("<main><h1>a</h1><h3>b</h3></main>", "<h3> follows <h1>"),
+        ("<h1>a</h1>", "0 <main> elements"),
+        ("<main></main><main></main>", "2 <main> elements"),
+        ("<main><input name=q></main>", "<input> without a label"),
+        (
+            "<main><select name=s></select></main>",
+            "<select> without a label",
+        ),
     ];
     for (body, problem) in found {
         let all = problems(body);
@@ -1267,6 +1282,19 @@ mod conformance {
                 problems.push(format!("<{element} {attr}={id:?}> points at no element"));
             }
         }
+        for (tag, id, described) in &walk.controls {
+            let labelled = id.as_ref().is_some_and(|id| {
+                walk.references
+                    .iter()
+                    .any(|(e, a, r)| e == "label" && *a == "for" && r == id)
+            });
+            if !labelled {
+                problems.push(format!("<{tag}> without a label{described}"));
+            }
+        }
+        if walk.mains != 1 {
+            problems.push(format!("{} <main> elements", walk.mains));
+        }
         problems.extend(walk.problems);
         problems
     }
@@ -1276,6 +1304,12 @@ mod conformance {
         ids: BTreeMap<String, usize>,
         references: BTreeSet<(String, &'static str, String)>,
         problems: Vec<String>,
+        /// Visible controls with no name of their own: tag, id, description. One is fine
+        /// when a `<label for>` points at its id.
+        controls: Vec<(String, Option<String>, String)>,
+        mains: usize,
+        /// The level of the heading before this one, in document order.
+        heading: u8,
     }
 
     impl Walk {
@@ -1331,6 +1365,33 @@ mod conformance {
             if tag == "form" && open.iter().any(|o| o == "form") {
                 self.problems
                     .push(format!("<form> inside <form>{}", describe(&attrs)));
+            }
+            if tag == "main" {
+                self.mains += 1;
+            }
+            if let Some(level) = tag.strip_prefix('h').and_then(|l| l.parse::<u8>().ok()) {
+                if self.heading != 0 && level > self.heading + 1 {
+                    self.problems.push(format!(
+                        "<{tag}> follows <h{}>{}",
+                        self.heading,
+                        describe(&attrs)
+                    ));
+                }
+                self.heading = level;
+            }
+            let control = match tag.as_str() {
+                "input" => attr("type").is_none_or(|t| {
+                    !["hidden", "submit", "button", "reset", "image"].contains(&t.as_str())
+                }),
+                "select" | "textarea" => true,
+                _ => false,
+            };
+            let named = ["aria-label", "aria-labelledby", "title"]
+                .iter()
+                .any(|a| attr(a).is_some_and(|v| !v.trim().is_empty()));
+            if control && !named && !open.iter().any(|o| o == "label") {
+                self.controls
+                    .push((tag.clone(), attr("id").cloned(), describe(&attrs)));
             }
             if tag == "img" && attr("alt").is_none() {
                 self.problems

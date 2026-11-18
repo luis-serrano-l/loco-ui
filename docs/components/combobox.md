@@ -83,7 +83,7 @@ re-filter because it travels in the form as hidden fields.
 **Accessibility:** a `<search>` form: a labelled search input with a datalist, results a
 plain list of links named "Results" in an `aria-live` region, chips removable by named
 links. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** filter as you type against the server or move
 through results with arrow keys and a live `aria-activedescendant`; suggestions come from

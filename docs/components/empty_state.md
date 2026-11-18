@@ -55,7 +55,7 @@ data, a `<form method="post">` button, so it works with nothing else.
 
 **Accessibility:** a heading, a sentence and a real action; the illustration is
 `aria-hidden`. Checked by axe-core in headless Firefox on every demo route, both capability
-variants, light and dark (no serious or critical violation).
+variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** nothing; it is static content.
 

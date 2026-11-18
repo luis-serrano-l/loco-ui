@@ -145,8 +145,8 @@ fn layouts(ui: &Ui) -> Markup {
     lui! {
         // code: /layout
         Stack gap=6 {
-            Cluster between { h3 { "Cluster" } Cluster { Button("Export"); Button("New") primary; } }
-            Cluster nowrap align="baseline" justify="center" padding=2 { h3 { "Plan" } span { "$9 a month" } }
+            Cluster between { h2 { "Cluster" } Cluster { Button("Export"); Button("New") primary; } }
+            Cluster nowrap align="baseline" justify="center" padding=2 { h2 { "Plan" } span { "$9 a month" } }
             Grid("8rem") gap=2 { @for t in ["Grid", "fills", "the row", "then", "wraps"] { (tile(t)) } }
             Split(html! { (tile("Split: side")) }, html! { (tile("main, stacks under the side when narrow")) })
                 side_width="12rem";
@@ -202,7 +202,7 @@ fn prose(ui: &Ui) -> Markup {
             h2 { "What changed" }
             ul { li { "Sixteen components for type and layout." } li { "Stacks and clusters align and pad." } li { "A spinner of its own, which buttons reuse." } }
             blockquote { "The best interface is the one the browser already has." }
-            h3 { "Upgrading" }
+            h2 { "Upgrading" }
             ol { li { "Bump the crate." } li { "Run the tests." } }
             pre { code { "cargo update -p loco-ui" } }
             table { thead { tr { th { "Component" } th { "Look" } } } tbody { tr { td { "Heading" } td { "Radix Themes" } } tr { td { "Prose" } td { "shadcn/ui" } } } }
@@ -224,7 +224,7 @@ fn containers(ui: &Ui) -> Markup {
                 Inset top { AspectRatio ratio=(16, 9) { (tile("Inset top, 16 / 9")) } }
                 Text("A cover reaching the card's edges.") as_p size=2 muted;
             }
-            Card { Center min_height="9rem" text_center { Heading("Centred") as_h=3 size=3; Text("both ways") muted; } }
+            Card { Center min_height="9rem" text_center { Heading("Centred") as_h=2 size=3; Text("both ways") muted; } }
         }
         Cluster padding=2 { Button("Back"); Spacer; Button("Next") primary; }
         Stack align="center" justify="center" padding=4 gap=2 { (tile("align=center")) (tile("padding=4")) }

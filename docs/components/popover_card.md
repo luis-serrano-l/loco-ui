@@ -71,7 +71,7 @@ for, with an optional arrow.
 **Accessibility:** the button says `aria-haspopup="dialog"` and the platform reports it
 expanded while the panel is open; the panel is `role="dialog"` named by the button's text.
 Tab moves from the button into the panel. Checked by axe-core in headless Firefox on every
-demo route, both capability variants, light and dark (no serious or critical violation).
+demo route, both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** turn the arrow when a fallback flips the panel
 (that needs anchored container queries, Chrome-only); the arrow points the asked-for way.

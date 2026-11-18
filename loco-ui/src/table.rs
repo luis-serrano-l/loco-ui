@@ -41,7 +41,7 @@
 //! `<caption>`, `aria-sort` on the first sort key, labelled filter and page-size controls,
 //! visually hidden names for the select, edit, actions and link columns, `aria-disabled` on
 //! a disabled row. Checked by axe-core in headless Firefox on every demo route, both
-//! capability variants, light and dark (no serious or critical violation).
+//! capability variants, light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** resize or reorder columns by dragging (the
 //! "Columns" chooser and `?cols.<id>=` choose and order them), collapse a group, or keep row

@@ -12,6 +12,7 @@
 
 | Prop | Kind | Arguments | Default | HTML | What it does |
 |---|---|---|---|---|---|
+| `as_h` | number | `level: u8` | `2` |  | The column titles' element, `<h1>` to `<h6>`: their level in the page's outline. |
 | `column` | item | `key: &'a str, title: &'a str` |  |  | A column. |
 | `limit` | modifier | `limit: usize` |  |  | A work-in-progress limit for the column added last. |
 | `card` | modifier | `key: &'a str, title: &'a str` |  |  | A card in the column added last. |
@@ -34,11 +35,11 @@
 | `.lui-kanban` |  |
 | `.lui-kanban-board` |  |
 | `.lui-kanban-column` | `--lui-gray-3`, `--lui-radius-lg` |
-| `.lui-kanban-head` | `--lui-text-2` |
+| `.lui-kanban-head` |  |
+| `.lui-kanban-title` | `--lui-text-2` |
 | `.lui-kanban-count` |  |
 | `.lui-kanban-cards` |  |
 | `.lui-kanban-card` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
-| `.lui-kanban-title` | `--lui-text-2` |
 | `.lui-kanban-note` | `--lui-text-1`, `--lui-muted` |
 | `.lui-kanban-meta` |  |
 | `.lui-kanban-move` |  |

@@ -16,7 +16,7 @@
 //! **Accessibility:** a `<nav>` named "Pages" around a list of links; the current page has
 //! `aria-current="page"`; the ellipses are `aria-hidden`; at either end Previous or Next is a
 //! disabled link (`aria-disabled`, no `href`) so the row keeps its shape. Checked by axe-core
-//! in headless Firefox on every demo route, both capability variants, light and dark (no
+//! in headless Firefox on every demo route, both capability variants, light and dark (no moderate,
 //! serious or critical violation).
 //!
 //! **What it does not do without script:** nothing is missing: each page is a navigation.
@@ -55,7 +55,7 @@ use crate::{Icon, Page, Ui};
 /// of the current page unless told otherwise.
 ///
 /// **Setters.** Values and items: `.id(..)`, `.page(..)`, `.total(..)`, `.per_page(..)`,
-/// `.window(..)`, `.param(..)`; switches: `.first_last()`.
+/// `.window(..)`, `.param(..)`, `.aria_label(..)`; switches: `.first_last()`.
 #[derive(Clone, Debug)]
 pub struct Pagination<'a> {
     ui: &'a Ui,
@@ -67,6 +67,7 @@ pub struct Pagination<'a> {
     window: usize,
     keep: Vec<(&'a str, &'a str)>,
     first_last: bool,
+    label: Option<&'a str>,
 }
 
 impl Pagination<'_> {
@@ -76,6 +77,10 @@ impl Pagination<'_> {
     /// Every setter with its kind, arguments, default and the HTML attribute it sets; listed by
     /// [`crate::props()`] and kept in step with the setters by a test.
     pub const PROPS: &'static [Prop] = &[
+        Prop::new("aria_label", PropKind::Value, "text: &'a str")
+            .attr("aria-label")
+            .default("Pages")
+            .doc("The landmark's name, for a page with two paged lists."),
         Prop::new("id", PropKind::Value, "id: &'a str")
             .doc("Read and write `?page.<id>=` instead of `?page=`, so two lists on one page page on their own."),
         Prop::new("page", PropKind::Number, "page: usize")
@@ -109,6 +114,7 @@ impl Ui {
             window: 1,
             keep: Vec::new(),
             first_last: false,
+            label: None,
         }
     }
 }
@@ -150,6 +156,13 @@ impl<'a> Pagination<'a> {
     /// per pair.
     pub fn param(mut self, key: &'a str, value: &'a str) -> Self {
         self.keep.push((key, value));
+        self
+    }
+
+    /// The landmark's name instead of "Pages", for a page with two paged lists: two
+    /// landmarks of one kind need names that tell them apart.
+    pub fn aria_label(mut self, text: &'a str) -> Self {
+        self.label = Some(text);
         self
     }
 
@@ -261,7 +274,7 @@ impl Render for Pagination<'_> {
         let prev = ui.text(Text::Previous);
         let next = ui.text(Text::Next);
         html! {
-            nav class="lui-pagination" aria-label=(ui.text(Text::Pages)) {
+            nav class="lui-pagination" aria-label=(self.label.unwrap_or_else(|| ui.text(Text::Pages))) {
                 ul {
                     @if self.first_last { (edge(1, Text::First, page == 1)) }
                     li {

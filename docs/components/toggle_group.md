@@ -65,7 +65,7 @@ input style the face next to it (every browser).
 **Accessibility:** a `<fieldset>` named by its visually hidden `<legend>`; arrow keys move
 between radios and Space toggles a checkbox, as the platform does; an icon-only option has
 its text as a hidden label. Checked by axe-core in headless Firefox on every demo route,
-both capability variants, light and dark (no serious or critical violation).
+both capability variants, light and dark (no moderate, serious or critical violation).
 
 **What it does not do without script:** apply a choice the moment it is pressed; the
 surrounding form sends it (a submit button, or the enhancement script's in-place post).

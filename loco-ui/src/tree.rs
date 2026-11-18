@@ -12,7 +12,7 @@
 //! Space opens it); a folder that is also a link has its link beside the summary, never in
 //! it, and the summary is named by the folder's label; icons and chevrons are `aria-hidden`.
 //! Checked by axe-core in headless Firefox on every demo route, both capability variants,
-//! light and dark (no serious or critical violation).
+//! light and dark (no moderate, serious or critical violation).
 //!
 //! **What it does not do without script:** arrow keys between nodes (the WAI-ARIA tree
 //! pattern) and remembering a folder opened by hand on the next page: the server opens the

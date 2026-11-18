@@ -1189,3 +1189,24 @@ gaps found, and what came of them:
   Chart makes every bar a tab stop (30 points, 30 presses); the Kanban board scrolls only
   when focus lands on a card's button, so an empty column is unreachable; the calendar's
   days are one radio group, so ArrowUp/ArrowDown move a day, not a week.
+
+### M50 · Stricter checks, 2026-11-17
+
+- **Skip link on a streamed page; open.** `/stream` renders into a declarative shadow root
+  on `<body>`, and the skip link and `<main id="main">` are both inside it. axe (rule
+  `region`) does not take the link for a skip link there and reports it as content outside
+  a landmark; the browser check lets that rule through on `/stream` only. Whether a
+  fragment link reaches an id inside the same shadow root was not tested in a browser, so
+  the link itself may not work on streamed pages. No issue filed.
+- **Landmark names on the index; let through.** The index shows every component's preview
+  on one page, so it holds three breadcrumb trails and four "Pages" navigations. The
+  browser check skips `landmark-unique` on `/` only. A real page names them apart with
+  `Breadcrumbs::aria_label` and `Pagination::aria_label`; a `Table`'s own pager has no such setter
+  yet, so a page with two paged tables would still repeat "Pages".
+- **Bench noise.** Two runs of `cargo bench -p loco-ui --bench render` on one commit, on
+  a laptop, differed by -52% to +21% in the median (`UiState::from_request` -48%,
+  `paged_table` -41%, `table 1000 rows` +21%, `stylesheet` +15%, `layout` +2%). A 25% gate
+  would fail on noise there, so the CI job reports without blocking. `stylesheet` returns
+  a constant in under a nanosecond and says nothing either way.
+- **Full graph rebuild.** The code-review-graph's full rebuild gave no answer for 30
+  minutes on this repository and was dropped; the incremental graph is what the tools read.
