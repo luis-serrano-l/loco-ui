@@ -106,14 +106,66 @@ async fn shoot(router: &Router, auth: &str, tag: &str, path: &str, name: &str) {
     page.screenshot(format!("{SHOTS}/loco-{name}.png")).unwrap();
 }
 
+/// The app Loco boots on an empty database: its router, the database and the enhancement
+/// script's tag.
+struct World {
+    router: Router,
+    db: sea_orm::DatabaseConnection,
+    tag: String,
+}
+
+async fn world() -> World {
+    let boot = boot_test::<App>().await.unwrap();
+    World {
+        db: boot.app_context.db.clone(),
+        router: boot.router.unwrap(),
+        tag: loco_ui::enhance::script_tag().into_string(),
+    }
+}
+
+/// The sign-up form for `name`: `<name>@example.com`, password `secret`.
+fn signup(name: &str) -> String {
+    format!(
+        "name={name}&email={}%40example.com&password=secret",
+        name.to_lowercase()
+    )
+}
+
+/// Sign `name` up; the session cookie.
+async fn sign_up(router: &Router, name: &str) -> String {
+    auth_cookie(&send(router, "POST", "/signup", "", &signup(name)).await)
+}
+
+/// A note in notebook 1 with two tags (one typed twice), pinned, with a due day.
+const NOTE: &str = "title=First&body=Hello%0D%0A%0D%0AAgain&notebook_id=1&tags=Rust%2C+ideas%2C+rust\
+                    &pinned=on&due=2026-10-01";
+
+/// A task with every field kind filled in, and a `user_id` the app must ignore.
+const TASK: &str = "title=Ship&user_id=2&done=true&due_on=2026-10-01&starts_at=2026-10-01T09%3A30\
+                    &remind_at=2026-09-30T18%3A00&price=12.50&status=doing&size=3";
+
+/// Ada signed up, with notebook 1 ("Ideas"), note 1 in it ([`NOTE`]) and task 1 ([`TASK`]);
+/// her session cookie.
+async fn ada_with_rows(router: &Router) -> String {
+    let auth = sign_up(router, "Ada").await;
+    for (path, form) in [
+        ("/notebooks", "name=Ideas"),
+        ("/notes", NOTE),
+        ("/tasks", TASK),
+    ] {
+        let res = send(router, "POST", path, &auth, form).await;
+        assert_eq!(res.status(), StatusCode::SEE_OTHER, "{path}");
+    }
+    auth
+}
+
+/// Signed out: a signed-in page sends to the sign-in form and back, the front page is the
+/// landing page, a session whose user is gone is signed out, and a path no route answers is
+/// loco-ui's 404 page.
 #[tokio::test]
 #[serial]
-async fn every_page_works_without_script() {
-    let boot = boot_test::<App>().await.unwrap();
-    let db = boot.app_context.db.clone();
-    let router = boot.router.unwrap();
-    let tag = loco_ui::enhance::script_tag().into_string();
-
+async fn signed_out_visitors_get_the_sign_in_form_the_landing_page_and_the_404() {
+    let World { router, db, .. } = world().await;
     // Signed out, a signed-in page (Loco's 401) goes to the sign-in form, not a JSON error.
     // `?next=` names the page, and the form posts back to the same URL.
     let res = send(&router, "GET", "/notes/1?tab=edit", "", "").await;
@@ -126,22 +178,58 @@ async fn every_page_works_without_script() {
         "{html}"
     );
 
+    // A session whose user is gone (a database reset since the cookie was set) is signed out:
+    // the landing page at `/`, the sign-in form elsewhere, never a server error.
+    let gone = sign_up(&router, "Gone").await;
+    user_rows::Entity::delete_many()
+        .filter(user_rows::Column::Email.eq("gone@example.com"))
+        .exec(&db)
+        .await
+        .unwrap();
+    let res = send(&router, "GET", "/", &gone, "").await;
+    assert_eq!(res.status(), StatusCode::OK);
+    assert!(text(res).await.contains("Notes that live on your server."));
+    let res = send(&router, "GET", "/notes", &gone, "").await;
+    assert_eq!(location(&res), "/signin?next=%2Fnotes");
+
+    // Signed out, the front page is the landing page.
+    let html = text(send(&router, "GET", "/", "", "").await).await;
+    assert!(html.contains("Notes that live on your server."), "{html}");
+    let mut page = Page::render(router.clone(), "/", "").await;
+    assert!(page.is_visible("h1"));
+    page.screenshot(format!("{SHOTS}/loco-landing.png"))
+        .unwrap();
+
+    // A path no route answers is loco-ui's 404 page, not Loco's plain one.
+    let res = send(&router, "GET", "/no-such-page", "", "").await;
+    assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    let html = text(res).await;
+    assert!(html.contains("Page not found"), "{html}");
+    assert!(
+        html.contains("--lui-brand-9: #0f766e"),
+        "the 404 is in the app's look too"
+    );
+
+    // The script and the beacon the pages ask for are mounted.
+    let res = send(&router, "GET", loco_ui::enhance::SCRIPT_PATH, "", "").await;
+    assert_eq!(res.status(), StatusCode::OK);
+}
+
+/// The account pages: sign up, verify, sign in (and back to the page asked for), forgot and
+/// reset password, magic link.
+#[tokio::test]
+#[serial]
+async fn accounts_sign_up_verify_sign_in_reset_and_magic_link() {
+    let World { router, db, .. } = world().await;
     // A blank sign-up comes back with a message on each field, not a JSON error.
     let res = send(&router, "POST", "/signup", "", "name=&email=&password=").await;
     assert_eq!(res.status(), StatusCode::OK);
     assert!(text(res).await.contains("This field is required."));
 
-    let res = send(
-        &router,
-        "POST",
-        "/signup",
-        "",
-        "name=Ada&email=ada%40example.com&password=secret",
-    )
-    .await;
+    let res = send(&router, "POST", "/signup", "", &signup("Ada")).await;
     assert_eq!(res.status(), StatusCode::SEE_OTHER);
     assert_eq!(location(&res), "/");
-    let auth = auth_cookie(&res);
+    auth_cookie(&res);
 
     // The welcome mail's link verifies the address once; a made-up one is refused.
     let token = ada(&db)
@@ -266,11 +354,15 @@ async fn every_page_works_without_script() {
             .await
             .contains("Link expired")
     );
+}
 
-    // A reset link for the pages below.
-    send(&router, "POST", "/forgot", "", "email=ada%40example.com").await;
-    let reset = format!("/reset/{}", ada(&db).await.reset_token.unwrap());
-
+/// Notes: a notebook, a note with tags, the reading view, the tag filter, the table, pin and
+/// archive, the search kept across the view switch and the tag box, update and delete.
+#[tokio::test]
+#[serial]
+async fn notes_are_written_tagged_filtered_pinned_archived_and_deleted() {
+    let World { router, .. } = world().await;
+    let auth = sign_up(&router, "Ada").await;
     // A notebook (generated scaffold, its show page a record page), then a note in it with
     // two tags. A missing title re-renders the form with what was typed.
     let res = send(&router, "POST", "/notebooks", &auth, "name=Ideas").await;
@@ -282,9 +374,7 @@ async fn every_page_works_without_script() {
         html.contains("This field is required.") && html.contains("kept"),
         "{html}"
     );
-    let note = "title=First&body=Hello%0D%0A%0D%0AAgain&notebook_id=1&tags=Rust%2C+ideas%2C+rust\
-                &pinned=on&due=2026-10-01";
-    let res = send(&router, "POST", "/notes", &auth, note).await;
+    let res = send(&router, "POST", "/notes", &auth, NOTE).await;
     assert_eq!(res.status(), StatusCode::SEE_OTHER);
     assert_eq!(location(&res), "/notes/1");
     let html = text(send(&router, "GET", "/notes/1", &auth, "").await).await;
@@ -322,6 +412,70 @@ async fn every_page_works_without_script() {
     send(&router, "POST", "/notes/1/archive", &auth, "").await;
     send(&router, "POST", "/notes/1/pin", &auth, "").await;
 
+    // Switching between cards and the table keeps the search and the chosen tags (the tag
+    // box has its own hidden `sel`, so look inside the switch's form).
+    let html = text(send(&router, "GET", "/notes?q=Hello&sel=rust", &auth, "").await).await;
+    let switch = html
+        .split(r#"<form class="notes-view""#)
+        .nth(1)
+        .expect("the view switch");
+    let switch = &switch[..switch.find("</form>").unwrap()];
+    for kept in [
+        r#"<input type="hidden" name="q" value="Hello">"#,
+        r#"<input type="hidden" name="sel" value="rust">"#,
+    ] {
+        assert!(switch.contains(kept), "view switch: no {kept} in {switch}");
+    }
+
+    // So does the tag box: picking a tag keeps the search and the table.
+    let html = text(send(&router, "GET", "/notes?q=Hello&view=list", &auth, "").await).await;
+    let tags = html
+        .split(r#"<search class="lui-combobox""#)
+        .nth(1)
+        .expect("the tag box");
+    let tags = &tags[..tags.find("</form>").unwrap()];
+    for kept in [
+        r#"<input type="hidden" name="q" value="Hello">"#,
+        r#"<input type="hidden" name="view" value="list">"#,
+    ] {
+        assert!(tags.contains(kept), "tag box: no {kept} in {tags}");
+    }
+
+    // A tag link encodes its tag: `c#` filters by `c#`, not by `c`.
+    let res = send(&router, "POST", "/notes", &auth, "title=Sharp&tags=c%23").await;
+    let sharp = location(&res).to_string();
+    let html = text(send(&router, "GET", "/notes", &auth, "").await).await;
+    assert!(html.contains(r#"href="/notes?sel=c%23""#), "{html}");
+    let res = send(&router, "POST", &format!("{sharp}/delete"), &auth, "").await;
+    assert_eq!(location(&res), "/notes");
+
+    // Update and delete, each Post/Redirect/Get.
+    let res = send(
+        &router,
+        "POST",
+        "/notes/1",
+        &auth,
+        "title=Renamed&tags=rust",
+    )
+    .await;
+    assert_eq!(location(&res), "/notes/1");
+    assert!(
+        text(send(&router, "GET", "/notes/1", &auth, "").await)
+            .await
+            .contains("Renamed")
+    );
+    let res = send(&router, "POST", "/notes/1/delete", &auth, "").await;
+    assert_eq!(location(&res), "/notes");
+    let res = send(&router, "GET", "/notes/1", &auth, "").await;
+    assert_eq!(res.status(), StatusCode::NOT_FOUND);
+}
+
+/// Tasks: every field kind the scaffold knows, its messages, the edit form, and the board.
+#[tokio::test]
+#[serial]
+async fn tasks_take_every_field_kind_and_move_on_the_board() {
+    let World { router, .. } = world().await;
+    let auth = sign_up(&router, "Ada").await;
     // Every field kind the scaffold knows, on `tasks`: date-times are `datetime-local`
     // (posted without seconds), the decimal a pattern. The owner is the signed-in user, so
     // the form has no `user_id` field.
@@ -347,9 +501,7 @@ async fn every_page_works_without_script() {
     ] {
         assert!(html.contains(message), "no {message} in {html}");
     }
-    let task = "title=Ship&user_id=2&done=true&due_on=2026-10-01&starts_at=2026-10-01T09%3A30\
-                &remind_at=2026-09-30T18%3A00&price=12.50&status=doing&size=3";
-    let res = send(&router, "POST", "/tasks", &auth, task).await;
+    let res = send(&router, "POST", "/tasks", &auth, TASK).await;
     assert_eq!(location(&res), "/tasks/1");
     let html = text(send(&router, "GET", "/tasks/1/edit", &auth, "").await).await;
     for filled in [
@@ -364,23 +516,28 @@ async fn every_page_works_without_script() {
         );
     }
 
+    // The board moves a card between columns: its status changes.
+    let res = send(&router, "POST", "/tasks/move", &auth, "card=1&to=done").await;
+    assert_eq!(location(&res), "/tasks");
+    let html = text(send(&router, "GET", "/tasks/1/edit", &auth, "").await).await;
+    assert!(html.contains(r#"<option value="done" selected>"#), "{html}");
+}
+
+/// Rows are their owner's: another user cannot see, list, change or delete them.
+#[tokio::test]
+#[serial]
+async fn rows_belong_to_their_owner() {
+    let World { router, .. } = world().await;
+    let auth = ada_with_rows(&router).await;
     // A posted `user_id` is ignored: the task is Ada's. Another user cannot see, list, change
     // or delete it.
-    let res = send(
-        &router,
-        "POST",
-        "/signup",
-        "",
-        "name=Grace&email=grace%40example.com&password=secret",
-    )
-    .await;
-    let grace = auth_cookie(&res);
+    let grace = sign_up(&router, "Grace").await;
     let list = text(send(&router, "GET", "/tasks", &grace, "").await).await;
     assert!(!list.contains("Ship"), "Grace lists Ada's task: {list}");
     for (method, path, form) in [
         ("GET", "/tasks/1", ""),
         ("GET", "/tasks/1/edit", ""),
-        ("POST", "/tasks/1", task),
+        ("POST", "/tasks/1", TASK),
         ("POST", "/tasks/1/delete", ""),
     ] {
         let res = send(&router, method, path, &grace, form).await;
@@ -431,42 +588,19 @@ async fn every_page_works_without_script() {
         !html.contains("/notebooks/1"),
         "Grace's note is in no notebook: {html}"
     );
+}
 
-    // The board moves a card between columns: its status changes.
-    let res = send(&router, "POST", "/tasks/move", &auth, "card=1&to=done").await;
-    assert_eq!(location(&res), "/tasks");
-    let html = text(send(&router, "GET", "/tasks/1/edit", &auth, "").await).await;
-    assert!(html.contains(r#"<option value="done" selected>"#), "{html}");
-
-    // A session whose user is gone (a database reset since the cookie was set) is signed out:
-    // the landing page at `/`, the sign-in form elsewhere, never a server error.
-    let res = send(
-        &router,
-        "POST",
-        "/signup",
-        "",
-        "name=Gone&email=gone%40example.com&password=secret",
-    )
-    .await;
-    let gone = auth_cookie(&res);
-    user_rows::Entity::delete_many()
-        .filter(user_rows::Column::Email.eq("gone@example.com"))
-        .exec(&db)
-        .await
-        .unwrap();
-    let res = send(&router, "GET", "/", &gone, "").await;
-    assert_eq!(res.status(), StatusCode::OK);
-    assert!(text(res).await.contains("Notes that live on your server."));
-    let res = send(&router, "GET", "/notes", &gone, "").await;
-    assert_eq!(location(&res), "/signin?next=%2Fnotes");
-
-    // Signed out, the front page is the landing page.
-    let html = text(send(&router, "GET", "/", "", "").await).await;
-    assert!(html.contains("Notes that live on your server."), "{html}");
-    let mut page = Page::render(router.clone(), "/", "").await;
-    assert!(page.is_visible("h1"));
-    page.screenshot(format!("{SHOTS}/loco-landing.png"))
-        .unwrap();
+/// Every GET page ships only the enhancement script, in the app's look, and Blitz lays it
+/// out into `tests/shots/loco-*.png`.
+#[tokio::test]
+#[serial]
+async fn every_page_ships_one_script_and_renders_in_blitz() {
+    let World { router, db, tag } = world().await;
+    let auth = ada_with_rows(&router).await;
+    // The board with a card moved, and a reset link for the reset page.
+    send(&router, "POST", "/tasks/move", &auth, "card=1&to=done").await;
+    send(&router, "POST", "/forgot", "", "email=ada%40example.com").await;
+    let reset = format!("/reset/{}", ada(&db).await.reset_token.unwrap());
 
     // The pages print when a note changed ("Edited …") and was created: fixed times, so a shot
     // changes only when its page does. A minute apart by id, so the notes keep their order.
@@ -522,75 +656,4 @@ async fn every_page_works_without_script() {
     for (path, name) in pages {
         shoot(&router, &auth, &tag, path, name).await;
     }
-
-    // Switching between cards and the table keeps the search and the chosen tags (the tag
-    // box has its own hidden `sel`, so look inside the switch's form).
-    let html = text(send(&router, "GET", "/notes?q=Hello&sel=rust", &auth, "").await).await;
-    let switch = html
-        .split(r#"<form class="notes-view""#)
-        .nth(1)
-        .expect("the view switch");
-    let switch = &switch[..switch.find("</form>").unwrap()];
-    for kept in [
-        r#"<input type="hidden" name="q" value="Hello">"#,
-        r#"<input type="hidden" name="sel" value="rust">"#,
-    ] {
-        assert!(switch.contains(kept), "view switch: no {kept} in {switch}");
-    }
-
-    // So does the tag box: picking a tag keeps the search and the table.
-    let html = text(send(&router, "GET", "/notes?q=Hello&view=list", &auth, "").await).await;
-    let tags = html
-        .split(r#"<search class="lui-combobox""#)
-        .nth(1)
-        .expect("the tag box");
-    let tags = &tags[..tags.find("</form>").unwrap()];
-    for kept in [
-        r#"<input type="hidden" name="q" value="Hello">"#,
-        r#"<input type="hidden" name="view" value="list">"#,
-    ] {
-        assert!(tags.contains(kept), "tag box: no {kept} in {tags}");
-    }
-
-    // A tag link encodes its tag: `c#` filters by `c#`, not by `c`.
-    let res = send(&router, "POST", "/notes", &auth, "title=Sharp&tags=c%23").await;
-    let sharp = location(&res).to_string();
-    let html = text(send(&router, "GET", "/notes", &auth, "").await).await;
-    assert!(html.contains(r#"href="/notes?sel=c%23""#), "{html}");
-    let res = send(&router, "POST", &format!("{sharp}/delete"), &auth, "").await;
-    assert_eq!(location(&res), "/notes");
-
-    // A path no route answers is loco-ui's 404 page, not Loco's plain one.
-    let res = send(&router, "GET", "/no-such-page", "", "").await;
-    assert_eq!(res.status(), StatusCode::NOT_FOUND);
-    let html = text(res).await;
-    assert!(html.contains("Page not found"), "{html}");
-    assert!(
-        html.contains("--lui-brand-9: #0f766e"),
-        "the 404 is in the app's look too"
-    );
-
-    // The script and the beacon the pages ask for are mounted.
-    let res = send(&router, "GET", loco_ui::enhance::SCRIPT_PATH, "", "").await;
-    assert_eq!(res.status(), StatusCode::OK);
-
-    // Update and delete, each Post/Redirect/Get.
-    let res = send(
-        &router,
-        "POST",
-        "/notes/1",
-        &auth,
-        "title=Renamed&tags=rust",
-    )
-    .await;
-    assert_eq!(location(&res), "/notes/1");
-    assert!(
-        text(send(&router, "GET", "/notes/1", &auth, "").await)
-            .await
-            .contains("Renamed")
-    );
-    let res = send(&router, "POST", "/notes/1/delete", &auth, "").await;
-    assert_eq!(location(&res), "/notes");
-    let res = send(&router, "GET", "/notes/1", &auth, "").await;
-    assert_eq!(res.status(), StatusCode::NOT_FOUND);
 }

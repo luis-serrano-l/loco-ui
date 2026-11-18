@@ -41,7 +41,7 @@ pub fn card(ui: &Ui, listed: &Listed) -> Markup {
         div class="notes-card" {
             Card {
                 div class="notes-card-body" {
-                    h3 { a href={ "/notes/" (note.id) } { (note.title) } }
+                    h2 { a href={ "/notes/" (note.id) } { (note.title) } }
                     @let text = excerpt(note);
                     @if !text.is_empty() { p class="notes-excerpt" { (text) } }
                     div class="notes-meta" {

@@ -3653,8 +3653,22 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M51 · Example app tests
 
-- [ ] Real model tests in `examples/loco-app/tests/models/`.
-- [ ] `every_page_works_without_script` split by area.
+- [x] Real model tests in `examples/loco-app/tests/models/`.
+  Done: the four generated "can query" placeholders gave way to 11 tests on an empty
+  database: `tag_names`, `Notes::listed` (one user's notes, pinned first, tags in name
+  order, the notebook, the filter), `Notes::set_tags` (replaces, reuses the user's tag),
+  `updated_at` moving on a save, a tag a user, every task field kind round-tripping, and
+  what the foreign keys do (a deleted notebook leaves its notes, a deleted note drops its
+  pairs and keeps the tags, a deleted user takes notes and tasks along, a note for a user
+  that does not exist is refused). Helpers `database`, `user`, `note`, `notebook` in
+  `tests/models/mod.rs`.
+- [x] `every_page_works_without_script` split by area.
+  Done: six tests in `tests/pages.rs`, each booting on an empty database: signed-out
+  visitors (sign-in redirect, landing, a gone session, the 404, the script route),
+  accounts, notes, tasks and the board, ownership, and the Blitz shots. Shared setup:
+  `world()`, `sign_up`, `ada_with_rows` and the `NOTE` and `TASK` forms. The 22 shots under
+  `tests/shots/loco-*.png` came out byte for byte the same. The note card's title became
+  an `<h2>` (the M50 heading-order rule; the example's pages are not under that test).
 
 ## M52 · Four page blocks
 

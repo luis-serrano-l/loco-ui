@@ -8,6 +8,11 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### Since 0.2.0
 
+#### M51
+
+- The Loco example's model tests assert on tags, the listing, `updated_at` and the foreign
+  keys; its one long page test is six, by area.
+
 #### M50
 
 - **Breaking**: a `Card`'s title and a `Kanban`'s column titles are `<h2>`, not `<h3>`, so

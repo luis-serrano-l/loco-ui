@@ -1,37 +1,56 @@
-use loco_app::{app::App, models::_entities::notebooks};
-use loco_rs::testing::prelude::*;
-use sea_orm::EntityTrait;
+use loco_app::models::_entities::{notebooks as rows, notes as note_rows};
+use sea_orm::{EntityTrait, ModelTrait, PaginatorTrait};
 use serial_test::serial;
 
-macro_rules! configure_insta {
-    ($($expr:expr),*) => {
-        let mut settings = insta::Settings::clone_current();
-        settings.set_prepend_module_to_snapshot(false);
-        let _guard = settings.bind_to_scope();
-    };
-}
+use super::{database, note, notebook, user};
 
-/// The `Notebooks` entity matches the table its migration created.
-///
-/// Selecting every column is the cheapest assertion that says something true:
-/// it fails if the migration and the entity disagree — a renamed column, a
-/// type that does not round-trip, a migration that never ran — which is the
-/// most common way a generated model breaks. Extend it as the model grows.
+/// Deleting a notebook keeps its notes: they are in no notebook afterwards.
 #[tokio::test]
 #[serial]
-async fn can_query_notebooks() {
-    configure_insta!();
+async fn deleting_a_notebook_keeps_its_notes() {
+    let db = database().await;
+    let ada = user(&db, "Ada").await;
+    let ideas = notebook(&db, ada, "Ideas").await;
+    let first = note(&db, ada, "First", Some(ideas.id)).await;
+    assert_eq!(first.notebook_id, Some(ideas.id));
 
-    let boot = boot_test::<App>().await.unwrap();
-    seed::<App>(&boot.app_context).await.unwrap();
-
-    // The query is the assertion. Bind the result and compare it once you have
-    // seed data to compare against, e.g.:
-    //
-    // let items = notebooks::Entity::find().all(&boot.app_context.db).await.unwrap();
-    // assert_debug_snapshot!(items);
-    notebooks::Entity::find()
-        .all(&boot.app_context.db)
+    ideas.delete(&db).await.unwrap();
+    let first = note_rows::Entity::find_by_id(first.id)
+        .one(&db)
         .await
-        .expect("`notebooks` should be queryable — entity and migration must agree");
+        .unwrap()
+        .expect("the note is still there");
+    assert_eq!(first.notebook_id, None);
+}
+
+/// A notebook's notes are found through the relation, and only its own.
+#[tokio::test]
+#[serial]
+async fn a_notebook_finds_its_notes() {
+    let db = database().await;
+    let ada = user(&db, "Ada").await;
+    let (ideas, work) = (
+        notebook(&db, ada, "Ideas").await,
+        notebook(&db, ada, "Work").await,
+    );
+    note(&db, ada, "First", Some(ideas.id)).await;
+    note(&db, ada, "Second", Some(ideas.id)).await;
+    note(&db, ada, "Loose", None).await;
+
+    let in_ideas = ideas
+        .find_related(note_rows::Entity)
+        .all(&db)
+        .await
+        .unwrap();
+    let mut titles: Vec<&str> = in_ideas.iter().map(|n| n.title.as_str()).collect();
+    titles.sort_unstable();
+    assert_eq!(titles, ["First", "Second"]);
+    assert_eq!(
+        work.find_related(note_rows::Entity)
+            .count(&db)
+            .await
+            .unwrap(),
+        0
+    );
+    assert_eq!(rows::Entity::find().count(&db).await.unwrap(), 2);
 }

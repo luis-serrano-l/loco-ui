@@ -1,37 +1,57 @@
-use loco_app::{app::App, models::_entities::tags};
-use loco_rs::testing::prelude::*;
-use sea_orm::EntityTrait;
+use loco_app::models::{
+    _entities::{note_tags, notes as note_rows, tags as rows},
+    notes::Notes,
+};
+use sea_orm::{ColumnTrait, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter};
 use serial_test::serial;
 
-macro_rules! configure_insta {
-    ($($expr:expr),*) => {
-        let mut settings = insta::Settings::clone_current();
-        settings.set_prepend_module_to_snapshot(false);
-        let _guard = settings.bind_to_scope();
-    };
-}
+use super::{database, note, user};
 
-/// The `Tags` entity matches the table its migration created.
-///
-/// Selecting every column is the cheapest assertion that says something true:
-/// it fails if the migration and the entity disagree — a renamed column, a
-/// type that does not round-trip, a migration that never ran — which is the
-/// most common way a generated model breaks. Extend it as the model grows.
+/// Two users who type the same tag get a tag each, and each listing shows its owner's.
 #[tokio::test]
 #[serial]
-async fn can_query_tags() {
-    configure_insta!();
-
-    let boot = boot_test::<App>().await.unwrap();
-    seed::<App>(&boot.app_context).await.unwrap();
-
-    // The query is the assertion. Bind the result and compare it once you have
-    // seed data to compare against, e.g.:
-    //
-    // let items = tags::Entity::find().all(&boot.app_context.db).await.unwrap();
-    // assert_debug_snapshot!(items);
-    tags::Entity::find()
-        .all(&boot.app_context.db)
+async fn a_tag_belongs_to_one_user() {
+    let db = database().await;
+    let (ada, grace) = (user(&db, "Ada").await, user(&db, "Grace").await);
+    let hers = note(&db, ada, "Ada's", None).await;
+    let other = note(&db, grace, "Grace's", None).await;
+    Notes::set_tags(&db, ada, hers.id, "rust").await.unwrap();
+    Notes::set_tags(&db, grace, other.id, "rust, web")
         .await
-        .expect("`tags` should be queryable — entity and migration must agree");
+        .unwrap();
+
+    let named_rust = rows::Entity::find()
+        .filter(rows::Column::Name.eq("rust"))
+        .all(&db)
+        .await
+        .unwrap();
+    let mut owners: Vec<i64> = named_rust.iter().map(|t| t.user_id).collect();
+    owners.sort_unstable();
+    assert_eq!(owners, [ada, grace]);
+    let listed = Notes::listed(&db, ada, |all| all).await.unwrap();
+    assert_eq!(listed[0].tags, ["rust"]);
+}
+
+/// Deleting a note removes its pairs and leaves the tags for the next note.
+#[tokio::test]
+#[serial]
+async fn deleting_a_note_drops_its_pairs_and_keeps_the_tags() {
+    let db = database().await;
+    let ada = user(&db, "Ada").await;
+    let first = note(&db, ada, "First", None).await;
+    Notes::set_tags(&db, ada, first.id, "rust, web")
+        .await
+        .unwrap();
+    assert_eq!(note_tags::Entity::find().count(&db).await.unwrap(), 2);
+
+    note_rows::Entity::find_by_id(first.id)
+        .one(&db)
+        .await
+        .unwrap()
+        .expect("the note")
+        .delete(&db)
+        .await
+        .unwrap();
+    assert_eq!(note_tags::Entity::find().count(&db).await.unwrap(), 0);
+    assert_eq!(rows::Entity::find().count(&db).await.unwrap(), 2);
 }

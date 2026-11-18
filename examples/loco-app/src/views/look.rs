@@ -46,11 +46,11 @@ main { max-width: 76rem; padding-top: var(--lui-space-6); }
 .notes-card-body { display: grid; gap: var(--lui-space-3); }
 .notes-card > .lui-card { height: 100%; box-sizing: border-box; transition: box-shadow var(--lui-duration-fast), translate var(--lui-duration-fast); }
 .notes-card:hover > .lui-card { box-shadow: var(--lui-shadow-md); translate: 0 -1px; }
-.notes-card h3 { margin: 0; font-size: 1rem; }
-.notes-card h3 a { color: var(--lui-fg); text-decoration: none; }
-.notes-card h3 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-.notes-card h3 a:focus-visible { outline: none; }
-.notes-card:has(h3 a:focus-visible) > .lui-card { outline: 2px solid var(--lui-ring); outline-offset: 2px; }
+.notes-card h2 { margin: 0; font-size: 1rem; line-height: var(--lui-leading-4); letter-spacing: 0; }
+.notes-card h2 a { color: var(--lui-fg); text-decoration: none; }
+.notes-card h2 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.notes-card h2 a:focus-visible { outline: none; }
+.notes-card:has(h2 a:focus-visible) > .lui-card { outline: 2px solid var(--lui-ring); outline-offset: 2px; }
 .notes-excerpt { margin: 0; color: var(--lui-muted); font-size: 0.875rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .notes-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--lui-space-2); color: var(--lui-muted); font-size: 0.8125rem; }
 .notes-card .notes-meta .lui-badge { position: relative; z-index: 1; }
@@ -67,7 +67,7 @@ main { max-width: 76rem; padding-top: var(--lui-space-6); }
 .notes-landing .lui-cluster { justify-content: center; }
 .notes-features { margin-top: var(--lui-space-16); text-align: start; }
 .notes-section { margin-top: var(--lui-space-10); }
-.notes-section h2 { font-size: 1rem; margin: 0 0 var(--lui-space-3); }
+.notes-section > h2, .notes-section > .notes-bar > h2 { font-size: 1rem; margin: 0 0 var(--lui-space-3); }
 "#;
 
 #[cfg(test)]
