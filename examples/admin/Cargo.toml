@@ -1,0 +1,20 @@
+[package]
+name = "admin"
+version = "0.1.0"
+edition = "2024"
+description = "An admin panel on plain Axum and SQLite with loco-ui: users, roles, an audit log"
+publish = false
+
+[dependencies]
+loco-ui = { path = "../../loco-ui", features = ["axum"] }
+maud.workspace = true
+axum.workspace = true
+tokio.workspace = true
+sqlx = { version = "0.9", default-features = false, features = ["sqlite", "runtime-tokio"] }
+argon2 = "0.5"
+# For `OsRng`, the salt's source.
+password-hash = { version = "0.5", features = ["getrandom"] }
+
+[dev-dependencies]
+loco-ui-test = { path = "../../loco-ui-test" }
+tower = { version = "0.5", features = ["util"] }

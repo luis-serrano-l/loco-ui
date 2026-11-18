@@ -106,6 +106,10 @@ only when the change is intended (otherwise `git checkout -- tests/shots`).
   (`src/views/look.rs`, a `layout::Look` layer) are hand-written. Development seeds a demo
   account on first start (`src/seed.rs`). After changing a template, check it on a throwaway
   model there and run its `tests/pages.rs` (one script, Blitz shots).
+- `examples/admin/` – an admin panel on plain Axum and SQLite (`sqlx`, Argon2id sessions): users,
+  roles, an audit log, on the list, record, settings and auth blocks. `cargo run -p admin`
+  (port 3002, seeded on first start); its `tests/pages.rs` runs over `sqlite::memory:` and
+  takes the `tests/shots/admin-*.png` the demo's `/examples` gallery embeds.
 - `loco-ui-test/` – Blitz-based test harness: `Page::render(router, path, cookie)` then
   `exists / is_visible / bbox / text / display / screenshot`. Blitz gaps go in `FINDINGS.md`
   with an issue link, never as skipped assertions without a comment.

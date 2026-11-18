@@ -62,6 +62,8 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
     # The Blitz layout tests and screenshots (loco-ui-test) take two minutes on their own and
     # run in the `shots` job beside this one.
+    # The workspace run includes both example apps (`examples/loco-app`, `examples/admin`):
+    # their page tests, and the Blitz shots those take.
     - name: Tests
       run: cargo test --workspace --exclude loco-ui-test
     # `examples/loco-app` turns `loco` on for the workspace run; these check the crate on its own.

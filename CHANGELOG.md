@@ -8,6 +8,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 ### Since 0.2.0
 
+#### M54
+
+- `examples/admin`: an admin panel on plain Axum and SQLite (`sqlx`, Argon2id, sessions in
+  the database), with users, roles and an audit log on the list, record, settings and auth
+  blocks. `cargo run -p admin`; `cargo test -p admin` drives every page without script and
+  takes Blitz shots.
+- The demo's `/examples` gallery shows both example apps, each under its own heading.
+
 #### M53
 
 - Resizable panes: `ui.resizable(label).first(..).second(..)` with `.value`, `.min`,

@@ -228,6 +228,11 @@ reset password, email verification and magic-link pages, all forms, with Loco's 
 Loco's router and Blitz; [`docs/loco.md`](docs/loco.md) covers install, controllers, forms,
 sign-in, the generator and the Loco settings that affect pages.
 
+Without Loco, [`examples/admin`](examples/admin) is an admin panel on plain Axum and SQLite
+(`sqlx`, Argon2id sessions): users, roles and an audit log on the list, record, settings and
+auth blocks, with dialogs before anything is deleted. `cargo run -p admin`, then sign in as
+the seeded account its README names.
+
 ## Blocks
 
 Whole pages from the components, each a builder like any component and one file under
@@ -625,6 +630,7 @@ demo/src/llms.rs            llms.txt, llms-full.txt and the .md per component; A
 .github/workflows/rust.yml  CI jobs; `pages` deploys the snapshot to GitHub Pages
 loco-ui/loco-templates/   Loco scaffold overrides: HTML controller + Maud views, Post/Redirect/Get
 examples/loco-app/          Loco app (sign-in, scaffolded notes); tests/pages.rs: one script, Blitz shots loco-*.png
+examples/admin/             admin panel on plain Axum + SQLite (users, roles, audit log); tests/pages.rs: Blitz shots admin-*.png
 loco-ui-test/src/lib.rs   Page: render a route through Blitz, assert layout, screenshot
 loco-ui-test/tests/       every route rendered and captured; layout assertions
 loco-ui-test/examples/probe.rs   render any HTML file through Blitz, print boxes

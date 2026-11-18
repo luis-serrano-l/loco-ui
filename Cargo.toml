@@ -1,6 +1,6 @@
 [workspace]
-members = ["loco-ui-caps", "loco-ui-macros", "loco-ui", "demo", "loco-ui-test", "examples/loco-app", "examples/loco-app/migration"]
-# Plain `cargo build/test` skips examples/loco-app (loco-rs, sea-orm: ~600 extra crates); use --workspace for it.
+members = ["loco-ui-caps", "loco-ui-macros", "loco-ui", "demo", "loco-ui-test", "examples/loco-app", "examples/loco-app/migration", "examples/admin"]
+# Plain `cargo build/test` skips examples/loco-app (loco-rs, sea-orm: ~600 extra crates) and examples/admin (sqlx); use --workspace or -p for them.
 default-members = ["loco-ui-caps", "loco-ui-macros", "loco-ui", "demo", "loco-ui-test"]
 resolver = "2"
 

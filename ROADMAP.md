@@ -3738,8 +3738,21 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
 
 ## M54 · `examples/admin`, an Axum-only admin panel
 
-- [ ] Users, roles and an audit log over SQLite, on the blocks; `tests/pages.rs`; in CI,
+- [x] Users, roles and an audit log over SQLite, on the blocks; `tests/pages.rs`; in CI,
   the examples gallery and README.
+  Done: `examples/admin`, a workspace member outside `default-members` (`cargo run -p
+  admin`, port 3002). Axum handlers, `sqlx` 0.9 over SQLite (the version SeaORM already
+  locks, so no second driver), Argon2id passwords, sessions as rows behind an `HttpOnly`
+  cookie and an `Admin` extractor. Pages: sign-in (`auth_page`), users (`list_page` with
+  search and counted status filters, `record_page` with Delete behind its dialog, a form
+  with a role select and a switch), roles (a dialog holding the form, a confirm dialog per
+  unused role), the audit log (`list_page`, read-only) and settings (`settings_page`).
+  The first start seeds ten users and four roles with fixed dates. `tests/pages.rs` has
+  six tests over an in-memory database and takes nine Blitz shots (`admin-*.png`); the
+  demo's `/examples` shows seven of them under a second heading. CI needed no new job:
+  the workspace test and clippy runs include the crate. Kept simple on purpose, and said
+  in its README: the cookie has no `Secure` (it must work on `http://localhost`), there is
+  no rate limit on sign-in, and roles are data, not permissions.
 
 ## After the publish (waits on the owner's `cargo publish`)
 - [ ] README "Install", `docs/loco.md` and the `cargo lui install` git `rev=` pin switch to
