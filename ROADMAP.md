@@ -3640,7 +3640,7 @@ example. Worked top to bottom, one commit per milestone, nothing pushed.
   `conformance_finds_what_it_checks`. Labels and `<main>` passed on every route. Heading
   order failed on 14 pages, all an `<h3>` right under the page's `<h1>`: `Card`'s title and
   `Kanban`'s column titles are now `<h2>`, with a new `.as_h(level)` on both (the name
-  `Heading` uses); the demo's own `<h3>`s became `<h2>`, and the changelog's Unreleased
+  `Heading` uses), their classes resetting what the base `h2` rule adds; the demo's own `<h3>`s became `<h2>`, and the changelog's Unreleased
   entries sit under a `### Since 0.2.0` heading.
 - [x] axe fails on moderate violations too.
   Done: `scripts/browser-check.mjs` fails on anything above minor (8 minor remain). It

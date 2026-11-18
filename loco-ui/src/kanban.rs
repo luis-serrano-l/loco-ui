@@ -234,7 +234,7 @@ impl Render for Kanban<'_> {
                         @let count = match col.limit { Some(l) => format!("{}/{l}", col.cards.len()), None => col.cards.len().to_string() };
                         section class="lui-kanban-column" aria-labelledby=(heading) {
                             header class="lui-kanban-head" {
-                                (crate::heading::title(self.level, "lui-kanban-title", Some(&heading), col.title))
+                                (crate::heading::title(self.level, "lui-kanban-column-title", Some(&heading), col.title))
                                 span class={ "lui-kanban-count" @if over { " lui-kanban-over" } } {
                                     @if over { (self.ui.badge(&count).danger()) span class="lui-sr" { (self.ui.text(Text::OverLimit)) } }
                                     @else { (self.ui.badge(&count).secondary()) }
@@ -297,7 +297,7 @@ pub const CSS: &str = r#"
   background: var(--lui-gray-3); border-radius: var(--lui-radius-lg);
 }
 .lui-kanban-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 0.25rem 0.25rem; }
-.lui-kanban-title { margin: 0; font-size: var(--lui-text-2); font-weight: 600; }
+.lui-kanban-column-title { margin: 0; font-size: var(--lui-text-2); line-height: var(--lui-leading-4); letter-spacing: 0; font-weight: 600; }
 .lui-kanban-count { font-variant-numeric: tabular-nums; }
 .lui-kanban-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .lui-kanban-card {

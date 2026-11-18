@@ -36,10 +36,11 @@
 | `.lui-kanban-board` |  |
 | `.lui-kanban-column` | `--lui-gray-3`, `--lui-radius-lg` |
 | `.lui-kanban-head` |  |
-| `.lui-kanban-title` | `--lui-text-2` |
+| `.lui-kanban-column-title` | `--lui-text-2`, `--lui-leading-4` |
 | `.lui-kanban-count` |  |
 | `.lui-kanban-cards` |  |
 | `.lui-kanban-card` | `--lui-card`, `--lui-line`, `--lui-radius`, `--lui-shadow-sm`, `--lui-highlight` |
+| `.lui-kanban-title` | `--lui-text-2` |
 | `.lui-kanban-note` | `--lui-text-1`, `--lui-muted` |
 | `.lui-kanban-meta` |  |
 | `.lui-kanban-move` |  |

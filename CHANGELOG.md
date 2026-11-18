@@ -12,7 +12,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
 
 - **Breaking**: a `Card`'s title and a `Kanban`'s column titles are `<h2>`, not `<h3>`, so
   they never skip a level under a page's `<h1>`; `.as_h(level)` on both sets another level.
-  CSS that selected `.lui-kanban-head h3` selects `.lui-kanban-title`.
+  CSS that selected `.lui-kanban-head h3` selects `.lui-kanban-column-title`.
 - **Breaking**: a code block's `<pre>` is `role="group"`, not `role="region"`: a page of
   examples no longer fills the landmark list.
 - `Breadcrumbs::aria_label` and `Pagination::aria_label` name the landmark on a page with two.
