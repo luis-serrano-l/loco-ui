@@ -108,6 +108,14 @@ async fn signed_out_visitors_are_sent_to_sign_in() {
         "/signin",
         "a post without a session changes nothing"
     );
+    let form = format!(
+        "email={}&password={}",
+        admin::db::SEED_EMAIL,
+        admin::db::SEED_PASSWORD
+    );
+    let session = cookies(&send(&router, "POST", "/signin", "", &form).await);
+    let still = send(&router, "GET", "/users/2", &session, "").await;
+    assert_eq!(still.status(), StatusCode::OK, "user 2 is still there");
 
     let res = send(
         &router,
@@ -213,6 +221,26 @@ async fn the_users_list_searches_and_filters() {
     assert!(viewers.contains("2 of 10 users") && viewers.contains("Radia Perlman"));
     let none = list("/users?q=zzz").await;
     assert!(none.contains("No user matches") && !none.contains("<table"));
+    // Filters compose: a role with a status and a search, and the links and the search keep the role.
+    assert!(
+        viewers.contains(r#"<input type="hidden" name="role" value="4">"#),
+        "a search keeps the role"
+    );
+    assert!(
+        viewers.contains(r#"href="/users?status=suspended&amp;role=4""#)
+            && viewers.contains(">Every role<"),
+        "{viewers}"
+    );
+    let one = list("/users?role=4&status=suspended&q=tim").await;
+    assert!(
+        one.contains("1 of 10 users")
+            && one.contains("Tim Berners-Lee")
+            && !one.contains("Radia Perlman")
+    );
+    // `%` and `_` are text, and an unknown status filters nothing.
+    assert!(list("/users?q=%25").await.contains("0 of 10 users"));
+    assert!(list("/users?q=_").await.contains("0 of 10 users"));
+    assert!(list("/users?status=bogus").await.contains("10 of 10 users"));
     // A quote in the search is a value, not SQL.
     assert!(
         list("/users?q=%27%20OR%201%3D1%20--")
@@ -326,6 +354,31 @@ async fn a_user_is_created_edited_and_deleted() {
         deleted.contains("1 entries") && deleted.contains("hedy@example.com"),
         "{deleted}"
     );
+    assert!(
+        deleted.contains(r#"href="/audit?action=deleted+user" aria-current="page""#),
+        "the filter is marked"
+    );
+
+    // A role that is not there is a mistake in the form, not a server error.
+    let res = send(
+        &router,
+        "POST",
+        "/users",
+        &session,
+        "name=Hedy&email=hedy2@example.com&password=frequency-hopping&role=99",
+    )
+    .await;
+    assert_eq!(res.status(), StatusCode::UNPROCESSABLE_ENTITY);
+    assert!(text(res).await.contains("Choose a role from the list."));
+    let res = send(
+        &router,
+        "POST",
+        "/users/2",
+        &session,
+        "name=Grace&email=grace@example.com&role=0&active=true",
+    )
+    .await;
+    assert_eq!(res.status(), StatusCode::UNPROCESSABLE_ENTITY);
 }
 
 #[tokio::test]

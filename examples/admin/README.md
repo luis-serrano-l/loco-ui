@@ -34,7 +34,8 @@ A password is stored as an Argon2id hash. Signing in writes a random token to th
 table and to an `HttpOnly`, `SameSite=Lax` cookie; `Admin` looks the token up on every
 request and redirects to `/signin` when there is none. Suspending a user or changing a
 password deletes their other sessions. A wrong password, an unknown address and a suspended
-account get the same message.
+account get the same message after the same work: the password is hashed either way, so
+the answer's time does not say which addresses have accounts.
 
 Before putting something like this on the internet: add `Secure` to the cookie (left off so
 the example works over `http://localhost`), limit sign-in attempts, expire old sessions, and

@@ -15,6 +15,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project us
   blocks. `cargo run -p admin`; `cargo test -p admin` drives every page without script and
   takes Blitz shots.
 - The demo's `/examples` gallery shows both example apps, each under its own heading.
+- Fixed: `list_page` marks the current filter when its href's value is encoded
+  (`?action=signed+in`); it compared the encoded text with the decoded parameter.
 
 #### M53
 

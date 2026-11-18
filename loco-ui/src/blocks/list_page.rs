@@ -219,7 +219,9 @@ impl<'a> ListPage<'a> {
         path == self.ui.state.path()
             && keys.iter().all(|k| {
                 let here = self.ui.param(k).filter(|v| !v.is_empty());
-                here == pairs(filter.href).find(|(key, _)| key == k).map(|(_, v)| v)
+                let there = pairs(filter.href).find(|(key, _)| key == k);
+                // The href's value is still encoded (`signed+in`); the page's is not.
+                here == there.map(|(_, v)| crate::state::decode(v)).as_deref()
             })
     }
 }
@@ -291,6 +293,21 @@ pub const CSS: &str = r#"
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_filter_whose_value_is_encoded_is_still_the_current_one() {
+        let ui = Ui::from_request("/log", "action=signed+in", "");
+        let m = (ui.list_page("Log").filter("All", "/log"))
+            .filter("Sign-ins", "/log?action=signed+in")
+            .filter("Failed", "/log?action=failed%20sign-in")
+            .render()
+            .into_string();
+        assert_eq!(m.matches(r#"aria-current="page""#).count(), 1, "{m}");
+        assert!(
+            m.contains(r#"href="/log?action=signed+in" aria-current="page""#),
+            "{m}"
+        );
+    }
 
     #[test]
     fn a_bare_list_is_a_title_and_a_body_with_no_toolbar() {

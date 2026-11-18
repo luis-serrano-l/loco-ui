@@ -58,16 +58,31 @@ async fn index(ui: Ui, admin: Admin, State(db): State<Db>) -> Res<Page> {
         @if users.is_empty() { (ui.empty_state("No user matches").link("Show everyone", "/users")) }
         @else { (table) }
     };
+    // The status links keep a role filter, and so the search does too (it keeps every key
+    // a filter link sets).
+    let with_role = |href: &str| match (role, href.contains('?')) {
+        (0, _) => href.to_string(),
+        (_, true) => format!("{href}&role={role}"),
+        (_, false) => format!("{href}?role={role}"),
+    };
+    let hrefs = ["/users", "/users?status=active", "/users?status=suspended"].map(with_role);
     let list = ui
         .list_page("Users")
         .description("Everyone who can sign in.")
         .search("Search users")
-        .filter("All", "/users")
+        .filter("All", &hrefs[0])
         .badge(all)
-        .filter("Active", "/users?status=active")
+        .filter("Active", &hrefs[1])
         .badge(active)
-        .filter("Suspended", "/users?status=suspended")
-        .badge(all - active)
+        .filter("Suspended", &hrefs[2])
+        .badge(all - active);
+    // Reached from a role's count on the Roles page: one more link, back to every role.
+    let list = if role == 0 {
+        list
+    } else {
+        list.filter("Every role", "/users")
+    };
+    let list = list
         .count(&count)
         .actions(ui.link_button("New user", "/users/new").primary().render())
         .body(body);
@@ -85,6 +100,11 @@ async fn check(db: &Db, posted: &Posted, id: i64) -> Res<Vec<(&'static str, &'st
         errors.push(("email", "Enter an email address."));
     } else if db::email_taken(db, &email, id).await? {
         errors.push(("email", "Another user has this address."));
+    }
+    // A role deleted since the form was opened, or an id the form never offered.
+    let role = posted.get("role").parse().unwrap_or(0);
+    if !db::role_exists(db, role).await? {
+        errors.push(("role", "Choose a role from the list."));
     }
     if id == 0 && posted.get("password").len() < 12 {
         errors.push(("password", "Use at least 12 characters."));

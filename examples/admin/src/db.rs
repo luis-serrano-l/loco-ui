@@ -122,14 +122,14 @@ fn user(r: UserRow) -> User {
     }
 }
 
-/// Users whose name or email holds `q`, with `status` ("active", "suspended" or "" for
-/// both) and the role `role` (0 for any), by name.
+/// Users whose name or email holds `q` (as text: `%` and `_` are themselves), with `status`
+/// ("active", "suspended", anything else for both) and the role `role` (0 for any), by name.
 pub async fn users(db: &Db, q: &str, status: &str, role: i64) -> Result<Vec<User>, sqlx::Error> {
     let rows: Vec<UserRow> = sqlx::query_as(
         "SELECT u.id, u.name, u.email, u.role_id, r.name, u.active, u.created_at
          FROM users u JOIN roles r ON r.id = u.role_id
-         WHERE (?1 = '' OR u.name LIKE '%' || ?1 || '%' OR u.email LIKE '%' || ?1 || '%')
-           AND (?2 = '' OR u.active = (?2 = 'active'))
+         WHERE (instr(lower(u.name), lower(?1)) > 0 OR instr(lower(u.email), lower(?1)) > 0)
+           AND (?2 NOT IN ('active', 'suspended') OR u.active = (?2 = 'active'))
            AND (?3 = 0 OR u.role_id = ?3)
          ORDER BY u.name",
     )
@@ -139,6 +139,14 @@ pub async fn users(db: &Db, q: &str, status: &str, role: i64) -> Result<Vec<User
     .fetch_all(db)
     .await?;
     Ok(rows.into_iter().map(user).collect())
+}
+
+/// Whether there is a role with this id.
+pub async fn role_exists(db: &Db, id: i64) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM roles WHERE id = ?1)")
+        .bind(id)
+        .fetch_one(db)
+        .await
 }
 
 /// How many users there are: all, and the active ones.
@@ -339,7 +347,7 @@ pub async fn log(db: &Db, actor: &str, action: &str, target: &str) -> Result<(),
 pub async fn audit(db: &Db, q: &str, action: &str) -> Result<Vec<Entry>, sqlx::Error> {
     let rows: Vec<(String, String, String, String)> = sqlx::query_as(
         "SELECT at, actor, action, target FROM audit
-         WHERE (?1 = '' OR actor LIKE '%' || ?1 || '%' OR target LIKE '%' || ?1 || '%')
+         WHERE (instr(lower(actor), lower(?1)) > 0 OR instr(lower(target), lower(?1)) > 0)
            AND (?2 = '' OR action = ?2)
          ORDER BY id DESC LIMIT 200",
     )

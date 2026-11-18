@@ -19,6 +19,8 @@ use loco_ui::prelude::*;
 use crate::{Db, Res, db};
 
 const COOKIE: &str = "admin-session";
+/// What the stand-in hash for unknown addresses is made from; nobody's password.
+const SEED_UNUSED: &str = "no account has this password";
 
 /// The Argon2id hash of `password`, with a fresh salt. Empty when hashing fails, which no
 /// password verifies against.
@@ -114,9 +116,16 @@ async fn signin(ui: Ui, State(db): State<Db>, posted: Posted) -> Res<Result<Redi
     let found = db::credentials(&db, &email).await?;
     // The same message whether the address is unknown, the password wrong or the account
     // suspended, so the form does not say which addresses have accounts.
-    let Some((id, _, _)) =
-        found.filter(|(_, hash, active)| *active && verify(hash, posted.get("password")))
-    else {
+    // The password is checked even when no active account has the address (against a hash
+    // nothing matches), so the time the answer takes does not say which addresses do.
+    static NOBODY: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    let account = found.filter(|(_, _, active)| *active);
+    let hash = account.as_ref().map_or_else(
+        || NOBODY.get_or_init(|| hash(SEED_UNUSED)).as_str(),
+        |(_, hash, _)| hash.as_str(),
+    );
+    let right = verify(hash, posted.get("password"));
+    let Some((id, _, _)) = account.filter(|_| right) else {
         db::log(&db, &email, "failed sign-in", "").await?;
         let values = [("email".to_string(), email)];
         return Ok(Err(page(
